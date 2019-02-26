@@ -6,9 +6,9 @@
  */
 
 #include "ros/ros.h"
-#include "std_msgs/Float64.h"
+#include "imu_gnss_localizer/Distance.h"
 #include "sensor_msgs/Imu.h"
-#include "imu_gnss_localizer/data.h"
+#include "imu_gnss_localizer/VelocitySF.h"
 
 ros::Publisher pub;
 
@@ -27,11 +27,11 @@ float pVelocity = 0.0;
 float Distance = 0.0;
 float Distance_Last = 0.0;
 
-std_msgs::Float64 p_msg;
+imu_gnss_localizer::Distance p_msg;
 
-void receive_VelocitySF(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
-    pVelocity = msg->EstimateValue;
+    pVelocity = msg->Correction_Velocity;
 
 }
 
@@ -43,13 +43,15 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
-    Distance = Distance_Last + pVelocity * ( Time - Time_Last );
+    if(count > 1){
+      Distance = Distance_Last + pVelocity * ( Time - Time_Last );
 
-    p_msg.data = Distance;
-    pub.publish(p_msg);
+      p_msg.Distance = Distance;
+      pub.publish(p_msg);
 
-    Time_Last = Time;
-    Distance_Last = Distance;
+      Time_Last = Time;
+      Distance_Last = Distance;
+    }
 
 }
 
@@ -60,7 +62,7 @@ int main(int argc, char **argv){
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  pub = n.advertise<std_msgs::Float64>("/imu_gnss_localizer/Distance", 1000);
+  pub = n.advertise<imu_gnss_localizer::Distance>("/imu_gnss_localizer/Distance", 1000);
 
   ros::spin();
 

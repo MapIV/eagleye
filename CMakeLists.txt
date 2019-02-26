@@ -50,7 +50,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   data.msg
+   VelocitySF.msg
+   YawrateOffset.msg
+   Heading.msg
+   Distance.msg
+   UsrVel_enu.msg
+   Position.msg
  )
 
 ## Generate services in the 'srv' folder
@@ -227,3 +232,6 @@ target_link_libraries(RCalc_Trajectory_compare ${catkin_LIBRARIES})
 
 add_executable(RCalc_Distance src/RCalc_Distance.cpp)
 target_link_libraries(RCalc_Distance ${catkin_LIBRARIES})
+
+add_executable(RCalc_PositionDis src/RCalc_PositionDis.cpp)
+target_link_libraries(RCalc_PositionDis ${catkin_LIBRARIES})

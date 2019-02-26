@@ -5,27 +5,31 @@
  * Ver 1.00 2019/2/7
  */
 
-#include "ros/ros.h"
-#include "geometry_msgs/Twist.h"
-#include "sensor_msgs/Imu.h"
-#include "imu_gnss_localizer/data.h"
-#include <boost/circular_buffer.hpp>
+ #include "ros/ros.h"
+ #include "geometry_msgs/Twist.h"
+ #include "sensor_msgs/Imu.h"
+ #include "imu_gnss_localizer/VelocitySF.h"
+ #include "imu_gnss_localizer/Heading.h"
+ #include "imu_gnss_localizer/YawrateOffset.h"
+ #include <boost/circular_buffer.hpp>
+ #include <math.h>
 
 ros::Publisher pub;
 
 bool flag_YawrateOffsetEstRaw, flag_YawrateOffsetEst, flag_Offset_Start, flag_GaDRaw, flag_Est;
+int i = 0;
 int I_flag = 0;
 int count = 0;
 int I_counter = 0;
 int GPSTime_Last, GPSTime;
 int ESTNUM_Offset = 0;
-float pi = 3.141592653589793;
 double IMUTime;
 double IMUfrequency = 100; //IMU Hz
 double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
+float sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
 float ESTNUM_MIN = 1500;
 float ESTNUM_MAX = 25000; //1st = 14000 2nd = 25000
 float ESTNUM_K = 1.0/50/2.5/2.0; //original = 1.0/50
@@ -39,7 +43,10 @@ float Yawrate = 0.0;
 float Correction_Velocity = 0.0;
 std::size_t length_index;
 
-imu_gnss_localizer::data p_msg;
+std::size_t length_index_inv_up;
+std::size_t length_index_inv_down;
+
+imu_gnss_localizer::YawrateOffset p_msg;
 boost::circular_buffer<double> pTime(ESTNUM_MAX);
 boost::circular_buffer<float> pYawrate(ESTNUM_MAX);
 boost::circular_buffer<float> pHeading(ESTNUM_MAX);
@@ -47,22 +54,22 @@ boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
 boost::circular_buffer<bool> pflag_GaDRaw(ESTNUM_MAX);
 boost::circular_buffer<float> pYawrateOffset_Stop(ESTNUM_MAX);
 
-void receive_VelocitySF(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
-  Correction_Velocity = msg->EstimateValue;
-
-}
-
-void receive_YawrateOffsetStop(const imu_gnss_localizer::data::ConstPtr& msg){
-
-  YawrateOffset_Stop = msg->EstimateValue;
+  Correction_Velocity = msg->Correction_Velocity;
 
 }
 
-void receive_Heading(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_YawrateOffsetStop(const imu_gnss_localizer::YawrateOffset::ConstPtr& msg){
 
-  Heading = fmod( msg->EstimateValue + 2*pi , 2*pi ) ;
-  flag_GaDRaw = msg->EstFlag;
+  YawrateOffset_Stop = msg->YawrateOffset;
+
+}
+
+void receive_Heading(const imu_gnss_localizer::Heading::ConstPtr& msg){
+
+  Heading = fmod( msg->Heading_angle + 2*M_PI , 2*M_PI ) ;
+  flag_GaDRaw = msg->flag_EstRaw;
 
 }
 
@@ -118,7 +125,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     if(flag_Est == true){
 
       //The role of "find function" in MATLAB !Suspect!
-      for(int i = 0; i < ESTNUM_Offset; i++){
+      for(i = 0; i < ESTNUM_Offset; i++){
         if(pVelocity[i] > TH_VEL_EST){
             pindex_vel.push_back(i);
         }
@@ -139,7 +146,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
           std::vector<float> ppHeading(ESTNUM_Offset,0);
 
-          for(int i = 0; i < ESTNUM_Offset; i++){
+          for(i = 0; i < ESTNUM_Offset; i++){
             if(i > 0){
               ppHeading[i] = ppHeading[i-1] + pYawrate[i] * (pTime[i] - pTime[i-1]);
             }
@@ -152,58 +159,58 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
             std::vector<float> index_inv_up;
             std::vector<float> index_inv_down;
 
-            for(int i = 0; i < ESTNUM_Offset; i++){
+            for(i = 0; i < ESTNUM_Offset; i++){
             baseHeading.push_back(pHeading[index[length_index-1]] - ppHeading[index[length_index-1]] + ppHeading[i]);
             }
 
-            for(int i = 0; i < length_index; i++){
+            for(i = 0; i < length_index; i++){
             pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
             }
 
             //The role of "find function" in MATLAB !Suspect!
-            for(int i = 0; i < length_index; i++){
-              if(pdiff[i] > pi/2.0){
+            for(i = 0; i < length_index; i++){
+              if(pdiff[i] > M_PI/2.0){
                   index_inv_up.push_back(i);
               }
-              if(pdiff[i] < -pi/2.0){
+              if(pdiff[i] < -M_PI/2.0){
                   index_inv_down.push_back(i);
               }
             }
 
-            std::size_t length_index_inv_up = std::distance(index_inv_up.begin(), index_inv_up.end());
-            std::size_t length_index_inv_down = std::distance(index_inv_down.begin(), index_inv_down.end());
+            length_index_inv_up = std::distance(index_inv_up.begin(), index_inv_up.end());
+            length_index_inv_down = std::distance(index_inv_down.begin(), index_inv_down.end());
 
             if(length_index_inv_up != 0){
-              for(int i = 0; i < length_index_inv_up; i++){
-                pHeading[index[index_inv_up[i]]] = pHeading[index[index_inv_up[i]]] + 2.0*pi;
+              for(i = 0; i < length_index_inv_up; i++){
+                pHeading[index[index_inv_up[i]]] = pHeading[index[index_inv_up[i]]] + 2.0*M_PI;
               }
             }
 
             if(length_index_inv_down != 0){
-              for(int i = 0; i < length_index_inv_down; i++){
-                pHeading[index[index_inv_down[i]]] = pHeading[index[index_inv_down[i]]] - 2.0*pi;
+              for(i = 0; i < length_index_inv_down; i++){
+                pHeading[index[index_inv_down[i]]] = pHeading[index[index_inv_down[i]]] - 2.0*M_PI;
               }
             }
 
             length_index = std::distance(index.begin(), index.end());
 
             baseHeading.clear();
-            for(int i = 0; i < ESTNUM_Offset; i++){
+            for(i = 0; i < ESTNUM_Offset; i++){
             baseHeading.push_back(pHeading[index[length_index-1]] - ppHeading[index[length_index-1]] + ppHeading[i]);
             }
 
             pdiff.clear();
-            for(int i = 0; i < length_index; i++){
+            for(i = 0; i < length_index; i++){
             pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
             }
 
-            for(int i = 0; i < length_index; i++){
+            for(i = 0; i < length_index; i++){
             ptime.push_back(pTime[index[i]] - pTime[index[0]]);
             }
 
             //Least-square method
-            float sum_xy = 0, sum_x = 0, sum_y = 0, sum_x2 = 0;
-            for(int i = 0; i < length_index; i++) {
+            sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
+            for(i = 0; i < length_index; i++) {
               sum_xy += ptime[i] * pdiff[i];
               sum_x += ptime[i];
               sum_y += pdiff[i];
@@ -243,9 +250,9 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     flag_YawrateOffsetEst = false;
   }
 
-  p_msg.EstimateValue = YawrateOffset_Est;
-  p_msg.Flag = flag_YawrateOffsetEst;
-  p_msg.EstFlag = flag_YawrateOffsetEstRaw;
+  p_msg.YawrateOffset = YawrateOffset_Est;
+  p_msg.flag_Est = flag_YawrateOffsetEst;
+  p_msg.flag_EstRaw = flag_YawrateOffsetEstRaw;
   pub.publish(p_msg);
 
   Time_Last = Time;
@@ -262,7 +269,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/Heading2nd", 1000, receive_Heading);
   ros::Subscriber sub4 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  pub = n.advertise<imu_gnss_localizer::data>("/imu_gnss_localizer/YawrateOffset2nd", 1000);
+  pub = n.advertise<imu_gnss_localizer::YawrateOffset>("/imu_gnss_localizer/YawrateOffset2nd", 1000);
 
   ros::spin();
 

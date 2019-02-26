@@ -9,16 +9,20 @@
 #include "geometry_msgs/Pose.h"
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Imu.h"
-#include "imu_gnss_localizer/data.h"
+#include "imu_gnss_localizer/VelocitySF.h"
+#include "imu_gnss_localizer/Heading.h"
+#include "imu_gnss_localizer/YawrateOffset.h"
+#include "imu_gnss_localizer/UsrVel_enu.h"
+#include <math.h>
 
 ros::Publisher pub1;
 ros::Publisher pub2;
 ros::Publisher pub3;
+ros::Publisher pub4;
 
 bool flag_Est, flag_SF;
 int count = 0;
 int T_count = 0;
-float pi = 3.141592653589793;
 double IMUTime;
 double IMUfrequency = 100; //IMU Hz
 double IMUperiod = 1/IMUfrequency;
@@ -66,6 +70,7 @@ float initpHeading = 0.0;
 geometry_msgs::Pose p_msg1;
 geometry_msgs::Pose p_msg2;
 geometry_msgs::Pose p_msg3;
+imu_gnss_localizer::UsrVel_enu p2_msg;
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
@@ -73,23 +78,23 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
 }
 
-void receive_YawrateOffsetStop(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_YawrateOffsetStop(const imu_gnss_localizer::YawrateOffset::ConstPtr& msg){
 
-  YawrateOffset_Stop = msg->EstimateValue;
-
-}
-
-void receive_VelocitySF(const imu_gnss_localizer::data::ConstPtr& msg){
-
-  pVelocity = msg->EstimateValue;
-  flag_SF = msg->Flag;
+  YawrateOffset_Stop = msg->YawrateOffset;
 
 }
 
-void receive_Heading3rd(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
-  pHeading = msg->EstimateValue;
-  flag_Est = msg->Flag;
+  pVelocity = msg->Correction_Velocity;
+  flag_SF = msg->flag_Est;
+
+}
+
+void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg){
+
+  pHeading = msg->Heading_angle;
+  flag_Est = msg->flag_Est;
 
 }
 
@@ -115,9 +120,13 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     Est_velE = sin(pHeading) * pVelocity;
     Est_velN = cos(pHeading) * pVelocity;
 
+    p2_msg.VelE = Est_velE;
+    p2_msg.VelN = Est_velN;
+    p2_msg.VelU = Est_velU;
+
     if(T_count ==2){
-    pHeading_YOS_only = fmod(pHeading_YOS_only_Last  + (Yawrate + YawrateOffset_Stop) * ( Time - Time_Last ) , 2*pi)  ;
-    pHeading_without_logic = fmod(pHeading_without_logic_Last  + Yawrate * ( Time - Time_Last ) , 2*pi );
+    pHeading_YOS_only = fmod(pHeading_YOS_only_Last  + (Yawrate + YawrateOffset_Stop) * ( Time - Time_Last ) , 2*M_PI)  ;
+    pHeading_without_logic = fmod(pHeading_without_logic_Last  + Yawrate * ( Time - Time_Last ) , 2*M_PI );
     }
 
     Est_velE_YOS_only = sin(pHeading_YOS_only) * Velocity;
@@ -162,6 +171,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     p_msg3.orientation.z = pHeading_without_logic;
     pub3.publish(p_msg3);
 
+    pub4.publish(p2_msg);
+
     Time_Last = Time;
     Trajectory_x_Last = Trajectory_x;
     Trajectory_y_Last = Trajectory_y;
@@ -193,6 +204,7 @@ int main(int argc, char **argv){
   pub1 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory", 1000);
   pub2 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory_YOS_only", 1000);
   pub3 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory_without_logic", 1000);
+  pub4 = n.advertise<imu_gnss_localizer::UsrVel_enu>("/imu_gnss_localizer/UsrVel_enu", 1000);
 
   ros::spin();
 

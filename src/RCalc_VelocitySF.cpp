@@ -8,12 +8,13 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "ublox_msgs/NavPVT7.h"
-#include "imu_gnss_localizer/data.h"
+#include "imu_gnss_localizer/VelocitySF.h"
 #include <boost/circular_buffer.hpp>
 
 ros::Publisher pub;
 
 bool flag_GNSS, flag_SFRaw, flag_SF_Start, flag_SF;
+int i = 0;
 int count = 0;
 int GPSTime_Last;
 int GPSTime;
@@ -33,7 +34,9 @@ float Velocity_SF = 0.0;
 float Correction_Velocity = 0.0;
 float SF_Last = 0.0;
 
-imu_gnss_localizer::data p_msg;
+std::size_t length_index;
+
+imu_gnss_localizer::VelocitySF p_msg;
 boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
 boost::circular_buffer<float> pVelocity_Doppler(ESTNUM_MAX);
 boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
@@ -44,7 +47,7 @@ void receive_Gnss(const ublox_msgs::NavPVT7::ConstPtr& msg){
   velN = (float)msg->velN / 1000; //unit [mm/s] => [m/s]
   velE = (float)msg->velE / 1000; //unit [mm/s] => [m/s]
   velD = (float)msg->velD / 1000; //unit [mm/s] => [m/s]
-  Velocity_Doppler = sqrt((velE * velE) + (velN * velN)) ; //unit [m/s]
+  Velocity_Doppler = sqrt((velE * velE) + (velN * velN) + (velD * velD)); //unit [m/s]
 
   //ROS_INFO("Velocity_Doppler = %f [m/s]" , Velocity_Doppler );
 
@@ -83,7 +86,7 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
   if (ESTNUM_SF > ESTNUM_MIN && pflag_GNSS[ESTNUM_SF-1] == true && pVelocity[ESTNUM_SF-1] > TH_VEL_EST){
 
     //The role of "find function" in MATLAB !Suspect!
-    for(int i = 0; i < ESTNUM_SF; i++){
+    for(i = 0; i < ESTNUM_SF; i++){
       if(pflag_GNSS[i] == true){
           pindex_GNSS.push_back(i);
       }
@@ -97,12 +100,12 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
                      , pindex_vel.begin(), pindex_vel.end()
                      , inserter(index, index.end()));
 
-      std::size_t length_index = std::distance(index.begin(), index.end());
+      length_index = std::distance(index.begin(), index.end());
 
     if(length_index > ESTNUM_SF * ESTNUM_ESF){
 
     //The role of " ./ " in MATLAB & Extract only necessary data (Processing different from MATLAB version)
-          for(int i = 0; i < length_index; i++){
+          for(i = 0; i < length_index; i++){
               pSF.push_back(pVelocity_Doppler[index[i]] / pVelocity[index[i]]);
           }
 
@@ -124,7 +127,7 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
         float *t = new float[size];
         std::copy(pSF.begin(), pSF.end(), t);
         std::sort(t, &t[size]);
-        float Velocity_SFRaw = size%2 ? t[size/2] : (t[(size/2)-1]+t[size/2])/2;
+        Velocity_SFRaw = size%2 ? t[size/2] : (t[(size/2)-1]+t[size/2])/2;
         delete[] t;
 
       //ROS_INFO("Velocity_SF = %f", Velocity_SFRaw );
@@ -144,9 +147,10 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
       Correction_Velocity = Velocity * Velocity_SFInit;
     }
 
-    p_msg.EstimateValue = Correction_Velocity;
-    p_msg.Flag = flag_SF;
-    p_msg.EstFlag = flag_SFRaw;
+    p_msg.Correction_Velocity = Correction_Velocity;
+    p_msg.Scale_Factor = Velocity_SF;
+    p_msg.flag_Est = flag_SF;
+    p_msg.flag_EstRaw = flag_SFRaw;
     pub.publish(p_msg);
 
     SF_Last = Velocity_SF;
@@ -161,7 +165,7 @@ int main(int argc, char **argv){
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
   ros::Subscriber sub2 = n.subscribe("/ublox_gps/navpvt", 1000, receive_Gnss);
-  pub = n.advertise<imu_gnss_localizer::data>("/imu_gnss_localizer/VelocitySF", 1000);
+  pub = n.advertise<imu_gnss_localizer::VelocitySF>("/imu_gnss_localizer/VelocitySF", 1000);
 
   ros::spin();
 

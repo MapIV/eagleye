@@ -8,9 +8,13 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Pose.h"
 #include "sensor_msgs/Imu.h"
-#include "imu_gnss_localizer/data.h"
+#include "imu_gnss_localizer/VelocitySF.h"
+#include "imu_gnss_localizer/Heading.h"
+#include "imu_gnss_localizer/YawrateOffset.h"
+#include "imu_gnss_localizer/UsrVel_enu.h"
 
-ros::Publisher pub;
+ros::Publisher pub1;
+ros::Publisher pub2;
 
 bool flag_Est, flag_SF;
 int count = 0;
@@ -33,19 +37,20 @@ float Trajectory_z_Last = 0.0;
 float pVelocity = 0.0;
 float pHeading = 0.0;
 
-geometry_msgs::Pose p_msg;
+geometry_msgs::Pose p1_msg;
+imu_gnss_localizer::UsrVel_enu p2_msg;
 
-void receive_VelocitySF(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
-  pVelocity = msg->EstimateValue;
-  flag_SF = msg->Flag;
+  pVelocity = msg->Correction_Velocity;
+  flag_SF = msg->flag_Est;
 
 }
 
-void receive_Heading3rd(const imu_gnss_localizer::data::ConstPtr& msg){
+void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg){
 
-  pHeading = msg->EstimateValue;
-  flag_Est = msg->Flag;
+  pHeading = msg->Heading_angle;
+  flag_Est = msg->flag_Est;
 
 }
 
@@ -67,7 +72,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     Est_velE = sin(pHeading) * pVelocity;
     Est_velN = cos(pHeading) * pVelocity;
 
-    if(T_count == 2 && pVelocity > 0){
+    p2_msg.VelE = Est_velE;
+    p2_msg.VelN = Est_velN;
+    p2_msg.VelU = Est_velU;
+
+    if(T_count == 2 && pVelocity > 0 && count > 1){
       Trajectory_x = Trajectory_x_Last + Est_velE * ( Time - Time_Last );
       Trajectory_y = Trajectory_y_Last + Est_velN * ( Time - Time_Last );
     }
@@ -76,10 +85,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
       Trajectory_y = Trajectory_y_Last;
     }
 
-    p_msg.position.x = Trajectory_x;
-    p_msg.position.y = Trajectory_y;
-    p_msg.orientation.z = pHeading;
-    pub.publish(p_msg);
+    p1_msg.position.x = Trajectory_x;
+    p1_msg.position.y = Trajectory_y;
+    p1_msg.orientation.z = pHeading;
+    pub1.publish(p1_msg);
+    pub2.publish(p2_msg);
 
     Time_Last = Time;
     Trajectory_x_Last = Trajectory_x;
@@ -96,7 +106,8 @@ int main(int argc, char **argv){
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
   ros::Subscriber sub3 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  pub = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory", 1000);
+  pub1 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory", 1000);
+  pub2 = n.advertise<imu_gnss_localizer::UsrVel_enu>("/imu_gnss_localizer/UsrVel_enu", 1000);
 
   ros::spin();
 
