@@ -1,9 +1,11 @@
 imu_gnss_localizer
 
 Overview------------------------------------------------------------------------
+
 It is a program that combines imu and GNSS to perform highly accurate self position estimation.
 
 Required input------------------------------------------------------------------
+
 IMU(Recommended IMU Analog Devices adis16475)
 topicname   /imu/data_raw
 message     sensor_msgs/Imu
