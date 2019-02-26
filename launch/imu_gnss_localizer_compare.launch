@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <node pkg="imu_gnss_localizer" name="RCalc_VelocitySF" type="RCalc_VelocitySF" />
+  <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffsetStop" type="RCalc_YawrateOffsetStop" />
+  <node pkg="imu_gnss_localizer" name="RCalc_Heading1st" type="RCalc_Heading1st" />
+  <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffset1st" type="RCalc_YawrateOffset1st" />
+  <node pkg="imu_gnss_localizer" name="RCalc_Heading2nd" type="RCalc_Heading2nd" />
+  <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffset2nd" type="RCalc_YawrateOffset2nd" />
+  <node pkg="imu_gnss_localizer" name="RCalc_Heading3rd" type="RCalc_Heading3rd" />
+  <node pkg="imu_gnss_localizer" name="RCalc_Distance" type="RCalc_Distance" />
+  <node pkg="imu_gnss_localizer" name="RCalc_Trajectory" type="RCalc_Trajectory_compare" />
+
+  <node pkg="prius_driver" name="Vehicle_CAN_decoder" type="Vehicle_CAN_decoder" />
+
+</launch>

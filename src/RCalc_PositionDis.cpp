@@ -80,7 +80,6 @@ std::size_t length_pindex_Raw;
 std::size_t length_pDistance;
 std::size_t length_index_Raw;
 
-//dynamic array
 std::vector<bool> pflag_GNSS;
 std::vector<float> pUsrPos_enu_x;
 std::vector<float> pUsrPos_enu_y;
@@ -141,19 +140,16 @@ void receive_UsrPos_enu(const geometry_msgs::PoseStamped::ConstPtr& msg){
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
-    struct timespec startTime, endTime, sleepTime;
-    clock_gettime(CLOCK_REALTIME, &startTime);
-    sleepTime.tv_sec = 0;
-    sleepTime.tv_nsec = 123;
+    //struct timespec startTime, endTime, sleepTime;
 
     ++count;
-
-    if (0 == fmod(count,2)){ //50Hz用
 
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
     Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
+
+    if (0 == fmod(count,2)){ //50Hz用
 
     if (Distance_BUFNUM < Distance_BUFNUM_MAX){
       ++Distance_BUFNUM;
@@ -180,6 +176,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrVel_enu_E = msg->VelE;
     UsrVel_enu_N = msg->VelN;
     UsrVel_enu_U = msg->VelU;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
     //data buffer generate
     pDistance.push_back(Distance);
@@ -249,7 +247,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
     if(tmp1 > 0){
       pflag_GNSS.erase(pflag_GNSS.begin(),pflag_GNSS.begin()+abs(tmp1));
-        }
+      }
     else if(tmp1 < 0){
       for(i = 0; i < abs(tmp1); i++){
       pflag_GNSS.insert(pflag_GNSS.begin(),false);
@@ -349,9 +347,13 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
       length_index = std::distance(index.begin(), index.end());
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (increase = 0.0015, decrease = 0.0025 )
+
     if(length_index_Raw > 0){
 
-      if(pDistance[Distance_BUFNUM-1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST && index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count,5.0 )){
+      if(pDistance[Distance_BUFNUM-1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST && index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count,10.0 )){
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
           if(length_index > length_pindex_vel * TH_CALC_MINNUM){
 
@@ -366,6 +368,16 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
               tTrajectory_z[i] = tTrajectory_z[i-1] + pUsrVel_enu_U[i] * (pTime[i]-pTime[i-1]);
               }
             }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0005~0.0015)
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
+
+            /*
+            clock_gettime(CLOCK_REALTIME, &startTime);
+            sleepTime.tv_sec = 0;
+            sleepTime.tv_nsec = 123;
+            */
 
             while(1){
 
@@ -452,6 +464,22 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
             length_index = std::distance(index.begin(), index.end());
             length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
+/*
+            clock_gettime(CLOCK_REALTIME, &endTime);
+
+            if (endTime.tv_nsec < startTime.tv_nsec) {
+              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec - 1
+                      ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec , ESTNUM, flag_EstRaw);
+            }
+            else {
+              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec
+                      ,endTime.tv_nsec - startTime.tv_nsec , ESTNUM, flag_EstRaw);
+            }
+*/
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0015~0.2)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
+
             if(length_index >= length_pindex_vel * TH_EST_GIVEUP_NUM){
 
               if(index[length_index-1] == ESTNUM){
@@ -475,6 +503,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
               flag_EstRaw = false;
             }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0000005)
+
           }
 
         }
@@ -485,8 +515,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
           flag_EstRaw = false;
         }
 
-
       }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
     if(flag_EstRaw == true){
       UsrPos_Est_enu_x = UsrPos_EstRaw_enu_x;
@@ -528,16 +559,10 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrPos_Est_enu_y_Last = UsrPos_Est_enu_y;
     UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
 
-    clock_gettime(CLOCK_REALTIME, &endTime);
+    ROS_INFO("ESTNUM = %d index_Dist %d ",ESTNUM,index_Dist);
 
-    if (endTime.tv_nsec < startTime.tv_nsec) {
-      ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec - 1
-            ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec , ESTNUM, flag_EstRaw);
-    }
-    else {
-      ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec
-            ,endTime.tv_nsec - startTime.tv_nsec , ESTNUM, flag_EstRaw);
-    }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (noFlag = 0.00003,Flag = 0.000009)
+
   } //50Hz用
 }
 
