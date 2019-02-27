@@ -21,7 +21,7 @@ ros::Publisher pub1;
 ros::Publisher pub2;
 
 bool flag_GNSS, flag_Est, flag_EstRaw, flag_Start, flag_Est_Raw_Heading;
-int tmp1 = 0, tmp2 = 0, tmp3 = 0, tmp4 = 0, tmp5 = 0, tmp6 = 0, tmp7 = 0, tmp8 = 0, tmp9 = 0;
+int length_diff;
 int i = 0;
 int ESTNUM = 0;
 int count = 0;
@@ -43,8 +43,8 @@ float Distance_BUFNUM_MAX = 50000;//仮の値
 float TH_VEL_EST = 10/3.6;
 float ESTDIST = 500;
 float TH_POSMAX = 3.0;
-float TH_CALC_MINNUM = 1.0/20/2.5; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
-float TH_EST_GIVEUP_NUM = 1.0/100;
+float TH_CALC_MINNUM = 1.0/20/2.5/5; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
+float TH_EST_GIVEUP_NUM = 1.0/100/5;
 float UsrPos_enu_x = 0.0;
 float UsrPos_enu_y = 0.0;
 float UsrPos_enu_z = 0.0;
@@ -80,6 +80,9 @@ std::size_t length_pindex_Raw;
 std::size_t length_pDistance;
 std::size_t length_index_Raw;
 
+boost::circular_buffer<float> pDistance(Distance_BUFNUM_MAX);
+boost::circular_buffer<bool> pindex_Raw(Distance_BUFNUM_MAX);
+
 std::vector<bool> pflag_GNSS;
 std::vector<float> pUsrPos_enu_x;
 std::vector<float> pUsrPos_enu_y;
@@ -89,6 +92,7 @@ std::vector<float> pUsrVel_enu_N;
 std::vector<float> pUsrVel_enu_U;
 std::vector<float> pVelocity;
 std::vector<double> pTime;
+
 std::vector<float> basepos_x;
 std::vector<float> basepos_y;
 std::vector<float> basepos_z;
@@ -103,13 +107,14 @@ std::vector<float> pdiff_y;
 std::vector<float> pdiff_z;
 std::vector<float> pdiff;
 
-boost::circular_buffer<float> pDistance(Distance_BUFNUM_MAX);
-boost::circular_buffer<bool> pindex_Raw(Distance_BUFNUM_MAX);
-
 std::vector<float>::iterator max;
 
 geometry_msgs::Pose p1_msg;
 imu_gnss_localizer::Position p2_msg;
+
+//debug
+int debug_count = 0;
+
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
@@ -140,7 +145,7 @@ void receive_UsrPos_enu(const geometry_msgs::PoseStamped::ConstPtr& msg){
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
-    //struct timespec startTime, endTime, sleepTime;
+    struct timespec startTime, endTime, sleepTime;
 
     ++count;
 
@@ -150,6 +155,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     //ROS_INFO("Time = %lf" , Time);
 
     if (0 == fmod(count,2)){ //50Hz用
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buffer Start
 
     if (Distance_BUFNUM < Distance_BUFNUM_MAX){
       ++Distance_BUFNUM;
@@ -161,9 +168,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     //GNSS receive flag
     if (seq_Last == seq){
       flag_GNSS = false;
-      UsrPos_enu_x = 0;
-      UsrPos_enu_y = 0;
-      UsrPos_enu_z = 0;
+      UsrPos_enu_x = 0.0;
+      UsrPos_enu_y = 0.0;
+      UsrPos_enu_z = 0.0;
     }
     else{
       flag_GNSS = true;
@@ -176,8 +183,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrVel_enu_E = msg->VelE;
     UsrVel_enu_N = msg->VelN;
     UsrVel_enu_U = msg->VelU;
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
     //data buffer generate
     pDistance.push_back(Distance);
@@ -193,14 +198,12 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     pTime.push_back(Time);
 
     //dynamic array
-    std::vector<int> pindex_Dist;
     std::vector<int> pindex_Est;
     std::vector<int> index_Raw;
     std::vector<int> pindex_GNSS;
     std::vector<int> pindex_vel;
     std::vector<int> index;
 
-    //std::size_t length_pflag_GNSS = std::distance(pflag_GNSS.begin(), pflag_GNSS.end());
     length_pindex_Raw = std::distance(pindex_Raw.begin(), pindex_Raw.end());
     length_pDistance = std::distance(pDistance.begin(), pDistance.end());
 
@@ -216,113 +219,38 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     //The role of "find ( ,1) function" in MATLAB !Suspect!
     for(i = 0; i < Distance_BUFNUM; i++){
       if(pDistance[i] > pDistance[Distance_BUFNUM-1] - ESTDIST){
-          pindex_Dist.push_back(i);
+          index_Dist = i ;
+          break;
       }
     }
 
-    index_Dist = pindex_Dist[0];
+    ESTNUM = Distance_BUFNUM - index_Dist;
 
-    ESTNUM = Distance_BUFNUM - index_Dist; //Offline => count - index_Dist
-    //ROS_INFO("ESTNUM %d",ESTNUM);
-
-    length_pflag_GNSS = std::distance(pflag_GNSS.begin(), pflag_GNSS.end());
-    length_pVelocity = std::distance(pVelocity.begin(), pVelocity.end());
-    length_pUsrPos_enu_x = std::distance(pUsrPos_enu_x.begin(), pUsrPos_enu_x.end());
-    length_pUsrPos_enu_y = std::distance(pUsrPos_enu_y.begin(), pUsrPos_enu_y.end());
-    length_pUsrPos_enu_z = std::distance(pUsrPos_enu_z.begin(), pUsrPos_enu_z.end());
-    length_pUsrVel_enu_E = std::distance(pUsrVel_enu_E.begin(), pUsrVel_enu_E.end());
-    length_pUsrVel_enu_N = std::distance(pUsrVel_enu_N.begin(), pUsrVel_enu_N.end());
-    length_pUsrVel_enu_U = std::distance(pUsrVel_enu_U.begin(), pUsrVel_enu_U.end());
     length_pTime = std::distance(pTime.begin(), pTime.end());
+    length_diff = length_pTime - ESTNUM;
 
-    tmp1 = length_pflag_GNSS - ESTNUM;
-    tmp2 = length_pVelocity - ESTNUM;
-    tmp3 = length_pUsrPos_enu_x - ESTNUM;
-    tmp4 = length_pUsrPos_enu_y - ESTNUM;
-    tmp5 = length_pUsrPos_enu_z - ESTNUM;
-    tmp6 = length_pUsrVel_enu_E - ESTNUM;
-    tmp7 = length_pUsrVel_enu_N - ESTNUM;
-    tmp8 = length_pUsrVel_enu_U - ESTNUM;
-    tmp9 = length_pTime - ESTNUM;
-
-    if(tmp1 > 0){
-      pflag_GNSS.erase(pflag_GNSS.begin(),pflag_GNSS.begin()+abs(tmp1));
+    if(length_diff > 0){
+      pTime.erase(pTime.begin(),pTime.begin()+abs(length_diff));
+      pflag_GNSS.erase(pflag_GNSS.begin(),pflag_GNSS.begin()+abs(length_diff));
+      pVelocity.erase(pVelocity.begin(),pVelocity.begin()+abs(length_diff));
+      pUsrPos_enu_x.erase(pUsrPos_enu_x.begin(),pUsrPos_enu_x.begin()+abs(length_diff));
+      pUsrPos_enu_y.erase(pUsrPos_enu_y.begin(),pUsrPos_enu_y.begin()+abs(length_diff));
+      pUsrPos_enu_z.erase(pUsrPos_enu_z.begin(),pUsrPos_enu_z.begin()+abs(length_diff));
+      pUsrVel_enu_E.erase(pUsrVel_enu_E.begin(),pUsrVel_enu_E.begin()+abs(length_diff));
+      pUsrVel_enu_N.erase(pUsrVel_enu_N.begin(),pUsrVel_enu_N.begin()+abs(length_diff));
+      pUsrVel_enu_U.erase(pUsrVel_enu_U.begin(),pUsrVel_enu_U.begin()+abs(length_diff));
       }
-    else if(tmp1 < 0){
-      for(i = 0; i < abs(tmp1); i++){
-      pflag_GNSS.insert(pflag_GNSS.begin(),false);
-      }
-    }
-
-    if(tmp2 > 0){
-      pVelocity.erase(pVelocity.begin(),pVelocity.begin()+abs(tmp2));
-    }
-    else if(tmp2 < 0){
-      for(i = 0; i < abs(tmp2); i++){
-      pVelocity.insert(pVelocity.begin(),0);
-      }
-    }
-
-    if(tmp3 > 0){
-      pUsrPos_enu_x.erase(pUsrPos_enu_x.begin(),pUsrPos_enu_x.begin()+abs(tmp3));
-    }
-    else if(tmp3 < 0){
-      for(i = 0; i < abs(tmp3); i++){
-      pUsrPos_enu_x.insert(pUsrPos_enu_x.begin(),0);
-      }
-    }
-
-    if(tmp4 > 0){
-      pUsrPos_enu_y.erase(pUsrPos_enu_y.begin(),pUsrPos_enu_y.begin()+abs(tmp4));
-    }
-    else if(tmp4 < 0){
-      for(i = 0; i < abs(tmp4); i++){
-      pUsrPos_enu_y.insert(pUsrPos_enu_y.begin(),0);
-      }
-    }
-
-    if(tmp5 > 0){
-      pUsrPos_enu_z.erase(pUsrPos_enu_z.begin(),pUsrPos_enu_z.begin()+abs(tmp5));
-    }
-    else if(tmp5 < 0){
-      for(i = 0; i < abs(tmp5); i++){
-      pUsrPos_enu_z.insert(pUsrPos_enu_z.begin(),0);
-      }
-    }
-
-    if(tmp6 > 0){
-      pUsrVel_enu_E.erase(pUsrVel_enu_E.begin(),pUsrVel_enu_E.begin()+abs(tmp6));
-    }
-    else if(tmp6 < 0){
-      for(i = 0; i < abs(tmp6); i++){
-      pUsrVel_enu_E.insert(pUsrVel_enu_E.begin(),0);
-      }
-    }
-
-    if(tmp7 > 0){
-      pUsrVel_enu_N.erase(pUsrVel_enu_N.begin(),pUsrVel_enu_N.begin()+abs(tmp7));
-    }
-    else if(tmp7 < 0){
-      for(i = 0; i < abs(tmp7); i++){
-      pUsrVel_enu_N.insert(pUsrVel_enu_N.begin(),0);
-      }
-    }
-
-    if(tmp8 > 0){
-      pUsrVel_enu_U.erase(pUsrVel_enu_U.begin(),pUsrVel_enu_U.begin()+abs(tmp8));
-    }
-    else if(tmp8 < 0){
-      for(i = 0; i < abs(tmp8); i++){
-      pUsrVel_enu_U.insert(pUsrVel_enu_U.begin(),0);
-      }
-    }
-
-    if(tmp9 > 0){
-      pTime.erase(pTime.begin(),pTime.begin()+abs(tmp9));
-    }
-    else if(tmp9 < 0){
-      for(i = 0; i < abs(tmp9); i++){
+    else if(length_diff < 0){
+      for(i = 0; i < abs(length_diff); i++){
       pTime.insert(pTime.begin(),0);
+      pflag_GNSS.insert(pflag_GNSS.begin(),false);
+      pVelocity.insert(pVelocity.begin(),0);
+      pUsrPos_enu_x.insert(pUsrPos_enu_x.begin(),0);
+      pUsrPos_enu_y.insert(pUsrPos_enu_y.begin(),0);
+      pUsrPos_enu_z.insert(pUsrPos_enu_z.begin(),0);
+      pUsrVel_enu_E.insert(pUsrVel_enu_E.begin(),0);
+      pUsrVel_enu_N.insert(pUsrVel_enu_N.begin(),0);
+      pUsrVel_enu_U.insert(pUsrVel_enu_U.begin(),0);
       }
     }
 
@@ -331,8 +259,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
       if(pflag_GNSS[i] == true){
           pindex_GNSS.push_back(i);
       }
-    }
-      for(i = 0; i < ESTNUM; i++){
       if(pVelocity[i] > TH_VEL_EST){
           pindex_vel.push_back(i);
       }
@@ -347,13 +273,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
       length_index = std::distance(index.begin(), index.end());
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (increase = 0.0015, decrease = 0.0025 )
-
     if(length_index_Raw > 0){
 
       if(pDistance[Distance_BUFNUM-1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST && index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count,10.0 )){
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
           if(length_index > length_pindex_vel * TH_CALC_MINNUM){
 
@@ -369,116 +291,113 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
               }
             }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0005~0.0015)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buffer End
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Est Start
 
-            /*
-            clock_gettime(CLOCK_REALTIME, &startTime);
-            sleepTime.tv_sec = 0;
-            sleepTime.tv_nsec = 123;
-            */
+              clock_gettime(CLOCK_REALTIME, &startTime);
+              sleepTime.tv_sec = 0;
+              sleepTime.tv_nsec = 123;
 
-            while(1){
+              debug_count = 0;
 
-                length_index = std::distance(index.begin(), index.end());
+              while(1){
 
-                basepos_x.clear();
-                basepos_y.clear();
-                basepos_z.clear();
+                  length_index = std::distance(index.begin(), index.end());
 
-                for(i = 0; i < ESTNUM; i++){
-                  basepos_x.push_back(pUsrPos_enu_x[index[length_index-1]] - tTrajectory_x[index[length_index-1]] + tTrajectory_x[i]);
-                  basepos_y.push_back(pUsrPos_enu_y[index[length_index-1]] - tTrajectory_y[index[length_index-1]] + tTrajectory_y[i]);
-                  basepos_z.push_back(pUsrPos_enu_z[index[length_index-1]] - tTrajectory_z[index[length_index-1]] + tTrajectory_z[i]);
-                }
+                  basepos_x.clear();
+                  basepos_y.clear();
+                  basepos_z.clear();
 
-                pdiff2_x.clear();
-                pdiff2_y.clear();
-                pdiff2_z.clear();
+                  for(i = 0; i < ESTNUM; i++){
+                    basepos_x.push_back(pUsrPos_enu_x[index[length_index-1]] - tTrajectory_x[index[length_index-1]] + tTrajectory_x[i]);
+                    basepos_y.push_back(pUsrPos_enu_y[index[length_index-1]] - tTrajectory_y[index[length_index-1]] + tTrajectory_y[i]);
+                    basepos_z.push_back(pUsrPos_enu_z[index[length_index-1]] - tTrajectory_z[index[length_index-1]] + tTrajectory_z[i]);
+                  }
 
-                for(i = 0; i < length_index; i++){
-                  pdiff2_x.push_back(basepos_x[index[i]] - pUsrPos_enu_x[index[i]]);
-                  pdiff2_y.push_back(basepos_y[index[i]] - pUsrPos_enu_y[index[i]]);
-                  pdiff2_z.push_back(basepos_z[index[i]] - pUsrPos_enu_z[index[i]]);
-                }
+                  pdiff2_x.clear();
+                  pdiff2_y.clear();
+                  pdiff2_z.clear();
+                  sum_x = 0.0;
+                  sum_y = 0.0;
+                  sum_z = 0.0;
 
-                sum_x = 0.0;
-                sum_y = 0.0;
-                sum_z = 0.0;
+                  for(i = 0; i < length_index; i++){
+                    pdiff2_x.push_back(basepos_x[index[i]] - pUsrPos_enu_x[index[i]]);
+                    sum_x += pdiff2_x[i];
+                    pdiff2_y.push_back(basepos_y[index[i]] - pUsrPos_enu_y[index[i]]);
+                    sum_y += pdiff2_y[i];
+                    pdiff2_z.push_back(basepos_z[index[i]] - pUsrPos_enu_z[index[i]]);
+                    sum_z += pdiff2_z[i];
+                  }
 
-                for(i = 0; i < length_index; i++){
-                  sum_x += pdiff2_x[i];
-                  sum_y += pdiff2_y[i];
-                  sum_z += pdiff2_z[i];
-                }
+                  tUsrPos_enu_x = pUsrPos_enu_x[index[length_index-1]] - sum_x / length_index;
+                  tUsrPos_enu_y = pUsrPos_enu_y[index[length_index-1]] - sum_y / length_index;
+                  tUsrPos_enu_z = pUsrPos_enu_z[index[length_index-1]] - sum_z / length_index;
 
-                tUsrPos_enu_x = pUsrPos_enu_x[index[length_index-1]] - sum_x / length_index;
-                tUsrPos_enu_y = pUsrPos_enu_y[index[length_index-1]] - sum_y / length_index;
-                tUsrPos_enu_z = pUsrPos_enu_z[index[length_index-1]] - sum_z / length_index;
+                  basepos2_x.clear();
+                  basepos2_y.clear();
+                  basepos2_z.clear();
 
-                basepos2_x.clear();
-                basepos2_y.clear();
-                basepos2_z.clear();
+                  for(i = 0; i < ESTNUM; i++){
+                    basepos2_x.push_back(tUsrPos_enu_x - tTrajectory_x[index[length_index-1]] + tTrajectory_x[i]);
+                    basepos2_y.push_back(tUsrPos_enu_y - tTrajectory_y[index[length_index-1]] + tTrajectory_y[i]);
+                    basepos2_z.push_back(tUsrPos_enu_z - tTrajectory_z[index[length_index-1]] + tTrajectory_z[i]);
+                  }
 
-                for(i = 0; i < ESTNUM; i++){
-                  basepos2_x.push_back(tUsrPos_enu_x - tTrajectory_x[index[length_index-1]] + tTrajectory_x[i]);
-                  basepos2_y.push_back(tUsrPos_enu_y - tTrajectory_y[index[length_index-1]] + tTrajectory_y[i]);
-                  basepos2_z.push_back(tUsrPos_enu_z - tTrajectory_z[index[length_index-1]] + tTrajectory_z[i]);
-                }
+                  pdiff_x.clear();
+                  pdiff_y.clear();
+                  pdiff_z.clear();
 
-                pdiff_x.clear();
-                pdiff_y.clear();
-                pdiff_z.clear();
+                  for(i = 0; i < length_index; i++){
+                    pdiff_x.push_back(basepos2_x[index[i]] - pUsrPos_enu_x[index[i]]);
+                    pdiff_y.push_back(basepos2_y[index[i]] - pUsrPos_enu_y[index[i]]);
+                    pdiff_z.push_back(basepos2_z[index[i]] - pUsrPos_enu_z[index[i]]);
+                  }
 
-                for(i = 0; i < length_index; i++){
-                  pdiff_x.push_back(basepos2_x[index[i]] - pUsrPos_enu_x[index[i]]);
-                  pdiff_y.push_back(basepos2_y[index[i]] - pUsrPos_enu_y[index[i]]);
-                  pdiff_z.push_back(basepos2_z[index[i]] - pUsrPos_enu_z[index[i]]);
-                }
+                  pdiff.clear();
+                  for(i = 0; i < length_index; i++){
+                  pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
+                  //pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i])));
+                  }
 
-                pdiff.clear();
-                for(i = 0; i < length_index; i++){
-                pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
-                }
+                  max = std::max_element(pdiff.begin(), pdiff.end());
+                  index_max = std::distance(pdiff.begin(), max);
 
-                max = std::max_element(pdiff.begin(), pdiff.end());
-                index_max = std::distance(pdiff.begin(), max);
+                  if(pdiff[index_max] > TH_POSMAX){
+                    index.erase(index.begin() + index_max);
+                    ++debug_count;
+                  }
+                  else{
+                    break;
+                  }
 
-                if(pdiff[index_max] > TH_POSMAX){
-                  index.erase(index.begin() + index_max);
-                }
-                else{
-                  break;
-                }
+                  length_index = std::distance(index.begin(), index.end());
+                  length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
-                length_index = std::distance(index.begin(), index.end());
-                length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
+                  if(length_index < length_pindex_vel * TH_EST_GIVEUP_NUM){
+                    break;
+                  }
 
-                if(length_index < length_pindex_vel * TH_EST_GIVEUP_NUM){
-                  break;
-                }
-
-            }
+              }
 
             length_index = std::distance(index.begin(), index.end());
             length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
-/*
             clock_gettime(CLOCK_REALTIME, &endTime);
 
             if (endTime.tv_nsec < startTime.tv_nsec) {
-              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec - 1
-                      ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec , ESTNUM, flag_EstRaw);
+              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d debug_count = %d Flag = %d", endTime.tv_sec - startTime.tv_sec - 1
+                      ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec , ESTNUM, debug_count,flag_EstRaw);
             }
             else {
-              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d Flag = %d", endTime.tv_sec - startTime.tv_sec
-                      ,endTime.tv_nsec - startTime.tv_nsec , ESTNUM, flag_EstRaw);
+              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d debug_count = %d Flag = %d", endTime.tv_sec - startTime.tv_sec
+                    ,endTime.tv_nsec - startTime.tv_nsec , ESTNUM, debug_count,flag_EstRaw);
             }
-*/
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0015~0.2)
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Est End
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Integral interpolation Start
 
             if(length_index >= length_pindex_vel * TH_EST_GIVEUP_NUM){
 
@@ -503,8 +422,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
               flag_EstRaw = false;
             }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (0.0000005)
-
           }
 
         }
@@ -516,8 +433,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
         }
 
       }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Start
 
     if(flag_EstRaw == true){
       UsrPos_Est_enu_x = UsrPos_EstRaw_enu_x;
@@ -559,9 +474,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrPos_Est_enu_y_Last = UsrPos_Est_enu_y;
     UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
 
-    ROS_INFO("ESTNUM = %d index_Dist %d ",ESTNUM,index_Dist);
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////End (noFlag = 0.00003,Flag = 0.000009)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Integral interpolation End
 
   } //50Hz用
 }
