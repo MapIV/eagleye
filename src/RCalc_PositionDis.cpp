@@ -15,10 +15,8 @@
 #include "imu_gnss_localizer/Position.h"
 #include <boost/circular_buffer.hpp>
 #include <math.h>
-#include <time.h>
 
 ros::Publisher pub1;
-ros::Publisher pub2;
 
 bool flag_GNSS, flag_Est, flag_EstRaw, flag_Start, flag_Est_Raw_Heading;
 int length_diff;
@@ -31,6 +29,7 @@ int index_Dist = 0;
 int seq = 0;
 int seq_Last = 0;
 int index_max = 0;
+int UsrVel_index = 0;
 double IMUTime;
 double IMUfrequency = 100; //IMU Hz
 double IMUperiod = 1.0/IMUfrequency;
@@ -39,12 +38,12 @@ double Time = 0.0;
 double Time_Last = 0.0;
 float sum_x, sum_y, sum_z;
 float Correction_Velocity = 0.0;
-float Distance_BUFNUM_MAX = 50000;//仮の値
+float Distance_BUFNUM_MAX = 100000;//仮の値
 float TH_VEL_EST = 10/3.6;
 float ESTDIST = 500;
 float TH_POSMAX = 3.0;
-float TH_CALC_MINNUM = 1.0/20/2.5/5; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
-float TH_EST_GIVEUP_NUM = 1.0/100/5;
+float TH_CALC_MINNUM = 1.0/20/2.5/2.0; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
+float TH_EST_GIVEUP_NUM = 1.0/100/2.0;
 float UsrPos_enu_x = 0.0;
 float UsrPos_enu_y = 0.0;
 float UsrPos_enu_z = 0.0;
@@ -109,12 +108,7 @@ std::vector<float> pdiff;
 
 std::vector<float>::iterator max;
 
-geometry_msgs::Pose p1_msg;
-imu_gnss_localizer::Position p2_msg;
-
-//debug
-int debug_count = 0;
-
+imu_gnss_localizer::Position p1_msg;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
@@ -145,18 +139,12 @@ void receive_UsrPos_enu(const geometry_msgs::PoseStamped::ConstPtr& msg){
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
-    struct timespec startTime, endTime, sleepTime;
-
     ++count;
 
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
     Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
-
-    if (0 == fmod(count,2)){ //50Hz用
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buffer Start
 
     if (Distance_BUFNUM < Distance_BUFNUM_MAX){
       ++Distance_BUFNUM;
@@ -183,6 +171,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrVel_enu_E = msg->VelE;
     UsrVel_enu_N = msg->VelN;
     UsrVel_enu_U = msg->VelU;
+    UsrVel_index = msg->index;
 
     //data buffer generate
     pDistance.push_back(Distance);
@@ -207,7 +196,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     length_pindex_Raw = std::distance(pindex_Raw.begin(), pindex_Raw.end());
     length_pDistance = std::distance(pDistance.begin(), pDistance.end());
 
-    //The role of "find function" in MATLAB !Suspect!
+    //The role of "find function" in MATLAB
     for(i = 0; i < length_pindex_Raw; i++){
       if(pindex_Raw[i] == true){
           index_Raw.push_back(i);
@@ -216,7 +205,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
     length_index_Raw = std::distance(index_Raw.begin(), index_Raw.end());
 
-    //The role of "find ( ,1) function" in MATLAB !Suspect!
+    //The role of "find ( ,1) function" in MATLAB
     for(i = 0; i < Distance_BUFNUM; i++){
       if(pDistance[i] > pDistance[Distance_BUFNUM-1] - ESTDIST){
           index_Dist = i ;
@@ -291,16 +280,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
               }
             }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Buffer End
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Est Start
-
-              clock_gettime(CLOCK_REALTIME, &startTime);
-              sleepTime.tv_sec = 0;
-              sleepTime.tv_nsec = 123;
-
-              debug_count = 0;
-
               while(1){
 
                   length_index = std::distance(index.begin(), index.end());
@@ -357,8 +336,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
                   pdiff.clear();
                   for(i = 0; i < length_index; i++){
-                  pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
-                  //pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i])));
+                  //pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
+                  pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i])));
                   }
 
                   max = std::max_element(pdiff.begin(), pdiff.end());
@@ -366,7 +345,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
                   if(pdiff[index_max] > TH_POSMAX){
                     index.erase(index.begin() + index_max);
-                    ++debug_count;
                   }
                   else{
                     break;
@@ -384,21 +362,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
             length_index = std::distance(index.begin(), index.end());
             length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
-            clock_gettime(CLOCK_REALTIME, &endTime);
-
-            if (endTime.tv_nsec < startTime.tv_nsec) {
-              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d debug_count = %d Flag = %d", endTime.tv_sec - startTime.tv_sec - 1
-                      ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec , ESTNUM, debug_count,flag_EstRaw);
-            }
-            else {
-              ROS_INFO("ProTime = %ld.%09ld ESTNUM = %d debug_count = %d Flag = %d", endTime.tv_sec - startTime.tv_sec
-                    ,endTime.tv_nsec - startTime.tv_nsec , ESTNUM, debug_count,flag_EstRaw);
-            }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Est End
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Integral interpolation Start
-
             if(length_index >= length_pindex_vel * TH_EST_GIVEUP_NUM){
 
               if(index[length_index-1] == ESTNUM){
@@ -411,72 +374,24 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
                 UsrPos_EstRaw_enu_y = tUsrPos_enu_y + (tTrajectory_y[ESTNUM-1] - tTrajectory_y[index[length_index-1]]);
                 UsrPos_EstRaw_enu_z = tUsrPos_enu_z + (tTrajectory_z[ESTNUM-1] - tTrajectory_z[index[length_index-1]]);
               }
-              flag_EstRaw = true;
-              flag_Start = true;
 
-            }
-            else{
-              UsrPos_EstRaw_enu_x = 0.0;
-              UsrPos_EstRaw_enu_y = 0.0;
-              UsrPos_EstRaw_enu_z = 0.0;
-              flag_EstRaw = false;
+              p1_msg.enu_x = UsrPos_EstRaw_enu_x;
+              p1_msg.enu_y = UsrPos_EstRaw_enu_y;
+              p1_msg.enu_z = UsrPos_EstRaw_enu_z;
+              p1_msg.index = UsrVel_index;
+              pub1.publish(p1_msg);
+
             }
 
           }
 
         }
-        else{
-          UsrPos_EstRaw_enu_x = 0.0;
-          UsrPos_EstRaw_enu_y = 0.0;
-          UsrPos_EstRaw_enu_z = 0.0;
-          flag_EstRaw = false;
-        }
 
       }
 
-    if(flag_EstRaw == true){
-      UsrPos_Est_enu_x = UsrPos_EstRaw_enu_x;
-      UsrPos_Est_enu_y = UsrPos_EstRaw_enu_y;
-      UsrPos_Est_enu_z = UsrPos_EstRaw_enu_z;
-    }
-    else if(count > 1){
-      UsrPos_Est_enu_x = UsrPos_Est_enu_x_Last + UsrVel_enu_E * ( Time - Time_Last );
-      UsrPos_Est_enu_y = UsrPos_Est_enu_y_Last + UsrVel_enu_N * ( Time - Time_Last );
-      UsrPos_Est_enu_z = UsrPos_Est_enu_z_Last + UsrVel_enu_U * ( Time - Time_Last );
-    }
-
-    if(flag_Start == true){
-      flag_Est = true;
-    }
-    else{
-      flag_Est = false;
-      UsrPos_Est_enu_x = 0.0;
-      UsrPos_Est_enu_y = 0.0;
-      UsrPos_Est_enu_z = 0.0;
-    }
-
-    p1_msg.position.x = UsrPos_Est_enu_x;
-    p1_msg.position.y = UsrPos_Est_enu_y;
-    p1_msg.position.z = UsrPos_Est_enu_z;
-
-    p2_msg.enu_x = UsrPos_Est_enu_x;
-    p2_msg.enu_y = UsrPos_Est_enu_y;
-    p2_msg.enu_z = UsrPos_Est_enu_z;
-    p2_msg.flag_Est = flag_Est;
-    p2_msg.flag_EstRaw = flag_EstRaw;
-
-    pub1.publish(p1_msg);
-    pub2.publish(p2_msg);
-
     seq_Last = seq;
     Time_Last = Time;
-    UsrPos_Est_enu_x_Last = UsrPos_Est_enu_x;
-    UsrPos_Est_enu_y_Last = UsrPos_Est_enu_y;
-    UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Integral interpolation End
-
-  } //50Hz用
 }
 
 int main(int argc, char **argv){
@@ -489,8 +404,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Distance", 1000, receive_Distance);
   ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
-  pub1 = n.advertise<geometry_msgs::Pose>("/imu_gnss_pose", 1000);
-  pub2 = n.advertise<imu_gnss_localizer::Position>("/imu_gnss_localizer/PositionDis", 1000);
+  pub1 = n.advertise<imu_gnss_localizer::Position>("/imu_gnss_localizer/PositionDis", 1000);
   ros::spin();
 
   return 0;

@@ -25,7 +25,7 @@ find_package(catkin REQUIRED COMPONENTS
  )
 
 catkin_package(
-   CATKIN_DEPENDS roscpp rospy std_msgs
+   CATKIN_DEPENDS message_runtime roscpp rospy std_msgs
 )
 
 include_directories(
@@ -65,3 +65,6 @@ target_link_libraries(RCalc_Distance ${catkin_LIBRARIES})
 
 add_executable(RCalc_PositionDis src/RCalc_PositionDis.cpp)
 target_link_libraries(RCalc_PositionDis ${catkin_LIBRARIES})
+
+add_executable(RCalc_PositionDis_Int src/RCalc_PositionDis_Int.cpp)
+target_link_libraries(RCalc_PositionDis_Int ${catkin_LIBRARIES})

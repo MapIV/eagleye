@@ -69,12 +69,16 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
       T_count = 2;
     }
 
+    if(T_count == 2){
     Est_velE = sin(pHeading) * pVelocity;
     Est_velN = cos(pHeading) * pVelocity;
+    }
 
     p2_msg.VelE = Est_velE;
     p2_msg.VelN = Est_velN;
     p2_msg.VelU = Est_velU;
+    p2_msg.index = count;
+    pub2.publish(p2_msg);
 
     if(T_count == 2 && pVelocity > 0 && count > 1){
       Trajectory_x = Trajectory_x_Last + Est_velE * ( Time - Time_Last );
@@ -89,7 +93,6 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     p1_msg.position.y = Trajectory_y;
     p1_msg.orientation.z = pHeading;
     pub1.publish(p1_msg);
-    pub2.publish(p2_msg);
 
     Time_Last = Time;
     Trajectory_x_Last = Trajectory_x;

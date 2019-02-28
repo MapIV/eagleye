@@ -11,6 +11,7 @@
   <node pkg="imu_gnss_localizer" name="RCalc_Heading3rd" type="RCalc_Heading3rd" />
   <node pkg="imu_gnss_localizer" name="RCalc_Distance" type="RCalc_Distance" />
   <node pkg="imu_gnss_localizer" name="RCalc_Trajectory" type="RCalc_Trajectory" />
+  <node pkg="imu_gnss_localizer" name="RCalc_PositionDis" type="RCalc_PositionDis" />
 
   <node pkg="prius_driver" name="Vehicle_CAN_decoder" type="Vehicle_CAN_decoder" />
 
