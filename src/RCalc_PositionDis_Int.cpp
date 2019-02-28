@@ -14,6 +14,7 @@
 ros::Publisher pub1;
 
 bool flag_UsrPos_Est, flag_UsrPos_Start;
+int i;
 int count = 0;
 int Est_count = 0;
 int Est_index = 0;
@@ -96,9 +97,14 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
       Est_index = BUFNUM - (UsrVel_index - UsrPos_index);
 
       if(flag_UsrPos_Est == true && Est_index > 0 && Est_count > 1){
-        UsrPos_Est_enu_x = UsrPos_Est_enu_x - (pUsrPos_Est_enu_x[Est_index-1] - UsrPos_EstRaw_enu_x);
-        UsrPos_Est_enu_y = UsrPos_Est_enu_y - (pUsrPos_Est_enu_y[Est_index-1] - UsrPos_EstRaw_enu_y);
-        UsrPos_Est_enu_z = UsrPos_Est_enu_z - (pUsrPos_Est_enu_z[Est_index-1] - UsrPos_EstRaw_enu_z);
+        for(i = Est_index; i < BUFNUM; i++){
+        pUsrPos_Est_enu_x[i-1] = pUsrPos_Est_enu_x[i-1] - (pUsrPos_Est_enu_x[Est_index-1] - UsrPos_EstRaw_enu_x);
+        pUsrPos_Est_enu_y[i-1] = pUsrPos_Est_enu_y[i-1] - (pUsrPos_Est_enu_y[Est_index-1] - UsrPos_EstRaw_enu_y);
+        pUsrPos_Est_enu_z[i-1] = pUsrPos_Est_enu_z[i-1] - (pUsrPos_Est_enu_z[Est_index-1] - UsrPos_EstRaw_enu_z);
+        }
+        UsrPos_Est_enu_x = pUsrPos_Est_enu_x[BUFNUM-1];
+        UsrPos_Est_enu_y = pUsrPos_Est_enu_y[BUFNUM-1];
+        UsrPos_Est_enu_z = pUsrPos_Est_enu_z[BUFNUM-1];
         ROS_INFO("Est_index = %d" , Est_index);
       }
       else if(Est_count == 1){
