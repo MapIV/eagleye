@@ -16,7 +16,8 @@ find_package(catkin REQUIRED COMPONENTS
    Heading.msg
    Distance.msg
    UsrVel_enu.msg
-   Position.msg
+   PositionDis_raw.msg
+   PositionDis.msg
  )
 
  generate_messages(

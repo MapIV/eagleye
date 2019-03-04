@@ -1,6 +1,6 @@
 /*
  * RCalc_PositionDis.cpp
- * Position estimate program
+ * Vehicle position estimate program
  * Author Sekino
  * Ver 1.00 2019/02/26
  */
@@ -12,13 +12,13 @@
 #include "imu_gnss_localizer/Heading.h"
 #include "imu_gnss_localizer/Distance.h"
 #include "imu_gnss_localizer/UsrVel_enu.h"
-#include "imu_gnss_localizer/Position.h"
+#include "imu_gnss_localizer/PositionDis_raw.h"
 #include <boost/circular_buffer.hpp>
 #include <math.h>
 
 ros::Publisher pub1;
 
-bool flag_GNSS, flag_Est, flag_EstRaw, flag_Start, flag_Est_Raw_Heading;
+bool flag_GNSS, flag_Start, flag_Est_Raw_Heading;
 int length_diff;
 int i = 0;
 int ESTNUM = 0;
@@ -108,7 +108,7 @@ std::vector<float> pdiff;
 
 std::vector<float>::iterator max;
 
-imu_gnss_localizer::Position p1_msg;
+imu_gnss_localizer::PositionDis_raw p1_msg;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
@@ -404,7 +404,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Distance", 1000, receive_Distance);
   ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
-  pub1 = n.advertise<imu_gnss_localizer::Position>("/imu_gnss_localizer/PositionDis", 1000);
+  pub1 = n.advertise<imu_gnss_localizer::PositionDis_raw>("/imu_gnss_localizer/PositionDis", 1000);
   ros::spin();
 
   return 0;
