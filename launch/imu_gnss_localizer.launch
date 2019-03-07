@@ -2,6 +2,7 @@
 
 <launch>
 
+  <node pkg="imu_gnss_localizer" name="rtklib_connecter" type="rtklib_connecter" />
   <node pkg="imu_gnss_localizer" name="RCalc_VelocitySF" type="RCalc_VelocitySF" />
   <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffsetStop" type="RCalc_YawrateOffsetStop" />
   <node pkg="imu_gnss_localizer" name="RCalc_Heading1st" type="RCalc_Heading1st" />

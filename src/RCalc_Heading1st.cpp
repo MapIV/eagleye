@@ -7,8 +7,8 @@
 
  #include "ros/ros.h"
  #include "geometry_msgs/Twist.h"
- #include "ublox_msgs/NavPVT7.h"
  #include "sensor_msgs/Imu.h"
+ #include "imu_gnss_localizer/RTKLIB.h"
  #include "imu_gnss_localizer/Heading.h"
  #include "imu_gnss_localizer/VelocitySF.h"
  #include "imu_gnss_localizer/YawrateOffset.h"
@@ -43,7 +43,7 @@ float Heading_Doppler = 0.0;
 float Heading = 0.0;
 float velN = 0.0;
 float velE = 0.0;
-float velD = 0.0;
+float velU = 0.0;
 float YawrateOffset_Stop = 0.0;
 float Yawrate = 0.0;
 float Correction_Velocity = 0.0;
@@ -80,12 +80,12 @@ void receive_YawrateOffsetStop(const imu_gnss_localizer::YawrateOffset::ConstPtr
 
 }
 
-void receive_Gnss(const ublox_msgs::NavPVT7::ConstPtr& msg){
+void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
-  GPSTime = msg->iTOW;
-  velN = (float)msg->velN / 1000; //unit [mm/s] => [m/s]
-  velE = (float)msg->velE / 1000; //unit [mm/s] => [m/s]
-  velD = (float)msg->velD / 1000; //unit [mm/s] => [m/s]
+  GPSTime = msg->GPSTime;
+  velN = (float)msg->Vel_n / 1000; //unit [mm/s] => [m/s]
+  velE = (float)msg->Vel_e / 1000; //unit [mm/s] => [m/s]
+  velU = (float)msg->Vel_u / 1000; //unit [mm/s] => [m/s]
   Heading_Doppler = atan2(velE , velN); //unit [rad]
   //ROS_INFO("Heading_Doppler = %f",Heading_Doppler);
 
@@ -350,7 +350,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
   ros::Subscriber sub3 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  ros::Subscriber sub4 = n.subscribe("/ublox_gps/navpvt", 1000, receive_Gnss);
+  ros::Subscriber sub4 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
   pub = n.advertise<imu_gnss_localizer::Heading>("/imu_gnss_localizer/Heading1st", 1000);
 
   ros::spin();

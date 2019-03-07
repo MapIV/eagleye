@@ -7,7 +7,7 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose.h"
-#include "geometry_msgs/PoseStamped.h"
+#include "imu_gnss_localizer/RTKLIB.h"
 #include "imu_gnss_localizer/VelocitySF.h"
 #include "imu_gnss_localizer/Heading.h"
 #include "imu_gnss_localizer/Distance.h"
@@ -26,8 +26,8 @@ int count = 0;
 int GPS_count = 0;
 int Distance_BUFNUM = 0;
 int index_Dist = 0;
-int seq = 0;
-int seq_Last = 0;
+int GPSTime = 0;
+int GPSTime_Last = 0;
 int index_max = 0;
 int UsrVel_index = 0;
 double IMUTime;
@@ -128,12 +128,12 @@ void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg){
 
 }
 
-void receive_UsrPos_enu(const geometry_msgs::PoseStamped::ConstPtr& msg){
+void receive_UsrPos_enu(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
-  seq = msg->header.seq;
-  UsrPos_enu_x = msg->pose.position.x; //unit [m]
-  UsrPos_enu_y = msg->pose.position.y; //unit [m]
-  UsrPos_enu_z = msg->pose.position.z; //unit [m]
+  GPSTime = msg->GPSTime;
+  UsrPos_enu_x = msg->enu_x; //unit [m]
+  UsrPos_enu_y = msg->enu_y; //unit [m]
+  UsrPos_enu_z = msg->enu_z; //unit [m]
 
 }
 
@@ -154,7 +154,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     }
 
     //GNSS receive flag
-    if (seq_Last == seq){
+    if (GPSTime_Last == GPSTime){
       flag_GNSS = false;
       UsrPos_enu_x = 0.0;
       UsrPos_enu_y = 0.0;
@@ -389,7 +389,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
       }
 
-    seq_Last = seq;
+    GPSTime_Last = GPSTime;
     Time_Last = Time;
 
 }

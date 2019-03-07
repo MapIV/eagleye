@@ -7,7 +7,7 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
-#include "ublox_msgs/NavPVT7.h"
+#include "imu_gnss_localizer/RTKLIB.h"
 #include "imu_gnss_localizer/VelocitySF.h"
 #include <boost/circular_buffer.hpp>
 
@@ -28,7 +28,7 @@ float Velocity = 0.0;
 float Velocity_Doppler = 0.0;
 float velN = 0.0;
 float velE = 0.0;
-float velD = 0.0;
+float velU = 0.0;
 float Velocity_SFRaw = 0.0;
 float Velocity_SF = 0.0;
 float Correction_Velocity = 0.0;
@@ -41,13 +41,13 @@ boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
 boost::circular_buffer<float> pVelocity_Doppler(ESTNUM_MAX);
 boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
 
-void receive_Gnss(const ublox_msgs::NavPVT7::ConstPtr& msg){
+void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
-  GPSTime = msg->iTOW;
-  velN = (float)msg->velN / 1000; //unit [mm/s] => [m/s]
-  velE = (float)msg->velE / 1000; //unit [mm/s] => [m/s]
-  velD = (float)msg->velD / 1000; //unit [mm/s] => [m/s]
-  Velocity_Doppler = sqrt((velE * velE) + (velN * velN) + (velD * velD)); //unit [m/s]
+  GPSTime = msg->GPSTime;
+  velN = (float)msg->Vel_n / 1000; //unit [mm/s] => [m/s]
+  velE = (float)msg->Vel_e / 1000; //unit [mm/s] => [m/s]
+  velU = (float)msg->Vel_u / 1000; //unit [mm/s] => [m/s]
+  Velocity_Doppler = sqrt((velE * velE) + (velN * velN) + (velU * velU)); //unit [m/s]
 
   //ROS_INFO("Velocity_Doppler = %f [m/s]" , Velocity_Doppler );
 
@@ -164,7 +164,7 @@ int main(int argc, char **argv){
 
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
-  ros::Subscriber sub2 = n.subscribe("/ublox_gps/navpvt", 1000, receive_Gnss);
+  ros::Subscriber sub2 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
   pub = n.advertise<imu_gnss_localizer::VelocitySF>("/imu_gnss_localizer/VelocitySF", 1000);
 
   ros::spin();

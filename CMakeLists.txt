@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
    UsrVel_enu.msg
    PositionDis_raw.msg
    PositionDis.msg
+   RTKLIB.msg
  )
 
  generate_messages(
@@ -69,3 +70,6 @@ target_link_libraries(RCalc_PositionDis ${catkin_LIBRARIES})
 
 add_executable(RCalc_PositionDis_Int src/RCalc_PositionDis_Int.cpp)
 target_link_libraries(RCalc_PositionDis_Int ${catkin_LIBRARIES})
+
+add_executable(rtklib_connecter src/rtklib_connecter.cpp)
+target_link_libraries(rtklib_connecter ${catkin_LIBRARIES})
