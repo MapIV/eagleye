@@ -1,17 +1,47 @@
-imu_gnss_localizer
+# imu gnss localizer
 
-Overview------------------------------------------------------------------------
-It is a program that combines imu and GNSS to perform highly accurate self position estimation.
+----
+## Overview
+It is a program that combines IMU and GNSS to perform highly accurate self position estimation.
 
-Required input------------------------------------------------------------------
-IMU(Recommended IMU Analog Devices adis16475)
-topicname   /imu/data_raw
-message     sensor_msgs/Imu
+----
+## Description
+Write markdown text in this textarea.
 
-GNSS(Required GNSS receiver ublox M8 M9 Series)
-topicname   /ublox_gps/navpvt
-message     ublox_msgs/NavPVT7
+----
+## Install
+1) First, download the modified RTKLIB to your home directory.
 
-Wheel speed(Vehicle speed information from CAN etc.)
-topicname   /Vehicle/Velocity
-message     geometry_msgs/Twist (linear.x)
+    cd
+    git clone https://github.com/MapIV/RTKLIB.git
+
+2) Build RTKLIB.
+
+    cd RTKLIB/app
+    chmod 755 makeall.sh
+    ./makeall.sh
+
+3) Change the permissions of the two files.
+
+    cd
+    cd RTKLIB/app/rtkrcv/gcc
+    chmod 755 rtkstart.sh
+    chmod 755 rtkshut.sh
+
+4) Next, download and build imu gnss localizer.
+
+    cd
+    cd catkin_ws/src
+    git clone https://github.com/MapIV/imu_gnss_localizer.git
+    cd ..
+    catkin_make
+
+[links](https://wikipedia.org)
+
+----
+## changelog
+* 17-Feb-2013 re-design
+
+----
+## thanks
+* [markdown-js](https://github.com/evilstreak/markdown-js)
