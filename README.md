@@ -1,3 +1,4 @@
+
 # imu gnss localizer
 
 ## Overview
@@ -52,12 +53,36 @@ Write markdown text in this textarea.
 		cd..
 		gedit RTKLIB/app/rtkrcv/imu_gnss_localizer.conf
 
-2) Configure the receiver settings. Line 10 contains the serial device setting items. 
->Example)
->inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off
+2) Set the serial device on line 10. If you connect using USB, it is OK.
 
-* 17-Feb-2013 re-design
+>Line 10:  
+>inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off  
 
-----
-## thanks
-* [markdown-js](https://github.com/evilstreak/markdown-js)
+※If you know the device number "/dev/ttyACM-" but OK.
+
+3) Next, configure the receiver from ublox application, u-center.The usage of u-center is not described here. Below is an overview of the settings.  
+
+* Disenable NMEA message
+* Enable UBX message ※Set to output only RAWX and SFRBX
+* Set the output rate to 10 Hz.
+* Save your settings last.
+
+	[About u-center](https://www.u-blox.com/product/u-center)
+
+4) Configure the AMU IMU driver settings. Configure the AMU IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
+
+		cd..
+		gedit catkin_ws/src/adi_driver/launch/adis16470.launch
+
+>Line 2:  
+>arg name="with_filter" default="false"
+>Line 5:  
+>arg name="device" default="/dev/serial/by-id/usb-Devantech_Ltd._USB-ISS._00041745-if00"  
+>Line 9:  
+>arg name="rate" default="50" 
+>Line 10:  
+>arg name="publish_tf" default="false"
+
+※If you know the device number "/dev/ttyACM-" but OK.
+
+5) Please do this work when using ADIS 16475.
