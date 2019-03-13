@@ -1,4 +1,3 @@
-
 # imu gnss localizer
 
 ## Overview
@@ -15,6 +14,8 @@ Write markdown text in this textarea.
 
 		cd  
 		git clone https://github.com/MapIV/RTKLIB.git  
+
+	[About RTKLIB](https://wikipedia.org)
 
 2) Build RTKLIB.
 
@@ -37,10 +38,24 @@ Write markdown text in this textarea.
 		cd ..  
 		catkin_make  
 
-[links](https://wikipedia.org)
+5) Download and build ADI's IMU driver.
 
-----
-## changelog
+		cd
+		cd catkin_ws/src
+		git clone https://github.com/tork-a/adi_driver.git
+		cd ..
+		catkin_make
+
+## Configuration
+1) Open RTKLIB settings.
+
+		cd..
+		gedit RTKLIB/app/rtkrcv/imu_gnss_localizer.conf
+
+2) Configure the receiver settings. Line 10 contains the serial device setting items. 
+>Example)
+>inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off
+
 * 17-Feb-2013 re-design
 
 ----
