@@ -83,7 +83,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 	[About u-center](https://www.u-blox.com/product/u-center)
 
-4) Configure the AMU IMU driver settings. Configure the AMU IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
+4) Configure the ADI IMU driver settings. Configure the ADI IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
 
 		cd
 		gedit catkin_ws/src/adi_driver/launch/adis16470.launch
