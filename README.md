@@ -64,7 +64,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 ## Configuration
 1) Open RTKLIB settings.
 
-		cd..
+		cd
 		gedit RTKLIB/app/rtkrcv/imu_gnss_localizer.conf
 
 2) Set the serial device on line 10. If you connect using USB, it is OK.
@@ -85,7 +85,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 4) Configure the AMU IMU driver settings. Configure the AMU IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
 
-		cd..
+		cd
 		gedit catkin_ws/src/adi_driver/launch/adis16470.launch
 
 >Line 2:  
@@ -101,7 +101,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 5) When using ADIS 16475, rewrite the program as follows. ※It is not necessary to use  ADIS 16470.
 
-		cd..  
+		cd  
 		gedit catkin_ws/src/adi_driver/src/adis16470.cpp  
 
 >Line 361~362:  
@@ -110,7 +110,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 [ADIS 16475 Data Sheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ADIS16475.pdf)  
 
-		cd..  
+		cd  
 		cd catkin_ws  
 		catkin_make  
 
@@ -122,13 +122,13 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 2) Connect the IMU and start the ADI driver.
 
-		cd..  
+		cd  
 		cd catkin_ws/src/adi_driver/launch  
 		roslaunch adis16470.launch  
 
 3) Connect the GNSS receiver and start RTKLIB.
 
-		cd..  
+		cd  
 		cd RTKLIB  
 		./launchscript.sh  
 
