@@ -140,7 +140,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 5) Start imu gnss localizer.
 
-		cd..  
+		cd  
 		cd catkin_ws/src/imu_gnss_localizer/launch
 		roslaunch imu_gnss_localizer.launch
 
