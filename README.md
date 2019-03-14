@@ -104,7 +104,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 		cd..  
 		gedit catkin_ws/src/adi_driver/src/adis16470.cpp  
 
->Line 361~362:
+>Line 361~362:  
 >    gyro[i] = ((int32_t(gyro_out[i]) << 16) + int32_t(gyro_low[i])) * M_PI / 180.0 / 2621440.0;  
     accl[i] = ((int32_t(accl_out[i]) << 16) + int32_t(accl_low[i])) * 9.8 / 262144000.0;  
 
