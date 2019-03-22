@@ -28,7 +28,7 @@ int UsrVel_index = 0;
 int UsrPos_index_Last = 0;
 int BUFNUM = 0;
 double IMUTime;
-double IMUfrequency = 100; //IMU Hz
+double IMUfrequency = 50; //IMU Hz
 double IMUperiod = 1/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
@@ -303,7 +303,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub3 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
   pub1 = n.advertise<geometry_msgs::PoseStamped>("/imu_gnss_pose", 1000);
   pub2 = n.advertise<imu_gnss_localizer::PositionDis>("/imu_gnss_localizer/PositionDis_Int", 1000);
-  pub3 = n.advertise<sensor_msgs::NavSatFix>("/fix", 1000);
+  pub3 = n.advertise<sensor_msgs::NavSatFix>("imu_gnss_localizer/fix", 1000);
 
   ros::spin();
 

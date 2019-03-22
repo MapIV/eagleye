@@ -22,7 +22,7 @@ int ESTNUM_SF = 0;
 float ESTNUM_MIN = 1000;
 float ESTNUM_MAX = 20000;
 float TH_VEL_EST = 10/3.6;
-float ESTNUM_ESF = 0.05/2.5/2; //original = 0.05
+float ESTNUM_ESF = 0.05; //original = 0.05
 float Velocity_SFInit = 1.0;
 float Velocity = 0.0;
 float Velocity_Doppler = 0.0;
@@ -44,12 +44,12 @@ boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
 void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
   GPSTime = msg->GPSTime;
-  velN = (float)msg->Vel_n / 1000; //unit [mm/s] => [m/s]
-  velE = (float)msg->Vel_e / 1000; //unit [mm/s] => [m/s]
-  velU = (float)msg->Vel_u / 1000; //unit [mm/s] => [m/s]
+  velN = (float)msg->Vel_n; //unit [m/s]
+  velE = (float)msg->Vel_e; //unit [m/s]
+  velU = (float)msg->Vel_u; //unit [m/s]
   Velocity_Doppler = sqrt((velE * velE) + (velN * velN) + (velU * velU)); //unit [m/s]
 
-  //ROS_INFO("Velocity_Doppler = %f [m/s]" , Velocity_Doppler );
+  ROS_INFO("Velocity_Doppler = %f [m/s]" , Velocity_Doppler );
 
 }
 

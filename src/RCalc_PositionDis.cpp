@@ -31,7 +31,7 @@ int GPSTime_Last = 0;
 int index_max = 0;
 int UsrVel_index = 0;
 double IMUTime;
-double IMUfrequency = 100; //IMU Hz
+double IMUfrequency = 50; //IMU Hz
 double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
@@ -42,7 +42,7 @@ float Distance_BUFNUM_MAX = 100000;//仮の値
 float TH_VEL_EST = 10/3.6;
 float ESTDIST = 500;
 float TH_POSMAX = 3.0;
-float TH_CALC_MINNUM = 1.0/20/2.5/2.0; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
+float TH_CALC_MINNUM = 1.0/20; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
 float TH_EST_GIVEUP_NUM = 1.0/100/2.0;
 float UsrPos_enu_x = 0.0;
 float UsrPos_enu_y = 0.0;
@@ -400,7 +400,7 @@ int main(int argc, char **argv){
 
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/UsrVel_enu", 1000, receive_UsrVel_enu);
-  ros::Subscriber sub2 = n.subscribe("/gnss_pose", 1000, receive_UsrPos_enu);
+  ros::Subscriber sub2 = n.subscribe("/RTKLIB", 1000, receive_UsrPos_enu);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Distance", 1000, receive_Distance);
   ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);

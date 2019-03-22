@@ -18,7 +18,7 @@ int T_count = 0;
 int GPSTime_Last, GPSTime;
 int ESTNUM_Heading = 0;
 double IMUTime;
-double IMUfrequency = 100; //IMU Hz
+double IMUfrequency = 50; //IMU Hz
 double IMUperiod = 1/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;

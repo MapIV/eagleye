@@ -354,13 +354,13 @@ int main(int argc, char **argv){
       if(counter == 1){
       //enu変換用基準値点
 
-      //base_ECEF_x = ECEF_x;
-      //base_ECEF_y = ECEF_y;
-      //base_ECEF_z = ECEF_z;
+      base_ECEF_x = ECEF_x;
+      base_ECEF_y = ECEF_y;
+      base_ECEF_z = ECEF_z;
 
-      base_ECEF_x = -3784315.720;
-      base_ECEF_y = 3516603.177;
-      base_ECEF_z = 3728191.676;
+      //base_ECEF_x = -3784315.720;
+      //base_ECEF_y = 3516603.177;
+      //base_ECEF_z = 3728191.676;
 
       }
 

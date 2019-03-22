@@ -20,7 +20,7 @@ bool flag_Est, flag_SF;
 int count = 0;
 int T_count = 0;
 double IMUTime;
-double IMUfrequency = 100; //IMU Hz
+double IMUfrequency = 50; //IMU Hz
 double IMUperiod = 1/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;

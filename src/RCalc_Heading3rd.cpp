@@ -24,7 +24,7 @@ int GPSTime_Last, GPSTime;
 int ESTNUM_Heading = 0;
 int index_max = 0;
 double IMUTime;
-double IMUfrequency = 100; //IMU Hz
+double IMUfrequency = 50; //IMU Hz
 double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
@@ -32,7 +32,7 @@ double Time_Last = 0.0;
 float sum = 0.0, avg = 0.0;
 float ESTNUM_MIN = 500;
 float ESTNUM_MAX = 1500;
-float ESTNUM_GNSF = 1.0/10/2.5/2.0; //original = 1.0/10
+float ESTNUM_GNSF = 1.0/10; //original = 1.0/10
 float ESTNUM_THSF = ESTNUM_GNSF*1/2;
 float TH_HEADINGMAX = 3.0/180*M_PI;
 float TH_VEL_EST = 10/3.6;
@@ -90,9 +90,9 @@ void receive_YawrateOffset(const imu_gnss_localizer::YawrateOffset::ConstPtr& ms
 void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
   GPSTime = msg->GPSTime;
-  velN = (float)msg->Vel_n / 1000; //unit [mm/s] => [m/s]
-  velE = (float)msg->Vel_e / 1000; //unit [mm/s] => [m/s]
-  velU = (float)msg->Vel_u / 1000; //unit [mm/s] => [m/s]
+  velN = (float)msg->Vel_n; //unit [m/s]
+  velE = (float)msg->Vel_e; //unit [m/s]
+  velU = (float)msg->Vel_u; //unit [m/s]
   Heading_Doppler = atan2(velE , velN); //unit [rad]
   //ROS_INFO("Heading_Doppler = %f",Heading_Doppler);
 
