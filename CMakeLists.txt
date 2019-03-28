@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
    PositionDis_raw.msg
    PositionDis.msg
    RTKLIB.msg
+   Debug_tool.msg
  )
 
  generate_messages(
@@ -84,3 +85,7 @@ target_link_libraries(RCalc_PositionDis_Int ${catkin_LIBRARIES})
 add_executable(rtklib_connecter src/rtklib_connecter.cpp)
 add_dependencies(rtklib_connecter ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(rtklib_connecter ${catkin_LIBRARIES})
+
+add_executable(Debug_tool src/Debug_tool.cpp)
+add_dependencies(Debug_tool ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(Debug_tool ${catkin_LIBRARIES})

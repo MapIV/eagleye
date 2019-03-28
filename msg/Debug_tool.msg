@@ -1,0 +1,92 @@
+#CAN_Velocity
+float64 CAN_Velocity
+
+#IMU_rawdata
+float64 acceleration_x
+float64 acceleration_y
+float64 acceleration_z
+float64 angular_velocity_x
+float64 angular_velocity_y
+float64 angular_velocity_z
+
+#rtklib_connecter
+int64 rtklib_GPSTime
+float64 rtklib_enu_x
+float64 rtklib_enu_y
+float64 rtklib_enu_z
+float64 rtklib_Vel_e
+float64 rtklib_Vel_n
+float64 rtklib_Vel_u
+float64 rtklib_ORG_x
+float64 rtklib_ORG_y
+float64 rtklib_ORG_z
+float64 rtklib_latitude
+float64 rtklib_longitude
+float64 rtklib_altitude
+float64 rtklib_Doppler_Velocity
+float64 rtklib_Doppler_Heading_angle
+
+#RCalc_VelocitySF
+float64 VelocitySF_Correction_Velocity
+float64 VelocitySF_Scale_Factor
+bool VelocitySF_flag_Est
+bool VelocitySF_flag_EstRaw
+
+#RCalc_Heading1st
+float64 Heading1st_Heading_angle
+bool Heading1st_flag_Est
+bool Heading1st_flag_EstRaw
+
+#RCalc_Heading2nd
+float64 Heading2nd_Heading_angle
+bool Heading2nd_flag_Est
+bool Heading2nd_flag_EstRaw
+
+#RCalc_Heading3rd
+float64 Heading3rd_Heading_angle
+bool Heading3rd_flag_Est
+bool Heading3rd_flag_EstRaw
+
+#RCalc_YawrateOffsetStop
+float64 YawrateOffsetStop_YawrateOffset
+bool YawrateOffsetStop_flag_Est
+bool YawrateOffsetStop_flag_EstRaw
+
+#RCalc_YawrateOffset1st
+float64 YawrateOffset1st_YawrateOffset
+bool YawrateOffset1st_flag_Est
+bool YawrateOffset1st_flag_EstRaw
+
+#RCalc_YawrateOffset2nd
+float64 YawrateOffset2nd_YawrateOffset
+bool YawrateOffset2nd_flag_Est
+bool YawrateOffset2nd_flag_EstRaw
+
+#RCalc_Trajectory
+float64 Trajectory_VelE
+float64 Trajectory_VelN
+float64 Trajectory_VelU
+int64 Trajectory_index
+float64 Trajectory_x
+float64 Trajectory_y
+float64 Trajectory_z
+float64 Trajectory_Heading_angle
+
+#RCalc_Distance
+float64 Distance_Distance
+
+#RCalc_PositionDis
+float64 PositionDis_enu_x
+float64 PositionDis_enu_y
+float64 PositionDis_enu_z
+int64 PositionDis_index
+
+#RCalc_PositionDis_Int
+float64 PositionDis_Int_enu_x
+float64 PositionDis_Int_enu_y
+float64 PositionDis_Int_enu_z
+bool PositionDis_Int_flag_Est
+bool PositionDis_Int_flag_EstRaw
+float64 PositionDis_Int_latitude
+float64 PositionDis_Int_longitude
+float64 PositionDis_Int_altitude
