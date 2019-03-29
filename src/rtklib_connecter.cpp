@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <math.h>
-#include "sensor_msgs/NavSatFix.h"//////////////////////////
+#include "sensor_msgs/NavSatFix.h"
 
 int i ,counter;
 int GPSTime = 0;
@@ -262,14 +262,14 @@ void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double ba
 
   *alt = u*( 1 - b2/(a*v) );
 
-}
+} //削除予定
 
 int main(int argc, char **argv){
 
   ros::init(argc, argv, "rtklib_connecter");
   ros::NodeHandle n;
-  ros::Publisher pub = n.advertise<imu_gnss_localizer::RTKLIB>("/RTKLIB", 1);
-  ros::Publisher pub3 = n.advertise<sensor_msgs::NavSatFix>("/fix", 1000);///////////////////////////////
+  ros::Publisher pub1 = n.advertise<imu_gnss_localizer::RTKLIB>("/RTKLIB", 1);
+  ros::Publisher pub2 = n.advertise<sensor_msgs::NavSatFix>("/fix", 1000);
 
   struct sockaddr_in server;
 
@@ -358,41 +358,36 @@ int main(int argc, char **argv){
       base_ECEF_y = ECEF_y;
       base_ECEF_z = ECEF_z;
 
-      //base_ECEF_x = -3784315.720;
-      //base_ECEF_y = 3516603.177;
-      //base_ECEF_z = 3728191.676;
-
       }
 
       xyz2enu(ECEF_x,ECEF_y,ECEF_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&enu_x,&enu_y,&enu_z);
-      xyz2enu_vel(Vel_x,Vel_y,Vel_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&Vel_e,&Vel_n,&Vel_u);
+      xyz2enu_vel(Vel_x,Vel_y,Vel_z,ECEF_x,ECEF_y,ECEF_z,&Vel_e,&Vel_n,&Vel_u);
 
-      imu_gnss_localizer::RTKLIB p_msg;
-      p_msg.header.stamp = ros::Time::now();
-      p_msg.header.frame_id = "map";
-      p_msg.GPSTime = GPSTime;
-      p_msg.enu_x = enu_x;
-      p_msg.enu_y = enu_y;
-      p_msg.enu_z = enu_z;
-      p_msg.Vel_e = Vel_e;
-      p_msg.Vel_n = Vel_n;
-      p_msg.Vel_u = Vel_u;
-      p_msg.ORG_x = base_ECEF_x;
-      p_msg.ORG_y = base_ECEF_y;
-      p_msg.ORG_z = base_ECEF_z;
+      imu_gnss_localizer::RTKLIB p1_msg;
+      p1_msg.header.stamp = ros::Time::now();
+      p1_msg.header.frame_id = "map";
+      p1_msg.GPSTime = GPSTime;
+      p1_msg.enu_x = enu_x;
+      p1_msg.enu_y = enu_y;
+      p1_msg.enu_z = enu_z;
+      p1_msg.Vel_e = Vel_e;
+      p1_msg.Vel_n = Vel_n;
+      p1_msg.Vel_u = Vel_u;
+      p1_msg.ORG_x = base_ECEF_x;
+      p1_msg.ORG_y = base_ECEF_y;
+      p1_msg.ORG_z = base_ECEF_z;
 
-      pub.publish(p_msg);
+      pub1.publish(p1_msg);
 
-      enu2llh(enu_x,enu_y,enu_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&lon,&lat,&alt);
+      enu2llh(enu_x,enu_y,enu_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&lon,&lat,&alt); //削除予定
 
-      sensor_msgs::NavSatFix p3_msg;
-
-      p3_msg.header.stamp = ros::Time::now();
-      p3_msg.header.frame_id = "map";
-      p3_msg.latitude = lat;
-      p3_msg.longitude = lon;
-      p3_msg.altitude = alt;
-      pub3.publish(p3_msg);
+      sensor_msgs::NavSatFix p2_msg;
+      p2_msg.header.stamp = ros::Time::now();
+      p2_msg.header.frame_id = "map";
+      p2_msg.latitude = lat;
+      p2_msg.longitude = lon;
+      p2_msg.altitude = alt;
+      pub2.publish(p2_msg);
 
       ROS_INFO("%lf %lf",lat,lon);
 
