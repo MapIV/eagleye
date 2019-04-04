@@ -2,12 +2,13 @@
 float64 CAN_Velocity
 
 #IMU_rawdata
-float64 acceleration_x
-float64 acceleration_y
-float64 acceleration_z
-float64 angular_velocity_x
-float64 angular_velocity_y
-float64 angular_velocity_z
+int64 IMU_GPSTime
+float64 IMU_acceleration_x
+float64 IMU_acceleration_y
+float64 IMU_acceleration_z
+float64 IMU_angular_velocity_x
+float64 IMU_angular_velocity_y
+float64 IMU_angular_velocity_z
 
 #rtklib_connecter
 int64 rtklib_GPSTime

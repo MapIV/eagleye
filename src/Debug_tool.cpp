@@ -109,12 +109,13 @@ float PositionDis_Int_altitude = 0.0;
 float CAN_Velocity = 0.0;
 
 //IMU_rawdata
-float acceleration_x = 0.0;
-float acceleration_y = 0.0;
-float acceleration_z = 0.0;
-float angular_velocity_x = 0.0;
-float angular_velocity_y = 0.0;
-float angular_velocity_z = 0.0;
+int IMU_GPSTime = 0;
+float IMU_acceleration_x = 0.0;
+float IMU_acceleration_y = 0.0;
+float IMU_acceleration_z = 0.0;
+float IMU_angular_velocity_x = 0.0;
+float IMU_angular_velocity_y = 0.0;
+float IMU_angular_velocity_z = 0.0;
 
 //計算用
 float velN = 0.0;
@@ -262,23 +263,26 @@ void receive_PositionDis_fix(const sensor_msgs::NavSatFix::ConstPtr& msg){
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
-    CAN_Velocity = msg->linear.x ;
+    CAN_Velocity = msg->linear.x;
 
 }
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
-    acceleration_x = msg->linear_acceleration.x;
-    acceleration_y = msg->linear_acceleration.y;
-    acceleration_z = msg->linear_acceleration.z;
-    angular_velocity_x = msg->angular_velocity.x;
-    angular_velocity_y = msg->angular_velocity.y;
-    angular_velocity_z = msg->angular_velocity.z;
+    IMU_acceleration_x = msg->linear_acceleration.x;
+    IMU_acceleration_y = msg->linear_acceleration.y;
+    IMU_acceleration_z = msg->linear_acceleration.z;
+    IMU_angular_velocity_x = msg->angular_velocity.x;
+    IMU_angular_velocity_y = msg->angular_velocity.y;
+    IMU_angular_velocity_z = msg->angular_velocity.z;
 
-}
+
+
+/*
+}float
 
 void timer_callback(const ros::TimerEvent& event){
-
+*/
     //rtklib_connecter
     p_msg.rtklib_GPSTime = rtklib_GPSTime;
     p_msg.rtklib_enu_x = rtklib_enu_x;
@@ -365,14 +369,17 @@ void timer_callback(const ros::TimerEvent& event){
     p_msg.CAN_Velocity = CAN_Velocity;
 
     //IMU_rawdata
-    p_msg.acceleration_x = acceleration_x;
-    p_msg.acceleration_y = acceleration_y;
-    p_msg.acceleration_z = acceleration_z;
-    p_msg.angular_velocity_x = angular_velocity_x;
-    p_msg.angular_velocity_y = angular_velocity_y;
-    p_msg.angular_velocity_z = angular_velocity_z;
+    p_msg.IMU_GPSTime = IMU_GPSTime;
+    p_msg.IMU_acceleration_x = IMU_acceleration_x;
+    p_msg.IMU_acceleration_y = IMU_acceleration_y;
+    p_msg.IMU_acceleration_z = IMU_acceleration_z;
+    p_msg.IMU_angular_velocity_x = IMU_angular_velocity_x;
+    p_msg.IMU_angular_velocity_y = IMU_angular_velocity_y;
+    p_msg.IMU_angular_velocity_z = IMU_angular_velocity_z;
 
     pub.publish(p_msg);
+
+    IMU_GPSTime += 1000/50;
 
 }
 
@@ -398,7 +405,7 @@ int main(int argc, char **argv){
   ros::Subscriber sub15 = n.subscribe("/imu_gnss_localizer/fix", 1000, receive_PositionDis_fix);
   ros::Subscriber sub16 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
   ros::Subscriber sub17 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  ros::Timer timer = n.createTimer(ros::Duration(0.01), timer_callback); //10msごとにpublishする
+  //ros::Timer timer = n.createTimer(ros::Duration(0.01), timer_callback); //10msごとにpublishする
 
   pub = n.advertise<imu_gnss_localizer::Debug_tool>("/imu_gnss_localizer/Debug_tool", 1000);
 
