@@ -14,4 +14,6 @@
   <node pkg="imu_gnss_localizer" name="RCalc_PositionDis" type="RCalc_PositionDis" />
   <node pkg="imu_gnss_localizer" name="RCalc_PositionDis_Int" type="RCalc_PositionDis_Int" />
 
+  <node pkg="imu_gnss_localizer" name="Debug_tool" type="Debug_tool" />
+
 </launch>
