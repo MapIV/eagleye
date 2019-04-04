@@ -66,10 +66,6 @@ add_executable(RCalc_Trajectory src/RCalc_Trajectory.cpp)
 add_dependencies(RCalc_Trajectory ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(RCalc_Trajectory ${catkin_LIBRARIES})
 
-add_executable(RCalc_Trajectory_compare src/RCalc_Trajectory_compare.cpp)
-add_dependencies(RCalc_Trajectory_compare ${PROJECT_NAME}_generate_messages_cpp)
-target_link_libraries(RCalc_Trajectory_compare ${catkin_LIBRARIES})
-
 add_executable(RCalc_Distance src/RCalc_Distance.cpp)
 add_dependencies(RCalc_Distance ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(RCalc_Distance ${catkin_LIBRARIES})
