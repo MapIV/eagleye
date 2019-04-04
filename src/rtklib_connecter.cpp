@@ -40,7 +40,7 @@ double alt = 0.0;
 
 void xyz2enu(double ECEF_x,double ECEF_y,double ECEF_z,double base_ECEF_x,double base_ECEF_y,double base_ECEF_z,double *enu_x,double *enu_y,double *enu_z){
 
-//ECEF基準点をllhに変換
+//Convert ECEF reference point to llh
   double x = base_ECEF_x;
   double y = base_ECEF_y;
   double z = base_ECEF_z;
@@ -84,7 +84,7 @@ void xyz2enu(double ECEF_x,double ECEF_y,double ECEF_z,double base_ECEF_x,double
 
   double base_alt = u*( 1 - b2/(a*v) );
 
-  //ECEFをenuに変換
+  //Convert ECEF to ENU
   double phi = base_lat;
   double lam = base_lon;
 
@@ -101,7 +101,7 @@ void xyz2enu(double ECEF_x,double ECEF_y,double ECEF_z,double base_ECEF_x,double
 
 void xyz2enu_vel(double Vel_x,double Vel_y,double Vel_z,double base_ECEF_x,double base_ECEF_y,double base_ECEF_z,double *Vel_e,double *Vel_n,double *Vel_u){
 
-  //ECEF基準点をllhに変換
+  //Convert ECEF reference point to llh
     double x = base_ECEF_x;
     double y = base_ECEF_y;
     double z = base_ECEF_z;
@@ -145,7 +145,7 @@ void xyz2enu_vel(double Vel_x,double Vel_y,double Vel_z,double base_ECEF_x,doubl
 
     double base_alt = u*( 1 - b2/(a*v) );
 
-  //Vel_xyzをVel_enuに変換
+  //Convert Vel xyz to Vel ENU
     double phi = base_lat;
     double lam = base_lon;
 
@@ -160,9 +160,10 @@ void xyz2enu_vel(double Vel_x,double Vel_y,double Vel_z,double base_ECEF_x,doubl
 
 }
 
+//plan to delete
 void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double base_ECEF_y,double base_ECEF_z,double *lon,double *lat,double *alt){
 
-  //ECEF基準点をllhに変換
+  //Convert ECEF reference point to llh
   double x = base_ECEF_x;
   double y = base_ECEF_y;
   double z = base_ECEF_z;
@@ -206,7 +207,7 @@ void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double ba
 
   double base_alt = u*( 1 - b2/(a*v) );
 
-  //enuをECEFに変換
+  //convert ENU to ECEF
   double phi = base_lat;
   double lam = base_lon;
 
@@ -219,7 +220,7 @@ void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double ba
   double ECEF_y = base_ECEF_y + ((cos_lam * enu_x) + (-sin_lam * sin_phi * enu_y) + (sin_lam * cos_phi * enu_z));
   double ECEF_z = base_ECEF_z + ((0 * enu_x) + (cos_phi * enu_y) + (sin_phi * enu_z));
 
-  //ECEFをllhに変換
+  //Convert ECEF to llh
   x = ECEF_x;
   y = ECEF_y;
   z = ECEF_z;
@@ -262,7 +263,7 @@ void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double ba
 
   *alt = u*( 1 - b2/(a*v) );
 
-} //削除予定
+}
 
 int main(int argc, char **argv){
 
@@ -352,7 +353,7 @@ int main(int argc, char **argv){
       //ROS_INFO("Vel_z=%10.10lf",Vel_z);
 
       if(counter == 1){
-      //enu変換用基準値点
+      //Reference value point for ENU conversion
 
       base_ECEF_x = ECEF_x;
       base_ECEF_y = ECEF_y;
@@ -379,7 +380,7 @@ int main(int argc, char **argv){
 
       pub1.publish(p1_msg);
 
-      enu2llh(enu_x,enu_y,enu_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&lon,&lat,&alt); //削除予定
+      enu2llh(enu_x,enu_y,enu_z,base_ECEF_x,base_ECEF_y,base_ECEF_z,&lon,&lat,&alt); //plan to delete
 
       sensor_msgs::NavSatFix p2_msg;
       p2_msg.header.stamp = ros::Time::now();

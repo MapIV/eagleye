@@ -32,7 +32,7 @@ double Time_Last = 0.0;
 float sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
 float ESTNUM_MIN = 1500;
 float ESTNUM_MAX = 14000; //1st = 14000 2nd = 25000
-float ESTNUM_K = 1.0/50; //original = 1.0/50
+float ESTNUM_K = 1.0/50;
 float TH_VEL_EST = 10/3.6;
 float Heading = 0.0;
 float YawrateOffset_Stop = 0.0;
@@ -78,7 +78,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
+    Time = IMUTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Offset < ESTNUM_MAX){

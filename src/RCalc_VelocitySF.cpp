@@ -22,7 +22,7 @@ int ESTNUM_SF = 0;
 float ESTNUM_MIN = 1000;
 float ESTNUM_MAX = 20000;
 float TH_VEL_EST = 10/3.6;
-float ESTNUM_ESF = 0.05; //original = 0.05
+float ESTNUM_ESF = 0.05;
 float Velocity_SFInit = 1.0;
 float Velocity = 0.0;
 float Velocity_Doppler = 0.0;

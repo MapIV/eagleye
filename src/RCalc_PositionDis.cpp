@@ -42,8 +42,8 @@ float Distance_BUFNUM_MAX = 100000;//仮の値
 float TH_VEL_EST = 10/3.6;
 float ESTDIST = 500;
 float TH_POSMAX = 3.0;
-float TH_CALC_MINNUM = 1.0/20; //original 1.0/20 float TH_CALC_MINNUM = 1.0/20/2.5/2.0;
-float TH_EST_GIVEUP_NUM = 1.0/100/2.0;
+float TH_CALC_MINNUM = 1.0/20;
+float TH_EST_GIVEUP_NUM = 1.0/100;
 float UsrPos_enu_x = 0.0;
 float UsrPos_enu_y = 0.0;
 float UsrPos_enu_z = 0.0;
@@ -143,7 +143,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
+    Time = IMUTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (Distance_BUFNUM < Distance_BUFNUM_MAX){

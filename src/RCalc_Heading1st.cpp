@@ -14,6 +14,7 @@
  #include "imu_gnss_localizer/YawrateOffset.h"
  #include <boost/circular_buffer.hpp>
  #include <math.h>
+ #include <numeric>
 
 ros::Publisher pub;
 
@@ -33,7 +34,7 @@ float sum = 0.0, avg = 0.0;
 float ESTNUM_MIN = 500;
 float ESTNUM_MAX = 1500;
 float ESTNUM_GNSF = 1.0/10;
-float ESTNUM_THSF = ESTNUM_GNSF*1/2;
+float ESTNUM_THSF = ESTNUM_GNSF*1.0/2.0;
 float TH_HEADINGMAX = 3.0/180*M_PI;
 float TH_VEL_EST = 10/3.6;
 float TH_VEL_EST_Heading = TH_VEL_EST;
@@ -87,7 +88,7 @@ void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
   velE = (float)msg->Vel_e; //unit [m/s]
   velU = (float)msg->Vel_u; //unit [m/s]
   Heading_Doppler = atan2(velE , velN); //unit [rad]
-  ROS_INFO("Heading_Doppler = %f",Heading_Doppler);
+  //ROS_INFO("Heading_Doppler = %f",Heading_Doppler);
 
 }
 
@@ -96,7 +97,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
+    Time = IMUTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Heading < ESTNUM_MAX){
@@ -194,10 +195,10 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
           //The role of "find function" in MATLAB !Suspect!
           for(i = 0; i < length_index; i++){
             if(pdiff[i] > M_PI/2.0){
-                index_inv_up.push_back(i);
+                index_inv_up.push_back(index[i]);
             }
             if(pdiff[i] < -M_PI/2.0){
-                index_inv_down.push_back(i);
+                index_inv_down.push_back(index[i]);
             }
           }
 
@@ -206,15 +207,28 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
           if(length_index_inv_up != 0){
             for(i = 0; i < length_index_inv_up; i++){
-              pHeading[index[index_inv_up[i]]] = pHeading[index[index_inv_up[i]]] + 2.0*M_PI;
+              pHeading[index_inv_up[i]] = pHeading[index_inv_up[i]] + 2.0*M_PI;
+              //ROS_INFO("UP r %f", pHeading[index_inv_up[i]]);
             }
           }
 
           if(length_index_inv_down != 0){
+
             for(i = 0; i < length_index_inv_down; i++){
-              pHeading[index[index_inv_down[i]]] = pHeading[index[index_inv_down[i]]] - 2.0*M_PI;
+              pHeading[index_inv_down[i]] = pHeading[index_inv_down[i]] - 2.0*M_PI;
+              //ROS_INFO("DOWN r %f", pHeading[index_inv_down[i]]);
+            }
+
+            //Debug
+            for(i = 0; i < length_index; i++){
+              ROS_INFO("%f %d", pHeading[index[i]], count);
             }
           }
+
+          std::size_t length_pHeading = std::distance(pHeading.begin(), pHeading.end());
+          std::size_t length_ppHeading = std::distance(ppHeading.begin(), ppHeading.end());
+
+          //ROS_INFO("index end %d pHeading %zu ppHeading %zu",index[length_index-1],length_pHeading,length_ppHeading);
 
             while(1){
 
@@ -229,7 +243,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
               for(i = 0; i < length_index; i++){
               pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
               }
-
+/*
               sum = 0.0;
               for(i = 0; i < length_index; i++){
               sum += pdiff[i];
@@ -237,6 +251,10 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
               avg = 0.0;
               avg = sum / length_index;
+              tHeading = pHeading[length_index-1] - avg;
+*/
+              avg = std::accumulate(pdiff.begin(), pdiff.end(), 0.0) / length_index;
+
               tHeading = pHeading[length_index-1] - avg;
 
               baseHeading2.clear();

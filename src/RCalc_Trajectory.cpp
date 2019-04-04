@@ -59,7 +59,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
+    Time = IMUTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if(T_count == 0 && flag_SF == true && flag_Est == true){

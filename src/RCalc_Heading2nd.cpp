@@ -33,7 +33,7 @@ float sum = 0.0, avg = 0.0;
 float ESTNUM_MIN = 500;
 float ESTNUM_MAX = 1500;
 float ESTNUM_GNSF = 1.0/10;
-float ESTNUM_THSF = ESTNUM_GNSF*1/2;
+float ESTNUM_THSF = ESTNUM_GNSF*1.0/2.0;
 float TH_HEADINGMAX = 3.0/180*M_PI;
 float TH_VEL_EST = 10/3.6;
 float TH_VEL_EST_Heading = TH_VEL_EST;
@@ -103,7 +103,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
+    Time = IMUTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Heading < ESTNUM_MAX){
