@@ -282,34 +282,30 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
 int main(int argc, char **argv){
 
-  ros::init(argc, argv, "YawrateOffset");
+  ros::init(argc, argv, "RCalc_YawrateOffset");
   ros::NodeHandle n("~");
   n.getParam("/imu_gnss_localizer/reverse_imu",reverse_imu);
 
-  char publish_topic_name[128];
-  char subscribe_topic_name[128];
+  std::string publish_topic_name = "/publish_topic_name/invalid";
+  std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
 
   if(argc == 2){
     if(strcmp(argv[1],"1st") == 0){
-      char publish_topic_name[] = "/imu_gnss_localizer/YawrateOffset1st";
-      char subscribe_topic_name[] = "/imu_gnss_localizer/Heading1st";
+      publish_topic_name = "/imu_gnss_localizer/YawrateOffset1st";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading1st";
       ESTNUM_MAX = 14000; //Parameters for 1st
     }
     else if(strcmp(argv[1],"2nd") == 0){
-      char publish_topic_name[] = "/imu_gnss_localizer/YawrateOffset2nd";
-      char subscribe_topic_name[] = "/imu_gnss_localizer/Heading2nd";
+      publish_topic_name = "/imu_gnss_localizer/YawrateOffset2nd";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading2nd";
       ESTNUM_MAX = 25000; //Parameters for 2nd
     }
     else{
-      char publish_topic_name[] = "/publish_topic_name/invalid";
-      char subscribe_topic_name[] = "/subscribe_topic_name/invalid";
       ROS_ERROR("Invalid argument");
       ros::shutdown();
     }
   }
   else{
-    char publish_topic_name[] = "/publish_topic_name/invalid";
-    char subscribe_topic_name[] = "/subscribe_topic_name/invalid";
     ROS_ERROR("No arguments");
     ros::shutdown();
   }
