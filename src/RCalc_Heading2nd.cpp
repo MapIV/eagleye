@@ -17,6 +17,8 @@
 
 ros::Publisher pub;
 
+bool reverse_imu = false; //default parameter
+
 bool flag_GNSS, flag_EstRaw, flag_Start, flag_Est_Heading, flag_Est;
 int i = 0;
 int count = 0;
@@ -113,7 +115,12 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
       ESTNUM_Heading = ESTNUM_MAX;
     }
 
-    Yawrate = -1 * msg->angular_velocity.z;
+    if (reverse_imu == false){
+      Yawrate = msg->angular_velocity.z;
+    }
+    else if (reverse_imu == true){
+      Yawrate = -1 * msg->angular_velocity.z;
+    }
 
     //GNSS receive flag
     if (GPSTime_Last == GPSTime){
@@ -352,8 +359,9 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 int main(int argc, char **argv){
 
   ros::init(argc, argv, "RCalc_Heading2nd");
-
-  ros::NodeHandle n;
+  ros::NodeHandle n("~");
+  n.getParam("/imu_gnss_localizer/reverse_imu",reverse_imu);
+  
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/YawrateOffset1st", 1000, receive_YawrateOffset);

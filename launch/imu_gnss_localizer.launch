@@ -16,4 +16,6 @@
 
   <node pkg="imu_gnss_localizer" name="Debug_tool" type="Debug_tool" />
 
+  <param name="/imu_gnss_localizer/reverse_imu" type="bool" value="true" />
+
 </launch>
