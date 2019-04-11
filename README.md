@@ -114,6 +114,13 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 		cd catkin_ws  
 		catkin_make  
 
+6) Check the rotation direction of z axis of IMU being used.If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" in the launch file to "true".
+
+    cd  
+    gedit catkin_ws/src/imu_gnss_localizer/launch/imu_gnss_localizer.launch  
+
+>param name="/imu_gnss_localizer/reverse_imu" type="bool" value="true"
+
 ## Usage
 1) The wheel speed information (vehicle speed information) is published as follows.
 
