@@ -23,6 +23,7 @@ ros::Publisher pub;
 bool reverse_imu = false;
 
 bool flag_GNSS, flag_EstRaw, flag_Start, flag_Est_Heading, flag_Est;
+int Debugcount;
 int i = 0;
 int count = 0;
 int GPSTime_Last, GPSTime;
@@ -108,7 +109,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Heading < ESTNUM_MAX){
@@ -193,6 +194,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
             }
           }
 
+          //Debug
+          for(i = 0; i < length_index; i++){
+            ROS_ERROR("SET1 %f", pHeading[index[i]]);
+          }
+
           //dynamic array
           std::vector<float> baseHeading;
           std::vector<float> baseHeading2;
@@ -222,17 +228,24 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
           length_index_inv_down = std::distance(index_inv_down.begin(), index_inv_down.end());
 
           if(length_index_inv_up != 0){
+            ROS_ERROR("-\n-\n-\n-\n-\n-\n-\n-\n------------------------------");
             for(i = 0; i < length_index_inv_up; i++){
               pHeading[index_inv_up[i]] = pHeading[index_inv_up[i]] + 2.0*M_PI;
-              //ROS_INFO("UP r %f", pHeading[index_inv_up[i]]);
+              //ROS_ERROR("UP r %f", pHeading[index_inv_up[i]]);
             }
           }
 
           if(length_index_inv_down != 0){
             for(i = 0; i < length_index_inv_down; i++){
               pHeading[index_inv_down[i]] = pHeading[index_inv_down[i]] - 2.0*M_PI;
-              //ROS_INFO("DOWN r %f", pHeading[index_inv_down[i]]);
+              //ROS_ERROR("DOWN r %f", pHeading[index_inv_down[i]]);
             }
+          }
+
+          ros::Duration(0.001).sleep();
+          //Debug
+          for(i = 0; i < length_index; i++){
+            ROS_ERROR("SET2 %f", pHeading[index[i]]);
           }
 
           std::size_t length_pHeading = std::distance(pHeading.begin(), pHeading.end());
@@ -275,12 +288,15 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
                 index.erase(index.begin() + index_max);
               }
               else{
+                ++Debugcount;
+                //ROS_ERROR("Debugcount=%d",Debugcount);
                 break;
               }
 
               length_index = std::distance(index.begin(), index.end());
 
               if(length_index < ESTNUM_Heading * ESTNUM_THSF){
+
                 break;
               }
 
