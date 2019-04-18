@@ -25,102 +25,102 @@ ros::Publisher pub;
 
 //rtklib_connecter
 int rtklib_GPSTime = 0;
-float rtklib_enu_x = 0.0;
-float rtklib_enu_y = 0.0;
-float rtklib_enu_z = 0.0;
-float rtklib_Vel_e = 0.0;
-float rtklib_Vel_n = 0.0;
-float rtklib_Vel_u = 0.0;
-float rtklib_ORG_x = 0.0;
-float rtklib_ORG_y = 0.0;
-float rtklib_ORG_z = 0.0;
-float rtklib_latitude = 0.0;
-float rtklib_longitude = 0.0;
-float rtklib_altitude = 0.0;
-float rtklib_Doppler_Velocity = 0.0;
-float rtklib_Doppler_Heading_angle = 0.0;
+double rtklib_enu_x = 0.0;
+double rtklib_enu_y = 0.0;
+double rtklib_enu_z = 0.0;
+double rtklib_Vel_e = 0.0;
+double rtklib_Vel_n = 0.0;
+double rtklib_Vel_u = 0.0;
+double rtklib_ORG_x = 0.0;
+double rtklib_ORG_y = 0.0;
+double rtklib_ORG_z = 0.0;
+double rtklib_latitude = 0.0;
+double rtklib_longitude = 0.0;
+double rtklib_altitude = 0.0;
+double rtklib_Doppler_Velocity = 0.0;
+double rtklib_Doppler_Heading_angle = 0.0;
 
 //RCalc_VelocitySF
-float VelocitySF_Correction_Velocity = 0.0;
-float VelocitySF_Scale_Factor = 0.0;
+double VelocitySF_Correction_Velocity = 0.0;
+double VelocitySF_Scale_Factor = 0.0;
 bool VelocitySF_flag_Est = 0;
 bool VelocitySF_flag_EstRaw = 0;
 
 //RCalc_Heading1st
-float Heading1st_Heading_angle = 0.0;
+double Heading1st_Heading_angle = 0.0;
 bool Heading1st_flag_Est = 0;
 bool Heading1st_flag_EstRaw = 0;
 
 //RCalc_Heading2nd
-float Heading2nd_Heading_angle = 0.0;
+double Heading2nd_Heading_angle = 0.0;
 bool Heading2nd_flag_Est = 0;
 bool Heading2nd_flag_EstRaw = 0;
 
 //RCalc_Heading3rd
-float Heading3rd_Heading_angle = 0.0;
+double Heading3rd_Heading_angle = 0.0;
 bool Heading3rd_flag_Est = 0;
 bool Heading3rd_flag_EstRaw = 0;
 
 //RCalc_YawrateOffsetStop
-float YawrateOffsetStop_YawrateOffset = 0.0;
+double YawrateOffsetStop_YawrateOffset = 0.0;
 bool YawrateOffsetStop_flag_Est = 0;
 bool YawrateOffsetStop_flag_EstRaw = 0;
 
 //RCalc_YawrateOffset1st
-float YawrateOffset1st_YawrateOffset = 0.0;
+double YawrateOffset1st_YawrateOffset = 0.0;
 bool YawrateOffset1st_flag_Est = 0;
 bool YawrateOffset1st_flag_EstRaw = 0;
 
 //RCalc_YawrateOffset2nd
-float YawrateOffset2nd_YawrateOffset = 0.0;
+double YawrateOffset2nd_YawrateOffset = 0.0;
 bool YawrateOffset2nd_flag_Est = 0;
 bool YawrateOffset2nd_flag_EstRaw = 0;
 
 //RCalc_Trajectory
-float Trajectory_VelE = 0.0;
-float Trajectory_VelN = 0.0;
-float Trajectory_VelU = 0.0;
+double Trajectory_VelE = 0.0;
+double Trajectory_VelN = 0.0;
+double Trajectory_VelU = 0.0;
 int Trajectory_index = 0;
-float Trajectory_x = 0.0;
-float Trajectory_y = 0.0;
-float Trajectory_z = 0.0;
-float Trajectory_Heading_angle = 0.0;
+double Trajectory_x = 0.0;
+double Trajectory_y = 0.0;
+double Trajectory_z = 0.0;
+double Trajectory_Heading_angle = 0.0;
 
 //RCalc_Distance
-float Distance_Distance = 0.0;
+double Distance_Distance = 0.0;
 
 //RCalc_PositionDis
-float PositionDis_enu_x = 0.0;
-float PositionDis_enu_y = 0.0;
-float PositionDis_enu_z = 0.0;
+double PositionDis_enu_x = 0.0;
+double PositionDis_enu_y = 0.0;
+double PositionDis_enu_z = 0.0;
 int PositionDis_index = 0;
 
 //RCalc_PositionDis_Int
-float PositionDis_Int_enu_x = 0.0;
-float PositionDis_Int_enu_y = 0.0;
-float PositionDis_Int_enu_z = 0.0;
+double PositionDis_Int_enu_x = 0.0;
+double PositionDis_Int_enu_y = 0.0;
+double PositionDis_Int_enu_z = 0.0;
+double PositionDis_Int_latitude = 0.0;
+double PositionDis_Int_longitude = 0.0;
+double PositionDis_Int_altitude = 0.0;
 bool PositionDis_Int_flag_Est = 0;
 bool PositionDis_Int_flag_EstRaw = 0;
-float PositionDis_Int_latitude = 0.0;
-float PositionDis_Int_longitude = 0.0;
-float PositionDis_Int_altitude = 0.0;
 
 //CAN_Velocity
-float CAN_Velocity = 0.0;
+double CAN_Velocity = 0.0;
 
 //IMU_rawdata
 int IMU_GPSTime = 0;
-float IMU_acceleration_x = 0.0;
-float IMU_acceleration_y = 0.0;
-float IMU_acceleration_z = 0.0;
-float IMU_angular_velocity_x = 0.0;
-float IMU_angular_velocity_y = 0.0;
-float IMU_angular_velocity_z = 0.0;
+double IMU_acceleration_x = 0.0;
+double IMU_acceleration_y = 0.0;
+double IMU_acceleration_z = 0.0;
+double IMU_angular_velocity_x = 0.0;
+double IMU_angular_velocity_y = 0.0;
+double IMU_angular_velocity_z = 0.0;
 
 //計算用
-float velN = 0.0;
-float velE = 0.0;
-float velU = 0.0;
+double velN = 0.0;
+double velE = 0.0;
+double velU = 0.0;
 
 imu_gnss_localizer::Debug_tool p_msg;
 
@@ -137,9 +137,9 @@ void receive_rtklib(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
     rtklib_ORG_y = msg->ORG_y;
     rtklib_ORG_z = msg->ORG_z;
 
-    velE = (float)msg->Vel_e; //unit [m/s]
-    velN = (float)msg->Vel_n; //unit [m/s]
-    velU = (float)msg->Vel_u; //unit [m/s]
+    velE = msg->Vel_e; //unit [m/s]
+    velN = msg->Vel_n; //unit [m/s]
+    velU = msg->Vel_u; //unit [m/s]
     rtklib_Doppler_Velocity = sqrt((velE * velE) + (velN * velN) + (velU * velU)); //unit [m/s]
     rtklib_Doppler_Heading_angle = atan2(velE , velN); //unit [rad]
 
@@ -215,7 +215,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     Trajectory_VelE = msg->VelE;
     Trajectory_VelN = msg->VelN;
     Trajectory_VelU = msg->VelU;
-    Trajectory_index = msg->index;  //RCalc_Trajectory内のカウンター
+    Trajectory_index = msg->index;
 
 }
 
@@ -239,7 +239,7 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
     PositionDis_enu_x = msg->enu_x;
     PositionDis_enu_y = msg->enu_y;
     PositionDis_enu_z = msg->enu_z;
-    PositionDis_index = msg->index;   //RCalc_Trajectory内のカウンター、つまりTrajectory_indexの差で位置推定の処理が何ステップ遅れているかわかる
+    PositionDis_index = msg->index;
 
 }
 
@@ -248,16 +248,11 @@ void receive_PositionDis_Int(const imu_gnss_localizer::PositionDis::ConstPtr& ms
     PositionDis_Int_enu_x = msg->enu_x;
     PositionDis_Int_enu_y = msg->enu_y;
     PositionDis_Int_enu_z = msg->enu_z;
-    PositionDis_Int_flag_Est = msg->flag_Est;
-    PositionDis_Int_flag_EstRaw = msg->flag_EstRaw;
-
-}
-
-void receive_PositionDis_fix(const sensor_msgs::NavSatFix::ConstPtr& msg){
-
     PositionDis_Int_latitude = msg->latitude;
     PositionDis_Int_longitude = msg->longitude;
     PositionDis_Int_altitude = msg->altitude;
+    PositionDis_Int_flag_Est = msg->flag_Est;
+    PositionDis_Int_flag_EstRaw = msg->flag_EstRaw;
 
 }
 
@@ -276,13 +271,6 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     IMU_angular_velocity_y = msg->angular_velocity.y;
     IMU_angular_velocity_z = msg->angular_velocity.z;
 
-
-
-/*
-}float
-
-void timer_callback(const ros::TimerEvent& event){
-*/
     //rtklib_connecter
     p_msg.rtklib_GPSTime = rtklib_GPSTime;
     p_msg.rtklib_enu_x = rtklib_enu_x;
@@ -402,10 +390,8 @@ int main(int argc, char **argv){
   ros::Subscriber sub12 = n.subscribe("/imu_gnss_localizer/Distance", 1000, receive_Distance);
   ros::Subscriber sub13 = n.subscribe("/imu_gnss_localizer/PositionDis", 1000, receive_PositionDis);
   ros::Subscriber sub14 = n.subscribe("/imu_gnss_localizer/PositionDis_Int", 1000, receive_PositionDis_Int);
-  ros::Subscriber sub15 = n.subscribe("/imu_gnss_localizer/fix", 1000, receive_PositionDis_fix);
-  ros::Subscriber sub16 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
-  ros::Subscriber sub17 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  //ros::Timer timer = n.createTimer(ros::Duration(0.01), timer_callback); //10msごとにpublishする
+  ros::Subscriber sub15 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
+  ros::Subscriber sub16 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
 
   pub = n.advertise<imu_gnss_localizer::Debug_tool>("/imu_gnss_localizer/Debug_tool", 1000);
 

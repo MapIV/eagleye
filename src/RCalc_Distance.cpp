@@ -23,11 +23,15 @@ double IMUperiod = 1/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
-float pVelocity = 0.0;
-float Distance = 0.0;
-float Distance_Last = 0.0;
+double pVelocity = 0.0;
+double Distance = 0.0;
+double Distance_Last = 0.0;
 
 imu_gnss_localizer::Distance p_msg;
+
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
@@ -36,6 +40,8 @@ void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 }
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
+
+    StartTime = ros::Time::now().toSec();
 
     ++count;
     IMUTime = IMUperiod * count;
@@ -51,6 +57,12 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
       Time_Last = Time;
       Distance_Last = Distance;
+    }
+
+    EndTime = ros::Time::now().toSec();
+    ProcessingTime = (EndTime - StartTime);
+    if(ProcessingTime > IMUperiod){
+      ROS_WARN("RCalc_Distance processing time %lf [ms]",ProcessingTime*1000);
     }
 
 }
