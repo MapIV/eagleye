@@ -1,24 +1,27 @@
 /*
- * RCalc_Heading1st.cpp
+ * RCalc_Heading.cpp
  * Heading estimate program
  * Author Sekino
+ * Ver 2.01 2019/4/17 Critical bug fixes
+ * Ver 2.00 2019/4/11 Integrate 1st, 2nd, 3rd
  * Ver 1.00 2019/2/6
  */
 
- #include "ros/ros.h"
- #include "geometry_msgs/Twist.h"
- #include "sensor_msgs/Imu.h"
- #include "imu_gnss_localizer/RTKLIB.h"
- #include "imu_gnss_localizer/Heading.h"
- #include "imu_gnss_localizer/VelocitySF.h"
- #include "imu_gnss_localizer/YawrateOffset.h"
- #include <boost/circular_buffer.hpp>
- #include <math.h>
- #include <numeric>
+#include "ros/ros.h"
+#include "geometry_msgs/Twist.h"
+#include "sensor_msgs/Imu.h"
+#include "imu_gnss_localizer/RTKLIB.h"
+#include "imu_gnss_localizer/Heading.h"
+#include "imu_gnss_localizer/VelocitySF.h"
+#include "imu_gnss_localizer/YawrateOffset.h"
+#include <boost/circular_buffer.hpp>
+#include <math.h>
+#include <numeric>
 
 ros::Publisher pub;
 
-bool reverse_imu = false; //default parameter
+//default parameter
+bool reverse_imu = false;
 
 bool flag_GNSS, flag_EstRaw, flag_Start, flag_Est_Heading, flag_Est;
 int i = 0;
@@ -32,43 +35,48 @@ double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
-float sum = 0.0, avg = 0.0;
-float ESTNUM_MIN = 500;
-float ESTNUM_MAX = 1500;
-float ESTNUM_GNSF = 1.0/10;
-float ESTNUM_THSF = ESTNUM_GNSF*1.0/2.0;
-float TH_HEADINGMAX = 3.0/180*M_PI;
-float TH_VEL_EST = 10/3.6;
-float TH_VEL_EST_Heading = TH_VEL_EST;
-float TH_VEL_STOP = 0.01;
-float TH_YAWRATE = 5.0/180*M_PI;
-float Heading_Doppler = 0.0;
-float Heading = 0.0;
-float velN = 0.0;
-float velE = 0.0;
-float velU = 0.0;
-float YawrateOffset_Stop = 0.0;
-float Yawrate = 0.0;
-float Correction_Velocity = 0.0;
-float tHeading = 0.0;
-float Heading_EstRaw = 0.0;
-float Heading_Est = 0.0;
-float Heading_Last = 0.0;
+double avg = 0.0;
+double ESTNUM_MIN = 500;
+double ESTNUM_MAX = 1500;
+double ESTNUM_GNSF = 1.0/10;
+double ESTNUM_THSF = ESTNUM_GNSF*1.0/2.0;
+double TH_HEADINGMAX = 3.0/180*M_PI;
+double TH_VEL_EST = 10/3.6;
+double TH_VEL_EST_Heading = TH_VEL_EST;
+double TH_VEL_STOP = 0.01;
+double TH_YAWRATE = 5.0/180*M_PI;
+double Heading_Doppler = 0.0;
+double Heading = 0.0;
+double velN = 0.0;
+double velE = 0.0;
+double velU = 0.0;
+double YawrateOffset_Stop = 0.0;
+double YawrateOffset = 0.0;
+double Yawrate = 0.0;
+double Correction_Velocity = 0.0;
+double tHeading = 0.0;
+double Heading_EstRaw = 0.0;
+double Heading_Est = 0.0;
+double Heading_Last = 0.0;
+
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
 
 std::size_t length_index;
 std::size_t length_index_inv_up;
 std::size_t length_index_inv_down;
 
-std::vector<float>::iterator max;
+std::vector<double>::iterator max;
 
 imu_gnss_localizer::Heading p_msg;
 
 boost::circular_buffer<double> pTime(ESTNUM_MAX);
-boost::circular_buffer<float> pHeading(ESTNUM_MAX);
-boost::circular_buffer<float> pYawrate(ESTNUM_MAX);
-boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
-boost::circular_buffer<float> pYawrateOffset_Stop(ESTNUM_MAX);
-boost::circular_buffer<float> pYawrateOffset(ESTNUM_MAX);
+boost::circular_buffer<double> pHeading(ESTNUM_MAX);
+boost::circular_buffer<double> pYawrate(ESTNUM_MAX);
+boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
+boost::circular_buffer<double> pYawrateOffset_Stop(ESTNUM_MAX);
+boost::circular_buffer<double> pYawrateOffset(ESTNUM_MAX);
 boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
@@ -83,12 +91,18 @@ void receive_YawrateOffsetStop(const imu_gnss_localizer::YawrateOffset::ConstPtr
 
 }
 
+void receive_YawrateOffset(const imu_gnss_localizer::YawrateOffset::ConstPtr& msg){
+
+  YawrateOffset = msg->YawrateOffset; //1st is YawrateOffset_Stop here too
+
+}
+
 void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
   GPSTime = msg->GPSTime;
-  velN = (float)msg->Vel_n; //unit [m/s]
-  velE = (float)msg->Vel_e; //unit [m/s]
-  velU = (float)msg->Vel_u; //unit [m/s]
+  velN = msg->Vel_n; //unit [m/s]
+  velE = msg->Vel_e; //unit [m/s]
+  velU = msg->Vel_u; //unit [m/s]
   Heading_Doppler = atan2(velE , velN); //unit [rad]
   //ROS_INFO("Heading_Doppler = %f",Heading_Doppler);
 
@@ -96,10 +110,12 @@ void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
+    StartTime = ros::Time::now().toSec();
+
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Heading < ESTNUM_MAX){
@@ -126,21 +142,21 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
       Heading_Doppler = Heading_Doppler;
     }
 
-    //ROS_INFO("Yawrate %f ", Yawrate + YawrateOffset_Stop);
-
     //data buffer generate
     pTime.push_back(Time);
     pHeading.push_back(Heading_Doppler);
     pYawrate.push_back(Yawrate);
     pVelocity.push_back(Correction_Velocity);
     pYawrateOffset_Stop.push_back(YawrateOffset_Stop);
-    pYawrateOffset.push_back(YawrateOffset_Stop);  //Heading 2nd and 3rd YawrateOffsetStop => YawrateOffset
+    pYawrateOffset.push_back(YawrateOffset);
     pflag_GNSS.push_back(flag_GNSS);
 
     //dynamic array
     std::vector<int> pindex_GNSS;
     std::vector<int> pindex_vel;
     std::vector<int> index;
+
+
 
     if (ESTNUM_Heading > ESTNUM_MIN && pflag_GNSS[ESTNUM_Heading-1] == true && pVelocity[ESTNUM_Heading-1] > TH_VEL_EST && fabsf(pYawrate[ESTNUM_Heading-1]) < TH_YAWRATE){
     flag_Est_Heading = true;
@@ -171,7 +187,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
         if(length_index > ESTNUM_Heading * ESTNUM_GNSF){
 
           //zeros array
-          std::vector<float> ppHeading(ESTNUM_Heading,0);
+          std::vector<double> ppHeading(ESTNUM_Heading,0);
 
           for(i = 0; i < ESTNUM_Heading; i++){
             if(i > 0){
@@ -185,11 +201,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
           }
 
           //dynamic array
-          std::vector<float> baseHeading;
-          std::vector<float> baseHeading2;
-          std::vector<float> pdiff;
-          std::vector<float> index_inv_up;
-          std::vector<float> index_inv_down;
+          std::vector<double> baseHeading;
+          std::vector<double> baseHeading2;
+          std::vector<double> pdiff;
+          std::vector<double> index_inv_up;
+          std::vector<double> index_inv_down;
 
           for(i = 0; i < ESTNUM_Heading; i++){
           baseHeading.push_back(pHeading[index[length_index-1]] - ppHeading[index[length_index-1]] + ppHeading[i]);
@@ -215,27 +231,15 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
           if(length_index_inv_up != 0){
             for(i = 0; i < length_index_inv_up; i++){
               pHeading[index_inv_up[i]] = pHeading[index_inv_up[i]] + 2.0*M_PI;
-              //ROS_INFO("UP r %f", pHeading[index_inv_up[i]]);
             }
           }
 
           if(length_index_inv_down != 0){
-
+            //ROS_ERROR("count %d", count);
             for(i = 0; i < length_index_inv_down; i++){
               pHeading[index_inv_down[i]] = pHeading[index_inv_down[i]] - 2.0*M_PI;
-              //ROS_INFO("DOWN r %f", pHeading[index_inv_down[i]]);
-            }
-
-            //Debug
-            for(i = 0; i < length_index; i++){
-              ROS_INFO("%f %d", pHeading[index[i]], count);
             }
           }
-
-          std::size_t length_pHeading = std::distance(pHeading.begin(), pHeading.end());
-          std::size_t length_ppHeading = std::distance(ppHeading.begin(), ppHeading.end());
-
-          //ROS_INFO("index end %d pHeading %zu ppHeading %zu",index[length_index-1],length_pHeading,length_ppHeading);
 
             while(1){
 
@@ -250,19 +254,9 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
               for(i = 0; i < length_index; i++){
               pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
               }
-/*
-              sum = 0.0;
-              for(i = 0; i < length_index; i++){
-              sum += pdiff[i];
-              }
 
-              avg = 0.0;
-              avg = sum / length_index;
-              tHeading = pHeading[length_index-1] - avg;
-*/
               avg = std::accumulate(pdiff.begin(), pdiff.end(), 0.0) / length_index;
-
-              tHeading = pHeading[length_index-1] - avg;
+              tHeading = pHeading[index[length_index-1]] - avg;
 
               baseHeading2.clear();
               for(i = 0; i < ESTNUM_Heading; i++){
@@ -289,7 +283,6 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
               if(length_index < ESTNUM_Heading * ESTNUM_THSF){
                 break;
               }
-
             }
 
         if(length_index == 0 || length_index  > ESTNUM_Heading * ESTNUM_THSF){
@@ -365,19 +358,52 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
   Time_Last = Time;
   Heading_Last = Heading_Est;
 
+  EndTime = ros::Time::now().toSec();
+  ProcessingTime = (EndTime - StartTime);
+  if(ProcessingTime > IMUperiod){
+    ROS_WARN("RCalc_Heading processing time %lf [ms]",ProcessingTime*1000);
+  }
+
 }
 
 int main(int argc, char **argv){
 
-  ros::init(argc, argv, "RCalc_Heading1st");
+  ros::init(argc, argv, "RCalc_Heading");
   ros::NodeHandle n("~");
   n.getParam("/imu_gnss_localizer/reverse_imu",reverse_imu);
 
+  std::string publish_topic_name = "/publish_topic_name/invalid";
+  std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+
+  if(argc == 2){
+    if(strcmp(argv[1],"1st") == 0){
+      publish_topic_name = "/imu_gnss_localizer/Heading1st";
+      subscribe_topic_name = "/imu_gnss_localizer/YawrateOffsetStop";
+    }
+    else if(strcmp(argv[1],"2nd") == 0){
+      publish_topic_name = "/imu_gnss_localizer/Heading2nd";
+      subscribe_topic_name = "/imu_gnss_localizer/YawrateOffset1st";
+    }
+    else if(strcmp(argv[1],"3rd") == 0){
+      publish_topic_name = "/imu_gnss_localizer/Heading3rd";
+      subscribe_topic_name = "/imu_gnss_localizer/YawrateOffset2nd";
+    }
+    else{
+      ROS_ERROR("Invalid argument");
+      ros::shutdown();
+    }
+  }
+  else{
+    ROS_ERROR("No arguments");
+    ros::shutdown();
+  }
+
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
-  ros::Subscriber sub3 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  ros::Subscriber sub4 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
-  pub = n.advertise<imu_gnss_localizer::Heading>("/imu_gnss_localizer/Heading1st", 1000);
+  ros::Subscriber sub3 = n.subscribe(subscribe_topic_name, 1000, receive_YawrateOffset);
+  ros::Subscriber sub4 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
+  ros::Subscriber sub5 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
+  pub = n.advertise<imu_gnss_localizer::Heading>(publish_topic_name, 1000);
 
   ros::spin();
 

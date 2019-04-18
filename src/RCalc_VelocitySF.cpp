@@ -19,34 +19,38 @@ int count = 0;
 int GPSTime_Last;
 int GPSTime;
 int ESTNUM_SF = 0;
-float ESTNUM_MIN = 1000;
-float ESTNUM_MAX = 20000;
-float TH_VEL_EST = 10/3.6;
-float ESTNUM_ESF = 0.05;
-float Velocity_SFInit = 1.0;
-float Velocity = 0.0;
-float Velocity_Doppler = 0.0;
-float velN = 0.0;
-float velE = 0.0;
-float velU = 0.0;
-float Velocity_SFRaw = 0.0;
-float Velocity_SF = 0.0;
-float Correction_Velocity = 0.0;
-float SF_Last = 0.0;
+double ESTNUM_MIN = 1000;
+double ESTNUM_MAX = 20000;
+double TH_VEL_EST = 10/3.6;
+double ESTNUM_ESF = 0.05;
+double Velocity_SFInit = 1.0;
+double Velocity = 0.0;
+double Velocity_Doppler = 0.0;
+double velN = 0.0;
+double velE = 0.0;
+double velU = 0.0;
+double Velocity_SFRaw = 0.0;
+double Velocity_SF = 0.0;
+double Correction_Velocity = 0.0;
+double SF_Last = 0.0;
+
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
 
 std::size_t length_index;
 
 imu_gnss_localizer::VelocitySF p_msg;
 boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
-boost::circular_buffer<float> pVelocity_Doppler(ESTNUM_MAX);
-boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
+boost::circular_buffer<double> pVelocity_Doppler(ESTNUM_MAX);
+boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
 
 void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
   GPSTime = msg->GPSTime;
-  velN = (float)msg->Vel_n; //unit [m/s]
-  velE = (float)msg->Vel_e; //unit [m/s]
-  velU = (float)msg->Vel_u; //unit [m/s]
+  velN = msg->Vel_n; //unit [m/s]
+  velE = msg->Vel_e; //unit [m/s]
+  velU = msg->Vel_u; //unit [m/s]
   Velocity_Doppler = sqrt((velE * velE) + (velN * velN) + (velU * velU)); //unit [m/s]
 
   ROS_INFO("Velocity_Doppler = %f [m/s]" , Velocity_Doppler );
@@ -54,6 +58,8 @@ void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 }
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
+
+  StartTime = ros::Time::now().toSec();
 
   if (ESTNUM_SF < ESTNUM_MAX){
     ++ESTNUM_SF;
@@ -81,7 +87,7 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
     std::vector<int> pindex_GNSS;
     std::vector<int> pindex_vel;
     std::vector<int> index;
-    std::vector<float> pSF;
+    std::vector<double> pSF;
 
   if (ESTNUM_SF > ESTNUM_MIN && pflag_GNSS[ESTNUM_SF-1] == true && pVelocity[ESTNUM_SF-1] > TH_VEL_EST){
 
@@ -124,7 +130,7 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
     //The role of "median function" in MATLAB
         size_t size = pSF.size();
-        float *t = new float[size];
+        double *t = new double[size];
         std::copy(pSF.begin(), pSF.end(), t);
         std::sort(t, &t[size]);
         Velocity_SFRaw = size%2 ? t[size/2] : (t[(size/2)-1]+t[size/2])/2;
@@ -155,6 +161,15 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
     SF_Last = Velocity_SF;
     GPSTime_Last = GPSTime;
+
+    EndTime = ros::Time::now().toSec();
+    ProcessingTime = (EndTime - StartTime);
+
+/*
+    if(ProcessingTime > IMUperiod){
+      ROS_WARN("processing time %lf [ms]",ProcessingTime*1000);
+    }
+*/
 
 }
 

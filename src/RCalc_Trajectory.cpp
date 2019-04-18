@@ -3,7 +3,7 @@
  * Trajectory estimate program
  * Author Sekino
  * Ver 1.00 2019/2/6
- */
+ */ 
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose.h"
@@ -25,17 +25,17 @@ double IMUperiod = 1/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
-float Est_velE = 0.0;
-float Est_velN = 0.0;
-float Est_velU = 0.0;
-float Trajectory_x = 0.0;
-float Trajectory_y = 0.0;
-float Trajectory_z = 0.0;
-float Trajectory_x_Last = 0.0;
-float Trajectory_y_Last = 0.0;
-float Trajectory_z_Last = 0.0;
-float pVelocity = 0.0;
-float pHeading = 0.0;
+double Est_velE = 0.0;
+double Est_velN = 0.0;
+double Est_velU = 0.0;
+double Trajectory_x = 0.0;
+double Trajectory_y = 0.0;
+double Trajectory_z = 0.0;
+double Trajectory_x_Last = 0.0;
+double Trajectory_y_Last = 0.0;
+double Trajectory_z_Last = 0.0;
+double pVelocity = 0.0;
+double pHeading = 0.0;
 
 geometry_msgs::Pose p1_msg;
 imu_gnss_localizer::UsrVel_enu p2_msg;
@@ -59,7 +59,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if(T_count == 0 && flag_SF == true && flag_Est == true){

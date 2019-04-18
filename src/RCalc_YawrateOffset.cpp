@@ -1,7 +1,8 @@
 /*
- * RCalc_YawrateOffset1st.cpp
+ * RCalc_YawrateOffset.cpp
  * YawrateOffset estimate program
  * Author Sekino
+ * Ver 2.00 2019/4/11 Integrate 1st, 2nd
  * Ver 1.00 2019/2/7
  */
 
@@ -11,12 +12,12 @@
 #include "imu_gnss_localizer/VelocitySF.h"
 #include "imu_gnss_localizer/Heading.h"
 #include "imu_gnss_localizer/YawrateOffset.h"
-#include <boost/circular_buffer.hpp>
 #include <math.h>
 
 ros::Publisher pub;
 
-bool reverse_imu = false; //default parameter
+//default parameter
+bool reverse_imu = false;
 
 bool flag_YawrateOffsetEstRaw, flag_YawrateOffsetEst, flag_Offset_Start, flag_GaDRaw, flag_Est;
 int i = 0;
@@ -31,30 +32,36 @@ double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
-float sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
-float ESTNUM_MIN = 1500;
-float ESTNUM_MAX = 14000; //1st = 14000 2nd = 25000
-float ESTNUM_K = 1.0/50;
-float TH_VEL_EST = 10/3.6;
-float Heading = 0.0;
-float YawrateOffset_Stop = 0.0;
-float YawrateOffset_EstRaw = 0.0;
-float YawrateOffset_Est = 0.0;
-float YawrateOffset_Last = 0.0;
-float Yawrate = 0.0;
-float Correction_Velocity = 0.0;
-std::size_t length_index;
+double sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
+double ESTNUM_MIN = 1500;
+double ESTNUM_MAX; //defined in main function
+double ESTNUM_K = 1.0/50;
+double TH_VEL_EST = 10/3.6;
+double Heading = 0.0;
+double YawrateOffset_Stop = 0.0;
+double YawrateOffset_EstRaw = 0.0;
+double YawrateOffset_Est = 0.0;
+double YawrateOffset_Last = 0.0;
+double Yawrate = 0.0;
+double Correction_Velocity = 0.0;
 
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
+
+std::size_t length_index;
+std::size_t length_pTime;
 std::size_t length_index_inv_up;
 std::size_t length_index_inv_down;
 
 imu_gnss_localizer::YawrateOffset p_msg;
-boost::circular_buffer<double> pTime(ESTNUM_MAX);
-boost::circular_buffer<float> pYawrate(ESTNUM_MAX);
-boost::circular_buffer<float> pHeading(ESTNUM_MAX);
-boost::circular_buffer<float> pVelocity(ESTNUM_MAX);
-boost::circular_buffer<bool> pflag_GaDRaw(ESTNUM_MAX);
-boost::circular_buffer<float> pYawrateOffset_Stop(ESTNUM_MAX);
+
+std::vector<double> pTime;
+std::vector<double> pYawrate;
+std::vector<double> pHeading;
+std::vector<double> pVelocity;
+std::vector<bool> pflag_GaDRaw;
+std::vector<double> pYawrateOffset_Stop;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
 
@@ -77,10 +84,12 @@ void receive_Heading(const imu_gnss_localizer::Heading::ConstPtr& msg){
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
+    StartTime = ros::Time::now().toSec();
+
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (ESTNUM_Offset < ESTNUM_MAX){
@@ -104,6 +113,17 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
     pVelocity.push_back(Correction_Velocity);
     pflag_GaDRaw.push_back(flag_GaDRaw);
     pYawrateOffset_Stop.push_back(YawrateOffset_Stop);
+
+    length_pTime = std::distance(pTime.begin(), pTime.end());
+
+    if(length_pTime > ESTNUM_MAX){
+      pTime.erase(pTime.begin());
+      pYawrate.erase(pYawrate.begin());
+      pHeading.erase(pHeading.begin());
+      pVelocity.erase(pVelocity.begin());
+      pflag_GaDRaw.erase(pflag_GaDRaw.begin());
+      pYawrateOffset_Stop.erase(pYawrateOffset_Stop.begin());
+      }
 
     if(I_flag == 0 && pflag_GaDRaw[ESTNUM_Offset-1] == true){
       I_flag = 1;
@@ -151,7 +171,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
         if(length_index > ESTNUM_Offset * ESTNUM_K){
 
-          std::vector<float> ppHeading(ESTNUM_Offset,0);
+          std::vector<double> ppHeading(ESTNUM_Offset,0);
 
           for(i = 0; i < ESTNUM_Offset; i++){
             if(i > 0){
@@ -160,11 +180,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
           }
 
             //dynamic array
-            std::vector<float> baseHeading;
-            std::vector<float> pdiff;
-            std::vector<float> ptime;
-            std::vector<float> index_inv_up;
-            std::vector<float> index_inv_down;
+            std::vector<double> baseHeading;
+            std::vector<double> pdiff;
+            std::vector<double> ptime;
+            std::vector<double> index_inv_up;
+            std::vector<double> index_inv_down;
 
             for(i = 0; i < ESTNUM_Offset; i++){
             baseHeading.push_back(pHeading[index[length_index-1]] - ppHeading[index[length_index-1]] + ppHeading[i]);
@@ -177,10 +197,10 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
             //The role of "find function" in MATLAB !Suspect!
             for(i = 0; i < length_index; i++){
               if(pdiff[i] > M_PI/2.0){
-                  index_inv_up.push_back(i);
+                  index_inv_up.push_back(index[i]);
               }
               if(pdiff[i] < -M_PI/2.0){
-                  index_inv_down.push_back(i);
+                  index_inv_down.push_back(index[i]);
               }
             }
 
@@ -189,13 +209,13 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
             if(length_index_inv_up != 0){
               for(i = 0; i < length_index_inv_up; i++){
-                pHeading[index[index_inv_up[i]]] = pHeading[index[index_inv_up[i]]] + 2.0*M_PI;
+                pHeading[index_inv_up[i]] = pHeading[index_inv_up[i]] + 2.0*M_PI;
               }
             }
 
             if(length_index_inv_down != 0){
               for(i = 0; i < length_index_inv_down; i++){
-                pHeading[index[index_inv_down[i]]] = pHeading[index[index_inv_down[i]]] - 2.0*M_PI;
+                pHeading[index_inv_down[i]] = pHeading[index_inv_down[i]] - 2.0*M_PI;
               }
             }
 
@@ -208,7 +228,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
 
             pdiff.clear();
             for(i = 0; i < length_index; i++){
-            pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
+            //pdiff.push_back(baseHeading[index[i]] - pHeading[index[i]]);
+            pdiff.push_back(pHeading[index[length_index-1]] - ppHeading[index[length_index-1]] + ppHeading[index[i]] - pHeading[index[i]]);
             }
 
             for(i = 0; i < length_index; i++){
@@ -265,19 +286,49 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
   Time_Last = Time;
   YawrateOffset_Last = YawrateOffset_Est;
 
+  EndTime = ros::Time::now().toSec();
+  ProcessingTime = (EndTime - StartTime);
+  if(ProcessingTime > IMUperiod){
+    ROS_WARN("RCalc_YawrateOffset processing time %lf [ms]",ProcessingTime*1000);
+  }
+
 }
 
 int main(int argc, char **argv){
 
-  ros::init(argc, argv, "YawrateOffset1st");
+  ros::init(argc, argv, "RCalc_YawrateOffset");
   ros::NodeHandle n("~");
   n.getParam("/imu_gnss_localizer/reverse_imu",reverse_imu);
-  
+
+  std::string publish_topic_name = "/publish_topic_name/invalid";
+  std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+
+  if(argc == 2){
+    if(strcmp(argv[1],"1st") == 0){
+      publish_topic_name = "/imu_gnss_localizer/YawrateOffset1st";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading1st";
+      ESTNUM_MAX = 14000; //Parameters for 1st
+    }
+    else if(strcmp(argv[1],"2nd") == 0){
+      publish_topic_name = "/imu_gnss_localizer/YawrateOffset2nd";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading2nd";
+      ESTNUM_MAX = 25000; //Parameters for 2nd
+    }
+    else{
+      ROS_ERROR("Invalid argument");
+      ros::shutdown();
+    }
+  }
+  else{
+    ROS_ERROR("No arguments");
+    ros::shutdown();
+  }
+
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
-  ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/Heading1st", 1000, receive_Heading);
+  ros::Subscriber sub3 = n.subscribe(subscribe_topic_name, 1000, receive_Heading);
   ros::Subscriber sub4 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
-  pub = n.advertise<imu_gnss_localizer::YawrateOffset>("/imu_gnss_localizer/YawrateOffset1st", 1000);
+  pub = n.advertise<imu_gnss_localizer::YawrateOffset>(publish_topic_name, 1000);
 
   ros::spin();
 

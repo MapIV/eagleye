@@ -36,33 +36,37 @@ double Time_Last = 0.0;
 double lon = 0.0;
 double lat = 0.0;
 double alt = 0.0;
-float base_ECEF_x = 0.0;
-float base_ECEF_y = 0.0;
-float base_ECEF_z = 0.0;
-float BUFNUM_MAX = 100;
-float UsrVel_enu_E = 0.0;
-float UsrVel_enu_N = 0.0;
-float UsrVel_enu_U = 0.0;
-float UsrPos_Est_enu_x = 0.0;
-float UsrPos_Est_enu_y = 0.0;
-float UsrPos_Est_enu_z = 0.0;
-float UsrPos_EstRaw_enu_x = 0.0;
-float UsrPos_EstRaw_enu_y = 0.0;
-float UsrPos_EstRaw_enu_z = 0.0;
-float diff_Est_enu_x = 0.0;
-float diff_Est_enu_y = 0.0;
-float diff_Est_enu_z = 0.0;
-float UsrPos_Est_enu_x_Last = 0.0;
-float UsrPos_Est_enu_y_Last = 0.0;
-float UsrPos_Est_enu_z_Last = 0.0;
+double base_ECEF_x = 0.0;
+double base_ECEF_y = 0.0;
+double base_ECEF_z = 0.0;
+double BUFNUM_MAX = 100;
+double UsrVel_enu_E = 0.0;
+double UsrVel_enu_N = 0.0;
+double UsrVel_enu_U = 0.0;
+double UsrPos_Est_enu_x = 0.0;
+double UsrPos_Est_enu_y = 0.0;
+double UsrPos_Est_enu_z = 0.0;
+double UsrPos_EstRaw_enu_x = 0.0;
+double UsrPos_EstRaw_enu_y = 0.0;
+double UsrPos_EstRaw_enu_z = 0.0;
+double diff_Est_enu_x = 0.0;
+double diff_Est_enu_y = 0.0;
+double diff_Est_enu_z = 0.0;
+double UsrPos_Est_enu_x_Last = 0.0;
+double UsrPos_Est_enu_y_Last = 0.0;
+double UsrPos_Est_enu_z_Last = 0.0;
+
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
 
 geometry_msgs::PoseStamped p1_msg;
 imu_gnss_localizer::PositionDis p2_msg;
 sensor_msgs::NavSatFix p3_msg;
 
-boost::circular_buffer<float> pUsrPos_Est_enu_x(BUFNUM_MAX);
-boost::circular_buffer<float> pUsrPos_Est_enu_y(BUFNUM_MAX);
-boost::circular_buffer<float> pUsrPos_Est_enu_z(BUFNUM_MAX);
+boost::circular_buffer<double> pUsrPos_Est_enu_x(BUFNUM_MAX);
+boost::circular_buffer<double> pUsrPos_Est_enu_y(BUFNUM_MAX);
+boost::circular_buffer<double> pUsrPos_Est_enu_z(BUFNUM_MAX);
 
 void enu2llh(double enu_x,double enu_y,double enu_z,double base_ECEF_x,double base_ECEF_y,double base_ECEF_z,double *lon,double *lat,double *alt){
 
@@ -187,10 +191,12 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
+    StartTime = ros::Time::now().toSec();
+
     ++count;
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     UsrVel_enu_E = msg->VelE;
@@ -239,8 +245,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
         flag_Est = true;
         flag_EstRaw = true;
-
-        ROS_INFO("Est_index = %d" , Est_index);
       }
 
       else if(Est_count == 1){
@@ -268,6 +272,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     p2_msg.enu_x = UsrPos_Est_enu_x;
     p2_msg.enu_y = UsrPos_Est_enu_y;
     p2_msg.enu_z = UsrPos_Est_enu_z;
+    p2_msg.latitude = lat;
+    p2_msg.longitude = lon;
+    p2_msg.altitude = alt;
     p2_msg.flag_Est = flag_Est;
     p2_msg.flag_EstRaw = flag_EstRaw;
 
@@ -290,6 +297,12 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
     UsrPos_Est_enu_y_Last = UsrPos_Est_enu_y;
     UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
     UsrPos_index_Last = UsrPos_index;
+
+    EndTime = ros::Time::now().toSec();
+    ProcessingTime = (EndTime - StartTime);
+    if(ProcessingTime > IMUperiod){
+      ROS_WARN("RCalc_PositionDis_Int processing time %lf [ms]",ProcessingTime*1000);
+    }
 
 }
 

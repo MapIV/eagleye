@@ -15,6 +15,7 @@
 #include "imu_gnss_localizer/PositionDis_raw.h"
 #include <boost/circular_buffer.hpp>
 #include <math.h>
+#include <numeric>
 
 ros::Publisher pub1;
 
@@ -36,33 +37,38 @@ double IMUperiod = 1.0/IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
-float sum_x, sum_y, sum_z;
-float Correction_Velocity = 0.0;
-float Distance_BUFNUM_MAX = 100000;//仮の値
-float TH_VEL_EST = 10/3.6;
-float ESTDIST = 500;
-float TH_POSMAX = 3.0;
-float TH_CALC_MINNUM = 1.0/20;
-float TH_EST_GIVEUP_NUM = 1.0/100;
-float UsrPos_enu_x = 0.0;
-float UsrPos_enu_y = 0.0;
-float UsrPos_enu_z = 0.0;
-float UsrPos_EstRaw_enu_x = 0.0;
-float UsrPos_EstRaw_enu_y = 0.0;
-float UsrPos_EstRaw_enu_z = 0.0;
-float UsrPos_Est_enu_x = 0.0;
-float UsrPos_Est_enu_y = 0.0;
-float UsrPos_Est_enu_z = 0.0;
-float UsrVel_enu_E = 0.0;
-float UsrVel_enu_N = 0.0;
-float UsrVel_enu_U = 0.0;
-float tUsrPos_enu_x = 0.0;
-float tUsrPos_enu_y = 0.0;
-float tUsrPos_enu_z = 0.0;
-float UsrPos_Est_enu_x_Last = 0.0;
-float UsrPos_Est_enu_y_Last = 0.0;
-float UsrPos_Est_enu_z_Last = 0.0;
-float Distance = 0.0;
+//double sum_x, sum_y, sum_z;
+double avg_x, avg_y, avg_z;
+double Correction_Velocity = 0.0;
+double Distance_BUFNUM_MAX = 100000;//仮の値
+double TH_VEL_EST = 10/3.6;
+double ESTDIST = 500;
+double TH_POSMAX = 3.0;
+double TH_CALC_MINNUM = 1.0/20;
+double TH_EST_GIVEUP_NUM = 1.0/100;
+double UsrPos_enu_x = 0.0;
+double UsrPos_enu_y = 0.0;
+double UsrPos_enu_z = 0.0;
+double UsrPos_EstRaw_enu_x = 0.0;
+double UsrPos_EstRaw_enu_y = 0.0;
+double UsrPos_EstRaw_enu_z = 0.0;
+double UsrPos_Est_enu_x = 0.0;
+double UsrPos_Est_enu_y = 0.0;
+double UsrPos_Est_enu_z = 0.0;
+double UsrVel_enu_E = 0.0;
+double UsrVel_enu_N = 0.0;
+double UsrVel_enu_U = 0.0;
+double tUsrPos_enu_x = 0.0;
+double tUsrPos_enu_y = 0.0;
+double tUsrPos_enu_z = 0.0;
+double UsrPos_Est_enu_x_Last = 0.0;
+double UsrPos_Est_enu_y_Last = 0.0;
+double UsrPos_Est_enu_z_Last = 0.0;
+double Distance = 0.0;
+
+double StartTime = 0.0;
+double EndTime = 0.0;
+double ProcessingTime = 0.0;
 
 std::size_t length_index;
 std::size_t length_pflag_GNSS;
@@ -79,34 +85,34 @@ std::size_t length_pindex_Raw;
 std::size_t length_pDistance;
 std::size_t length_index_Raw;
 
-boost::circular_buffer<float> pDistance(Distance_BUFNUM_MAX);
+boost::circular_buffer<double> pDistance(Distance_BUFNUM_MAX);
 boost::circular_buffer<bool> pindex_Raw(Distance_BUFNUM_MAX);
 
 std::vector<bool> pflag_GNSS;
-std::vector<float> pUsrPos_enu_x;
-std::vector<float> pUsrPos_enu_y;
-std::vector<float> pUsrPos_enu_z;
-std::vector<float> pUsrVel_enu_E;
-std::vector<float> pUsrVel_enu_N;
-std::vector<float> pUsrVel_enu_U;
-std::vector<float> pVelocity;
+std::vector<double> pUsrPos_enu_x;
+std::vector<double> pUsrPos_enu_y;
+std::vector<double> pUsrPos_enu_z;
+std::vector<double> pUsrVel_enu_E;
+std::vector<double> pUsrVel_enu_N;
+std::vector<double> pUsrVel_enu_U;
+std::vector<double> pVelocity;
 std::vector<double> pTime;
 
-std::vector<float> basepos_x;
-std::vector<float> basepos_y;
-std::vector<float> basepos_z;
-std::vector<float> pdiff2_x;
-std::vector<float> pdiff2_y;
-std::vector<float> pdiff2_z;
-std::vector<float> basepos2_x;
-std::vector<float> basepos2_y;
-std::vector<float> basepos2_z;
-std::vector<float> pdiff_x;
-std::vector<float> pdiff_y;
-std::vector<float> pdiff_z;
-std::vector<float> pdiff;
+std::vector<double> basepos_x;
+std::vector<double> basepos_y;
+std::vector<double> basepos_z;
+std::vector<double> pdiff2_x;
+std::vector<double> pdiff2_y;
+std::vector<double> pdiff2_z;
+std::vector<double> basepos2_x;
+std::vector<double> basepos2_y;
+std::vector<double> basepos2_z;
+std::vector<double> pdiff_x;
+std::vector<double> pdiff_y;
+std::vector<double> pdiff_z;
+std::vector<double> pdiff;
 
-std::vector<float>::iterator max;
+std::vector<double>::iterator max;
 
 imu_gnss_localizer::PositionDis_raw p1_msg;
 
@@ -139,11 +145,13 @@ void receive_UsrPos_enu(const imu_gnss_localizer::RTKLIB::ConstPtr& msg){
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
+    StartTime = ros::Time::now().toSec();
+
     ++count;
 
     IMUTime = IMUperiod * count;
     ROSTime = ros::Time::now().toSec();
-    Time = IMUTime; //IMUTime or ROSTime
+    Time = ROSTime; //IMUTime or ROSTime
     //ROS_INFO("Time = %lf" , Time);
 
     if (Distance_BUFNUM < Distance_BUFNUM_MAX){
@@ -268,9 +276,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
           if(length_index > length_pindex_vel * TH_CALC_MINNUM){
 
-            std::vector<float> tTrajectory_x(ESTNUM,0);
-            std::vector<float> tTrajectory_y(ESTNUM,0);
-            std::vector<float> tTrajectory_z(ESTNUM,0);
+            std::vector<double> tTrajectory_x(ESTNUM,0);
+            std::vector<double> tTrajectory_y(ESTNUM,0);
+            std::vector<double> tTrajectory_z(ESTNUM,0);
 
             for(i = 0; i < ESTNUM; i++){
               if(i > 0){
@@ -297,6 +305,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
                   pdiff2_x.clear();
                   pdiff2_y.clear();
                   pdiff2_z.clear();
+
+/*
                   sum_x = 0.0;
                   sum_y = 0.0;
                   sum_z = 0.0;
@@ -313,6 +323,20 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
                   tUsrPos_enu_x = pUsrPos_enu_x[index[length_index-1]] - sum_x / length_index;
                   tUsrPos_enu_y = pUsrPos_enu_y[index[length_index-1]] - sum_y / length_index;
                   tUsrPos_enu_z = pUsrPos_enu_z[index[length_index-1]] - sum_z / length_index;
+*/
+                  for(i = 0; i < length_index; i++){
+                    pdiff2_x.push_back(basepos_x[index[i]] - pUsrPos_enu_x[index[i]]);
+                    pdiff2_y.push_back(basepos_y[index[i]] - pUsrPos_enu_y[index[i]]);
+                    pdiff2_z.push_back(basepos_z[index[i]] - pUsrPos_enu_z[index[i]]);
+                  }
+
+                  avg_x = std::accumulate(pdiff2_x.begin(), pdiff2_x.end(), 0.0) / length_index;
+                  avg_y = std::accumulate(pdiff2_y.begin(), pdiff2_y.end(), 0.0) / length_index;
+                  avg_z = std::accumulate(pdiff2_z.begin(), pdiff2_z.end(), 0.0) / length_index;
+
+                  tUsrPos_enu_x = pUsrPos_enu_x[index[length_index-1]] - avg_x;
+                  tUsrPos_enu_y = pUsrPos_enu_y[index[length_index-1]] - avg_y;
+                  tUsrPos_enu_z = pUsrPos_enu_z[index[length_index-1]] - avg_z;
 
                   basepos2_x.clear();
                   basepos2_y.clear();
@@ -391,6 +415,12 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg){
 
     GPSTime_Last = GPSTime;
     Time_Last = Time;
+
+    EndTime = ros::Time::now().toSec();
+    ProcessingTime = (EndTime - StartTime);
+    if(ProcessingTime > IMUperiod){
+      ROS_WARN("RCalc_PositionDis processing time %lf [ms]",ProcessingTime*1000);
+    }
 
 }
 

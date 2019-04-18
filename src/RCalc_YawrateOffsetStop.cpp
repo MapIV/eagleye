@@ -3,7 +3,7 @@
  * yawrate offset stop estimate program
  * Author Sekino
  * Ver 1.00 2019/1/24
- */
+ */ 
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
@@ -18,15 +18,15 @@ bool reverse_imu = false; //default parameter
 bool flag_YOS, flag_YOSRaw;
 int i = 0;
 int count_vel = 0;
-float tmp = 0.0;
-float TH_VEL = 0.01;
-float TH_VEL_STOP = 200;
-float Velocity = 0.0;
-float YawrateOffset_Stop = 0.0;
-float YO_Stop_Last = 0.0;
+double tmp = 0.0;
+double TH_VEL = 0.01;
+double TH_VEL_STOP = 200;
+double Velocity = 0.0;
+double YawrateOffset_Stop = 0.0;
+double YO_Stop_Last = 0.0;
 
 imu_gnss_localizer::YawrateOffset p_msg;
-boost::circular_buffer<float> pYawrate(TH_VEL_STOP);
+boost::circular_buffer<double> pYawrate(TH_VEL_STOP);
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
 
