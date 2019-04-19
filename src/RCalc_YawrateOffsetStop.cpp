@@ -13,7 +13,8 @@
 
 ros::Publisher pub;
 
-bool reverse_imu = false;  // default parameter
+// default parameter
+bool reverse_imu = false;
 
 bool flag_YOS, flag_YOSRaw;
 int i = 0;
