@@ -3,7 +3,7 @@
  * yawrate offset stop estimate program
  * Author Sekino
  * Ver 1.00 2019/1/24
- */ 
+ */
 
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
@@ -13,7 +13,7 @@
 
 ros::Publisher pub;
 
-bool reverse_imu = false; //default parameter
+bool reverse_imu = false;  // default parameter
 
 bool flag_YOS, flag_YOSRaw;
 int i = 0;
@@ -28,46 +28,50 @@ double YO_Stop_Last = 0.0;
 imu_gnss_localizer::YawrateOffset p_msg;
 boost::circular_buffer<double> pYawrate(TH_VEL_STOP);
 
-void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg){
-
-  Velocity = msg->linear.x ;
-
+void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
+{
+  Velocity = msg->linear.x;
 }
 
-void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
-
-  //data buffer generate
-  if (reverse_imu == false){
+void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  // data buffer generate
+  if (reverse_imu == false)
+  {
     pYawrate.push_back(msg->angular_velocity.z);
   }
-  else if (reverse_imu == true){
+  else if (reverse_imu == true)
+  {
     pYawrate.push_back(-1 * msg->angular_velocity.z);
   }
 
-  //vehicle stop time counter
-  if(Velocity < TH_VEL){
+  // vehicle stop time counter
+  if (Velocity < TH_VEL)
+  {
     ++count_vel;
-  	}
-  else{
+  }
+  else
+  {
     count_vel = 0;
-  	}
+  }
 
-  //yawrate offset calculation (mean)
-  if(count_vel > TH_VEL_STOP){
+  // mean
+  if (count_vel > TH_VEL_STOP)
+  {
     tmp = 0.0;
-    for(i = 0; i < TH_VEL_STOP; i++){
-    tmp += pYawrate[i];
+    for (i = 0; i < TH_VEL_STOP; i++)
+    {
+      tmp += pYawrate[i];
     }
-    YawrateOffset_Stop = -1 * tmp/TH_VEL_STOP;
+    YawrateOffset_Stop = -1 * tmp / TH_VEL_STOP;
     flag_YOS = true;
     flag_YOSRaw = true;
-  	}
-  else{
+  }
+  else
+  {
     YawrateOffset_Stop = YO_Stop_Last;
     flag_YOSRaw = false;
-  	}
-
-  //ROS_INFO("YawrateOffset_Stop = %f", YawrateOffset_Stop );
+  }
 
   p_msg.YawrateOffset = YawrateOffset_Stop;
   p_msg.flag_Est = flag_YOS;
@@ -75,14 +79,13 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
   pub.publish(p_msg);
 
   YO_Stop_Last = YawrateOffset_Stop;
-
 }
 
-int main(int argc, char **argv){
-
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "RCalc_YawrateOffsetStop");
   ros::NodeHandle n("~");
-  n.getParam("/imu_gnss_localizer/reverse_imu",reverse_imu);
+  n.getParam("/imu_gnss_localizer/reverse_imu", reverse_imu);
 
   ros::Subscriber sub1 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
   ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, receive_Imu);

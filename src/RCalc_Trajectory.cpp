@@ -3,7 +3,7 @@
  * Trajectory estimate program
  * Author Sekino
  * Ver 1.00 2019/2/6
- */ 
+ */
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose.h"
@@ -20,8 +20,8 @@ bool flag_Est, flag_SF;
 int count = 0;
 int T_count = 0;
 double IMUTime;
-double IMUfrequency = 50; //IMU Hz
-double IMUperiod = 1/IMUfrequency;
+double IMUfrequency = 50;  // IMU Hz
+double IMUperiod = 1 / IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
@@ -40,69 +40,71 @@ double pHeading = 0.0;
 geometry_msgs::Pose p1_msg;
 imu_gnss_localizer::UsrVel_enu p2_msg;
 
-void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
-
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg)
+{
   pVelocity = msg->Correction_Velocity;
   flag_SF = msg->flag_Est;
-
 }
 
-void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg){
-
+void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg)
+{
   pHeading = msg->Heading_angle;
   flag_Est = msg->flag_Est;
-
 }
 
-void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
+void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  ++count;
+  IMUTime = IMUperiod * count;
+  ROSTime = ros::Time::now().toSec();
+  Time = ROSTime;  // IMUTime or ROSTime
+  // ROS_INFO("Time = %lf" , Time);
 
-    ++count;
-    IMUTime = IMUperiod * count;
-    ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
-    //ROS_INFO("Time = %lf" , Time);
+  if (T_count == 0 && flag_SF == true && flag_Est == true)
+  {
+    T_count = 1;
+  }
+  else if (T_count == 1)
+  {
+    T_count = 2;
+  }
 
-    if(T_count == 0 && flag_SF == true && flag_Est == true){
-      T_count = 1;
-    }
-    else if(T_count == 1){
-      T_count = 2;
-    }
-
-    if(T_count == 2){
+  if (T_count == 2)
+  {
     Est_velE = sin(pHeading) * pVelocity;
     Est_velN = cos(pHeading) * pVelocity;
-    }
+  }
 
-    p2_msg.VelE = Est_velE;
-    p2_msg.VelN = Est_velN;
-    p2_msg.VelU = Est_velU;
-    p2_msg.index = count;
-    pub2.publish(p2_msg);
+  p2_msg.VelE = Est_velE;
+  p2_msg.VelN = Est_velN;
+  p2_msg.VelU = Est_velU;
+  p2_msg.index = count;
+  pub2.publish(p2_msg);
 
-    if(T_count == 2 && pVelocity > 0 && count > 1){
-      Trajectory_x = Trajectory_x_Last + Est_velE * ( Time - Time_Last );
-      Trajectory_y = Trajectory_y_Last + Est_velN * ( Time - Time_Last );
-    }
-    else{
-      Trajectory_x = Trajectory_x_Last;
-      Trajectory_y = Trajectory_y_Last;
-    }
+  if (T_count == 2 && pVelocity > 0 && count > 1)
+  {
+    Trajectory_x = Trajectory_x_Last + Est_velE * (Time - Time_Last);
+    Trajectory_y = Trajectory_y_Last + Est_velN * (Time - Time_Last);
+  }
+  else
+  {
+    Trajectory_x = Trajectory_x_Last;
+    Trajectory_y = Trajectory_y_Last;
+  }
 
-    p1_msg.position.x = Trajectory_x;
-    p1_msg.position.y = Trajectory_y;
-    p1_msg.orientation.z = pHeading;
-    pub1.publish(p1_msg);
+  p1_msg.position.x = Trajectory_x;
+  p1_msg.position.y = Trajectory_y;
+  p1_msg.orientation.z = pHeading;
+  pub1.publish(p1_msg);
 
-    Time_Last = Time;
-    Trajectory_x_Last = Trajectory_x;
-    Trajectory_y_Last = Trajectory_y;
-    Trajectory_z_Last = Trajectory_z;
-
+  Time_Last = Time;
+  Trajectory_x_Last = Trajectory_x;
+  Trajectory_y_Last = Trajectory_y;
+  Trajectory_z_Last = Trajectory_z;
 }
 
-int main(int argc, char **argv){
-
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "RCalc_Trajectory");
 
   ros::NodeHandle n;

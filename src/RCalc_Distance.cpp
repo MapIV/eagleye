@@ -18,8 +18,8 @@ int T_count = 0;
 int GPSTime_Last, GPSTime;
 int ESTNUM_Heading = 0;
 double IMUTime;
-double IMUfrequency = 50; //IMU Hz
-double IMUperiod = 1/IMUfrequency;
+double IMUfrequency = 50;  // IMU Hz
+double IMUperiod = 1 / IMUfrequency;
 double ROSTime = 0.0;
 double Time = 0.0;
 double Time_Last = 0.0;
@@ -33,42 +33,42 @@ double StartTime = 0.0;
 double EndTime = 0.0;
 double ProcessingTime = 0.0;
 
-void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg){
-
-    pVelocity = msg->Correction_Velocity;
-
+void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg)
+{
+  pVelocity = msg->Correction_Velocity;
 }
 
-void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg){
+void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  StartTime = ros::Time::now().toSec();
 
-    StartTime = ros::Time::now().toSec();
+  ++count;
+  IMUTime = IMUperiod * count;
+  ROSTime = ros::Time::now().toSec();
+  Time = ROSTime;  // IMUTime or ROSTime
+  // ROS_INFO("Time = %lf" , Time);
 
-    ++count;
-    IMUTime = IMUperiod * count;
-    ROSTime = ros::Time::now().toSec();
-    Time = ROSTime; //IMUTime or ROSTime
-    //ROS_INFO("Time = %lf" , Time);
+  if (count > 1)
+  {
+    Distance = Distance_Last + pVelocity * (Time - Time_Last);
 
-    if(count > 1){
-      Distance = Distance_Last + pVelocity * ( Time - Time_Last );
+    p_msg.Distance = Distance;
+    pub.publish(p_msg);
 
-      p_msg.Distance = Distance;
-      pub.publish(p_msg);
+    Time_Last = Time;
+    Distance_Last = Distance;
+  }
 
-      Time_Last = Time;
-      Distance_Last = Distance;
-    }
-
-    EndTime = ros::Time::now().toSec();
-    ProcessingTime = (EndTime - StartTime);
-    if(ProcessingTime > IMUperiod){
-      ROS_WARN("RCalc_Distance processing time %lf [ms]",ProcessingTime*1000);
-    }
-
+  EndTime = ros::Time::now().toSec();
+  ProcessingTime = (EndTime - StartTime);
+  if (ProcessingTime > IMUperiod)
+  {
+    ROS_WARN("RCalc_Distance processing time %lf [ms]", ProcessingTime * 1000);
+  }
 }
 
-int main(int argc, char **argv){
-
+int main(int argc, char** argv)
+{
   ros::init(argc, argv, "RCalc_Distance");
 
   ros::NodeHandle n;
