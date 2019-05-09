@@ -316,7 +316,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   ProcessingTime = (EndTime - StartTime);
   if (ProcessingTime > IMUperiod)
   {
-    ROS_WARN("RCalc_YawrateOffset processing time %5.5lf [ms]", ProcessingTime * 1000);
+    ROS_ERROR("RCalc_YawrateOffset processing time %5.5lf [ms]", ProcessingTime * 1000);
   }
 }
 

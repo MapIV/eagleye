@@ -276,7 +276,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   if (length_index_Raw > 0)
   {
     if (pDistance[Distance_BUFNUM - 1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
-        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 10.0))
+        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 1.0))
     {
       if (length_index > length_pindex_vel * TH_CALC_MINNUM)
       {
@@ -416,7 +416,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   ProcessingTime = (EndTime - StartTime);
   if (ProcessingTime > IMUperiod)
   {
-    ROS_WARN("RCalc_PositionDis processing time %lf [ms]", ProcessingTime * 1000);
+    ROS_ERROR("RCalc_PositionDis processing time %lf [ms]", ProcessingTime * 1000);
   }
 }
 
