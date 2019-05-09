@@ -78,7 +78,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p2_msg.VelE = Est_velE;
   p2_msg.VelN = Est_velN;
   p2_msg.VelU = Est_velU;
-  p2_msg.index = count;
+  p2_msg.time_stamp = ros::Time::now().toSec();
   pub2.publish(p2_msg);
 
   if (T_count == 2 && pVelocity > 0 && count > 1)

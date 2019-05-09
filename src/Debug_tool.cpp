@@ -80,7 +80,7 @@ bool YawrateOffset2nd_flag_EstRaw = 0;
 double Trajectory_VelE = 0.0;
 double Trajectory_VelN = 0.0;
 double Trajectory_VelU = 0.0;
-int Trajectory_index = 0;
+int Trajectory_time_stamp = 0;
 double Trajectory_x = 0.0;
 double Trajectory_y = 0.0;
 double Trajectory_z = 0.0;
@@ -93,7 +93,7 @@ double Distance_Distance = 0.0;
 double PositionDis_enu_x = 0.0;
 double PositionDis_enu_y = 0.0;
 double PositionDis_enu_z = 0.0;
-int PositionDis_index = 0;
+int PositionDis_time_stamp = 0;
 
 // RCalc_PositionDis_Int
 double PositionDis_Int_enu_x = 0.0;
@@ -206,7 +206,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   Trajectory_VelE = msg->VelE;
   Trajectory_VelN = msg->VelN;
   Trajectory_VelU = msg->VelU;
-  Trajectory_index = msg->index;
+  Trajectory_time_stamp = msg->time_stamp;
 }
 
 void receive_Trajectory(const geometry_msgs::Pose::ConstPtr& msg)
@@ -227,7 +227,7 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
   PositionDis_enu_x = msg->enu_x;
   PositionDis_enu_y = msg->enu_y;
   PositionDis_enu_z = msg->enu_z;
-  PositionDis_index = msg->index;
+  PositionDis_time_stamp = msg->time_stamp;
 }
 
 void receive_PositionDis_Int(const imu_gnss_localizer::PositionDis::ConstPtr& msg)
@@ -313,7 +313,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p_msg.Trajectory_VelE = Trajectory_VelE;
   p_msg.Trajectory_VelN = Trajectory_VelN;
   p_msg.Trajectory_VelU = Trajectory_VelU;
-  p_msg.Trajectory_index = Trajectory_index;
+  p_msg.Trajectory_time_stamp = Trajectory_time_stamp;
   p_msg.Trajectory_x = Trajectory_x;
   p_msg.Trajectory_y = Trajectory_y;
   p_msg.Trajectory_z = Trajectory_z;
@@ -326,7 +326,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p_msg.PositionDis_enu_x = PositionDis_enu_x;
   p_msg.PositionDis_enu_y = PositionDis_enu_y;
   p_msg.PositionDis_enu_z = PositionDis_enu_z;
-  p_msg.PositionDis_index = PositionDis_index;
+  p_msg.PositionDis_time_stamp = PositionDis_time_stamp;
 
   // RCalc_PositionDis_Int
   p_msg.PositionDis_Int_enu_x = PositionDis_Int_enu_x;

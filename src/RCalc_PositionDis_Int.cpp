@@ -2,6 +2,7 @@
  * RCalc_PositionDis_Int.cpp
  * Vehicle position realtime estimate program
  * Author Sekino
+ * Ver 1.01 2019/5/9 Change from index to sync with timestamp
  * Ver 1.00 2019/2/28
  */
 
@@ -23,10 +24,10 @@ int i = 0;
 int count = 0;
 int Est_count = 0;
 int Est_index = 0;
-int UsrPos_index = 0;
-int UsrVel_index = 0;
-int UsrPos_index_Last = 0;
 int BUFNUM = 0;
+double UsrPos_time_stamp_Last = 0;
+double UsrPos_time_stamp = 0.0;
+double UsrVel_time_stamp = 0.0;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
 double IMUperiod = 1 / IMUfrequency;
@@ -67,6 +68,7 @@ sensor_msgs::NavSatFix p3_msg;
 boost::circular_buffer<double> pUsrPos_Est_enu_x(BUFNUM_MAX);
 boost::circular_buffer<double> pUsrPos_Est_enu_y(BUFNUM_MAX);
 boost::circular_buffer<double> pUsrPos_Est_enu_z(BUFNUM_MAX);
+boost::circular_buffer<double> pUsrVel_time_stamp(BUFNUM_MAX);
 
 void enu2llh(double enu_x, double enu_y, double enu_z, double base_ECEF_x, double base_ECEF_y, double base_ECEF_z,
              double* lon, double* lat, double* alt)
@@ -193,7 +195,7 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
   UsrPos_EstRaw_enu_x = msg->enu_x;
   UsrPos_EstRaw_enu_y = msg->enu_y;
   UsrPos_EstRaw_enu_z = msg->enu_z;
-  UsrPos_index = msg->index;
+  UsrPos_time_stamp = msg->time_stamp;
 }
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
@@ -209,7 +211,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   UsrVel_enu_E = msg->VelE;
   UsrVel_enu_N = msg->VelN;
   UsrVel_enu_U = msg->VelU;
-  UsrVel_index = msg->index;
+  UsrVel_time_stamp = msg->time_stamp;
+
 
   if (BUFNUM < BUFNUM_MAX)
   {
@@ -220,11 +223,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     BUFNUM = BUFNUM_MAX;
   }
 
-  if (UsrPos_index_Last == UsrPos_index)
+  if (UsrPos_time_stamp_Last == UsrPos_time_stamp)
   {
     flag_UsrPos_Est = false;
-    UsrPos_index = 0;
-    UsrVel_index = 0;
   }
   else
   {
@@ -236,10 +237,20 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   pUsrPos_Est_enu_x.push_back(UsrPos_Est_enu_x);
   pUsrPos_Est_enu_y.push_back(UsrPos_Est_enu_y);
   pUsrPos_Est_enu_z.push_back(UsrPos_Est_enu_z);
+  pUsrVel_time_stamp.push_back(UsrVel_time_stamp);
 
   if (flag_UsrPos_Start == true)
   {
-    Est_index = BUFNUM - (UsrVel_index - UsrPos_index);
+    if (flag_UsrPos_Est == true)
+    {
+      for (Est_index = BUFNUM; Est_index >= 0; Est_index--)
+      {
+        if (pUsrVel_time_stamp[Est_index - 1] == UsrPos_time_stamp)
+        {
+          break;
+        }
+      }
+    }
 
     if (flag_UsrPos_Est == true && Est_index > 0 && BUFNUM >= Est_index && Est_count > 1)
     {
@@ -311,13 +322,13 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   UsrPos_Est_enu_x_Last = UsrPos_Est_enu_x;
   UsrPos_Est_enu_y_Last = UsrPos_Est_enu_y;
   UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
-  UsrPos_index_Last = UsrPos_index;
+  UsrPos_time_stamp_Last = UsrPos_time_stamp;
 
   EndTime = ros::Time::now().toSec();
   ProcessingTime = (EndTime - StartTime);
   if (ProcessingTime > IMUperiod)
   {
-    ROS_WARN("RCalc_PositionDis_Int processing time %5.5lf [ms]", ProcessingTime * 1000);
+    //ROS_WARN("RCalc_PositionDis_Int processing time %5.5lf [ms]", ProcessingTime * 1000);
   }
 }
 

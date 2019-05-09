@@ -67,7 +67,7 @@ bool YawrateOffset2nd_flag_EstRaw
 float64 Trajectory_VelE
 float64 Trajectory_VelN
 float64 Trajectory_VelU
-int64 Trajectory_index
+float64 Trajectory_time_stamp
 float64 Trajectory_x
 float64 Trajectory_y
 float64 Trajectory_z
@@ -80,7 +80,7 @@ float64 Distance_Distance
 float64 PositionDis_enu_x
 float64 PositionDis_enu_y
 float64 PositionDis_enu_z
-int64 PositionDis_index
+float64 PositionDis_time_stamp
 
 #RCalc_PositionDis_Int
 float64 PositionDis_Int_enu_x

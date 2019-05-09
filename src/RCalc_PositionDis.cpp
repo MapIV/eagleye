@@ -30,7 +30,7 @@ int index_Dist = 0;
 int GPSTime = 0;
 int GPSTime_Last = 0;
 int index_max = 0;
-int UsrVel_index = 0;
+double UsrVel_time_stamp = 0.0;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
 double IMUperiod = 1.0 / IMUfrequency;
@@ -178,7 +178,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   UsrVel_enu_E = msg->VelE;
   UsrVel_enu_N = msg->VelN;
   UsrVel_enu_U = msg->VelU;
-  UsrVel_index = msg->index;
+  UsrVel_time_stamp = msg->time_stamp;
 
   // data buffer generate
   pDistance.push_back(Distance);
@@ -402,7 +402,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
           p1_msg.enu_x = UsrPos_EstRaw_enu_x;
           p1_msg.enu_y = UsrPos_EstRaw_enu_y;
           p1_msg.enu_z = UsrPos_EstRaw_enu_z;
-          p1_msg.index = UsrVel_index;
+          p1_msg.time_stamp = UsrVel_time_stamp;
           pub1.publish(p1_msg);
         }
       }
