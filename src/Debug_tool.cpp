@@ -363,9 +363,9 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = n.subscribe("/RTKLIB", 1000, receive_rtklib);
   ros::Subscriber sub2 = n.subscribe("/fix", 1000, receive_rtklib_fix);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
-  ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Heading1st", 1000, receive_Heading1st);
-  ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading2nd", 1000, receive_Heading2nd);
-  ros::Subscriber sub6 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
+  ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Heading1st_Int", 1000, receive_Heading1st);
+  ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading2nd_Int", 1000, receive_Heading2nd);
+  ros::Subscriber sub6 = n.subscribe("/imu_gnss_localizer/Heading3rd_Int", 1000, receive_Heading3rd);
   ros::Subscriber sub7 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
   ros::Subscriber sub8 = n.subscribe("/imu_gnss_localizer/YawrateOffset1st", 1000, receive_YawrateOffset1st);
   ros::Subscriber sub9 = n.subscribe("/imu_gnss_localizer/YawrateOffset2nd", 1000, receive_YawrateOffset2nd);

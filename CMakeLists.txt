@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
    FILES
    VelocitySF.msg
    YawrateOffset.msg
+   Heading_raw.msg
    Heading.msg
    Distance.msg
    UsrVel_enu.msg
@@ -49,6 +50,10 @@ target_link_libraries(RCalc_YawrateOffset ${catkin_LIBRARIES})
 add_executable(RCalc_Heading src/RCalc_Heading.cpp)
 add_dependencies(RCalc_Heading ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(RCalc_Heading ${catkin_LIBRARIES})
+
+add_executable(RCalc_Heading_Int src/RCalc_Heading_Int.cpp)
+add_dependencies(RCalc_Heading_Int ${PROJECT_NAME}_generate_messages_cpp)
+target_link_libraries(RCalc_Heading_Int ${catkin_LIBRARIES})
 
 add_executable(RCalc_Distance src/RCalc_Distance.cpp)
 add_dependencies(RCalc_Distance ${PROJECT_NAME}_generate_messages_cpp)

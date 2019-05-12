@@ -334,13 +334,13 @@ int main(int argc, char** argv)
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "/imu_gnss_localizer/YawrateOffset1st";
-      subscribe_topic_name = "/imu_gnss_localizer/Heading1st";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading1st_Int";
       ESTNUM_MAX = 14000;  // Parameters for 1st
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "/imu_gnss_localizer/YawrateOffset2nd";
-      subscribe_topic_name = "/imu_gnss_localizer/Heading2nd";
+      subscribe_topic_name = "/imu_gnss_localizer/Heading2nd_Int";
       ESTNUM_MAX = 25000;  // Parameters for 2nd
     }
     else

@@ -2,6 +2,7 @@
  * RCalc_Heading.cpp
  * Heading estimate program
  * Author Sekino
+ * Ver 3.00 2019/5/10 Supports extrapolation processing
  * Ver 2.01 2019/4/17 Critical bug fixes
  * Ver 2.00 2019/4/11 Integrate 1st, 2nd, 3rd
  * Ver 1.00 2019/2/6
@@ -11,7 +12,7 @@
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Imu.h"
 #include "imu_gnss_localizer/RTKLIB.h"
-#include "imu_gnss_localizer/Heading.h"
+#include "imu_gnss_localizer/Heading_raw.h"
 #include "imu_gnss_localizer/VelocitySF.h"
 #include "imu_gnss_localizer/YawrateOffset.h"
 #include <boost/circular_buffer.hpp>
@@ -29,6 +30,7 @@ int count = 0;
 int GPSTime_Last, GPSTime;
 int ESTNUM_Heading = 0;
 int index_max = 0;
+//double IMU_time_stamp;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
 double IMUperiod = 1.0 / IMUfrequency;
@@ -63,13 +65,15 @@ double StartTime = 0.0;
 double EndTime = 0.0;
 double ProcessingTime = 0.0;
 
+ros::Time IMU_time_stamp;
+
 std::size_t length_index;
 std::size_t length_index_inv_up;
 std::size_t length_index_inv_down;
 
 std::vector<double>::iterator max;
 
-imu_gnss_localizer::Heading p_msg;
+imu_gnss_localizer::Heading_raw p_msg;
 
 boost::circular_buffer<double> pTime(ESTNUM_MAX);
 boost::circular_buffer<double> pHeading(ESTNUM_MAX);
@@ -112,6 +116,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   ROSTime = ros::Time::now().toSec();
   Time = ROSTime;  // IMUTime or ROSTime
   // ROS_INFO("Time = %lf" , Time);
+
+  IMU_time_stamp = msg->header.stamp;
 
   if (ESTNUM_Heading < ESTNUM_MAX)
   {
@@ -325,6 +331,12 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 
         flag_EstRaw = true;
         flag_Start = true;
+
+
+        p_msg.Heading_angle = Heading_EstRaw;
+        p_msg.time_stamp = IMU_time_stamp.toSec();
+        pub.publish(p_msg);
+
       }
       else
       {
@@ -339,6 +351,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
     Heading_EstRaw = 0.0;
     flag_EstRaw = false;
   }
+
+  /*
 
   if (pVelocity[ESTNUM_Heading - 1] > TH_VEL_STOP)
   {
@@ -357,6 +371,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   {
     Heading_Est = Heading_Last + Yawrate * (pTime[ESTNUM_Heading - 1] - Time_Last);
   }
+
+
 
   // Angle reversal processing (-3.14~3.14)
   if (Heading_Est > M_PI)
@@ -379,10 +395,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
     Heading = 0.0;
   }
 
-  p_msg.Heading_angle = Heading;
-  p_msg.flag_Est = flag_Est;
-  p_msg.flag_EstRaw = flag_EstRaw;
-  pub.publish(p_msg);
+*/
 
   GPSTime_Last = GPSTime;
   Time_Last = Time;
@@ -393,7 +406,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   ProcessingTime = (EndTime - StartTime);
   if (ProcessingTime > IMUperiod)
   {
-    ROS_ERROR("RCalc_Heading processing time %5.5lf [ms]", ProcessingTime * 1000);
+    //ROS_ERROR("RCalc_Heading processing time %5.5lf [ms]", ProcessingTime * 1000);
   }
 }
 
@@ -440,7 +453,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe(subscribe_topic_name, 1000, receive_YawrateOffset);
   ros::Subscriber sub4 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
   ros::Subscriber sub5 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
-  pub = n.advertise<imu_gnss_localizer::Heading>(publish_topic_name, 1000);
+  pub = n.advertise<imu_gnss_localizer::Heading_raw>(publish_topic_name, 1000);
 
   ros::spin();
 

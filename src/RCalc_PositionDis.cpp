@@ -276,7 +276,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   if (length_index_Raw > 0)
   {
     if (pDistance[Distance_BUFNUM - 1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
-        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 1.0))
+        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 5.0))
     {
       if (length_index > length_pindex_vel * TH_CALC_MINNUM)
       {
@@ -429,7 +429,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = n.subscribe("/RTKLIB", 1000, receive_UsrPos_enu);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/Distance", 1000, receive_Distance);
-  ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
+  ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/Heading3rd_Int", 1000, receive_Heading3rd);
   pub1 = n.advertise<imu_gnss_localizer::PositionDis_raw>("/imu_gnss_localizer/PositionDis", 1000);
   ros::spin();
 

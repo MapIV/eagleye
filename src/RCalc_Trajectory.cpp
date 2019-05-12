@@ -109,7 +109,7 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
-  ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/Heading3rd", 1000, receive_Heading3rd);
+  ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/Heading3rd_Int", 1000, receive_Heading3rd);
   ros::Subscriber sub3 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
   pub1 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory", 1000);
   pub2 = n.advertise<imu_gnss_localizer::UsrVel_enu>("/imu_gnss_localizer/UsrVel_enu", 1000);
