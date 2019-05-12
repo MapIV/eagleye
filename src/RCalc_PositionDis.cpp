@@ -39,7 +39,7 @@ double Time = 0.0;
 double Time_Last = 0.0;
 double avg_x, avg_y, avg_z;
 double Correction_Velocity = 0.0;
-double Distance_BUFNUM_MAX = 100000;  //仮の値
+double Distance_BUFNUM_MAX = 10000000;  //仮の値
 double TH_VEL_EST = 10 / 3.6;
 double ESTDIST = 500;
 double TH_POSMAX = 3.0;
@@ -186,10 +186,12 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   pindex_Raw.push_back(flag_Est_Raw_Heading);
   pUsrPos_enu_x.push_back(UsrPos_enu_x);
   pUsrPos_enu_y.push_back(UsrPos_enu_y);
-  pUsrPos_enu_z.push_back(UsrPos_enu_z);
+  //pUsrPos_enu_z.push_back(UsrPos_enu_z);
+  pUsrPos_enu_z.push_back(0);
   pUsrVel_enu_E.push_back(UsrVel_enu_E);
   pUsrVel_enu_N.push_back(UsrVel_enu_N);
-  pUsrVel_enu_U.push_back(UsrVel_enu_U);
+  //pUsrVel_enu_U.push_back(UsrVel_enu_U);
+  pUsrVel_enu_U.push_back(0);
   pVelocity.push_back(Correction_Velocity);
   pTime.push_back(Time);
 
@@ -276,7 +278,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   if (length_index_Raw > 0)
   {
     if (pDistance[Distance_BUFNUM - 1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
-        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 5.0))
+        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 1.0))
     {
       if (length_index > length_pindex_vel * TH_CALC_MINNUM)
       {
@@ -348,16 +350,16 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 
           for (i = 0; i < length_index; i++)
           {
-            pdiff_x.push_back(basepos2_x[index[i]] - pUsrPos_enu_x[index[i]]);
-            pdiff_y.push_back(basepos2_y[index[i]] - pUsrPos_enu_y[index[i]]);
-            pdiff_z.push_back(basepos2_z[index[i]] - pUsrPos_enu_z[index[i]]);
+            pdiff_x.push_back(fabsf(basepos2_x[index[i]] - pUsrPos_enu_x[index[i]]));
+            pdiff_y.push_back(fabsf(basepos2_y[index[i]] - pUsrPos_enu_y[index[i]]));
+            pdiff_z.push_back(fabsf(basepos2_z[index[i]] - pUsrPos_enu_z[index[i]]));
           }
 
           pdiff.clear();
           for (i = 0; i < length_index; i++)
           {
-            // pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
-            pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i])));
+            pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i]) + (pdiff_z[i] * pdiff_z[i])));
+            //pdiff.push_back(sqrt((pdiff_x[i] * pdiff_x[i]) + (pdiff_y[i] * pdiff_y[i])));
           }
 
           max = std::max_element(pdiff.begin(), pdiff.end());

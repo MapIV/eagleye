@@ -124,6 +124,8 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
     ++Est_count;
   }
 
+  Heading_Est = Heading_Last + Yawrate * (Time - Time_Last);
+
   pHeading_Est.push_back(Heading_Est);
   pIMU_time_stamp.push_back(IMU_time_stamp.toSec());
 
@@ -155,11 +157,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
     else if (Est_count == 1)
     {
       Heading_Est = Heading_EstRaw;
+      flag_Est = true;
+      flag_EstRaw = true;
     }
     else if (count > 1)
     {
-      Heading_Est = Heading_Last + Yawrate * (Time - Time_Last);
-
       flag_EstRaw = false;
     }
   }

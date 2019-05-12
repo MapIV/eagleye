@@ -234,6 +234,10 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     ++Est_count;
   }
 
+  UsrPos_Est_enu_x = UsrPos_Est_enu_x_Last + UsrVel_enu_E * (Time - Time_Last);
+  UsrPos_Est_enu_y = UsrPos_Est_enu_y_Last + UsrVel_enu_N * (Time - Time_Last);
+  UsrPos_Est_enu_z = UsrPos_Est_enu_z_Last + UsrVel_enu_U * (Time - Time_Last);
+
   pUsrPos_Est_enu_x.push_back(UsrPos_Est_enu_x);
   pUsrPos_Est_enu_y.push_back(UsrPos_Est_enu_y);
   pUsrPos_Est_enu_z.push_back(UsrPos_Est_enu_z);
@@ -276,13 +280,12 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
       UsrPos_Est_enu_x = UsrPos_EstRaw_enu_x;
       UsrPos_Est_enu_y = UsrPos_EstRaw_enu_y;
       UsrPos_Est_enu_z = UsrPos_EstRaw_enu_z;
+
+      flag_Est = true;
+      flag_EstRaw = true;
     }
     else if (count > 1)
     {
-      UsrPos_Est_enu_x = UsrPos_Est_enu_x_Last + UsrVel_enu_E * (Time - Time_Last);
-      UsrPos_Est_enu_y = UsrPos_Est_enu_y_Last + UsrVel_enu_N * (Time - Time_Last);
-      UsrPos_Est_enu_z = UsrPos_Est_enu_z_Last + UsrVel_enu_U * (Time - Time_Last);
-
       flag_EstRaw = false;
     }
   }
