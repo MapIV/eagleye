@@ -69,6 +69,9 @@ double StartTime = 0.0;
 double EndTime = 0.0;
 double ProcessingTime = 0.0;
 
+int log_1 = 0;
+int log_2 = 0;
+
 std::size_t length_index;
 std::size_t length_pflag_GNSS;
 std::size_t length_pVelocity;
@@ -224,6 +227,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   }
 
   ESTNUM = Distance_BUFNUM - index_Dist;
+  log_1 = ESTNUM;
 
   length_pTime = std::distance(pTime.begin(), pTime.end());
   length_diff = length_pTime - ESTNUM;
@@ -274,6 +278,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
                    inserter(index, index.end()));
 
   length_index = std::distance(index.begin(), index.end());
+  log_2 = length_index;
 
   if (length_index_Raw > 0)
   {
@@ -405,6 +410,8 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
           p1_msg.enu_y = UsrPos_EstRaw_enu_y;
           p1_msg.enu_z = UsrPos_EstRaw_enu_z;
           p1_msg.time_stamp = UsrVel_time_stamp;
+          p1_msg.ESTNUM = log_1;
+          p1_msg.length_index = log_2;
           pub1.publish(p1_msg);
         }
       }
