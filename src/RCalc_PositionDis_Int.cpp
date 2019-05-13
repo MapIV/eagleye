@@ -57,10 +57,6 @@ double UsrPos_Est_enu_x_Last = 0.0;
 double UsrPos_Est_enu_y_Last = 0.0;
 double UsrPos_Est_enu_z_Last = 0.0;
 
-double StartTime = 0.0;
-double EndTime = 0.0;
-double ProcessingTime = 0.0;
-
 geometry_msgs::PoseStamped p1_msg;
 imu_gnss_localizer::PositionDis p2_msg;
 sensor_msgs::NavSatFix p3_msg;
@@ -200,7 +196,6 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 {
-  StartTime = ros::Time::now().toSec();
 
   ++count;
   IMUTime = IMUperiod * count;
@@ -327,12 +322,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   UsrPos_Est_enu_z_Last = UsrPos_Est_enu_z;
   UsrPos_time_stamp_Last = UsrPos_time_stamp;
 
-  EndTime = ros::Time::now().toSec();
-  ProcessingTime = (EndTime - StartTime);
-  if (ProcessingTime > IMUperiod)
-  {
-    //ROS_WARN("RCalc_PositionDis_Int processing time %5.5lf [ms]", ProcessingTime * 1000);
-  }
 }
 
 int main(int argc, char** argv)

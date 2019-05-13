@@ -45,10 +45,6 @@ double YawrateOffset_Last = 0.0;
 double Yawrate = 0.0;
 double Correction_Velocity = 0.0;
 
-double StartTime = 0.0;
-double EndTime = 0.0;
-double ProcessingTime = 0.0;
-
 std::size_t length_index;
 std::size_t length_pTime;
 std::size_t length_index_inv_up;
@@ -81,7 +77,6 @@ void receive_Heading(const imu_gnss_localizer::Heading::ConstPtr& msg)
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  StartTime = ros::Time::now().toSec();
 
   ++count;
   IMUTime = IMUperiod * count;
@@ -312,12 +307,6 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   Time_Last = Time;
   YawrateOffset_Last = YawrateOffset_Est;
 
-  EndTime = ros::Time::now().toSec();
-  ProcessingTime = (EndTime - StartTime);
-  if (ProcessingTime > IMUperiod)
-  {
-    ROS_ERROR("RCalc_YawrateOffset processing time %5.5lf [ms]", ProcessingTime * 1000);
-  }
 }
 
 int main(int argc, char** argv)

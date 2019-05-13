@@ -65,10 +65,6 @@ double UsrPos_Est_enu_y_Last = 0.0;
 double UsrPos_Est_enu_z_Last = 0.0;
 double Distance = 0.0;
 
-double StartTime = 0.0;
-double EndTime = 0.0;
-double ProcessingTime = 0.0;
-
 int log_1 = 0;
 int log_2 = 0;
 
@@ -143,7 +139,6 @@ void receive_UsrPos_enu(const imu_gnss_localizer::RTKLIB::ConstPtr& msg)
 
 void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 {
-  StartTime = ros::Time::now().toSec();
 
   ++count;
 
@@ -421,12 +416,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   GPSTime_Last = GPSTime;
   Time_Last = Time;
 
-  EndTime = ros::Time::now().toSec();
-  ProcessingTime = (EndTime - StartTime);
-  if (ProcessingTime > IMUperiod)
-  {
-    ROS_ERROR("RCalc_PositionDis processing time %lf [ms]", ProcessingTime * 1000);
-  }
 }
 
 int main(int argc, char** argv)

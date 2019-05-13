@@ -34,11 +34,6 @@ double Velocity_SF = 0.0;
 double Correction_Velocity = 0.0;
 double SF_Last = 0.0;
 
-double StartTime = 0.0;
-double EndTime = 0.0;
-double ProcessingTime = 0.0;
-double CAN_Reception_Cycle = 0.010;  //[s]
-
 std::size_t length_index;
 
 imu_gnss_localizer::VelocitySF p_msg;
@@ -57,7 +52,6 @@ void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg)
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
 {
-  StartTime = ros::Time::now().toSec();
 
   if (ESTNUM_SF < ESTNUM_MAX)
   {
@@ -167,13 +161,6 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
   SF_Last = Velocity_SF;
   GPSTime_Last = GPSTime;
 
-  EndTime = ros::Time::now().toSec();
-  ProcessingTime = (EndTime - StartTime);
-
-  if (ProcessingTime > CAN_Reception_Cycle)
-  {
-    ROS_WARN("processing time %lf [ms]", ProcessingTime * 1000);
-  }
 }
 
 int main(int argc, char** argv)

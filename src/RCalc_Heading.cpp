@@ -24,7 +24,7 @@ ros::Publisher pub;
 // default parameter
 bool reverse_imu = false;
 
-bool flag_GNSS, flag_EstRaw, flag_Start, flag_Est_Heading, flag_Est;
+bool flag_GNSS, flag_Est_Heading, flag_Est;
 int i = 0;
 int count = 0;
 int GPSTime_Last, GPSTime;
@@ -48,7 +48,6 @@ double TH_VEL_EST_Heading = TH_VEL_EST;
 double TH_VEL_STOP = 0.01;
 double TH_YAWRATE = 5.0 / 180 * M_PI;
 double Heading_Doppler = 0.0;
-double Heading = 0.0;
 double velN = 0.0;
 double velE = 0.0;
 double velU = 0.0;
@@ -60,10 +59,6 @@ double tHeading = 0.0;
 double Heading_EstRaw = 0.0;
 double Heading_Est = 0.0;
 double Heading_Last = 0.0;
-
-double StartTime = 0.0;
-double EndTime = 0.0;
-double ProcessingTime = 0.0;
 
 ros::Time IMU_time_stamp;
 
@@ -109,7 +104,6 @@ void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg)
 
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  StartTime = ros::Time::now().toSec();
 
   ++count;
   IMUTime = IMUperiod * count;
@@ -329,85 +323,17 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
           Heading_EstRaw = Heading_EstRaw + 2.0 * M_PI;
         }
 
-        flag_EstRaw = true;
-        flag_Start = true;
-
-
         p_msg.Heading_angle = Heading_EstRaw;
         p_msg.time_stamp = IMU_time_stamp.toSec();
         pub.publish(p_msg);
-
-      }
-      else
-      {
-        Heading_EstRaw = 0.0;
-        flag_EstRaw = false;
       }
     }
   }
-
-  else
-  {
-    Heading_EstRaw = 0.0;
-    flag_EstRaw = false;
-  }
-
-  /*
-
-  if (pVelocity[ESTNUM_Heading - 1] > TH_VEL_STOP)
-  {
-    Yawrate = pYawrate[ESTNUM_Heading - 1] + pYawrateOffset[ESTNUM_Heading - 1];
-  }
-  else
-  {
-    Yawrate = pYawrate[ESTNUM_Heading - 1] + pYawrateOffset_Stop[ESTNUM_Heading - 1];
-  }
-
-  if (flag_EstRaw == true)
-  {
-    Heading_Est = Heading_EstRaw;
-  }
-  else
-  {
-    Heading_Est = Heading_Last + Yawrate * (pTime[ESTNUM_Heading - 1] - Time_Last);
-  }
-
-
-
-  // Angle reversal processing (-3.14~3.14)
-  if (Heading_Est > M_PI)
-  {
-    Heading_Est = Heading_Est - 2.0 * M_PI;
-  }
-  else if (Heading_Est < -M_PI)
-  {
-    Heading_Est = Heading_Est + 2.0 * M_PI;
-  }
-
-  if (flag_Start == true)
-  {
-    flag_Est = true;
-    Heading = Heading_Est;
-  }
-  else
-  {
-    flag_Est = false;
-    Heading = 0.0;
-  }
-
-*/
 
   GPSTime_Last = GPSTime;
   Time_Last = Time;
   Heading_Last = Heading_Est;
 
-  // Processing time measurement
-  EndTime = ros::Time::now().toSec();
-  ProcessingTime = (EndTime - StartTime);
-  if (ProcessingTime > IMUperiod)
-  {
-    //ROS_ERROR("RCalc_Heading processing time %5.5lf [ms]", ProcessingTime * 1000);
-  }
 }
 
 int main(int argc, char** argv)
