@@ -28,7 +28,8 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 1) First, download the modified RTKLIB to your home directory.
 
 		cd  
-		git clone https://github.com/MapIV/RTKLIB.git  
+		git clone https://github.com/MapIV/RTKLIB.git
+		git checkout modified    
 
 	[About RTKLIB](https://wikipedia.org)
 
