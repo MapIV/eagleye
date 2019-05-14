@@ -29,12 +29,14 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 		cd  
 		git clone https://github.com/MapIV/RTKLIB.git
+		cd RTKLIB
 		git checkout modified    
 
 	[About RTKLIB](https://wikipedia.org)
 
 2) Build RTKLIB.
 
+		cd
 		cd RTKLIB/app  
 		chmod 755 makeall.sh  
 		./makeall.sh  
