@@ -29,17 +29,20 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 		cd  
 		git clone https://github.com/MapIV/RTKLIB.git
-		cd RTKLIB
-		git checkout modified    
+		cd  
+		cd RTKLIB   
+		git checkout for_imu_gnss_localizer    
 
 	[About RTKLIB](https://wikipedia.org)
 
 2) Build RTKLIB.
 
-		cd
+		cd  
+		cd RTKLIB/lib/iers/gcc/  
+		make  
+		cd  
 		cd RTKLIB/app  
-		chmod 755 makeall.sh  
-		./makeall.sh  
+		meke   
 
 3) Change the permissions of the two files.
 
@@ -140,7 +143,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 		cd  
 		cd RTKLIB  
-		./launchscript.sh  
+		./launch_rtkrcv.sh  
 
 4) Check the status of RTKLIB. If GPS Time is moving, it is OK. Execute the following command in the terminal of item 3.
 
