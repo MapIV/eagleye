@@ -23,13 +23,18 @@ bool flag_GNSS, flag_Start, flag_Est_Raw_Heading;
 int length_diff;
 int i = 0;
 int ESTNUM = 0;
+int ESTNUM_MAX = 500;
 int count = 0;
 int GPS_count = 0;
+int index_Raw_count = 0;
 int Distance_BUFNUM = 0;
 int index_Dist = 0;
 int GPSTime = 0;
 int GPSTime_Last = 0;
 int index_max = 0;
+
+int Est_Distance = 1;//1m
+
 double UsrVel_time_stamp = 0.0;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
@@ -39,7 +44,7 @@ double Time = 0.0;
 double Time_Last = 0.0;
 double avg_x, avg_y, avg_z;
 double Correction_Velocity = 0.0;
-double Distance_BUFNUM_MAX = 10000000;  //仮の値
+//double Distance_BUFNUM_MAX = 10000000;  //仮の値
 double TH_VEL_EST = 10 / 3.6;
 double ESTDIST = 500;
 double TH_POSMAX = 3.0;
@@ -64,6 +69,7 @@ double UsrPos_Est_enu_x_Last = 0.0;
 double UsrPos_Est_enu_y_Last = 0.0;
 double UsrPos_Est_enu_z_Last = 0.0;
 double Distance = 0.0;
+double Distance_Last = 0.0;
 
 int log_1 = 0;
 int log_2 = 0;
@@ -80,12 +86,13 @@ std::size_t length_pUsrVel_enu_U;
 std::size_t length_pTime;
 std::size_t length_pindex_vel;
 std::size_t length_pindex_Raw;
-std::size_t length_pDistance;
+//std::size_t length_pDistance;
 std::size_t length_index_Raw;
 
-boost::circular_buffer<double> pDistance(Distance_BUFNUM_MAX);
-boost::circular_buffer<bool> pindex_Raw(Distance_BUFNUM_MAX);
+//boost::circular_buffer<double> pDistance(Distance_BUFNUM_MAX);
+//boost::circular_buffer<bool> pindex_Raw(Distance_BUFNUM_MAX);
 
+/*
 std::vector<bool> pflag_GNSS;
 std::vector<double> pUsrPos_enu_x;
 std::vector<double> pUsrPos_enu_y;
@@ -95,6 +102,18 @@ std::vector<double> pUsrVel_enu_N;
 std::vector<double> pUsrVel_enu_U;
 std::vector<double> pVelocity;
 std::vector<double> pTime;
+*/
+
+boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrPos_enu_x(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrPos_enu_y(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrPos_enu_z(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrVel_enu_E(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrVel_enu_N(ESTNUM_MAX);
+boost::circular_buffer<double> pUsrVel_enu_U(ESTNUM_MAX);
+boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
+boost::circular_buffer<double> pTime(ESTNUM_MAX);
+
 
 std::vector<double> basepos_x;
 std::vector<double> basepos_y;
@@ -147,6 +166,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   Time = ROSTime;  // IMUTime or ROSTime
   // ROS_INFO("Time = %lf" , Time);
 
+/*
   if (Distance_BUFNUM < Distance_BUFNUM_MAX)
   {
     ++Distance_BUFNUM;
@@ -155,6 +175,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   {
     Distance_BUFNUM = Distance_BUFNUM_MAX;
   }
+*/
 
   // GNSS receive flag
   if (GPSTime_Last == GPSTime)
@@ -173,34 +194,62 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     ++GPS_count;
   }
 
+  // GNSS receive flag
+  if (flag_Est_Raw_Heading == true)
+  {
+    flag_Est_Raw_Heading = false; //In order to prevent being judged many times
+    ++index_Raw_count;
+  }
+
   UsrVel_enu_E = msg->VelE;
   UsrVel_enu_N = msg->VelN;
   UsrVel_enu_U = msg->VelU;
   UsrVel_time_stamp = msg->time_stamp;
 
-  // data buffer generate
-  pDistance.push_back(Distance);
-  pflag_GNSS.push_back(flag_GNSS);
-  pindex_Raw.push_back(flag_Est_Raw_Heading);
-  pUsrPos_enu_x.push_back(UsrPos_enu_x);
-  pUsrPos_enu_y.push_back(UsrPos_enu_y);
-  //pUsrPos_enu_z.push_back(UsrPos_enu_z);
-  pUsrPos_enu_z.push_back(0);
+  if (Distance-Distance_Last > Est_Distance && flag_GNSS == true)
+  {
+
+    if (ESTNUM < ESTNUM_MAX)
+    {
+      ++ESTNUM;
+    }
+    else
+    {
+      ESTNUM = ESTNUM_MAX;
+    }
+
+    // data buffer generate
+    //pDistance.push_back(Distance);
+    pflag_GNSS.push_back(flag_GNSS);
+
+    pUsrPos_enu_x.push_back(UsrPos_enu_x);
+    pUsrPos_enu_y.push_back(UsrPos_enu_y);
+    //pUsrPos_enu_z.push_back(UsrPos_enu_z);
+    pUsrPos_enu_z.push_back(0);
+    pVelocity.push_back(Correction_Velocity);
+    pTime.push_back(Time);
+
+    Distance_Last = Distance;
+
+  }
+
   pUsrVel_enu_E.push_back(UsrVel_enu_E);
   pUsrVel_enu_N.push_back(UsrVel_enu_N);
   //pUsrVel_enu_U.push_back(UsrVel_enu_U);
   pUsrVel_enu_U.push_back(0);
-  pVelocity.push_back(Correction_Velocity);
-  pTime.push_back(Time);
 
-  std::vector<int> pindex_Est;
-  std::vector<int> index_Raw;
+
+  //std::vector<int> pindex_Est;
+  //std::vector<int> index_Raw;
   std::vector<int> pindex_GNSS;
   std::vector<int> pindex_vel;
   std::vector<int> index;
 
+/*
+  pindex_Raw.push_back(flag_Est_Raw_Heading);
+
   length_pindex_Raw = std::distance(pindex_Raw.begin(), pindex_Raw.end());
-  length_pDistance = std::distance(pDistance.begin(), pDistance.end());
+  //length_pDistance = std::distance(pDistance.begin(), pDistance.end());
 
   for (i = 0; i < length_pindex_Raw; i++)
   {
@@ -254,6 +303,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
       pUsrVel_enu_U.insert(pUsrVel_enu_U.begin(), 0);
     }
   }
+*/
 
   for (i = 0; i < ESTNUM; i++)
   {
@@ -275,11 +325,26 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   length_index = std::distance(index.begin(), index.end());
   log_2 = length_index;
 
-  if (length_index_Raw > 0)
+  //ROS_ERROR("index_Raw_count %d",index_Raw_count);
+  //ROS_ERROR("ESTNUM %d",ESTNUM);
+
+  if (index_Raw_count > 0)
   {
-    if (pDistance[Distance_BUFNUM - 1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
-        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 1.0))
+
+//    if (pDistance[Distance_BUFNUM - 1] > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
+//        index_Dist > index_Raw[0] && count > 1 && ESTNUM != Distance_BUFNUM_MAX && 0 == fmod(GPS_count, 1.0))
+
+  ROS_ERROR("Distance %lf",Distance);
+  ROS_ERROR("ESTDIST %lf",ESTDIST);
+  ROS_ERROR("flag_GNSS %d",flag_GNSS);
+  ROS_ERROR("Correction_Velocity %lf",Correction_Velocity);
+  ROS_ERROR("count %d",count);
+
+    if (Distance > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
+        count > 1)
     {
+      ROS_ERROR("length_index %zu",length_index);
+      ROS_ERROR("length_pindex_vel * TH_CALC_MINNUM %lf",length_pindex_vel * TH_CALC_MINNUM);
       if (length_index > length_pindex_vel * TH_CALC_MINNUM)
       {
         std::vector<double> tTrajectory_x(ESTNUM, 0);
