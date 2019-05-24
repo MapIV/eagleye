@@ -42,7 +42,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 		make  
 		cd  
 		cd RTKLIB/app  
-		meke   
+		make   
 
 3) Change the permissions of the two files.
 
