@@ -71,7 +71,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 1) Open RTKLIB settings.
 
 		cd
-		gedit RTKLIB/app/rtkrcv/imu_gnss_localizer.conf
+		gedit RTKLIB/app/rtkrcv/conf/imu_gnss_localizer.conf
 
 2) Set the serial device on line 10. If you connect using USB, it is OK.
 
