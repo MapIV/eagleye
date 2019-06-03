@@ -305,7 +305,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 
       if (length_index == 0 || length_index > ESTNUM_Heading * ESTNUM_THSF)
       {
-        if (index[length_index - 1] == ESTNUM_Heading)
+        if (index[length_index - 1] == ESTNUM_Heading-1)
         {
           Heading_EstRaw = tHeading;
         }

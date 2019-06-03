@@ -142,7 +142,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
       }
     }
 
-    ROS_ERROR("Heading %d",Est_index);
+    //ROS_ERROR("Heading %d",Est_index);
 
     if (flag_Heading_Est == true && Est_index > 0 && BUFNUM >= Est_index && Est_count > 1)
     {

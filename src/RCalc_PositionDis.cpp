@@ -22,13 +22,15 @@ ros::Publisher pub1;
 
 bool flag_GNSS, flag_Est_Raw_Heading;
 int i = 0;
-
+double ESTDIST = 500;
+int ESTNUM = 0;
+int Est_Distance = 1;  // Minimum value of the buffer insertion distance
+int ESTNUM_MAX = int(ESTDIST) / Est_Distance;
 int count = 0;
 int index_Raw_count = 0;
 int GPSTime = 0;
 int GPSTime_Last = 0;
 int index_max = 0;
-int Est_Distance = 1;  // Minimum value of the buffer insertion distance
 double UsrVel_time_stamp = 0.0;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
@@ -39,12 +41,11 @@ double Time_Last = 0.0;
 double avg_x, avg_y, avg_z;
 double Correction_Velocity = 0.0;
 double TH_VEL_EST = 10 / 3.6;
-double ESTDIST = 500;
+
 double TH_POSMAX = 3.0;
 double TH_CALC_MINNUM = 1.0 / 20;
 double TH_EST_GIVEUP_NUM = 1.0 / 100;
-int ESTNUM = 0;
-int ESTNUM_MAX = int(ESTDIST);
+
 double UsrPos_enu_x = 0.0;
 double UsrPos_enu_y = 0.0;
 double UsrPos_enu_z = 0.0;
@@ -318,11 +319,19 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 
         if (length_index >= length_pindex_vel * TH_EST_GIVEUP_NUM)
         {
-          if (index[length_index - 1] == ESTNUM)
+          if (index[length_index - 1] == ESTNUM-1)
           {
             UsrPos_EstRaw_enu_x = tUsrPos_enu_x;
             UsrPos_EstRaw_enu_y = tUsrPos_enu_y;
             UsrPos_EstRaw_enu_z = tUsrPos_enu_z;
+
+            p1_msg.enu_x = UsrPos_EstRaw_enu_x;
+            p1_msg.enu_y = UsrPos_EstRaw_enu_y;
+            p1_msg.enu_z = UsrPos_EstRaw_enu_z;
+            p1_msg.time_stamp = UsrVel_time_stamp;
+            p1_msg.ESTNUM = log_1;
+            p1_msg.length_index = log_2;
+            pub1.publish(p1_msg);
           }
           else
           {
@@ -330,13 +339,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             UsrPos_EstRaw_enu_y = tUsrPos_enu_y + (tTrajectory_y[ESTNUM - 1] - tTrajectory_y[index[length_index - 1]]);
             UsrPos_EstRaw_enu_z = tUsrPos_enu_z + (tTrajectory_z[ESTNUM - 1] - tTrajectory_z[index[length_index - 1]]);
           }
-          p1_msg.enu_x = UsrPos_EstRaw_enu_x;
-          p1_msg.enu_y = UsrPos_EstRaw_enu_y;
-          p1_msg.enu_z = UsrPos_EstRaw_enu_z;
-          p1_msg.time_stamp = UsrVel_time_stamp;
-          p1_msg.ESTNUM = log_1;
-          p1_msg.length_index = log_2;
-          pub1.publish(p1_msg);
         }
       }
     }
