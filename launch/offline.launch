@@ -20,6 +20,6 @@
 
   <param name="/imu_gnss_localizer/reverse_imu" type="bool" value="false" />
 
-  <node pkg="prius_driver" name="Vehicle_CAN_decoder" type="Vehicle_CAN_decoder" />
+  <node pkg="toyota_can" name="toyota_can" type="toyota_can" />
 
 </launch>

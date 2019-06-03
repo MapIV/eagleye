@@ -22,8 +22,7 @@ ros::Publisher pub1;
 
 bool flag_GNSS, flag_Est_Raw_Heading;
 int i = 0;
-int ESTNUM = 0;
-int ESTNUM_MAX = 500;
+
 int count = 0;
 int index_Raw_count = 0;
 int GPSTime = 0;
@@ -44,6 +43,8 @@ double ESTDIST = 500;
 double TH_POSMAX = 3.0;
 double TH_CALC_MINNUM = 1.0 / 20;
 double TH_EST_GIVEUP_NUM = 1.0 / 100;
+int ESTNUM = 0;
+int ESTNUM_MAX = int(ESTDIST);
 double UsrPos_enu_x = 0.0;
 double UsrPos_enu_y = 0.0;
 double UsrPos_enu_z = 0.0;
@@ -63,7 +64,6 @@ double Trajectory_x_Last = 0.0;
 double Trajectory_y_Last = 0.0;
 double Trajectory_z_Last = 0.0;
 double Distance = 0.0;
-double Distance_Last = 0.0;
 
 int log_1 = 0;
 int log_2 = 0;
@@ -71,7 +71,6 @@ int log_2 = 0;
 std::size_t length_index;
 std::size_t length_pindex_vel;
 
-boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
 boost::circular_buffer<double> pUsrPos_enu_x(ESTNUM_MAX);
 boost::circular_buffer<double> pUsrPos_enu_y(ESTNUM_MAX);
 boost::circular_buffer<double> pUsrPos_enu_z(ESTNUM_MAX);
@@ -80,6 +79,7 @@ boost::circular_buffer<double> tTrajectory_y(ESTNUM_MAX);
 boost::circular_buffer<double> tTrajectory_z(ESTNUM_MAX);
 boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
 boost::circular_buffer<double> pTime(ESTNUM_MAX);
+boost::circular_buffer<double> pDistance(ESTNUM_MAX);
 
 std::vector<double> basepos_x;
 std::vector<double> basepos_y;
@@ -164,7 +164,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   Trajectory_y = Trajectory_y_Last + UsrVel_enu_N * (Time - Time_Last);
   Trajectory_z = Trajectory_z_Last + UsrVel_enu_U * (Time - Time_Last);
 
-  if (Distance-Distance_Last > Est_Distance && flag_GNSS == true)
+  if (Distance-pDistance[ESTNUM -1] > Est_Distance && flag_GNSS == true)
   {
 
     if (ESTNUM < ESTNUM_MAX)
@@ -177,7 +177,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     }
 
     // data buffer generate
-    pflag_GNSS.push_back(flag_GNSS);
     pUsrPos_enu_x.push_back(UsrPos_enu_x);
     pUsrPos_enu_y.push_back(UsrPos_enu_y);
     //pUsrPos_enu_z.push_back(UsrPos_enu_z);
@@ -188,18 +187,18 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     tTrajectory_y.push_back(Trajectory_y);
     //tTrajectory_z.push_back(Trajectory_z);
     tTrajectory_z.push_back(0);
-    Distance_Last = Distance;
+    pDistance.push_back(Distance);
   }
 
-  std::vector<int> pindex_GNSS;
+  std::vector<int> pindex_distance;
   std::vector<int> pindex_vel;
   std::vector<int> index;
 
   for (i = 0; i < ESTNUM; i++)
   {
-    if (pflag_GNSS[i] == true)
+    if (pDistance[ESTNUM-1] - pDistance[i]  <= ESTDIST)
     {
-      pindex_GNSS.push_back(i);
+      pindex_distance.push_back(i);
     }
     if (pVelocity[i] > TH_VEL_EST)
     {
@@ -209,7 +208,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 
   length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
-  set_intersection(pindex_GNSS.begin(), pindex_GNSS.end(), pindex_vel.begin(), pindex_vel.end(),
+  set_intersection(pindex_distance.begin(), pindex_distance.end(), pindex_vel.begin(), pindex_vel.end(),
                    inserter(index, index.end()));
 
   length_index = std::distance(index.begin(), index.end());
@@ -296,9 +295,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
           }
           else
           {
-            Trajectory_x_Last = 0.0;
-            Trajectory_y_Last = 0.0;
-            Trajectory_z_Last = 0.0;
+            //Trajectory_x_Last = 0.0;
+            //Trajectory_y_Last = 0.0;
+            //Trajectory_z_Last = 0.0;
             break;
           }
 
@@ -307,9 +306,9 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 
           if (length_index < length_pindex_vel * TH_EST_GIVEUP_NUM)
           {
-            Trajectory_x_Last = 0.0;
-            Trajectory_y_Last = 0.0;
-            Trajectory_z_Last = 0.0;
+            //Trajectory_x_Last = 0.0;
+            //Trajectory_y_Last = 0.0;
+            //Trajectory_z_Last = 0.0;
             break;
           }
         }
