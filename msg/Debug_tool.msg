@@ -93,5 +93,7 @@ float64 PositionDis_Int_longitude
 float64 PositionDis_Int_altitude
 
 #RCalc_PositionDis_Debug
-int64 PositionDis_ESTNUM
-int64 PositionDis_length_index
+int64 PositionDis_log_1
+int64 PositionDis_log_2
+int64 PositionDis_log_3
+int64 PositionDis_log_4

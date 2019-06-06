@@ -20,12 +20,12 @@
 
 ros::Publisher pub1;
 
-bool flag_GNSS, flag_Est_Raw_Heading;
+bool flag_DATA, flag_GNSS, flag_Est_Raw_Heading;
 int i = 0;
 double ESTDIST = 500;
+double SPLITDIST = 0.1;
 int ESTNUM = 0;
-int Est_Distance = 1;  // Minimum value of the buffer insertion distance
-int ESTNUM_MAX = int(ESTDIST) / Est_Distance;
+int ESTNUM_MAX = ESTDIST / SPLITDIST;
 int count = 0;
 int index_Raw_count = 0;
 int GPSTime = 0;
@@ -41,11 +41,9 @@ double Time_Last = 0.0;
 double avg_x, avg_y, avg_z;
 double Correction_Velocity = 0.0;
 double TH_VEL_EST = 10 / 3.6;
-
 double TH_POSMAX = 3.0;
 double TH_CALC_MINNUM = 1.0 / 20;
 double TH_EST_GIVEUP_NUM = 1.0 / 100;
-
 double UsrPos_enu_x = 0.0;
 double UsrPos_enu_y = 0.0;
 double UsrPos_enu_z = 0.0;
@@ -65,9 +63,12 @@ double Trajectory_x_Last = 0.0;
 double Trajectory_y_Last = 0.0;
 double Trajectory_z_Last = 0.0;
 double Distance = 0.0;
+double Distance_Last = 0.0;
 
 int log_1 = 0;
 int log_2 = 0;
+int log_3 = 0;
+int log_4 = 0;
 
 std::size_t length_index;
 std::size_t length_pindex_vel;
@@ -79,7 +80,6 @@ boost::circular_buffer<double> tTrajectory_x(ESTNUM_MAX);
 boost::circular_buffer<double> tTrajectory_y(ESTNUM_MAX);
 boost::circular_buffer<double> tTrajectory_z(ESTNUM_MAX);
 boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
-boost::circular_buffer<double> pTime(ESTNUM_MAX);
 boost::circular_buffer<double> pDistance(ESTNUM_MAX);
 
 std::vector<double> basepos_x;
@@ -149,7 +149,6 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     UsrPos_enu_z = UsrPos_enu_z;
   }
 
-  // GNSS receive flag
   if (flag_Est_Raw_Heading == true)
   {
     flag_Est_Raw_Heading = false; //In order to prevent being judged many times
@@ -165,7 +164,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   Trajectory_y = Trajectory_y_Last + UsrVel_enu_N * (Time - Time_Last);
   Trajectory_z = Trajectory_z_Last + UsrVel_enu_U * (Time - Time_Last);
 
-  if (Distance-pDistance[ESTNUM -1] > Est_Distance && flag_GNSS == true)
+  if (Distance-Distance_Last > SPLITDIST && flag_GNSS == true)
   {
 
     if (ESTNUM < ESTNUM_MAX)
@@ -183,12 +182,14 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     //pUsrPos_enu_z.push_back(UsrPos_enu_z);
     pUsrPos_enu_z.push_back(0);
     pVelocity.push_back(Correction_Velocity);
-    pTime.push_back(Time);
     tTrajectory_x.push_back(Trajectory_x);
     tTrajectory_y.push_back(Trajectory_y);
     //tTrajectory_z.push_back(Trajectory_z);
     tTrajectory_z.push_back(0);
     pDistance.push_back(Distance);
+    Distance_Last = Distance;
+
+    flag_DATA = true; //Judgment that refreshed data
   }
 
   std::vector<int> pindex_distance;
@@ -213,11 +214,11 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
                    inserter(index, index.end()));
 
   length_index = std::distance(index.begin(), index.end());
-  log_2 = length_index;
+  log_1 = length_index;
 
-  if (index_Raw_count > 0)
+  if (flag_DATA == true)
   {
-    if (Distance > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST &&
+    if (Distance > ESTDIST && flag_GNSS == true && Correction_Velocity > TH_VEL_EST && index_Raw_count > 0 &&
         count > 1)
     {
       if (length_index > length_pindex_vel * TH_CALC_MINNUM)
@@ -299,6 +300,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             //Trajectory_x_Last = 0.0;
             //Trajectory_y_Last = 0.0;
             //Trajectory_z_Last = 0.0;
+            log_2 = length_index;
             break;
           }
 
@@ -310,6 +312,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             //Trajectory_x_Last = 0.0;
             //Trajectory_y_Last = 0.0;
             //Trajectory_z_Last = 0.0;
+            log_3 = length_index;
             break;
           }
         }
@@ -325,12 +328,16 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             UsrPos_EstRaw_enu_y = tUsrPos_enu_y;
             UsrPos_EstRaw_enu_z = tUsrPos_enu_z;
 
+            ++ log_4;
+
             p1_msg.enu_x = UsrPos_EstRaw_enu_x;
             p1_msg.enu_y = UsrPos_EstRaw_enu_y;
             p1_msg.enu_z = UsrPos_EstRaw_enu_z;
             p1_msg.time_stamp = UsrVel_time_stamp;
-            p1_msg.ESTNUM = log_1;
-            p1_msg.length_index = log_2;
+            p1_msg.log_1 = log_1;
+            p1_msg.log_2 = log_2;
+            p1_msg.log_3 = log_3;
+            p1_msg.log_4 = log_4;
             pub1.publish(p1_msg);
           }
           else
@@ -348,6 +355,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   Trajectory_z_Last = Trajectory_z;
   GPSTime_Last = GPSTime;
   Time_Last = Time;
+  flag_DATA = false;
 }
 
 int main(int argc, char** argv)

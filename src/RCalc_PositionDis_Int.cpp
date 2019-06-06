@@ -251,7 +251,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
       }
     }
 
-    ROS_ERROR("Position %d",Est_index);
+    //ROS_ERROR("Position %d",Est_index);
 
     if (flag_UsrPos_Est == true && Est_index > 0 && BUFNUM >= Est_index && Est_count > 1)
     {

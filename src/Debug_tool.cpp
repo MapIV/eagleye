@@ -94,8 +94,10 @@ double PositionDis_enu_x = 0.0;
 double PositionDis_enu_y = 0.0;
 double PositionDis_enu_z = 0.0;
 int PositionDis_time_stamp = 0;
-int PositionDis_ESTNUM = 0;
-int PositionDis_length_index = 0;
+int PositionDis_log_1 = 0;
+int PositionDis_log_2 = 0;
+int PositionDis_log_3 = 0;
+int PositionDis_log_4 = 0;
 
 // RCalc_PositionDis_Int
 double PositionDis_Int_enu_x = 0.0;
@@ -230,8 +232,10 @@ void receive_PositionDis(const imu_gnss_localizer::PositionDis_raw::ConstPtr& ms
   PositionDis_enu_y = msg->enu_y;
   PositionDis_enu_z = msg->enu_z;
   PositionDis_time_stamp = msg->time_stamp;
-  PositionDis_ESTNUM = msg->ESTNUM;
-  PositionDis_length_index = msg->length_index;
+  PositionDis_log_1 = msg->log_1;
+  PositionDis_log_2 = msg->log_2;
+  PositionDis_log_3 = msg->log_3;
+  PositionDis_log_4 = msg->log_4;
 }
 
 void receive_PositionDis_Int(const imu_gnss_localizer::PositionDis::ConstPtr& msg)
@@ -282,36 +286,43 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p_msg.VelocitySF_Scale_Factor = VelocitySF_Scale_Factor;
   p_msg.VelocitySF_flag_Est = VelocitySF_flag_Est;
   p_msg.VelocitySF_flag_EstRaw = VelocitySF_flag_EstRaw;
+  VelocitySF_flag_EstRaw = false;
 
   // RCalc_Heading1st
   p_msg.Heading1st_Heading_angle = Heading1st_Heading_angle;
   p_msg.Heading1st_flag_Est = Heading1st_flag_Est;
   p_msg.Heading1st_flag_EstRaw = Heading1st_flag_EstRaw;
+  Heading1st_flag_EstRaw = false;
 
   // RCalc_Heading2nd
   p_msg.Heading2nd_Heading_angle = Heading2nd_Heading_angle;
   p_msg.Heading2nd_flag_Est = Heading2nd_flag_Est;
   p_msg.Heading2nd_flag_EstRaw = Heading2nd_flag_EstRaw;
+  Heading2nd_flag_EstRaw = false;
 
   // RCalc_Heading3rd
   p_msg.Heading3rd_Heading_angle = Heading3rd_Heading_angle;
   p_msg.Heading3rd_flag_Est = Heading3rd_flag_Est;
   p_msg.Heading3rd_flag_EstRaw = Heading3rd_flag_EstRaw;
+  Heading3rd_flag_EstRaw = false;
 
   // RCalc_YawrateOffsetStop
   p_msg.YawrateOffsetStop_YawrateOffset = YawrateOffsetStop_YawrateOffset;
   p_msg.YawrateOffsetStop_flag_Est = YawrateOffsetStop_flag_Est;
   p_msg.YawrateOffsetStop_flag_EstRaw = YawrateOffsetStop_flag_EstRaw;
+  YawrateOffsetStop_flag_EstRaw = false;
 
   // RCalc_YawrateOffset1st
   p_msg.YawrateOffset1st_YawrateOffset = YawrateOffset1st_YawrateOffset;
   p_msg.YawrateOffset1st_flag_Est = YawrateOffset1st_flag_Est;
   p_msg.YawrateOffset1st_flag_EstRaw = YawrateOffset1st_flag_EstRaw;
+  YawrateOffset1st_flag_EstRaw = false;
 
   // RCalc_YawrateOffset2nd
   p_msg.YawrateOffset2nd_YawrateOffset = YawrateOffset2nd_YawrateOffset;
   p_msg.YawrateOffset2nd_flag_Est = YawrateOffset2nd_flag_Est;
   p_msg.YawrateOffset2nd_flag_EstRaw = YawrateOffset2nd_flag_EstRaw;
+  YawrateOffset2nd_flag_EstRaw = false;
 
   // RCalc_Trajectory
   p_msg.Trajectory_VelE = Trajectory_VelE;
@@ -341,6 +352,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p_msg.PositionDis_Int_latitude = PositionDis_Int_latitude;
   p_msg.PositionDis_Int_longitude = PositionDis_Int_longitude;
   p_msg.PositionDis_Int_altitude = PositionDis_Int_altitude;
+  PositionDis_Int_flag_EstRaw = false;
 
   // CAN_Velocity
   p_msg.CAN_Velocity = CAN_Velocity;
@@ -355,8 +367,13 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p_msg.IMU_angular_velocity_z = IMU_angular_velocity_z;
 
   // RCalc_PositionDis_Debug
-  p_msg.PositionDis_ESTNUM = PositionDis_ESTNUM;
-  p_msg.PositionDis_length_index = PositionDis_length_index;
+  p_msg.PositionDis_log_1 = PositionDis_log_1;
+  p_msg.PositionDis_log_2 = PositionDis_log_2;
+  p_msg.PositionDis_log_3 = PositionDis_log_3;
+  p_msg.PositionDis_log_4 = PositionDis_log_4;
+  PositionDis_log_1 = 0;
+  PositionDis_log_2 = 0;
+  PositionDis_log_3 = 0;
 
   pub.publish(p_msg);
 
