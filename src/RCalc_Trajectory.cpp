@@ -7,6 +7,7 @@
 
 #include "ros/ros.h"
 #include "geometry_msgs/Pose.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "sensor_msgs/Imu.h"
 #include "imu_gnss_localizer/VelocitySF.h"
 #include "imu_gnss_localizer/Heading.h"
@@ -15,10 +16,15 @@
 
 ros::Publisher pub1;
 ros::Publisher pub2;
+ros::Publisher pub3;
 
-bool flag_Est, flag_SF;
+// default parameter
+bool reverse_imu = false;
+
+bool flag_Est, flag_SF, flag_YOS, flag_YawrateOffsetEst;
 int count = 0;
 int T_count = 0;
+double TH_VEL_STOP = 0.01;
 double IMUTime;
 double IMUfrequency = 50;  // IMU Hz
 double IMUperiod = 1 / IMUfrequency;
@@ -36,9 +42,13 @@ double Trajectory_y_Last = 0.0;
 double Trajectory_z_Last = 0.0;
 double pVelocity = 0.0;
 double pHeading = 0.0;
+double YawrateOffset = 0.0;
+double YawrateOffset_Stop = 0.0;
+double Yawrate = 0.0;
 
 geometry_msgs::Pose p1_msg;
 imu_gnss_localizer::UsrVel_enu p2_msg;
+geometry_msgs::TwistStamped p3_msg;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg)
 {
@@ -52,6 +62,18 @@ void receive_Heading3rd(const imu_gnss_localizer::Heading::ConstPtr& msg)
   flag_Est = msg->flag_Est;
 }
 
+void receive_YawrateOffsetStop(const imu_gnss_localizer::YawrateOffset::ConstPtr& msg)
+{
+  YawrateOffset_Stop = msg->YawrateOffset;
+  flag_YOS = msg->flag_Est;
+}
+
+void receive_YawrateOffset2nd(const imu_gnss_localizer::YawrateOffset::ConstPtr& msg)
+{
+  YawrateOffset = msg->YawrateOffset;
+  flag_YawrateOffsetEst = msg->flag_Est;
+}
+
 void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 {
   ++count;
@@ -59,6 +81,35 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   ROSTime = ros::Time::now().toSec();
   Time = ROSTime;  // IMUTime or ROSTime
   // ROS_INFO("Time = %lf" , Time);
+
+  if (reverse_imu == false)
+  {
+    if (pVelocity > TH_VEL_STOP && flag_YawrateOffsetEst == true)
+    {
+      Yawrate = msg->angular_velocity.z + YawrateOffset;
+    }
+    else
+    {
+      Yawrate = msg->angular_velocity.z + YawrateOffset_Stop;
+    }
+  }
+  else if (pVelocity > TH_VEL_STOP && flag_YawrateOffsetEst == true)
+  {
+    if (pVelocity > TH_VEL_STOP)
+    {
+      Yawrate = (-1 * msg->angular_velocity.z) + YawrateOffset;
+    }
+    else
+    {
+      Yawrate = (-1 * msg->angular_velocity.z) + YawrateOffset_Stop;
+    }
+  }
+
+  p3_msg.header.stamp = ros::Time::now();
+  p3_msg.header.frame_id = "/base_link";
+  p3_msg.twist.linear.x = pVelocity;
+  p3_msg.twist.angular.z = Yawrate;
+  pub3.publish(p3_msg);
 
   if (T_count == 0 && flag_SF == true && flag_Est == true)
   {
@@ -108,11 +159,16 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "RCalc_Trajectory");
 
   ros::NodeHandle n;
+  n.getParam("/imu_gnss_localizer/reverse_imu", reverse_imu);
+
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);
   ros::Subscriber sub2 = n.subscribe("/imu_gnss_localizer/Heading3rd_Int", 1000, receive_Heading3rd);
   ros::Subscriber sub3 = n.subscribe("/imu/data_raw", 1000, receive_Imu);
+  ros::Subscriber sub4 = n.subscribe("/imu_gnss_localizer/YawrateOffsetStop", 1000, receive_YawrateOffsetStop);
+  ros::Subscriber sub5 = n.subscribe("/imu_gnss_localizer/YawrateOffset2nd", 1000, receive_YawrateOffset2nd);
   pub1 = n.advertise<geometry_msgs::Pose>("/imu_gnss_localizer/Trajectory", 1000);
   pub2 = n.advertise<imu_gnss_localizer::UsrVel_enu>("/imu_gnss_localizer/UsrVel_enu", 1000);
+  pub3 = n.advertise<geometry_msgs::TwistStamped>("/imu_gnss_localizer_twist", 1000);
 
   ros::spin();
 
