@@ -22,7 +22,7 @@ ros::Publisher pub1;
 
 bool flag_DATA, flag_GNSS, flag_Est_Raw_Heading;
 int i = 0;
-double ESTDIST = 500;
+double ESTDIST = 300;
 double SPLITDIST = 0.1;
 int ESTNUM = 0;
 int ESTNUM_MAX = ESTDIST / SPLITDIST;
@@ -43,7 +43,7 @@ double Time_Last = 0.0;
 double avg_x, avg_y, avg_z;
 double Correction_Velocity = 0.0;
 double TH_VEL_EST = 10 / 3.6;
-double TH_POSMAX = 3.0;
+double TH_POSMAX = 5.0;
 double TH_CALC_MINNUM = 1.0 / 20;
 double TH_EST_GIVEUP_NUM = 1.0 / 100;
 double UsrPos_enu_x = 0.0;
@@ -312,7 +312,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
                   break;
                 }
 */
-
+/*
           //pattern2
           max_x = std::max_element(pdiff_x.begin(), pdiff_x.end());
           max_y = std::max_element(pdiff_y.begin(), pdiff_y.end());
@@ -351,6 +351,46 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             }
           }
 
+*/
+	  //pattern3
+          max_x = std::max_element(pdiff_x.begin(), pdiff_x.end());
+          max_y = std::max_element(pdiff_y.begin(), pdiff_y.end());
+
+          index_max_x = std::distance(pdiff_x.begin(), max_x);
+          index_max_y = std::distance(pdiff_y.begin(), max_y);
+
+          if(pdiff_x[index_max_x] < pdiff_y[index_max_y])
+          {
+            if (pdiff_x[index_max_x] > TH_POSMAX)
+            {
+              index.erase(index.begin() + index_max_x);
+            }
+            else
+            {
+              //Trajectory_x_Last = 0.0;
+              //Trajectory_y_Last = 0.0;
+              //Trajectory_z_Last = 0.0;
+              log_2 = length_index;
+              break;
+            }
+          }
+          else
+          {
+            if (pdiff_y[index_max_y] > TH_POSMAX)
+            {
+              index.erase(index.begin() + index_max_y);
+            }
+            else
+            {
+              //Trajectory_x_Last = 0.0;
+              //Trajectory_y_Last = 0.0;
+              //Trajectory_z_Last = 0.0;
+              log_2 = length_index;
+              break;
+            }
+          }
+
+//
           length_index = std::distance(index.begin(), index.end());
           length_pindex_vel = std::distance(pindex_vel.begin(), pindex_vel.end());
 
@@ -362,6 +402,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
             log_3 = length_index;
             break;
           }
+
         }
 
         length_index = std::distance(index.begin(), index.end());
