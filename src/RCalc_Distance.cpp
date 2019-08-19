@@ -43,7 +43,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   Time = ROSTime;  // IMUTime or ROSTime
   // ROS_INFO("Time = %lf" , Time);
 
-  if (count > 1)
+  if (count > 2)
   {
     Distance = Distance_Last + pVelocity * (Time - Time_Last);
 
@@ -52,6 +52,11 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
 
     Time_Last = Time;
     Distance_Last = Distance;
+  }
+  else
+  {
+    Time_Last = Time;
+    Distance_Last = Distance;  
   }
 }
 

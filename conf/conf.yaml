@@ -1,0 +1,37 @@
+imu_gnss_localizer:
+ VelocitySF:
+  ESTNUM_MIN: 1000
+  ESTNUM_MAX: 20000
+  TH_VEL_EST: 10/3.6
+  ESTNUM_ESF: 0.05
+
+ YawrateOffsetStop:
+   TH_VEL: 0.01
+   TH_VEL_STOP: 200
+
+ YawrateOffset:
+   ESTNUM_MIN: 1500
+   ESTNUM_K: 1/50
+   TH_VEL_EST: 10/3.6
+   1st:
+     ESTNUM_MAX: 14000
+   2nd:
+     ESTNUM_MAX: 25000
+
+ Heading:
+   ESTNUM_MIN: 500
+   ESTNUM_MAX: 1500
+   ESTNUM_GNSF: 1/10
+   ESTNUM_THSF: 1/20
+   TH_HEADINGMAX: 3/180*M_PI
+   TH_VEL_EST: 10/3.6
+   TH_VEL_STOP: 0.01
+   TH_YAWRATE: 5/180*M_PI
+
+ PositionDis:
+  ESTDIST: 500
+  SPLITDIST: 0.1
+  TH_VEL_EST: 10/3.6
+  TH_POSMAX: 3
+  TH_CALC_MINNUM : 1/10
+  TH_EST_GIVEUP_NUM: 1/50

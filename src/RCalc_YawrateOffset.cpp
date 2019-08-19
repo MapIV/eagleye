@@ -314,6 +314,14 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "RCalc_YawrateOffset");
   ros::NodeHandle n("~");
   n.getParam("/imu_gnss_localizer/reverse_imu", reverse_imu);
+  n.getParam("/imu_gnss_localizer/YawrateOffset/ESTNUM_MIN",ESTNUM_MIN);
+  n.getParam("/imu_gnss_localizer/YawrateOffset/ESTNUM_K",ESTNUM_K);
+  n.getParam("/imu_gnss_localizer/YawrateOffset/TH_VEL_EST",TH_VEL_EST);
+
+  // check param //
+  std::cout<< "ESTNUM_MIN "<<ESTNUM_MIN<<std::endl;
+  std::cout<< "ESTNUM_K "<<ESTNUM_K<<std::endl;
+  std::cout<< "TH_VEL_EST "<<TH_VEL_EST<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -325,12 +333,16 @@ int main(int argc, char** argv)
       publish_topic_name = "/imu_gnss_localizer/YawrateOffset1st";
       subscribe_topic_name = "/imu_gnss_localizer/Heading1st_Int";
       ESTNUM_MAX = 14000;  // Parameters for 1st
+      n.getParam("/imu_gnss_localizer/YawrateOffset/1st/ESTNUM_MAX",ESTNUM_MAX);
+      std::cout<< "ESTNUM_MAX "<<ESTNUM_MAX<<std::endl; // check param //
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "/imu_gnss_localizer/YawrateOffset2nd";
       subscribe_topic_name = "/imu_gnss_localizer/Heading2nd_Int";
       ESTNUM_MAX = 25000;  // Parameters for 2nd
+      n.getParam("/imu_gnss_localizer/YawrateOffset/2st/ESTNUM_MAX",ESTNUM_MAX);
+      std::cout<< "ESTNUM_MAX "<<ESTNUM_MAX<<std::endl; // check param //
     }
     else
     {

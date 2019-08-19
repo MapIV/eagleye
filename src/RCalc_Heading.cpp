@@ -65,18 +65,19 @@ ros::Time IMU_time_stamp;
 std::size_t length_index;
 std::size_t length_index_inv_up;
 std::size_t length_index_inv_down;
+std::size_t length_pTime;
 
 std::vector<double>::iterator max;
 
 imu_gnss_localizer::Heading_raw p_msg;
 
-boost::circular_buffer<double> pTime(ESTNUM_MAX);
-boost::circular_buffer<double> pHeading(ESTNUM_MAX);
-boost::circular_buffer<double> pYawrate(ESTNUM_MAX);
-boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
-boost::circular_buffer<double> pYawrateOffset_Stop(ESTNUM_MAX);
-boost::circular_buffer<double> pYawrateOffset(ESTNUM_MAX);
-boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
+std::vector<double> pTime;
+std::vector<double> pHeading;
+std::vector<double> pYawrate;
+std::vector<double> pVelocity;
+std::vector<double> pYawrateOffset_Stop;
+std::vector<double> pYawrateOffset;
+std::vector<double> pflag_GNSS;
 
 void receive_VelocitySF(const imu_gnss_localizer::VelocitySF::ConstPtr& msg)
 {
@@ -151,6 +152,19 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   pYawrateOffset_Stop.push_back(YawrateOffset_Stop);
   pYawrateOffset.push_back(YawrateOffset);
   pflag_GNSS.push_back(flag_GNSS);
+
+  length_pTime = std::distance(pTime.begin(), pTime.end());
+
+  if (length_pTime > ESTNUM_MAX)
+  {
+    pTime.erase(pTime.begin());
+    pHeading.erase(pHeading.begin());
+    pYawrate.erase(pYawrate.begin());
+    pVelocity.erase(pVelocity.begin());
+    pYawrateOffset_Stop.erase(pYawrateOffset_Stop.begin());
+    pYawrateOffset.erase(pYawrateOffset.begin());
+    pflag_GNSS.erase(pflag_GNSS.begin());
+  }
 
   std::vector<int> pindex_GNSS;
   std::vector<int> pindex_vel;
@@ -341,6 +355,24 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "RCalc_Heading");
   ros::NodeHandle n("~");
   n.getParam("/imu_gnss_localizer/reverse_imu", reverse_imu);
+  n.getParam("/imu_gnss_localizer/Heading/ESTNUM_MIN",ESTNUM_MIN);
+  n.getParam("/imu_gnss_localizer/Heading/ESTNUM_MAX",ESTNUM_MAX);
+  n.getParam("/imu_gnss_localizer/Heading/ESTNUM_GNSF",ESTNUM_GNSF);
+  n.getParam("/imu_gnss_localizer/Heading/ESTNUM_THSF",ESTNUM_THSF);
+  n.getParam("/imu_gnss_localizer/Heading/TH_HEADINGMAX",TH_HEADINGMAX);
+  n.getParam("/imu_gnss_localizer/Heading/TH_VEL_EST",TH_VEL_EST);
+  n.getParam("/imu_gnss_localizer/Heading/TH_VEL_STOP",TH_VEL_STOP);
+  n.getParam("/imu_gnss_localizer/Heading/TH_YAWRATE",TH_YAWRATE);
+
+  // check param //
+  std::cout<< "ESTNUM_MIN "<<ESTNUM_MIN<<std::endl;
+  std::cout<< "ESTNUM_MAX "<<ESTNUM_MAX<<std::endl;
+  std::cout<< "ESTNUM_GNSF "<<ESTNUM_GNSF<<std::endl;
+  std::cout<< "ESTNUM_THSF "<<ESTNUM_THSF<<std::endl;
+  std::cout<< "TH_HEADINGMAX "<<TH_HEADINGMAX<<std::endl;
+  std::cout<< "TH_VEL_EST "<<TH_VEL_EST<<std::endl;
+  std::cout<< "TH_VEL_STOP "<<TH_VEL_STOP<<std::endl;
+  std::cout<< "TH_YAWRATE "<<TH_YAWRATE<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";

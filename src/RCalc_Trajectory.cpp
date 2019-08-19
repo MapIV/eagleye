@@ -108,7 +108,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   p3_msg.header.stamp = ros::Time::now();
   p3_msg.header.frame_id = "/base_link";
   p3_msg.twist.linear.x = pVelocity;
-  p3_msg.twist.angular.z = Yawrate;
+  p3_msg.twist.angular.z = -Yawrate;
   pub3.publish(p3_msg);
 
   if (T_count == 0 && flag_SF == true && flag_Est == true)

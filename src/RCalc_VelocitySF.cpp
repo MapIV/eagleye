@@ -35,11 +35,13 @@ double Correction_Velocity = 0.0;
 double SF_Last = 0.0;
 
 std::size_t length_index;
+std::size_t length_pflag_GNSS;
 
 imu_gnss_localizer::VelocitySF p_msg;
-boost::circular_buffer<bool> pflag_GNSS(ESTNUM_MAX);
-boost::circular_buffer<double> pVelocity_Doppler(ESTNUM_MAX);
-boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
+
+std::vector<bool> pflag_GNSS;
+std::vector<double> pVelocity_Doppler;
+std::vector<double> pVelocity;
 
 void receive_Gnss(const imu_gnss_localizer::RTKLIB::ConstPtr& msg)
 {
@@ -78,6 +80,15 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
   pflag_GNSS.push_back(flag_GNSS);
   pVelocity_Doppler.push_back(Velocity_Doppler);
   pVelocity.push_back(Velocity);
+
+  length_pflag_GNSS = std::distance(pflag_GNSS.begin(), pflag_GNSS.end());
+
+  if (length_pflag_GNSS > ESTNUM_MAX)
+  {
+    pflag_GNSS.erase(pflag_GNSS.begin());
+    pVelocity_Doppler.erase(pVelocity_Doppler.begin());
+    pVelocity.erase(pVelocity.begin());
+  }
 
   std::vector<int> pindex_GNSS;
   std::vector<int> pindex_vel;
@@ -166,8 +177,19 @@ void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "RCalc_VelocitySF");
-
   ros::NodeHandle n;
+
+  n.getParam("/imu_gnss_localizer/VelocitySF/ESTNUM_MIN",ESTNUM_MIN);
+  n.getParam("/imu_gnss_localizer/VelocitySF/ESTNUM_MAX",ESTNUM_MAX);
+  n.getParam("/imu_gnss_localizer/VelocitySF/TH_VEL_EST",TH_VEL_EST);
+  n.getParam("/imu_gnss_localizer/VelocitySF/ESTNUM_ESF",ESTNUM_ESF);
+
+  // check param //
+  std::cout<< "ESTNUM_MIN "<<ESTNUM_MIN<<std::endl;
+  std::cout<< "ESTNUM_MAX "<<ESTNUM_MAX<<std::endl;
+  std::cout<< "TH_VEL_EST "<<TH_VEL_EST<<std::endl;
+  std::cout<< "ESTNUM_ESF "<<ESTNUM_ESF<<std::endl;
+
   ros::Subscriber sub1 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
   ros::Subscriber sub2 = n.subscribe("/RTKLIB", 1000, receive_Gnss);
   pub = n.advertise<imu_gnss_localizer::VelocitySF>("/imu_gnss_localizer/VelocitySF", 1000);
