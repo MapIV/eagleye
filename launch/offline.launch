@@ -2,6 +2,8 @@
 
 <launch>
 
+  <rosparam command="load" file="/home/meguken/catkin_ws/src/imu_gnss_localizer/conf/conf.yaml"/>
+
   <node pkg="imu_gnss_localizer" name="RCalc_VelocitySF" type="RCalc_VelocitySF" />
   <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffsetStop" type="RCalc_YawrateOffsetStop" />
   <node pkg="imu_gnss_localizer" name="RCalc_YawrateOffset1st" type="RCalc_YawrateOffset" args="1st"/>
