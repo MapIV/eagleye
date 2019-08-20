@@ -26,8 +26,11 @@ double Velocity = 0.0;
 double YawrateOffset_Stop = 0.0;
 double YO_Stop_Last = 0.0;
 
+std::size_t length_pYawrate;
+
 imu_gnss_localizer::YawrateOffset p_msg;
-boost::circular_buffer<double> pYawrate(TH_VEL_STOP);
+
+std::vector<double> pYawrate;
 
 void receive_Velocity(const geometry_msgs::Twist::ConstPtr& msg)
 {
@@ -44,6 +47,13 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   else if (reverse_imu == true)
   {
     pYawrate.push_back(-1 * msg->angular_velocity.z);
+  }
+
+  length_pYawrate = std::distance(pYawrate.begin(), pYawrate.end());
+
+  if (length_pYawrate > TH_VEL_STOP)
+  {
+    pYawrate.erase(pYawrate.begin());
   }
 
   // vehicle stop time counter
@@ -86,7 +96,14 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "RCalc_YawrateOffsetStop");
   ros::NodeHandle n("~");
+
   n.getParam("/imu_gnss_localizer/reverse_imu", reverse_imu);
+  n.getParam("/imu_gnss_localizer/YawrateOffsetStop/TH_VEL",TH_VEL);
+  n.getParam("/imu_gnss_localizer/YawrateOffsetStop/TH_VEL_STOP",TH_VEL_STOP);
+
+  // check param //
+  std::cout<< "TH_VEL "<<TH_VEL<<std::endl;
+  std::cout<< "TH_VEL_STOP "<<TH_VEL_STOP<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/Vehicle/Velocity", 1000, receive_Velocity);
   ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, receive_Imu);

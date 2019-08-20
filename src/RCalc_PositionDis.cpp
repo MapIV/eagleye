@@ -75,14 +75,14 @@ int log_4 = 0;
 std::size_t length_index;
 std::size_t length_pindex_vel;
 
-boost::circular_buffer<double> pUsrPos_enu_x(ESTNUM_MAX);
-boost::circular_buffer<double> pUsrPos_enu_y(ESTNUM_MAX);
-boost::circular_buffer<double> pUsrPos_enu_z(ESTNUM_MAX);
-boost::circular_buffer<double> tTrajectory_x(ESTNUM_MAX);
-boost::circular_buffer<double> tTrajectory_y(ESTNUM_MAX);
-boost::circular_buffer<double> tTrajectory_z(ESTNUM_MAX);
-boost::circular_buffer<double> pVelocity(ESTNUM_MAX);
-boost::circular_buffer<double> pDistance(ESTNUM_MAX);
+std::vector<double> pUsrPos_enu_x;
+std::vector<double> pUsrPos_enu_y;
+std::vector<double> pUsrPos_enu_z;
+std::vector<double> tTrajectory_x;
+std::vector<double> tTrajectory_y;
+std::vector<double> tTrajectory_z;
+std::vector<double> pVelocity;
+std::vector<double> pDistance;
 
 std::vector<double> basepos_x;
 std::vector<double> basepos_y;
@@ -194,6 +194,19 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
     Distance_Last = Distance;
 
     flag_DATA = true; //Judgment that refreshed data
+
+    if (pDistance.end() - pDistance.begin() > ESTNUM_MAX)
+    {
+      pUsrPos_enu_x.erase(pUsrPos_enu_x.begin());
+      pUsrPos_enu_y.erase(pUsrPos_enu_y.begin());
+      pUsrPos_enu_z.erase(pUsrPos_enu_z.begin());
+      pVelocity.erase(pVelocity.begin());
+      tTrajectory_x.erase(tTrajectory_x.begin());
+      tTrajectory_y.erase(tTrajectory_y.begin());
+      tTrajectory_z.erase(tTrajectory_z.begin());
+      pDistance.erase(pDistance.begin());
+    }
+
   }
 
   std::vector<int> pindex_distance;
@@ -449,8 +462,23 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "RCalc_PositionDis");
-
   ros::NodeHandle n;
+
+  n.getParam("/imu_gnss_localizer/PositionDis/ESTDIST",ESTDIST);
+  n.getParam("/imu_gnss_localizer/PositionDis/SPLITDIST",SPLITDIST);
+  n.getParam("/imu_gnss_localizer/PositionDis/TH_VEL_EST",TH_VEL_EST);
+  n.getParam("/imu_gnss_localizer/PositionDis/TH_POSMAX",TH_POSMAX);
+  n.getParam("/imu_gnss_localizer/PositionDis/TH_CALC_MINNUM",TH_CALC_MINNUM);
+  n.getParam("/imu_gnss_localizer/PositionDis/TH_EST_GIVEUP_NUM",TH_EST_GIVEUP_NUM);
+
+  // check param //
+  std::cout<< "ESTDIST "<<ESTDIST<<std::endl;
+  std::cout<< "PLITDIST "<<SPLITDIST<<std::endl;
+  std::cout<< "TH_VEL_EST "<<TH_VEL_EST<<std::endl;
+  std::cout<< "TH_POSMAX "<<TH_POSMAX<<std::endl;
+  std::cout<< "TH_CALC_MINNUM "<<TH_CALC_MINNUM<<std::endl;
+  std::cout<< "TH_EST_GIVEUP_NUM "<<TH_EST_GIVEUP_NUM<<std::endl;
+
   ros::Subscriber sub1 = n.subscribe("/imu_gnss_localizer/UsrVel_enu", 1000, receive_UsrVel_enu);
   ros::Subscriber sub2 = n.subscribe("/RTKLIB", 1000, receive_UsrPos_enu);
   ros::Subscriber sub3 = n.subscribe("/imu_gnss_localizer/VelocitySF", 1000, receive_VelocitySF);

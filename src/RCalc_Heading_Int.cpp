@@ -133,7 +133,7 @@ void receive_Imu(const sensor_msgs::Imu::ConstPtr& msg)
   {
     if (flag_Heading_Est == true)
     {
-      for (Est_index = BUFNUM; Est_index >= 0; Est_index--)
+      for (Est_index = BUFNUM; Est_index > 0; Est_index--)
       {
         if (pIMU_time_stamp[Est_index - 1] == Heading_time_stamp)
         {

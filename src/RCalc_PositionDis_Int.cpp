@@ -242,7 +242,7 @@ void receive_UsrVel_enu(const imu_gnss_localizer::UsrVel_enu::ConstPtr& msg)
   {
     if (flag_UsrPos_Est == true)
     {
-      for (Est_index = BUFNUM; Est_index >= 0; Est_index--)
+      for (Est_index = BUFNUM; Est_index > 0; Est_index--)
       {
         if (pUsrVel_time_stamp[Est_index - 1] == UsrPos_time_stamp)
         {
