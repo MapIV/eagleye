@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>eagleye</name>
+  <name>eagleye_core</name>
   <version>0.0.0</version>
-  <description>The eagleye package</description>
+  <description>The eagleye_core package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">Osamu Sekino</maintainer>
 
