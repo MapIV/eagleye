@@ -1,0 +1,50 @@
+eagleye:
+ reverse_imu: false
+
+ velocity_scale_factor:
+  estimated_number_min: 2000                #Minimum number of data used for estimation.
+  estimated_number_max: 40000               #Maximum number of data used for estimation.
+  estimated_velocity_threshold: 2.77        #Velocity threshold at which to start estimation. (m/s)
+  estimated_coefficient: 0.05               #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate.
+
+ yawrate_offset_stop:
+   stop_velocity_threshold: 0.01            #Speed threshold for judgment at stop. (m/s)
+   estimated_number: 200                    #Number of data used for estimation.
+
+ yawrate_offset:
+   estimated_number_min: 3000
+   estimated_coefficient: 0.02
+   estimated_velocity_threshold: 2.77
+   1st:
+     estimated_number_max: 28000
+   2nd:
+     estimated_number_max: 50000
+
+ heading:
+   estimated_number_min: 1000
+   estimated_number_max: 3000
+   estimated_gnss_coefficient: 0.10
+   estimated_heading_coefficient: 0.05
+   outlier_threshold: 0.005305
+   estimated_velocity_threshold: 2.77
+   stop_judgment_velocity_threshold: 0.01
+   estimated_yawrate_threshold: 0.008842
+
+ heading_interpolate:
+   stop_judgment_velocity_threshold: 0.01
+   number_buffer_max: 100
+
+ trajectory:
+   stop_judgment_velocity_threshold: 0.01
+   number_buffer_max: 200
+
+ position:
+   estimated_distance: 1000
+   separation_distance: 0.1
+   estimated_velocity_threshold: 2.77
+   outlier_threshold: 3
+   estimated_enu_vel_coefficient : 0.10
+   estimated_position_coefficient: 0.02
+
+ position_interpolate:
+   number_buffer_max: 200

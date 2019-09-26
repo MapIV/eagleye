@@ -1,0 +1,5 @@
+Header header
+
+float64 scale_factor
+geometry_msgs/TwistStamped correction_velocity
+eagleye_msgs/Status status

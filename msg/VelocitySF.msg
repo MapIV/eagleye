@@ -1,4 +1,0 @@
-float64 Correction_Velocity
-float64 Scale_Factor
-bool flag_Est
-bool flag_EstRaw

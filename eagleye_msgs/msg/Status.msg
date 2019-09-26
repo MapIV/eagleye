@@ -1,0 +1,2 @@
+bool enabled_status
+bool estimate_status
