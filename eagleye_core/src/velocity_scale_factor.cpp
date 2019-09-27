@@ -161,12 +161,12 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   if (estimate_start_status == true)
   {
     velocity_scale_factor.status.enabled_status = true;
-    velocity_scale_factor.correction_velocity.twist.linear.x = msg->twist.linear.x * velocity_scale_factor.scale_factor;
+    velocity_scale_factor.correction_velocity.linear.x = msg->twist.linear.x * velocity_scale_factor.scale_factor;
   }
   else
   {
     velocity_scale_factor.status.enabled_status = false;
-    velocity_scale_factor.correction_velocity.twist.linear.x = msg->twist.linear.x * initial_velocity_scale_factor;
+    velocity_scale_factor.correction_velocity.linear.x = msg->twist.linear.x * initial_velocity_scale_factor;
   }
 
   pub.publish(velocity_scale_factor);

@@ -22,7 +22,7 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
 
   if (count > 2)
   {
-    distance.distance = distance.distance + msg->correction_velocity.twist.linear.x * (msg->header.stamp.toSec() - time_last);
+    distance.distance = distance.distance + msg->correction_velocity.linear.x * (msg->header.stamp.toSec() - time_last);
     pub.publish(distance);
     time_last = msg->header.stamp.toSec();
   }

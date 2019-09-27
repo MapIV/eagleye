@@ -87,7 +87,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     yawrate = -1 * msg->angular_velocity.z;
   }
 
-  if (velocity_scale_factor.correction_velocity.twist.linear.x > stop_judgment_velocity_threshold)
+  if (velocity_scale_factor.correction_velocity.linear.x > stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset.yawrate_offset;
   }

@@ -161,7 +161,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_pos_y_buffer.push_back(enu_pos_y);
     //enu_pos_z_buffer.push_back(enu_pos_z);
     enu_pos_z_buffer.push_back(0);
-    correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.twist.linear.x);
+    correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);
     enu_relative_pos_y_buffer.push_back(enu_relative_pos_y);
     //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
@@ -209,7 +209,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
   if (data_status == true)
   {
-    if (distance.distance > estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.twist.linear.x > estimated_velocity_threshold && heading_estimate_status_count > 0 &&
+    if (distance.distance > estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold && heading_estimate_status_count > 0 &&
         count > 1)
     {
       if (index_length > velocity_index_length * estimated_enu_vel_coefficient)

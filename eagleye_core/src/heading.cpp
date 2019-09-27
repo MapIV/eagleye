@@ -148,7 +148,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   time_buffer.push_back(msg->header.stamp.toSec());
   heading_angle_buffer.push_back(doppler_heading_angle);
   yawrate_buffer.push_back(yawrate);
-  correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.twist.linear.x);
+  correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
   yawrate_offset_stop_buffer.push_back(yawrate_offset_stop.yawrate_offset);
   yawrate_offset_buffer.push_back(yawrate_offset.yawrate_offset);
   gnss_status_buffer.push_back(gnss_status);

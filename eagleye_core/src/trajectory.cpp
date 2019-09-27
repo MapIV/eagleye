@@ -73,7 +73,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if (reverse_imu == false)
   {
-    if (velocity_scale_factor.correction_velocity.twist.linear.x > stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
+    if (velocity_scale_factor.correction_velocity.linear.x > stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
     {
       eagleye_twist.twist.angular.z = -1 * msg->angular_velocity.z + yawrate_offset_2nd.yawrate_offset; //Inverted because the coordinate system is reversed
     }
@@ -82,9 +82,9 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       eagleye_twist.twist.angular.z = -1 * msg->angular_velocity.z + yawrate_offset_stop.yawrate_offset; //Inverted because the coordinate system is reversed
     }
   }
-  else if (velocity_scale_factor.correction_velocity.twist.linear.x > stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
+  else if (velocity_scale_factor.correction_velocity.linear.x > stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
   {
-    if (velocity_scale_factor.correction_velocity.twist.linear.x > stop_judgment_velocity_threshold)
+    if (velocity_scale_factor.correction_velocity.linear.x > stop_judgment_velocity_threshold)
     {
       eagleye_twist.twist.angular.z = -1 * (-1 * msg->angular_velocity.z) + yawrate_offset_2nd.yawrate_offset; //Inverted because the coordinate system is reversed
     }
@@ -93,7 +93,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       eagleye_twist.twist.angular.z = -1 * (-1 * msg->angular_velocity.z) + yawrate_offset_stop.yawrate_offset; //Inverted because the coordinate system is reversed
     }
   }
-  eagleye_twist.twist.linear.x = velocity_scale_factor.correction_velocity.twist.linear.x;
+  eagleye_twist.twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
   pub3.publish(eagleye_twist);
 
   if (estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true && heading_interpolate_3rd.status.enabled_status == true)
@@ -107,13 +107,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if (estimate_status_count == 2)
   {
-    enu_vel.vector.x = sin(heading_interpolate_3rd.heading_angle) * velocity_scale_factor.correction_velocity.twist.linear.x; //vel_e
-    enu_vel.vector.y = cos(heading_interpolate_3rd.heading_angle) * velocity_scale_factor.correction_velocity.twist.linear.x; //vel_n
+    enu_vel.vector.x = sin(heading_interpolate_3rd.heading_angle) * velocity_scale_factor.correction_velocity.linear.x; //vel_e
+    enu_vel.vector.y = cos(heading_interpolate_3rd.heading_angle) * velocity_scale_factor.correction_velocity.linear.x; //vel_n
     enu_vel.vector.z = 0; //vel_u
   }
   pub1.publish(enu_vel);
 
-  if (estimate_status_count == 2 && velocity_scale_factor.correction_velocity.twist.linear.x > 0 && count > 1)
+  if (estimate_status_count == 2 && velocity_scale_factor.correction_velocity.linear.x > 0 && count > 1)
   {
     enu_relative_pos.enu_pos.x = enu_relative_pos.enu_pos.x + enu_vel.vector.x * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos.enu_pos.y = enu_relative_pos.enu_pos.y + enu_vel.vector.y * (msg->header.stamp.toSec() - time_last);
