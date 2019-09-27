@@ -19,29 +19,29 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 
-rtklib_msgs::RtklibNav rtklib_nav;
-sensor_msgs::NavSatFix fix;
-geometry_msgs::TwistStamped velocity;
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::Distance distance;
-eagleye_msgs::Heading heading_1st;
-eagleye_msgs::Heading heading_interpolate_1st;
-eagleye_msgs::Heading heading_2nd;
-eagleye_msgs::Heading heading_interpolate_2nd;
-eagleye_msgs::Heading heading_3rd;
-eagleye_msgs::Heading heading_interpolate_3rd;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
-eagleye_msgs::YawrateOffset yawrate_offset_1st;
-eagleye_msgs::YawrateOffset yawrate_offset_2nd;
-eagleye_msgs::Position enu_relative_pos;
-geometry_msgs::Vector3Stamped enu_vel;
-eagleye_msgs::Position enu_absolute_pos;
-eagleye_msgs::Position enu_absolute_pos_interpolate;
-sensor_msgs::NavSatFix eagleye_fix;
-geometry_msgs::TwistStamped eagleye_twist;
+static rtklib_msgs::RtklibNav rtklib_nav;
+static sensor_msgs::NavSatFix fix;
+static geometry_msgs::TwistStamped velocity;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::Distance distance;
+static eagleye_msgs::Heading heading_1st;
+static eagleye_msgs::Heading heading_interpolate_1st;
+static eagleye_msgs::Heading heading_2nd;
+static eagleye_msgs::Heading heading_interpolate_2nd;
+static eagleye_msgs::Heading heading_3rd;
+static eagleye_msgs::Heading heading_interpolate_3rd;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset yawrate_offset_1st;
+static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::Position enu_relative_pos;
+static geometry_msgs::Vector3Stamped enu_vel;
+static eagleye_msgs::Position enu_absolute_pos;
+static eagleye_msgs::Position enu_absolute_pos_interpolate;
+static sensor_msgs::NavSatFix eagleye_fix;
+static geometry_msgs::TwistStamped eagleye_twist;
 
-ros::Publisher pub;
-eagleye_msgs::Debug debug;
+static ros::Publisher pub;
+static eagleye_msgs::Debug debug;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -223,6 +223,23 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   debug.enu_absolute_pos_interpolate = enu_absolute_pos_interpolate;
   debug.eagleye_fix = eagleye_fix;
   debug.eagleye_twist = eagleye_twist;
+
+  std::cout<<"eagleye status"<<std::endl;
+  std::cout<<"imu(input)"<<std::endl;
+  std::cout<<"linear_acceleration x "<<debug.imu.linear_acceleration.x<<" m/s^2"<<std::endl;
+  std::cout<<"linear acceleration y "<<debug.imu.linear_acceleration.y<<" m/s^2"<<std::endl;
+  std::cout<<"linear acceleration z "<<debug.imu.linear_acceleration.z<<" m/s^2"<<std::endl;
+  std::cout<<"angular_velocity x "<<debug.imu.angular_velocity.x<<" rad/s"<<std::endl;
+  std::cout<<"angular_velocity y "<<debug.imu.angular_velocity.y<<" rad/s"<<std::endl;
+  std::cout<<"angular_velocity z "<<debug.imu.angular_velocity.z<<" rad/s"<<std::endl;
+  std::cout<<"velocity(input)"<<std::endl;
+  std::cout<<"velocity "<<debug.velocity.twist.linear.x<<" m/s"<<std::endl;
+  std::cout<<"rtklib(input)"<<std::endl;
+  std::cout<<"time of week "<<debug.rtklib_nav.tow<<" ms"<<std::endl;
+  std::cout<<"longitude "<<debug.rtklib_nav.status.longitude<<" deg"<<std::endl;
+  std::cout<<"latitude "<<debug.rtklib_nav.status.latitude<<" deg"<<std::endl;
+  std::cout<<"altitude "<<debug.rtklib_nav.status.altitude<<" deg"<<std::endl;
+
   pub.publish(debug);
 }
 

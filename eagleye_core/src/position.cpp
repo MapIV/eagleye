@@ -18,50 +18,50 @@
 #include <numeric>
 
 //default value
-double estimated_distance = 500;
-double separation_distance = 0.1;
-double estimated_velocity_threshold = 10/3.6;
-double outlier_threshold = 5.0;
-double estimated_enu_vel_coefficient = 1.0/10;
-double estimated_position_coefficient = 1.0/50;
+static double estimated_distance = 500;
+static double separation_distance = 0.1;
+static double estimated_velocity_threshold = 10/3.6;
+static double outlier_threshold = 5.0;
+static double estimated_enu_vel_coefficient = 1.0/10;
+static double estimated_position_coefficient = 1.0/50;
 
-bool data_status, gnss_status;
-int i, count, heading_estimate_status_count;
-int estimated_number = 0;
-int estimated_number_max = estimated_distance/separation_distance;
-int tow_last = 0;
-//int max_index = 0; //pattern1
-int max_x_index, max_y_index; //pattern2,3
-double time_last = 0.0;
-double avg_x, avg_y, avg_z;
-double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
-double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
-double enu_pos_x, enu_pos_y, enu_pos_z;
-double distance_last;
+static bool data_status, gnss_status;
+static int i, count, heading_estimate_status_count;
+static int estimated_number = 0;
+static int estimated_number_max = estimated_distance/separation_distance;
+static int tow_last = 0;
+//static int max_index = 0; //pattern1
+static int max_x_index, max_y_index; //pattern2,3
+static double time_last = 0.0;
+static double avg_x, avg_y, avg_z;
+static double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
+static double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
+static double enu_pos[3];
+static double distance_last;
 
-std::size_t index_length;
-std::size_t velocity_index_length;
+static std::size_t index_length;
+static std::size_t velocity_index_length;
 
-std::vector<double> enu_pos_x_buffer, enu_pos_y_buffer,  enu_pos_z_buffer;
-std::vector<double> enu_relative_pos_x_buffer, enu_relative_pos_y_buffer, enu_relative_pos_z_buffer;
-std::vector<double> base_enu_pos_x_buffer, base_enu_pos_y_buffer, base_enu_pos_z_buffer;
-std::vector<double> diff_x_buffer2, diff_y_buffer2, diff_z_buffer2;
-std::vector<double> base_enu_pos_x_buffer2,  base_enu_pos_y_buffer2, base_enu_pos_z_buffer2;
-std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
-std::vector<double> diff_buffer;
-std::vector<double> correction_velocity_buffer;
-std::vector<double> distance_buffer;
+static std::vector<double> enu_pos_x_buffer, enu_pos_y_buffer,  enu_pos_z_buffer;
+static std::vector<double> enu_relative_pos_x_buffer, enu_relative_pos_y_buffer, enu_relative_pos_z_buffer;
+static std::vector<double> base_enu_pos_x_buffer, base_enu_pos_y_buffer, base_enu_pos_z_buffer;
+static std::vector<double> diff_x_buffer2, diff_y_buffer2, diff_z_buffer2;
+static std::vector<double> base_enu_pos_x_buffer2,  base_enu_pos_y_buffer2, base_enu_pos_z_buffer2;
+static std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
+static std::vector<double> diff_buffer;
+static std::vector<double> correction_velocity_buffer;
+static std::vector<double> distance_buffer;
 
-//std::vector<double>::iterator max; //pattern1
-std::vector<double>::iterator max_x, max_y; //pattern2,3
+//static std::vector<double>::iterator max; //pattern1
+static std::vector<double>::iterator max_x, max_y; //pattern2,3
 
-rtklib_msgs::RtklibNav rtklib_nav;
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::Distance distance;
-eagleye_msgs::Heading heading_interpolate_3rd;
+static rtklib_msgs::RtklibNav rtklib_nav;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::Distance distance;
+static eagleye_msgs::Heading heading_interpolate_3rd;
 
-eagleye_msgs::Position enu_absolute_pos;
-ros::Publisher pub;
+static eagleye_msgs::Position enu_absolute_pos;
+static ros::Publisher pub;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -110,7 +110,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
   ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
-  xyz2enu(ecef_pos, ecef_base_pos, enu_pos_x, enu_pos_y, enu_pos_z);
+  xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
 }
 
@@ -121,17 +121,17 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   if (tow_last == rtklib_nav.tow)
   {
     gnss_status = false;
-    enu_pos_x = 0.0;
-    enu_pos_y = 0.0;
-    enu_pos_z = 0.0;
+    enu_pos[0] = 0.0;
+    enu_pos[1] = 0.0;
+    enu_pos[2] = 0.0;
     tow_last = rtklib_nav.tow;
   }
   else
   {
     gnss_status = true;
-    enu_pos_x = enu_pos_x;
-    enu_pos_y = enu_pos_y;
-    enu_pos_z = enu_pos_z;
+    enu_pos[0] = enu_pos[0];
+    enu_pos[1] = enu_pos[1];
+    enu_pos[2] = enu_pos[2];
     tow_last = rtklib_nav.tow;
   }
 
@@ -141,9 +141,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     ++heading_estimate_status_count;
   }
 
-  enu_relative_pos_x = enu_relative_pos_x + msg->vector.x * (msg->header.stamp.toSec() - time_last);
-  enu_relative_pos_y = enu_relative_pos_y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
-  enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
+  if(time_last != 0)
+  {
+    enu_relative_pos_x = enu_relative_pos_x + msg->vector.x * (msg->header.stamp.toSec() - time_last);
+    enu_relative_pos_y = enu_relative_pos_y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
+    enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
+  }
 
   if (distance.distance-distance_last > separation_distance && gnss_status == true)
   {
@@ -157,9 +160,9 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       estimated_number = estimated_number_max;
     }
 
-    enu_pos_x_buffer.push_back(enu_pos_x);
-    enu_pos_y_buffer.push_back(enu_pos_y);
-    //enu_pos_z_buffer.push_back(enu_pos_z);
+    enu_pos_x_buffer.push_back(enu_pos[0]);
+    enu_pos_y_buffer.push_back(enu_pos[1]);
+    //enu_pos_z_buffer.push_back(enu_pos[2]);
     enu_pos_z_buffer.push_back(0);
     correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);

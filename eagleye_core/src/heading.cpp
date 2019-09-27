@@ -20,49 +20,49 @@
 #include <numeric>
 
 //default value
-bool reverse_imu = false;
-double estimated_number_min = 500;
-double estimated_number_max = 1500;
-double estimated_gnss_coefficient = 1.0 / 10;
-double estimated_heading_coefficient = 1.0 / 20;
-double outlier_threshold = 3.0 / 180 * M_PI;
-double estimated_velocity_threshold = 10 / 3.6;
-double stop_judgment_velocity_threshold = 0.01;
-double estimated_yawrate_threshold = 5.0 / 180 * M_PI;
+static bool reverse_imu = false;
+static double estimated_number_min = 500;
+static double estimated_number_max = 1500;
+static double estimated_gnss_coefficient = 1.0 / 10;
+static double estimated_heading_coefficient = 1.0 / 20;
+static double outlier_threshold = 3.0 / 180 * M_PI;
+static double estimated_velocity_threshold = 10 / 3.6;
+static double stop_judgment_velocity_threshold = 0.01;
+static double estimated_yawrate_threshold = 5.0 / 180 * M_PI;
 
-bool gnss_status;
-int i, count;
-int tow_last;
-int estimated_number;
-int index_max;
+static bool gnss_status;
+static int i, count;
+static int tow_last;
+static int estimated_number;
+static int index_max;
 
-double avg = 0.0;
-double doppler_heading_angle = 0.0;
-double yawrate = 0.0;
-double tmp_heading_angle = 0.0;
+static double avg = 0.0;
+static double doppler_heading_angle = 0.0;
+static double yawrate = 0.0;
+static double tmp_heading_angle = 0.0;
 
-std::size_t index_length;
-std::size_t time_buffer_length;
-std::size_t inversion_up_index_length;
-std::size_t inversion_down_index_length;
+static std::size_t index_length;
+static std::size_t time_buffer_length;
+static std::size_t inversion_up_index_length;
+static std::size_t inversion_down_index_length;
 
-std::vector<double>::iterator max;
+static std::vector<double>::iterator max;
 
-std::vector<double> time_buffer;
-std::vector<double> heading_angle_buffer;
-std::vector<double> yawrate_buffer;
-std::vector<double> correction_velocity_buffer;
-std::vector<double> yawrate_offset_stop_buffer;
-std::vector<double> yawrate_offset_buffer;
-std::vector<double> gnss_status_buffer;
+static std::vector<double> time_buffer;
+static std::vector<double> heading_angle_buffer;
+static std::vector<double> yawrate_buffer;
+static std::vector<double> correction_velocity_buffer;
+static std::vector<double> yawrate_offset_stop_buffer;
+static std::vector<double> yawrate_offset_buffer;
+static std::vector<double> gnss_status_buffer;
 
-rtklib_msgs::RtklibNav rtklib_nav;
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
-eagleye_msgs::YawrateOffset yawrate_offset;
+static rtklib_msgs::RtklibNav rtklib_nav;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset yawrate_offset;
 
-ros::Publisher pub;
-eagleye_msgs::Heading heading;
+static ros::Publisher pub;
+static eagleye_msgs::Heading heading;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {

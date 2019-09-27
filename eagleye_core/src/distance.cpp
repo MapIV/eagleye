@@ -9,20 +9,21 @@
 #include "eagleye_msgs/Distance.h"
 #include "eagleye_msgs/VelocityScaleFactor.h"
 
-int count;
-double time_last;
+static int count;
+static double time_last;
 
-ros::Publisher pub;
-eagleye_msgs::Distance distance;
+static ros::Publisher pub;
+static eagleye_msgs::Distance distance;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
   ++count;
   distance.header = msg->header;
 
-  if (count > 2)
+  if(time_last != 0)
   {
     distance.distance = distance.distance + msg->correction_velocity.linear.x * (msg->header.stamp.toSec() - time_last);
+    distance.status.enabled_status = distance.status.estimate_status = true;
     pub.publish(distance);
     time_last = msg->header.stamp.toSec();
   }

@@ -12,28 +12,28 @@
 #include "xyz2enu_vel.hpp"
 
 //default value
-double estimated_number_min = 1000;
-double estimated_number_max = 20000;
-double estimated_velocity_threshold = 2.77;
-double estimated_coefficient = 0.05;
+static double estimated_number_min = 1000;
+static double estimated_number_max = 20000;
+static double estimated_velocity_threshold = 2.77;
+static double estimated_coefficient = 0.05;
 
-bool gnss_status, estimate_start_status;
-int i, tow_last, estimated_number;
-double initial_velocity_scale_factor = 1.0;
-double doppler_velocity = 0.0;
-double raw_velocity_scale_factor = 0.0;
-double velocity_scale_factor_last = 0.0;
+static bool gnss_status, estimate_start_status;
+static int i, tow_last, estimated_number;
+static double initial_velocity_scale_factor = 1.0;
+static double doppler_velocity = 0.0;
+static double raw_velocity_scale_factor = 0.0;
+static double velocity_scale_factor_last = 0.0;
 
-std::size_t index_length;
-std::size_t gnss_status_buffer_length;
-std::vector<bool> gnss_status_buffer;
-std::vector<double> doppler_velocity_buffer;
-std::vector<double> velocity_buffer;
+static std::size_t index_length;
+static std::size_t gnss_status_buffer_length;
+static std::vector<bool> gnss_status_buffer;
+static std::vector<double> doppler_velocity_buffer;
+static std::vector<double> velocity_buffer;
 
-rtklib_msgs::RtklibNav rtklib_nav;
+static rtklib_msgs::RtklibNav rtklib_nav;
 
-ros::Publisher pub;
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static ros::Publisher pub;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -55,6 +55,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   ecef_pos[2] = msg->ecef_pos.z;
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
+
   doppler_velocity = sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
 }
 
@@ -74,13 +75,13 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   if (tow_last == rtklib_nav.tow)
   {
     gnss_status = false;
-    //doppler_velocity = 0;
+    doppler_velocity = 0;
     tow_last = rtklib_nav.tow;
   }
   else
   {
     gnss_status = true;
-    //doppler_velocity = doppler_velocity;
+    doppler_velocity = doppler_velocity;
     tow_last = rtklib_nav.tow;
   }
 
@@ -166,6 +167,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   else
   {
     velocity_scale_factor.status.enabled_status = false;
+    velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
     velocity_scale_factor.correction_velocity.linear.x = msg->twist.linear.x * initial_velocity_scale_factor;
   }
 

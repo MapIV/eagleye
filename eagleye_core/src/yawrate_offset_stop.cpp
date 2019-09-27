@@ -12,21 +12,21 @@
 #include "eagleye_msgs/YawrateOffset.h"
 
 //default value
-bool reverse_imu = false;
-double stop_velocity_threshold = 0.01;
-double estimated_number = 200;
+static bool reverse_imu = false;
+static double stop_judgment_velocity_threshold = 0.01;
+static double estimated_number = 200;
 
-int i, stop_count;
-double tmp = 0.0;
-double yawrate_offset_stop_last = 0.0;
+static int i, stop_count;
+static double tmp = 0.0;
+static double yawrate_offset_stop_last = 0.0;
 
-std::size_t yawrate_buffer_length;
-std::vector<double> yawrate_buffer;
+static std::size_t yawrate_buffer_length;
+static std::vector<double> yawrate_buffer;
 
-geometry_msgs::TwistStamped velocity;
+static geometry_msgs::TwistStamped velocity;
 
-ros::Publisher pub;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static ros::Publisher pub;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
@@ -55,7 +55,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     yawrate_buffer.erase(yawrate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < stop_velocity_threshold)
+  if (velocity.twist.linear.x < stop_judgment_velocity_threshold)
   {
     ++stop_count;
   }
@@ -92,11 +92,11 @@ int main(int argc, char** argv)
   ros::NodeHandle n("~");
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/YawrateOffsetStop/stop_velocity_threshold",stop_velocity_threshold);
+  n.getParam("/eagleye/YawrateOffsetStop/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
   n.getParam("/eagleye/YawrateOffsetStop/estimated_number",estimated_number);
 
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
-  std::cout<< "stop_velocity_threshold "<<stop_velocity_threshold<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_number "<<estimated_number<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback);

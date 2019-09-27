@@ -15,24 +15,23 @@
 #include "geometry_msgs/Vector3Stamped.h"
 
 //default value
-bool reverse_imu = false;
-double stop_judgment_velocity_threshold = 0.01;
+static bool reverse_imu = false;
+static double stop_judgment_velocity_threshold = 0.01;
 
-int count, estimate_status_count;
-double time_last = 0.0;
+static int count, estimate_status_count;
+static double time_last = 0.0;
 
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::Heading heading_interpolate_3rd;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
-eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::Heading heading_interpolate_3rd;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
 
-geometry_msgs::Vector3Stamped enu_vel;
-eagleye_msgs::Position enu_relative_pos;
-geometry_msgs::TwistStamped eagleye_twist;
-ros::Publisher pub1;
-ros::Publisher pub2;
-ros::Publisher pub3;
-ros::Publisher pub4;
+static geometry_msgs::Vector3Stamped enu_vel;
+static eagleye_msgs::Position enu_relative_pos;
+static geometry_msgs::TwistStamped eagleye_twist;
+static ros::Publisher pub1;
+static ros::Publisher pub2;
+static ros::Publisher pub3;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -113,11 +112,12 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   }
   pub1.publish(enu_vel);
 
-  if (estimate_status_count == 2 && velocity_scale_factor.correction_velocity.linear.x > 0 && count > 1)
+  if (estimate_status_count == 2 && velocity_scale_factor.correction_velocity.linear.x > 0 && time_last != 0)
   {
     enu_relative_pos.enu_pos.x = enu_relative_pos.enu_pos.x + enu_vel.vector.x * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos.enu_pos.y = enu_relative_pos.enu_pos.y + enu_vel.vector.y * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos.enu_pos.z = 0;
+    enu_relative_pos.status.enabled_status = enu_relative_pos.status.estimate_status = true;
   }
   pub2.publish(enu_relative_pos);
 

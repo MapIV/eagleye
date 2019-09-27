@@ -13,37 +13,32 @@
 #include "enu2llh.hpp"
 #include <boost/circular_buffer.hpp>
 
-//default value
-double number_buffer_max = 100;
+static double number_buffer_max = 100;
+static bool position_estimate_status, position_estimate_start_status;
+static int i, count, position_estimate_status_count;
+static int estimate_index = 0;
+static int number_buffer = 0;
 
-bool position_estimate_status, position_estimate_start_status;
-int i, count, position_estimate_status_count;
-int estimate_index = 0;
-int number_buffer = 0;
+static double position_stamp_last = 0;
+static double time_last = 0.0;
+static double provisional_enu_pos_x = 0.0;
+static double provisional_enu_pos_y = 0.0;
+static double provisional_enu_pos_z = 0.0;
+static double diff_estimate_enu_pos_x = 0.0;
+static double diff_estimate_enu_pos_y = 0.0;
+static double diff_estimate_enu_pos_z = 0.0;
 
-double position_stamp_last = 0;
-double time_last = 0.0;
-double provisional_enu_pos_x = 0.0;
-double provisional_enu_pos_y = 0.0;
-double provisional_enu_pos_z = 0.0;
-double diff_estimate_enu_pos_x = 0.0;
-double diff_estimate_enu_pos_y = 0.0;
-double diff_estimate_enu_pos_z = 0.0;
-double estimate_enu_pos_x_last = 0.0;
-double estimate_enu_pos_y_last = 0.0;
-double estimate_enu_pos_z_last = 0.0;
+static boost::circular_buffer<double> provisional_enu_pos_x_buffer(number_buffer_max);
+static boost::circular_buffer<double> provisional_enu_pos_y_buffer(number_buffer_max);
+static boost::circular_buffer<double> provisional_enu_pos_z_buffer(number_buffer_max);
+static boost::circular_buffer<double> imu_stamp_buffer(number_buffer_max);
 
-boost::circular_buffer<double> provisional_enu_pos_x_buffer(number_buffer_max);
-boost::circular_buffer<double> provisional_enu_pos_y_buffer(number_buffer_max);
-boost::circular_buffer<double> provisional_enu_pos_z_buffer(number_buffer_max);
-boost::circular_buffer<double> imu_stamp_buffer(number_buffer_max);
+static eagleye_msgs::Position enu_absolute_pos;
 
-eagleye_msgs::Position enu_absolute_pos;
-
-eagleye_msgs::Position enu_absolute_pos_interpolate;
-sensor_msgs::NavSatFix eagleye_fix;
-ros::Publisher pub1;
-ros::Publisher pub2;
+static eagleye_msgs::Position enu_absolute_pos_interpolate;
+static sensor_msgs::NavSatFix eagleye_fix;
+static ros::Publisher pub1;
+static ros::Publisher pub2;
 
 void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
@@ -81,9 +76,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     ++position_estimate_status_count;
   }
 
-  provisional_enu_pos_x = estimate_enu_pos_x_last + msg->vector.x * (msg->header.stamp.toSec() - time_last);
-  provisional_enu_pos_y = estimate_enu_pos_y_last + msg->vector.y * (msg->header.stamp.toSec() - time_last);
-  provisional_enu_pos_z = estimate_enu_pos_z_last + msg->vector.z * (msg->header.stamp.toSec() - time_last);
+  if(time_last != 0)
+  {
+    provisional_enu_pos_x = enu_absolute_pos_interpolate.enu_pos.x + msg->vector.x * (msg->header.stamp.toSec() - time_last);
+    provisional_enu_pos_y = enu_absolute_pos_interpolate.enu_pos.y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
+    provisional_enu_pos_z = enu_absolute_pos_interpolate.enu_pos.z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
+  }
 
   provisional_enu_pos_x_buffer.push_back(provisional_enu_pos_x);
   provisional_enu_pos_y_buffer.push_back(provisional_enu_pos_y);
@@ -121,13 +119,11 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       enu_absolute_pos_interpolate.status.enabled_status = true;
       enu_absolute_pos_interpolate.status.estimate_status = true;
     }
-
     else if (position_estimate_status_count == 1)
     {
-      provisional_enu_pos_x = enu_absolute_pos_interpolate.enu_pos.x;
-      provisional_enu_pos_y = enu_absolute_pos_interpolate.enu_pos.y;
-      provisional_enu_pos_z = enu_absolute_pos_interpolate.enu_pos.z;
-
+      provisional_enu_pos_x = enu_absolute_pos.enu_pos.x;
+      provisional_enu_pos_y = enu_absolute_pos.enu_pos.y;
+      provisional_enu_pos_z = enu_absolute_pos.enu_pos.z;
       enu_absolute_pos_interpolate.status.enabled_status = true;
       enu_absolute_pos_interpolate.status.estimate_status = true;
     }
@@ -139,8 +135,13 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
   if (position_estimate_status_count > 1)
   {
+    enu_absolute_pos_interpolate.enu_pos.x = provisional_enu_pos_x;
+    enu_absolute_pos_interpolate.enu_pos.y = provisional_enu_pos_y;
+    enu_absolute_pos_interpolate.enu_pos.z = provisional_enu_pos_z;
+
     double enu_pos[3];
     double ecef_base_pos[3];
+    double llh_pos[3];
 
     enu_pos[0] = enu_absolute_pos_interpolate.enu_pos.x;
     enu_pos[1] = enu_absolute_pos_interpolate.enu_pos.y;
@@ -149,19 +150,17 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
     ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
-    enu2llh(enu_pos, ecef_base_pos, eagleye_fix.longitude, eagleye_fix.latitude, eagleye_fix.altitude);
+    enu2llh(enu_pos, ecef_base_pos, llh_pos);
+
+    eagleye_fix.longitude = llh_pos[0];
+    eagleye_fix.latitude = llh_pos[1];
+    eagleye_fix.altitude = 0;
+    //eagleye_fix.altitude = llh_pos[2];
 
     pub2.publish(eagleye_fix);
-
-    enu_absolute_pos_interpolate.enu_pos.x = provisional_enu_pos_x;
-    enu_absolute_pos_interpolate.enu_pos.y = provisional_enu_pos_y;
-    enu_absolute_pos_interpolate.enu_pos.z = provisional_enu_pos_z;
   }
   pub1.publish(enu_absolute_pos_interpolate);
-
-  estimate_enu_pos_x_last = provisional_enu_pos_x;
-  estimate_enu_pos_y_last = provisional_enu_pos_y;
-  estimate_enu_pos_z_last = provisional_enu_pos_z;
+  time_last = msg->header.stamp.toSec();
   position_stamp_last = enu_absolute_pos.header.stamp.toSec();
 }
 
@@ -169,9 +168,6 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle n;
-
-  n.getParam("/eagleye/position_interpolate/number_buffer_max", number_buffer_max);
-  std::cout<< "number_buffer_max "<<number_buffer_max<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);

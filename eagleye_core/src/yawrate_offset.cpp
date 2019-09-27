@@ -15,42 +15,42 @@
 #include <math.h>
 
 //default value
-bool reverse_imu = false;
-double estimated_number_min = 1500;
-double estimated_number_max = 14000;
-double estimated_coefficient = 0.02;
-double estimated_velocity_threshold = 2.77;
+static bool reverse_imu = false;
+static double estimated_number_min = 1500;
+static double estimated_number_max = 14000;
+static double estimated_coefficient = 0.02;
+static double estimated_velocity_threshold = 2.77;
 
-bool estimate_start_status, estimated_condition_status;
-int i = 0;
-int estimated_preparation_conditions = 0;
-int count = 0;
-int heading_estimate_status_count = 0;
-int estimated_number = 0;
-double time_last = 0.0;
-double sum_xy, sum_x, sum_y, sum_x2;
+static bool estimate_start_status, estimated_condition_status;
+static int i = 0;
+static int estimated_preparation_conditions = 0;
+static int count = 0;
+static int heading_estimate_status_count = 0;
+static int estimated_number = 0;
+static double time_last = 0.0;
+static double sum_xy, sum_x, sum_y, sum_x2;
 
-double raw_yawrate_offset = 0.0;
-double yawrate_offset_last = 0.0;
-double yawrate = 0.0;
+static double raw_yawrate_offset = 0.0;
+static double yawrate_offset_last = 0.0;
+static double yawrate = 0.0;
 
-std::size_t index_length;
-std::size_t time_buffer_length;
-std::size_t inversion_up_index_length;
-std::size_t inversion_down_index_length;
-std::vector<double> time_buffer;
-std::vector<double> yawrate_buffer;
-std::vector<double> heading_angle_buffer;
-std::vector<double> correction_velocity_buffer;
-std::vector<bool> heading_estimate_status_buffer;
-std::vector<double> yawrate_offset_stop_buffer;
+static std::size_t index_length;
+static std::size_t time_buffer_length;
+static std::size_t inversion_up_index_length;
+static std::size_t inversion_down_index_length;
+static std::vector<double> time_buffer;
+static std::vector<double> yawrate_buffer;
+static std::vector<double> heading_angle_buffer;
+static std::vector<double> correction_velocity_buffer;
+static std::vector<bool> heading_estimate_status_buffer;
+static std::vector<double> yawrate_offset_stop_buffer;
 
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
-eagleye_msgs::Heading heading_interpolate;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::Heading heading_interpolate;
 
-ros::Publisher pub;
-eagleye_msgs::YawrateOffset yawrate_offset;
+static ros::Publisher pub;
+static eagleye_msgs::YawrateOffset yawrate_offset;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -324,7 +324,7 @@ int main(int argc, char** argv)
       publish_topic_name = "/eagleye/yawrate_offset_1st";
       subscribe_topic_name = "/eagleye/heading_interpolate_1st";
       estimated_number_max = 14000;  // parameters for 1st
-      n.getParam("/eagleye/YawrateOffset/1st/estimated_number_max",estimated_number_max);
+      n.getParam("/eagleye/yawrate_offset/1st/estimated_number_max",estimated_number_max);
       std::cout<< "estimated_number_max "<<estimated_number_max<<std::endl;
     }
     else if (strcmp(argv[1], "2nd") == 0)
@@ -332,7 +332,7 @@ int main(int argc, char** argv)
       publish_topic_name = "/eagleye/yawrate_offset_2nd";
       subscribe_topic_name = "/eagleye/heading_interpolate_2nd";
       estimated_number_max = 25000;  // parameters for 2nd
-      n.getParam("/eagleye/YawrateOffset/2st/estimated_number_max",estimated_number_max);
+      n.getParam("/eagleye/yawrate_offset/2nd/estimated_number_max",estimated_number_max);
       std::cout<< "estimated_number_max "<<estimated_number_max<<std::endl;
     }
     else

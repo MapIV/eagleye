@@ -16,32 +16,31 @@
 #include <numeric>
 
 //default value
-bool reverse_imu = false;
-double stop_judgment_velocity_threshold = 0.01;
-double number_buffer_max = 100;
+static bool reverse_imu = false;
+static double stop_judgment_velocity_threshold = 0.01;
+static double number_buffer_max = 100;
 
-bool heading_estimate_status, heading_estimate_start_status;
-int i, count, heading_estimate_status_count;
-int estimate_index = 0;
-int number_buffer = 0;
+static bool heading_estimate_status, heading_estimate_start_status;
+static int i, count, heading_estimate_status_count;
+static int estimate_index = 0;
+static int number_buffer = 0;
 
-double heading_stamp_last = 0;
-double time_last = 0.0;
-double yawrate = 0.0;
-double provisional_heading_angle = 0.0;
-double diff_estimate_heading_angle = 0.0;
-double estimate_heading_last = 0.0;
+static double heading_stamp_last = 0;
+static double time_last = 0.0;
+static double yawrate = 0.0;
+static double provisional_heading_angle = 0.0;
+static double diff_estimate_heading_angle = 0.0;
 
-boost::circular_buffer<double> provisional_heading_angle_buffer(number_buffer_max);
-boost::circular_buffer<double> imu_stamp_buffer(number_buffer_max);
+static boost::circular_buffer<double> provisional_heading_angle_buffer(number_buffer_max);
+static boost::circular_buffer<double> imu_stamp_buffer(number_buffer_max);
 
-eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-eagleye_msgs::YawrateOffset yawrate_offset_stop;
-eagleye_msgs::YawrateOffset yawrate_offset;
-eagleye_msgs::Heading heading;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset yawrate_offset;
+static eagleye_msgs::Heading heading;
 
-ros::Publisher pub;
-eagleye_msgs::Heading heading_interpolate;
+static ros::Publisher pub;
+static eagleye_msgs::Heading heading_interpolate;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -116,7 +115,10 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     ++heading_estimate_status_count;
   }
 
-  provisional_heading_angle = estimate_heading_last + yawrate * (msg->header.stamp.toSec() - time_last);
+  if(time_last != 0)
+  {
+    provisional_heading_angle = heading_interpolate.heading_angle + yawrate * (msg->header.stamp.toSec() - time_last);
+  }
 
   provisional_heading_angle_buffer.push_back(provisional_heading_angle);
   imu_stamp_buffer.push_back(msg->header.stamp.toSec());
@@ -180,7 +182,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   }
   pub.publish(heading_interpolate);
 
-  estimate_heading_last = heading_interpolate.heading_angle;
   time_last = msg->header.stamp.toSec();
   heading_stamp_last = heading.header.stamp.toSec();
 }
@@ -192,10 +193,8 @@ int main(int argc, char** argv)
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
   n.getParam("/eagleye/heading_interpolate/stop_judgment_velocity_threshold", stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/heading_interpolate/number_buffer_max", number_buffer_max);
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "number_buffer_max "<<number_buffer_max<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";
