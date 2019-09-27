@@ -37,8 +37,8 @@ eagleye:
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (m/s)
 
  position:
-   estimated_distance: 2000
-   separation_distance: 0.1
+   estimated_distance: 500
+   separation_distance: 1
    estimated_velocity_threshold: 2.78
    outlier_threshold: 3
    estimated_enu_vel_coefficient : 0.025
