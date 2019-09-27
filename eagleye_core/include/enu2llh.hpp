@@ -1,4 +1,4 @@
-void enu2llh(double enu_pos[3], double ecef_base_pos[3], double longitude, double latitude, double altitude)
+void enu2llh(double enu_pos[3], double ecef_base_pos[3], double llh_pos[3])
 {
   // ecef2llh
   double x = ecef_base_pos[0];
@@ -89,23 +89,23 @@ void enu2llh(double enu_pos[3], double ecef_base_pos[3], double longitude, doubl
   v = sqrt(tmp + (1 - e2) * z2);
   w = (b2 * z) / (a * v);
   tmp_longitude = atan(y / x);
-  latitude = (atan((z + ep * ep * w) / r)) * 180 / M_PI;
+  llh_pos[1] = (atan((z + ep * ep * w) / r)) * 180 / M_PI;
 
   if (x >= 0)
   {
-    longitude = (tmp_longitude)*180 / M_PI;
+    llh_pos[0] = (tmp_longitude)*180 / M_PI;
   }
   else
   {
     if (x < 0 && y >= 0)
     {
-      longitude = (M_PI + tmp_longitude) * 180 / M_PI;
+      llh_pos[0] = (M_PI + tmp_longitude) * 180 / M_PI;
     }
     else
     {
-      longitude = (tmp_longitude - M_PI) * 180 / M_PI;
+      llh_pos[0] = (tmp_longitude - M_PI) * 180 / M_PI;
     }
   }
 
-  altitude = u * (1 - b2 / (a * v));
+  llh_pos[2] = u * (1 - b2 / (a * v));
 }

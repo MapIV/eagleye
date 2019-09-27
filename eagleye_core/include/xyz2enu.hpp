@@ -1,4 +1,4 @@
-void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos_x, double enu_pos_y, double enu_pos_z)
+void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos[0])
 {
   //ecef2llh
   double x = ecef_base_pos[0];
@@ -58,7 +58,7 @@ void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos_x, doub
   double sin_lam = sin(lam);
   double cos_lam = cos(lam);
 
-  enu_pos_x = ((-sin_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_lam * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos_y = ((-sin_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (-sin_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (cos_phi * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos_z = ((cos_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (sin_phi * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[0] = ((-sin_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_lam * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[1] = ((-sin_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (-sin_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (cos_phi * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[2] = ((cos_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (sin_phi * (ecef_pos[2] - ecef_base_pos[2])));
 }
