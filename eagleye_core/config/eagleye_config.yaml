@@ -38,7 +38,7 @@ eagleye:
 
  position:
    estimated_distance: 500
-   separation_distance: 1
+   separation_distance: 0.1
    estimated_velocity_threshold: 2.78
    outlier_threshold: 3
    estimated_enu_vel_coefficient : 0.025
