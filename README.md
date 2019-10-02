@@ -1,5 +1,5 @@
 
-# imu gnss localizer
+# eagleye
 
 ## Overview
 
@@ -51,11 +51,11 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 		chmod 755 rtkstart.sh  
 		chmod 755 rtkshut.sh  
 
-4) Next, download and build imu gnss localizer.
+4) Next, download and build eagleye.
 
 		cd  
 		cd catkin_ws/src  
-		git clone https://github.com/MapIV/imu_gnss_localizer.git  
+		git clone https://github.com/MapIV/eagleye.git  
 		cd ..  
 		catkin_make  
 
@@ -71,7 +71,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 1) Open RTKLIB settings.
 
 		cd
-		gedit RTKLIB/app/rtkrcv/conf/imu_gnss_localizer.conf
+		gedit RTKLIB/app/rtkrcv/conf/eagleye.conf
 
 2) Set the serial device on line 10. If you connect using USB, it is OK.
 
@@ -123,9 +123,9 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 6) Check the rotation direction of z axis of IMU being used.If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" in the launch file to "true".
 
 		cd  
-		gedit catkin_ws/src/imu_gnss_localizer/launch/imu_gnss_localizer.launch  
+		gedit catkin_ws/src/eagleye/launch/eagleye.launch  
 
->param name="/imu_gnss_localizer/reverse_imu" type="bool" value="true"  
+>param name="/eagleye/reverse_imu" type="bool" value="true"  
 
 ## Usage
 1) The wheel speed information (vehicle speed information) is published as follows.
@@ -151,11 +151,11 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 ※If GPS Time is not working, there may be a mistake in the receiver settings or RTKLIB settings.
 
-5) Start imu gnss localizer.
+5) Start eagleye.
 
 		cd  
-		cd catkin_ws/src/imu_gnss_localizer/launch
-		roslaunch imu_gnss_localizer.launch
+		cd catkin_ws/src/eagleye/launch
+		roslaunch eagleye.launch
 
 6) After traveling for a while and estimation is started, latitude and longitude will be output with the following topic names.
 
