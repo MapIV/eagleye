@@ -1,6 +1,8 @@
 
 # eagleye
 
+[![CircleCI](https://circleci.com/gh/MapIV/eagleye.svg?style=svg&circle-token=7961cc3947c36b93252f458a679dfcb9aa977b5b)](https://circleci.com/gh/MapIV/eagleye)
+
 ## Overview
 
 It is a program that combines IMU and GNSS to perform highly accurate self position estimation.
@@ -27,37 +29,32 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 1) First, download the modified RTKLIB to your home directory.
 
-		cd  
+		cd $HOME  
 		git clone https://github.com/MapIV/RTKLIB.git
-		cd  
-		cd RTKLIB   
-		git checkout for_imu_gnss_localizer    
+		cd $HOME/RTKLIB     
+		git checkout rtklib_ros_bridge    
 
-	[About RTKLIB](https://wikipedia.org)
+	[About RTKLIB](http://www.rtklib.com)
 
 2) Build RTKLIB.
-
-		cd  
-		cd RTKLIB/lib/iers/gcc/  
-		make  
-		cd  
-		cd RTKLIB/app  
+  
+		cd $HOME/RTKLIB/lib/iers/gcc/  
+		make   
+		cd $HOME/RTKLIB/app  
 		make   
 
 3) Change the permissions of the two files.
-
-		cd  
-		cd RTKLIB/app/rtkrcv/gcc  
+ 
+		cd $HOME/RTKLIB/app/rtkrcv/gcc  
 		chmod 755 rtkstart.sh  
 		chmod 755 rtkshut.sh  
 
-4) Next, download and build eagleye.
+4) Next, download and build rtklib_ros_bridge.
 
-		cd  
-		cd catkin_ws/src  
-		git clone https://github.com/MapIV/eagleye.git  
+		cd $HOME/catkin_ws/src  
+		git clone https://github.com/MapIV/rtklib_ros_bridge.git  
 		cd ..  
-		catkin_make  
+		catkin_make -DCMAKE_BUILD_TYPE=Release  
 
 5) Download and build ADI's IMU driver.
 
@@ -70,8 +67,7 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 ## Configuration
 1) Open RTKLIB settings.
 
-		cd
-		gedit RTKLIB/app/rtkrcv/conf/eagleye.conf
+		gedit $HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.conf
 
 2) Set the serial device on line 10. If you connect using USB, it is OK.
 
@@ -80,14 +76,12 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 ※If you know the device number "/dev/ttyACM-" but OK.
 
-3) Next, configure the receiver from ublox application, u-center.The usage of u-center is not described here. Below is an overview of the settings.  
+3) Next, configure the receiver from ublox application, u-center.The usage of u-center is not described here. Below is an overview of the settings. (Here is how to use a Ublox receiver)  
 
-* Disenable NMEA message
 * Enable UBX message ※Set to output only RAWX and SFRBX
-* Set the output rate to 10 Hz.
 * Save your settings last.
 
-	[About u-center](https://www.u-blox.com/product/u-center)
+	[About u-center](https://www.u-blox.com/product/u-center)  
 
 4) Configure the ADI IMU driver settings. Configure the ADI IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
 
@@ -130,8 +124,8 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 ## Usage
 1) The wheel speed information (vehicle speed information) is published as follows.
 
-* Topic name: /Vehicle/Velocity  
-* Message type: geometry_msgs/Twist/liner.x
+* Topic name: /can_twist
+* Message type: geometry_msgs/TwistStamped twist.liner.x
 
 2) Connect the IMU and start the ADI driver.
 
@@ -141,9 +135,8 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 3) Connect the GNSS receiver and start RTKLIB.
 
-		cd  
-		cd RTKLIB  
-		./launch_rtkrcv.sh  
+		cd $HOME/RTKLIB  
+		bash rtklib_ros_bridge_sample.sh  
 
 4) Check the status of RTKLIB. If GPS Time is moving, it is OK. Execute the following command in the terminal of item 3.
 
@@ -151,13 +144,10 @@ Wheel speed sensor: Sensor equipped on the vehicle.
 
 ※If GPS Time is not working, there may be a mistake in the receiver settings or RTKLIB settings.
 
-5) Start eagleye.
+5) Start rtklib_ros_bridge.
 
-		cd  
-		cd catkin_ws/src/eagleye/launch
-		roslaunch eagleye.launch
+		rosrun rtklib_bridge rtklib_bridge   
 
-6) After traveling for a while and estimation is started, latitude and longitude will be output with the following topic names.
+6) Start eagleye.
 
-* Topic name: /imu_gnss_pose   
-* Message type: geometry_msgs/PoseStamped
+		roslaunch eagleye_localization.launch
