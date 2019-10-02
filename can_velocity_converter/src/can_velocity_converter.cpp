@@ -25,7 +25,6 @@
 
 /*
  * can_velocity_converter.cpp
- * can velocity converter
  * Author MapIV Sekino
  * Ver 1.00 2019/9/26
  */
