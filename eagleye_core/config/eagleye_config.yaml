@@ -33,6 +33,11 @@ eagleye:
  heading_interpolate:
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (m/s)
 
+ slip_angle:
+   slip_angle_estimate: false                          #When the estimate is not valid, the manual_coefficient factor is used
+   manual_coefficient: 2                               #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (m/s)
+
  trajectory:
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (m/s)
 

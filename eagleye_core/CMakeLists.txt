@@ -48,6 +48,10 @@ add_executable(heading_interpolate src/heading_interpolate.cpp)
 target_link_libraries(heading_interpolate ${catkin_LIBRARIES})
 add_dependencies(heading_interpolate ${catkin_EXPORTED_TARGETS})
 
+add_executable(slip_angle src/slip_angle.cpp)
+target_link_libraries(slip_angle ${catkin_LIBRARIES})
+add_dependencies(slip_angle ${catkin_EXPORTED_TARGETS})
+
 add_executable(trajectory src/trajectory.cpp)
 target_link_libraries(trajectory ${catkin_LIBRARIES})
 add_dependencies(trajectory ${catkin_EXPORTED_TARGETS})

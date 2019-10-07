@@ -43,6 +43,9 @@ eagleye_msgs/YawrateOffset yawrate_offset_1st
 #Yawrate offset 2nd
 eagleye_msgs/YawrateOffset yawrate_offset_2nd
 
+#Slip angle
+eagleye_msgs/SlipAngle slip_angle
+
 #Trajectory
 eagleye_msgs/Position enu_relative_pos
 geometry_msgs/Vector3Stamped enu_vel

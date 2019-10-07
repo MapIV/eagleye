@@ -13,6 +13,7 @@
   <node pkg="eagleye_core" name="heading_interpolate_1st" type="heading_interpolate" args="1st"/>
   <node pkg="eagleye_core" name="heading_interpolate_2nd" type="heading_interpolate" args="2nd"/>
   <node pkg="eagleye_core" name="heading_interpolate_3rd" type="heading_interpolate" args="3rd"/>
+  <node pkg="eagleye_core" name="slip_angle" type="slip_angle" />
   <node pkg="eagleye_core" name="distance" type="distance" />
   <node pkg="eagleye_core" name="trajectory" type="trajectory" />
   <node pkg="eagleye_core" name="position" type="position" />

@@ -32,6 +32,7 @@
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/VelocityScaleFactor.h"
 #include "eagleye_msgs/YawrateOffset.h"
+#include "eagleye_msgs/SlipAngle.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/TwistStamped.h"
@@ -74,12 +75,14 @@ static std::vector<double> yawrate_buffer;
 static std::vector<double> correction_velocity_buffer;
 static std::vector<double> yawrate_offset_stop_buffer;
 static std::vector<double> yawrate_offset_buffer;
+static std::vector<double> slip_angle_buffer;
 static std::vector<double> gnss_status_buffer;
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset yawrate_offset;
+static eagleye_msgs::SlipAngle slip_angle;
 
 static ros::Publisher pub;
 static eagleye_msgs::Heading heading;
@@ -129,6 +132,14 @@ void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
   yawrate_offset.status = msg->status;
 }
 
+void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+{
+  slip_angle.header = msg->header;
+  slip_angle.coefficient = msg->coefficient;
+  slip_angle.slip_angle = msg->slip_angle;
+  slip_angle.status = msg->status;
+}
+
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   ++count;
@@ -171,6 +182,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
   yawrate_offset_stop_buffer.push_back(yawrate_offset_stop.yawrate_offset);
   yawrate_offset_buffer.push_back(yawrate_offset.yawrate_offset);
+  slip_angle_buffer.push_back(slip_angle.slip_angle);
   gnss_status_buffer.push_back(gnss_status);
 
   time_buffer_length = std::distance(time_buffer.begin(), time_buffer.end());
@@ -183,6 +195,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     correction_velocity_buffer.erase(correction_velocity_buffer.begin());
     yawrate_offset_stop_buffer.erase(yawrate_offset_stop_buffer.begin());
     yawrate_offset_buffer.erase(yawrate_offset_buffer.begin());
+    slip_angle_buffer.erase(slip_angle_buffer.begin());
     gnss_status_buffer.erase(gnss_status_buffer.begin());
   }
 
@@ -229,11 +242,11 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         {
           if (correction_velocity_buffer[estimated_number-1] > stop_judgment_velocity_threshold)
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + (yawrate_buffer[i] + yawrate_offset_buffer[i]) * (time_buffer[i] - time_buffer[i-1]);
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_buffer[i]) * (time_buffer[i] - time_buffer[i-1]) + slip_angle_buffer[i]);
           }
           else
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + (yawrate_buffer[i] + yawrate_offset_stop_buffer[i]) * (time_buffer[i] - time_buffer[i-1]);
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_stop_buffer[i]) * (time_buffer[i] - time_buffer[i-1]) + slip_angle_buffer[i]);
           }
         }
       }
@@ -426,6 +439,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback);
+  ros::Subscriber sub6 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback);
 
   pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 
