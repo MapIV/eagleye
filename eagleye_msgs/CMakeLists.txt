@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
    VelocityScaleFactor.msg
    YawrateOffset.msg
    Heading.msg
+   SlipAngle.msg
    Position.msg
    Debug.msg
  )

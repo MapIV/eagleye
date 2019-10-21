@@ -36,6 +36,7 @@
 #include "eagleye_msgs/Status.h"
 #include "eagleye_msgs/VelocityScaleFactor.h"
 #include "eagleye_msgs/YawrateOffset.h"
+#include "eagleye_msgs/SlipAngle.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "sensor_msgs/Imu.h"
@@ -56,6 +57,7 @@ static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset yawrate_offset_1st;
 static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::SlipAngle slip_angle;
 static eagleye_msgs::Position enu_relative_pos;
 static geometry_msgs::Vector3Stamped enu_vel;
 static eagleye_msgs::Position enu_absolute_pos;
@@ -168,6 +170,14 @@ void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& ms
   yawrate_offset_2nd.status = msg->status;
 }
 
+void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+{
+  slip_angle.header = msg->header;
+  slip_angle.coefficient = msg->coefficient;
+  slip_angle.slip_angle = msg->slip_angle;
+  slip_angle.status = msg->status;
+}
+
 void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
   enu_relative_pos.header = msg->header;
@@ -240,6 +250,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   debug.yawrate_offset_stop = yawrate_offset_stop;
   debug.yawrate_offset_1st = yawrate_offset_1st;
   debug.yawrate_offset_2nd = yawrate_offset_2nd;
+  debug.slip_angle = slip_angle;
   debug.enu_relative_pos = enu_relative_pos;
   debug.enu_vel = enu_vel;
   debug.enu_absolute_pos = enu_absolute_pos;
@@ -286,12 +297,13 @@ int main(int argc, char** argv)
   ros::Subscriber sub13 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
   ros::Subscriber sub14 = n.subscribe("/eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback);
   ros::Subscriber sub15 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  ros::Subscriber sub16 = n.subscribe("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback);
-  ros::Subscriber sub17 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
-  ros::Subscriber sub18 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
-  ros::Subscriber sub19 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback);
-  ros::Subscriber sub20 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback);
-  ros::Subscriber sub21 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback);
+  ros::Subscriber sub16 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback);
+  ros::Subscriber sub17 = n.subscribe("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback);
+  ros::Subscriber sub18 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
+  ros::Subscriber sub19 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
+  ros::Subscriber sub20 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback);
+  ros::Subscriber sub21 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback);
+  ros::Subscriber sub22 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback);
 
   pub = n.advertise<eagleye_msgs::Debug>("/eagleye/debug", 1000);
 

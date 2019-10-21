@@ -32,6 +32,7 @@
 #include "eagleye_msgs/VelocityScaleFactor.h"
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/YawrateOffset.h"
+#include "eagleye_msgs/SlipAngle.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "sensor_msgs/Imu.h"
 #include <boost/circular_buffer.hpp>
@@ -61,6 +62,7 @@ static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset yawrate_offset;
 static eagleye_msgs::Heading heading;
+static eagleye_msgs::SlipAngle slip_angle;
 
 static ros::Publisher pub;
 static eagleye_msgs::Heading heading_interpolate;
@@ -92,6 +94,14 @@ void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
   heading.header = msg->header;
   heading.heading_angle = msg->heading_angle;
   heading.status = msg->status;
+}
+
+void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+{
+  slip_angle.header = msg->header;
+  slip_angle.coefficient = msg->coefficient;
+  slip_angle.slip_angle = msg->slip_angle;
+  slip_angle.status = msg->status;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
@@ -140,7 +150,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if(time_last != 0)
   {
-    provisional_heading_angle = heading_interpolate.heading_angle + yawrate * (msg->header.stamp.toSec() - time_last);
+    provisional_heading_angle = heading_interpolate.heading_angle + (yawrate * (msg->header.stamp.toSec() - time_last) + slip_angle.slip_angle);
   }
 
   provisional_heading_angle_buffer.push_back(provisional_heading_angle);
@@ -260,6 +270,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
   ros::Subscriber sub4 = n.subscribe(subscribe_topic_name_1, 1000, yawrate_offset_callback);
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name_2, 1000, heading_callback);
+  ros::Subscriber sub6 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback);
   pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 
   ros::spin();
