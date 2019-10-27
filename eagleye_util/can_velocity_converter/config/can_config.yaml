@@ -1,0 +1,8 @@
+can_velocity_converter:
+ can_id: 0x001                #Set the CAN ID that includes the vehicle speed information.
+ start_bit: 0                 #Set the bit start position of vehicle speed information.(bit)
+ length: 16                   #Set the data length.(bit)
+ factor: 0.01                 #Set the factor so that the unit is km/h.
+ offset: 0.0                  #If an offset is required to decode the vehicle speed information, set it here.
+ byte_order: Motorola         #Set the byte order with Motorola or Intel. Motorola = Big Endian, Intel = Little Endian.
+ value_type: Unsigned         #Whether the vehicle speed information includes positive or negative information is set as Signed or Unsigned.

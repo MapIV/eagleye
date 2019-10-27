@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+  <rosparam command="load" file="$(find can_velocity_converter)/config/can_config.yaml"/>
+  <node pkg="can_velocity_converter" name="can_velocity_converter" type="can_velocity_converter">
+    <!-- Specify the topic name of the input CAN data. (Data type can_msgs/Frame) -->
+    <remap from="received_messages" to="received_messages"/>
+    <!-- Specify the topic name of the vehicle speed information to be output. (Data type is geometry_msgs/TwistStamped) -->
+    <remap from="can_twist" to="can_twist"/>
+  </node>
+</launch>
