@@ -35,23 +35,35 @@
 #include "eagleye_msgs/Heading.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "sensor_msgs/Imu.h"
+#include "xyz2enu_vel.hpp"
 
 //default value
 static bool reverse_imu = false;
 static double stop_judgment_velocity_threshold = 0.01;
 static bool slip_angle_estimate = true;
 static double manual_coefficient = 0;
+static double estimated_number_min = 100;
+static double estimated_number_max = 1000;
+static double estimated_velocity_threshold = 2.77;
+static double estimated_yawrate_threshold = 0.01745329244;
 
-static int count;
+static int i, count, heading_estimate_status_count;
 static double time_last;
+static double doppler_heading_angle;
+static double doppler_slip;
 static double yawrate;
 static double acceleration_y;
+static double estimate_coefficient = 0;
+
+static std::size_t acceleration_y_buffer_length;
+static std::vector<double> acceleration_y_buffer;
+static std::vector<double> doppler_slip_buffer;
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset yawrate_offset;
-static eagleye_msgs::Heading heading_interpolate;
+static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::Heading heading_interpolate_3rd;
 
 static ros::Publisher pub;
 static eagleye_msgs::SlipAngle slip_angle;
@@ -63,6 +75,20 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_pos = msg->ecef_pos;
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
+
+  double ecef_vel[3];
+  double ecef_pos[3];
+  double enu_vel[3];
+
+  ecef_vel[0] = msg->ecef_vel.x;
+  ecef_vel[1] = msg->ecef_vel.y;
+  ecef_vel[2] = msg->ecef_vel.z;
+  ecef_pos[0] = msg->ecef_pos.x;
+  ecef_pos[1] = msg->ecef_pos.y;
+  ecef_pos[2] = msg->ecef_pos.z;
+
+  xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
+  doppler_heading_angle = atan2(enu_vel[0], enu_vel[1]);
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -80,18 +106,18 @@ void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& m
   yawrate_offset_stop.status = msg->status;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset_2nd.header = msg->header;
+  yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
+  yawrate_offset_2nd.status = msg->status;
 }
 
-void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate.header = msg->header;
-  heading_interpolate.heading_angle = msg->heading_angle;
-  heading_interpolate.status = msg->status;
+  heading_interpolate_3rd.header = msg->header;
+  heading_interpolate_3rd.heading_angle = msg->heading_angle;
+  heading_interpolate_3rd.status = msg->status;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
@@ -111,21 +137,91 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if (velocity_scale_factor.correction_velocity.linear.x > stop_judgment_velocity_threshold)
   {
-    yawrate = yawrate + yawrate_offset.yawrate_offset;
+    yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
   else
   {
     yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
   }
 
-  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset.status.enabled_status == true)
+  acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
+
+  if (heading_interpolate_3rd.status.estimate_status == true)
   {
+    heading_interpolate_3rd.status.estimate_status = false; //in order to prevent being judged many times
 
-    acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
+    if(heading_estimate_status_count < estimated_number_max)
+    {
+      ++heading_estimate_status_count;
+    }
+    else
+    {
+      heading_estimate_status_count = estimated_number_max;
+    }
 
+    if ((velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold) && (fabs(yawrate) > estimated_yawrate_threshold))
+    {
+      doppler_slip = (fmod(heading_interpolate_3rd.heading_angle,2*M_PI) - fmod(doppler_heading_angle,2*M_PI));
+
+      if (doppler_slip > M_PI / 2.0)
+      {
+        doppler_slip = doppler_slip + 2.0 * M_PI;
+      }
+      if (doppler_slip < -M_PI / 2.0)
+      {
+        doppler_slip = doppler_slip - 2.0 * M_PI;
+      }
+
+
+      if(fabs(doppler_slip)<(2*M_PI/180))
+      {
+        acceleration_y_buffer.push_back(acceleration_y);
+        doppler_slip_buffer.push_back(doppler_slip);
+
+        acceleration_y_buffer_length = std::distance(acceleration_y_buffer.begin(), acceleration_y_buffer.end());
+
+        if (acceleration_y_buffer_length > estimated_number_max)
+        {
+          acceleration_y_buffer.erase(acceleration_y_buffer.begin());
+          doppler_slip_buffer.erase(doppler_slip_buffer.begin());
+        }
+
+        acceleration_y_buffer_length = std::distance(acceleration_y_buffer.begin(), acceleration_y_buffer.end());
+        ROS_ERROR("acceleration_y_buffer_length = %zu",acceleration_y_buffer_length);
+
+        if(heading_estimate_status_count > estimated_number_min)
+          {
+            double sumxyavg,sumxsquare = 0.0;
+
+            for(i = 0 ; i < heading_estimate_status_count ; ++i)
+            {
+              sumxyavg += (acceleration_y_buffer[i]*doppler_slip_buffer[i]);
+              sumxsquare += pow(acceleration_y_buffer[i],2);
+            }
+          estimate_coefficient = (sumxyavg/sumxsquare);
+
+          ROS_ERROR("estimate_coefficient = %lf",estimate_coefficient);
+          slip_angle.status.enabled_status = true;
+          slip_angle.status.estimate_status = true;
+          }
+        }
+        else
+        {
+          //heading_estimate_status_count--;
+        }
+      }
+      else
+      {
+        //heading_estimate_status_count--;
+      }
+    }
+
+  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
+  {
     if (slip_angle_estimate == true)
     {
-      ROS_ERROR("Unimplemented!!!");
+      slip_angle.coefficient = estimate_coefficient;
+      slip_angle.slip_angle = estimate_coefficient * acceleration_y;
     }
     else
     {
@@ -136,7 +232,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     }
   }
   pub.publish(slip_angle);
-
+  slip_angle.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
@@ -158,8 +254,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_callback);
-  ros::Subscriber sub6 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_callback);
+  ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
+  ros::Subscriber sub6 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
   pub = n.advertise<eagleye_msgs::SlipAngle>("/eagleye/slip_angle", 1000);
 
   ros::spin();
