@@ -187,7 +187,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         }
 
         acceleration_y_buffer_length = std::distance(acceleration_y_buffer.begin(), acceleration_y_buffer.end());
-        ROS_ERROR("acceleration_y_buffer_length = %zu",acceleration_y_buffer_length);
+        //ROS_ERROR("acceleration_y_buffer_length = %zu",acceleration_y_buffer_length);
 
         if(heading_estimate_status_count > estimated_number_min)
           {
@@ -200,7 +200,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
             }
           estimate_coefficient = (sumxyavg/sumxsquare);
 
-          ROS_ERROR("estimate_coefficient = %lf",estimate_coefficient);
+          //ROS_ERROR("estimate_coefficient = %lf",estimate_coefficient);
           slip_angle.status.enabled_status = true;
           slip_angle.status.estimate_status = true;
           }

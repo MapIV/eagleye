@@ -430,12 +430,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/PositionDis/estimated_distance",estimated_distance);
-  n.getParam("/eagleye/PositionDis/separation_distance",separation_distance);
-  n.getParam("/eagleye/PositionDis/estimated_velocity_threshold",estimated_velocity_threshold);
-  n.getParam("/eagleye/PositionDis/outlier_threshold",outlier_threshold);
-  n.getParam("/eagleye/PositionDis/estimated_enu_vel_coefficient",estimated_enu_vel_coefficient);
-  n.getParam("/eagleye/PositionDis/estimated_position_coefficient",estimated_position_coefficient);
+  n.getParam("/eagleye/position/estimated_distance",estimated_distance);
+  n.getParam("/eagleye/position/separation_distance",separation_distance);
+  n.getParam("/eagleye/position/estimated_velocity_threshold",estimated_velocity_threshold);
+  n.getParam("/eagleye/position/outlier_threshold",outlier_threshold);
+  n.getParam("/eagleye/position/estimated_enu_vel_coefficient",estimated_enu_vel_coefficient);
+  n.getParam("/eagleye/position/estimated_position_coefficient",estimated_position_coefficient);
 
   std::cout<< "estimated_distance "<<estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<separation_distance<<std::endl;

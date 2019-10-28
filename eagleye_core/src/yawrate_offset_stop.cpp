@@ -116,8 +116,8 @@ int main(int argc, char** argv)
   ros::NodeHandle n("~");
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/YawrateOffsetStop/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/YawrateOffsetStop/estimated_number",estimated_number);
+  n.getParam("/eagleye/yawrate_offset_stop/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
+  n.getParam("/eagleye/yawrate_offset_stop/estimated_number",estimated_number);
 
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;

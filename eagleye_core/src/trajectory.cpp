@@ -155,7 +155,7 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/Trajectory/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
+  n.getParam("/eagleye/trajectory/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
