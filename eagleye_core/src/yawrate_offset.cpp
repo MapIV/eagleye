@@ -189,10 +189,14 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
     index_length = std::distance(index.begin(), index.end());
 
+    ROS_ERROR("index_length %zu",index_length);
+    ROS_ERROR("estimated_number %d",estimated_number);
+    ROS_ERROR("estimated_coefficient %lf",estimated_coefficient);
+
     if (index_length > estimated_number * estimated_coefficient)
     {
       std::vector<double> provisional_heading_angle_buffer(estimated_number, 0);
-
+      ROS_ERROR("AAAA");
       for (i = 0; i < estimated_number; i++)
       {
         if (i > 0)
@@ -203,7 +207,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
       std::vector<double> base_heading_angle_buffer;
       std::vector<double> diff_buffer;
-      std::vector<double> time_buffer;
+      std::vector<double> time_buffer2;
       std::vector<double> inversion_up_index;
       std::vector<double> inversion_down_index;
 
@@ -266,20 +270,21 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
       for (i = 0; i < index_length; i++)
       {
-        time_buffer.push_back(time_buffer[index[i]] - time_buffer[index[0]]);
+        time_buffer2.push_back(time_buffer[index[i]] - time_buffer[index[0]]);
       }
 
       // Least-square
       sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
       for (i = 0; i < index_length; i++)
       {
-        sum_xy += time_buffer[i] * diff_buffer[i];
-        sum_x += time_buffer[i];
+        sum_xy += time_buffer2[i] * diff_buffer[i];
+        sum_x += time_buffer2[i];
         sum_y += diff_buffer[i];
-        sum_x2 += pow(time_buffer[i], 2);
+        sum_x2 += pow(time_buffer2[i], 2);
       }
 
       raw_yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
+
       yawrate_offset_stop.status.estimate_status = true;
     }
     else
@@ -329,9 +334,9 @@ int main(int argc, char** argv)
   ros::NodeHandle n("~");
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/YawrateOffset/estimated_number_min",estimated_number_min);
-  n.getParam("/eagleye/YawrateOffset/estimated_coefficient",estimated_coefficient);
-  n.getParam("/eagleye/YawrateOffset/estimated_velocity_threshold",estimated_velocity_threshold);
+  n.getParam("/eagleye/yawrate_offset/estimated_number_min",estimated_number_min);
+  n.getParam("/eagleye/yawrate_offset/estimated_coefficient",estimated_coefficient);
+  n.getParam("/eagleye/yawrate_offset/estimated_velocity_threshold",estimated_velocity_threshold);
 
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<estimated_number_min<<std::endl;
