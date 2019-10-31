@@ -26,8 +26,6 @@
 /*
  * position_interpolate.cpp
  * Author MapIV Sekino
- * Ver 1.00 2019/2/28
- * Ver 1.01 2019/5/9 Change from index to sync with timestamp
  */
 
 #include "ros/ros.h"

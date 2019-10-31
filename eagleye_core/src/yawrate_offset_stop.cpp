@@ -26,7 +26,6 @@
 /*
  * trajectory.cpp
  * Author MapIV Sekino
- * Ver 1.00 2019/1/24
  */
 
 #include "ros/ros.h"

@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * eagleye_fix2kml
+ * eagleye_fix2kml.cpp
  * Author MapIV Sekino
  */
 
