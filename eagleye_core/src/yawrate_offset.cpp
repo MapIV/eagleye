@@ -189,14 +189,10 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
     index_length = std::distance(index.begin(), index.end());
 
-    ROS_ERROR("index_length %zu",index_length);
-    ROS_ERROR("estimated_number %d",estimated_number);
-    ROS_ERROR("estimated_coefficient %lf",estimated_coefficient);
-
     if (index_length > estimated_number * estimated_coefficient)
     {
       std::vector<double> provisional_heading_angle_buffer(estimated_number, 0);
-      ROS_ERROR("AAAA");
+
       for (i = 0; i < estimated_number; i++)
       {
         if (i > 0)
@@ -275,7 +271,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
       // Least-square
       sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
-      for (i = 0; i < index_length; i++)
+      for (i = 0; i < index_length ; i++)
       {
         sum_xy += time_buffer2[i] * diff_buffer[i];
         sum_x += time_buffer2[i];
@@ -283,43 +279,45 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         sum_x2 += pow(time_buffer2[i], 2);
       }
 
-      raw_yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
-
-      yawrate_offset_stop.status.estimate_status = true;
+      if (index_length * sum_x2 - pow(sum_x, 2) != 0)
+      {
+        raw_yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
+        yawrate_offset.status.estimate_status = true;
+      }
     }
     else
     {
       raw_yawrate_offset = 0;
-      yawrate_offset_stop.status.estimate_status = false;
+      yawrate_offset.status.estimate_status = false;
     }
   }
   else
   {
     raw_yawrate_offset = 0;
-    yawrate_offset_stop.status.estimate_status = false;
+    yawrate_offset.status.estimate_status = false;
   }
 
-  if (yawrate_offset_stop.status.estimate_status == true)
+  if (yawrate_offset.status.estimate_status == true)
   {
     yawrate_offset.yawrate_offset = raw_yawrate_offset;
     estimate_start_status = true;
   }
-  else if (yawrate_offset_stop.status.estimate_status == false && estimate_start_status == true)
+  else if (yawrate_offset.status.estimate_status == false && estimate_start_status == true)
   {
     yawrate_offset.yawrate_offset = yawrate_offset_last;
   }
-  else if (yawrate_offset_stop.status.estimate_status == false && estimate_start_status == false)
+  else if (yawrate_offset.status.estimate_status == false && estimate_start_status == false)
   {
     yawrate_offset.yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }
 
   if (estimate_start_status == true)
   {
-    yawrate_offset_stop.status.enabled_status = true;
+    yawrate_offset.status.enabled_status = true;
   }
   else
   {
-    yawrate_offset_stop.status.enabled_status = false;
+    yawrate_offset.status.enabled_status = false;
   }
 
   pub.publish(yawrate_offset);

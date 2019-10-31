@@ -150,7 +150,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if(time_last != 0)
   {
-    provisional_heading_angle = heading_interpolate.heading_angle + (yawrate * (msg->header.stamp.toSec() - time_last) + slip_angle.slip_angle);
+    provisional_heading_angle = heading_interpolate.heading_angle + slip_angle.slip_angle + (yawrate * (msg->header.stamp.toSec() - time_last));
   }
 
   provisional_heading_angle_buffer.push_back(provisional_heading_angle);
@@ -213,6 +213,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     heading_interpolate.status.enabled_status = false;
     heading_interpolate.status.estimate_status = false;
   }
+
   pub.publish(heading_interpolate);
 
   time_last = msg->header.stamp.toSec();
