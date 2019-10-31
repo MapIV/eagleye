@@ -20,7 +20,4 @@
   <node pkg="eagleye_core" name="position_interpolate" type="position_interpolate" />
   <node pkg="eagleye_core" name="debug" type="debug" />
 
-  <!-- use the following tool to output a kml file from the estimated latitude and longitude -->
-  <!-- node pkg="eagleye_fix2kml" name="eagleye_fix2kml" type="eagleye_fix2kml" / -->
-
 </launch>
