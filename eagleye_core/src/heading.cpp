@@ -242,11 +242,11 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         {
           if (correction_velocity_buffer[estimated_number-1] > stop_judgment_velocity_threshold)
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + slip_angle_buffer[i] + ((yawrate_buffer[i] + yawrate_offset_buffer[i]) * (time_buffer[i] - time_buffer[i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_buffer[i]) * (time_buffer[i] - time_buffer[i-1])) + (slip_angle_buffer[i] - slip_angle_buffer[i-1]);
           }
           else
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + slip_angle_buffer[i] + ((yawrate_buffer[i] + yawrate_offset_stop_buffer[i]) * (time_buffer[i] - time_buffer[i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_stop_buffer[i]) * (time_buffer[i] - time_buffer[i-1])) + (slip_angle_buffer[i] - slip_angle_buffer[i-1]);
           }
         }
       }
