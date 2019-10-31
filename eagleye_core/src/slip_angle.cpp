@@ -45,7 +45,7 @@ static double manual_coefficient = 0;
 static double estimated_number_min = 100;
 static double estimated_number_max = 1000;
 static double estimated_velocity_threshold = 2.77;
-static double estimated_yawrate_threshold = 0.01745329244;
+static double estimated_yawrate_threshold = 0.017453;
 
 static int i, count, heading_estimate_status_count;
 static double time_last;
@@ -161,6 +161,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
     if ((velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold) && (fabs(yawrate) > estimated_yawrate_threshold))
     {
+
       doppler_slip = (fmod(heading_interpolate_3rd.heading_angle,2*M_PI) - fmod(doppler_heading_angle,2*M_PI));
 
       if (doppler_slip > M_PI / 2.0)
@@ -171,7 +172,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       {
         doppler_slip = doppler_slip - 2.0 * M_PI;
       }
-
 
       if(fabs(doppler_slip)<(2*M_PI/180))
       {
@@ -186,33 +186,24 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
           doppler_slip_buffer.erase(doppler_slip_buffer.begin());
         }
 
-        acceleration_y_buffer_length = std::distance(acceleration_y_buffer.begin(), acceleration_y_buffer.end());
-        //ROS_ERROR("acceleration_y_buffer_length = %zu",acceleration_y_buffer_length);
-
         if(heading_estimate_status_count > estimated_number_min)
           {
-            double sumxyavg,sumxsquare = 0.0;
+            double sum_xy_avg,sum_x_square = 0.0;
 
             for(i = 0 ; i < heading_estimate_status_count ; ++i)
             {
-              sumxyavg += (acceleration_y_buffer[i]*doppler_slip_buffer[i]);
-              sumxsquare += pow(acceleration_y_buffer[i],2);
+              sum_xy_avg += (acceleration_y_buffer[i]*doppler_slip_buffer[i]);
+              sum_x_square += pow(acceleration_y_buffer[i],2);
             }
-          estimate_coefficient = (sumxyavg/sumxsquare);
 
-          //ROS_ERROR("estimate_coefficient = %lf",estimate_coefficient);
-          slip_angle.status.enabled_status = true;
-          slip_angle.status.estimate_status = true;
+            if (isnan(sum_xy_avg) == false && isnan(sum_x_square) == false && isinf(sum_xy_avg) == false && isinf(sum_x_square) == false && sum_xy_avg != 0.0 && sum_x_square != 0.0)
+            {
+              estimate_coefficient = (sum_xy_avg/sum_x_square);
+              slip_angle.status.enabled_status = true;
+              slip_angle.status.estimate_status = true;
+            }
           }
         }
-        else
-        {
-          //heading_estimate_status_count--;
-        }
-      }
-      else
-      {
-        //heading_estimate_status_count--;
       }
     }
 
@@ -242,13 +233,21 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/slip_angle/stop_judgment_velocity_threshold", stop_judgment_velocity_threshold);
   n.getParam("/eagleye/slip_angle/slip_angle_estimate", slip_angle_estimate);
   n.getParam("/eagleye/slip_angle/manual_coefficient", manual_coefficient);
+  n.getParam("/eagleye/slip_angle/estimated_number_min", estimated_number_min);
+  n.getParam("/eagleye/slip_angle/estimated_number_max", estimated_number_max);
+  n.getParam("/eagleye/slip_angle/estimated_velocity_threshold", estimated_velocity_threshold);
+  n.getParam("/eagleye/slip_angle/estimated_yawrate_threshold", estimated_yawrate_threshold);
+  n.getParam("/eagleye/slip_angle/stop_judgment_velocity_threshold", stop_judgment_velocity_threshold);
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "slip_angle_estimate "<<slip_angle_estimate<<std::endl;
   std::cout<< "manual_coefficient "<<manual_coefficient<<std::endl;
+  std::cout<< "estimated_number_min "<<estimated_number_min<<std::endl;
+  std::cout<< "estimated_number_max "<<estimated_number_max<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<estimated_velocity_threshold<<std::endl;
+  std::cout<< "estimated_yawrate_threshold "<<estimated_yawrate_threshold<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
