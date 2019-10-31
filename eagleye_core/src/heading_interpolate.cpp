@@ -51,7 +51,6 @@ static int number_buffer = 0;
 
 static double heading_stamp_last = 0;
 static double time_last = 0.0;
-static double slip_angle_last = 0.0;
 static double yawrate = 0.0;
 static double provisional_heading_angle = 0.0;
 static double diff_estimate_heading_angle = 0.0;
@@ -151,7 +150,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if(time_last != 0)
   {
-    provisional_heading_angle = heading_interpolate.heading_angle + (yawrate * (msg->header.stamp.toSec() - time_last)) + (slip_angle.slip_angle - slip_angle_last);
+    provisional_heading_angle = heading_interpolate.heading_angle + (yawrate * (msg->header.stamp.toSec() - time_last)) + slip_angle.slip_angle;
   }
 
   provisional_heading_angle_buffer.push_back(provisional_heading_angle);
@@ -218,8 +217,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   pub.publish(heading_interpolate);
 
   time_last = msg->header.stamp.toSec();
-  slip_angle_last = slip_angle.slip_angle;
   heading_stamp_last = heading.header.stamp.toSec();
+
 }
 
 int main(int argc, char** argv)
