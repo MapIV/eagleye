@@ -251,11 +251,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         }
       }
 
-      for (i = 0; i < estimated_number; i++)
-      {
-        provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i] + slip_angle_buffer[i];
-      }
-
       std::vector<double> base_heading_angle_buffer;
       std::vector<double> base_heading_angle_buffer2;
       std::vector<double> diff_buffer;
