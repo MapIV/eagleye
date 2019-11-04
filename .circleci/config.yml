@@ -36,8 +36,6 @@ jobs:
             catkin_init_workspace
             cd ../
             catkin_make -DCMAKE_BUILD_TYPE=Release -j1
-
-jobs:
   melodic:
     docker:
       - image: ros:melodic
