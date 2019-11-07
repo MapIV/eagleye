@@ -127,7 +127,7 @@ GoogleEarthPath::GoogleEarthPath(const char* file, const char* pathName)
 
 GoogleEarthPath::~GoogleEarthPath()
 {
-	if(fileDescriptor != NULL)
+	if(fileDescriptor)
 	{
 		fileDescriptor	<< "</coordinates>"	<< "\n"
 				<< "</LineString>"	<< "\n"
@@ -143,7 +143,7 @@ GoogleEarthPath::~GoogleEarthPath()
  **************************************************************************************************/
 inline void GoogleEarthPath::addPoint(double longitude, double latitude, double altitude)
 {
-	if(fileDescriptor != NULL)
+	if(fileDescriptor)
 	{
 		fileDescriptor 	<< setprecision(13)
 				<< longitude <<","
