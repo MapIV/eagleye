@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * trajectory.cpp
+ * yawrate_offset.cpp
  * Author MapIV Sekino
  */
 
@@ -262,6 +262,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
                         heading_angle_buffer[index[i]]);
       }
 
+      time_buffer2.clear();
       for (i = 0; i < index_length; i++)
       {
         time_buffer2.push_back(time_buffer[index[i]] - time_buffer[index[0]]);
@@ -276,52 +277,20 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         sum_y += diff_buffer[i];
         sum_x2 += pow(time_buffer2[i], 2);
       }
-
-      if (index_length * sum_x2 - pow(sum_x, 2) != 0)
-      {
-        raw_yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
-        yawrate_offset.status.estimate_status = true;
-      }
-    }
-    else
-    {
-      raw_yawrate_offset = 0;
-      yawrate_offset.status.estimate_status = false;
+      yawrate_offset.yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
+      yawrate_offset.status.enabled_status = true;
+      yawrate_offset.status.estimate_status = true;
     }
   }
-  else
-  {
-    raw_yawrate_offset = 0;
-    yawrate_offset.status.estimate_status = false;
-  }
 
-  if (yawrate_offset.status.estimate_status == true)
-  {
-    yawrate_offset.yawrate_offset = raw_yawrate_offset;
-    estimate_start_status = true;
-  }
-  else if (yawrate_offset.status.estimate_status == false && estimate_start_status == true)
-  {
-    yawrate_offset.yawrate_offset = yawrate_offset_last;
-  }
-  else if (yawrate_offset.status.estimate_status == false && estimate_start_status == false)
+  if (yawrate_offset.status.enabled_status == false)
   {
     yawrate_offset.yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }
 
-  if (estimate_start_status == true)
-  {
-    yawrate_offset.status.enabled_status = true;
-  }
-  else
-  {
-    yawrate_offset.status.enabled_status = false;
-  }
-
   pub.publish(yawrate_offset);
   time_last = msg->header.stamp.toSec();
-  yawrate_offset_last = yawrate_offset.yawrate_offset;
-
+  yawrate_offset.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)

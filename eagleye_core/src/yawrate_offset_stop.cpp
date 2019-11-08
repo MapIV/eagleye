@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * trajectory.cpp
+ * yawrate_offset_stop.cpp
  * Author MapIV Sekino
  */
 
