@@ -24,13 +24,14 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * trajectory.cpp
+ * velocity_scale_factor.cpp
  * Author MapIV Sekino
  */
 
 #include "ros/ros.h"
 #include "eagleye_msgs/VelocityScaleFactor.h"
 #include "geometry_msgs/TwistStamped.h"
+#include "sensor_msgs/Imu.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "xyz2enu_vel.hpp"
 
@@ -54,6 +55,7 @@ static std::vector<double> doppler_velocity_buffer;
 static std::vector<double> velocity_buffer;
 
 static rtklib_msgs::RtklibNav rtklib_nav;
+static geometry_msgs::TwistStamped velocity;
 
 static ros::Publisher pub;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -82,6 +84,130 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   doppler_velocity = sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
 }
 
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+  velocity.header = msg->header;
+  velocity.twist = msg->twist;
+}
+
+void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  velocity_scale_factor.header = msg->header;
+
+  if (estimated_number < estimated_number_max)
+  {
+    ++estimated_number;
+  }
+  else
+  {
+    estimated_number = estimated_number_max;
+  }
+
+  if (tow_last == rtklib_nav.tow)
+  {
+    gnss_status = false;
+    doppler_velocity = 0;
+    tow_last = rtklib_nav.tow;
+  }
+  else
+  {
+    gnss_status = true;
+    doppler_velocity = doppler_velocity;
+    tow_last = rtklib_nav.tow;
+  }
+
+  gnss_status_buffer.push_back(gnss_status);
+  doppler_velocity_buffer.push_back(doppler_velocity);
+  velocity_buffer.push_back(velocity.twist.linear.x);
+
+  gnss_status_buffer_length = std::distance(gnss_status_buffer.begin(), gnss_status_buffer.end());
+
+  if (gnss_status_buffer_length > estimated_number_max)
+  {
+    gnss_status_buffer.erase(gnss_status_buffer.begin());
+    doppler_velocity_buffer.erase(doppler_velocity_buffer.begin());
+    velocity_buffer.erase(velocity_buffer.begin());
+  }
+
+  std::vector<int> gnss_index;
+  std::vector<int> velocity_index;
+  std::vector<int> index;
+  std::vector<double> velocity_scale_factor_buffer;
+
+  if (estimated_number > estimated_number_min && gnss_status_buffer[estimated_number - 1] == true && velocity_buffer[estimated_number - 1] > estimated_velocity_threshold)
+  {
+    for (i = 0; i < estimated_number; i++)
+    {
+      if (gnss_status_buffer[i] == true)
+      {
+        gnss_index.push_back(i);
+      }
+      if (velocity_buffer[i] > estimated_velocity_threshold)
+      {
+        velocity_index.push_back(i);
+      }
+    }
+
+    set_intersection(gnss_index.begin(), gnss_index.end(), velocity_index.begin(), velocity_index.end(),
+                     inserter(index, index.end()));
+
+    index_length = std::distance(index.begin(), index.end());
+
+    if (index_length > estimated_number * estimated_coefficient)
+    {
+      for (i = 0; i < index_length; i++)
+      {
+        velocity_scale_factor_buffer.push_back(doppler_velocity_buffer[index[i]] / velocity_buffer[index[i]]);
+      }
+
+      velocity_scale_factor.status.estimate_status = true;
+      estimate_start_status = true;
+    }
+    else
+    {
+      velocity_scale_factor.status.estimate_status = false;
+    }
+  }
+  else
+  {
+    velocity_scale_factor.status.estimate_status = false;
+  }
+
+  if (velocity_scale_factor.status.estimate_status == true)
+  {
+    // median
+    size_t size = velocity_scale_factor_buffer.size();
+    double* t = new double[size];
+    std::copy(velocity_scale_factor_buffer.begin(), velocity_scale_factor_buffer.end(), t);
+    std::sort(t, &t[size]);
+    raw_velocity_scale_factor = size % 2 ? t[size / 2] : (t[(size / 2) - 1] + t[size / 2]) / 2;
+    delete[] t;
+    velocity_scale_factor.scale_factor = raw_velocity_scale_factor;
+  }
+  else if (velocity_scale_factor.status.estimate_status == false)
+  {
+    raw_velocity_scale_factor = 0;
+    velocity_scale_factor.scale_factor = velocity_scale_factor_last;
+  }
+
+  if (estimate_start_status == true)
+  {
+    velocity_scale_factor.status.enabled_status = true;
+    velocity_scale_factor.correction_velocity.linear.x = velocity.twist.linear.x * velocity_scale_factor.scale_factor;
+  }
+  else
+  {
+    velocity_scale_factor.status.enabled_status = false;
+    velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
+    velocity_scale_factor.correction_velocity.linear.x = velocity.twist.linear.x * initial_velocity_scale_factor;
+  }
+
+  pub.publish(velocity_scale_factor);
+  velocity_scale_factor_last = velocity_scale_factor.scale_factor;
+
+}
+
+/*
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
   velocity_scale_factor.header = msg->header;
@@ -198,6 +324,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   velocity_scale_factor_last = velocity_scale_factor.scale_factor;
 
 }
+*/
 
 int main(int argc, char** argv)
 {
@@ -214,8 +341,9 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<estimated_velocity_threshold<<std::endl;
   std::cout<< "estimated_coefficient "<<estimated_coefficient<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback);
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
+  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
+  ros::Subscriber sub2 = n.subscribe("/can_twist", 1000, velocity_callback);
+  ros::Subscriber sub3 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
   pub = n.advertise<eagleye_msgs::VelocityScaleFactor>("/eagleye/velocity_scale_factor", 1000);
 
   ros::spin();
