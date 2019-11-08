@@ -13,7 +13,7 @@ eagleye:
 
  yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
    estimated_number_min: 1500                          #Minimum number of data used for estimation.
-   estimated_coefficient: 0.01                        #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate.
+   estimated_coefficient: 0.02                        #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate.
    estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (m/s)
    1st:
      estimated_number_max: 14000                       #Maximum number of data used for estimation.
