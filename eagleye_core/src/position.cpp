@@ -73,6 +73,7 @@ static std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
 static std::vector<double> diff_buffer;
 static std::vector<double> correction_velocity_buffer;
 static std::vector<double> distance_buffer;
+static std::vector<double> gnss_status_buffer;
 
 //static std::vector<double>::iterator max; //pattern1
 static std::vector<double>::iterator max_x, max_y; //pattern2,3
@@ -169,7 +170,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_y = enu_relative_pos_y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
   }
-
+/*
   if (distance.distance-distance_last > separation_distance && gnss_status == true)
   {
 
@@ -208,8 +209,50 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     }
 
   }
+*/
+
+if (distance.distance-distance_last > separation_distance)
+{
+  if (estimated_number < estimated_number_max)
+  {
+    ++estimated_number;
+  }
+  else
+  {
+    estimated_number = estimated_number_max;
+  }
+
+  enu_pos_x_buffer.push_back(enu_pos[0]);
+  enu_pos_y_buffer.push_back(enu_pos[1]);
+  //enu_pos_z_buffer.push_back(enu_pos[2]);
+  enu_pos_z_buffer.push_back(0);
+  correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+  enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);
+  enu_relative_pos_y_buffer.push_back(enu_relative_pos_y);
+  //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
+  enu_relative_pos_z_buffer.push_back(0);
+  distance_buffer.push_back(distance.distance);
+  gnss_status_buffer.push_back(gnss_status);
+
+  data_status = true; //judgment that refreshed data
+
+  if (distance_buffer.end() - distance_buffer.begin() > estimated_number_max)
+  {
+    enu_pos_x_buffer.erase(enu_pos_x_buffer.begin());
+    enu_pos_y_buffer.erase(enu_pos_y_buffer.begin());
+    enu_pos_z_buffer.erase(enu_pos_z_buffer.begin());
+    correction_velocity_buffer.erase(correction_velocity_buffer.begin());
+    enu_relative_pos_x_buffer.erase(enu_relative_pos_x_buffer.begin());
+    enu_relative_pos_y_buffer.erase(enu_relative_pos_y_buffer.begin());
+    enu_relative_pos_z_buffer.erase(enu_relative_pos_z_buffer.begin());
+    distance_buffer.erase(distance_buffer.begin());
+    gnss_status_buffer.erase(gnss_status_buffer.begin());
+  }
+
+}
 
   std::vector<int> distance_index;
+  std::vector<int> gnss_index;
   std::vector<int> velocity_index;
   std::vector<int> index;
 
@@ -219,6 +262,10 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     {
       distance_index.push_back(i);
     }
+    if (gnss_status_buffer[i] == true)
+      {
+        gnss_index.push_back(i);
+      }
     if (correction_velocity_buffer[i] > estimated_velocity_threshold)
     {
       velocity_index.push_back(i);
@@ -227,18 +274,25 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
   velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-  set_intersection(distance_index.begin(), distance_index.end(), velocity_index.begin(), velocity_index.end(),
+  set_intersection(distance_index.begin(), distance_index.end(), gnss_index.begin(), gnss_index.end(),
+                   inserter(index, index.end()));
+
+  set_intersection(index.begin(), index.end(), velocity_index.begin(), velocity_index.end(),
                    inserter(index, index.end()));
 
   index_length = std::distance(index.begin(), index.end());
+
+  //ROS_ERROR("estimated_number %d",estimated_number);
+  //ROS_ERROR("index_length %zu",index_length);
+  //ROS_ERROR("velocity_index_length %zu",velocity_index_length);
 
   if (data_status == true)
   {
     if (distance.distance > estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold && heading_estimate_status_count > 0 &&
         count > 1)
     {
-      //if (index_length > velocity_index_length * estimated_enu_vel_coefficient)
-      //{
+      if (index_length > velocity_index_length * estimated_enu_vel_coefficient)
+      {
         while (1)
         {
           index_length = std::distance(index.begin(), index.end());
@@ -415,7 +469,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
             enu_absolute_pos.enu_pos.z = tmp_enu_pos_z + (enu_relative_pos_z_buffer[estimated_number - 1] - enu_relative_pos_z_buffer[index[index_length - 1]]);
           }
         }
-      //}
+      }
     }
   }
 
