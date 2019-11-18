@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
    SlipAngle.msg
    Position.msg
    Debug.msg
+   Debug_log.msg
  )
 
  generate_messages(

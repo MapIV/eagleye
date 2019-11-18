@@ -39,6 +39,8 @@
 #include <math.h>
 #include <numeric>
 
+#include "eagleye_msgs/Debug_log.h"
+
 //default value
 static double estimated_distance = 500;
 static double separation_distance = 0.1;
@@ -85,6 +87,9 @@ static eagleye_msgs::Heading heading_interpolate_3rd;
 
 static eagleye_msgs::Position enu_absolute_pos;
 static ros::Publisher pub;
+
+static eagleye_msgs::Debug_log debug;
+static ros::Publisher pub_debug;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -170,7 +175,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_y = enu_relative_pos_y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
   }
-/*
+
   if (distance.distance-distance_last > separation_distance && gnss_status == true)
   {
 
@@ -193,6 +198,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
     enu_relative_pos_z_buffer.push_back(0);
     distance_buffer.push_back(distance.distance);
+    gnss_status_buffer.push_back(gnss_status);//
 
     data_status = true; //judgment that refreshed data
 
@@ -206,11 +212,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       enu_relative_pos_y_buffer.erase(enu_relative_pos_y_buffer.begin());
       enu_relative_pos_z_buffer.erase(enu_relative_pos_z_buffer.begin());
       distance_buffer.erase(distance_buffer.begin());
+      gnss_status_buffer.erase(gnss_status_buffer.begin());//
     }
 
   }
-*/
 
+/*
 if (distance.distance-distance_last > separation_distance)
 {
   if (estimated_number < estimated_number_max)
@@ -248,9 +255,8 @@ if (distance.distance-distance_last > separation_distance)
     distance_buffer.erase(distance_buffer.begin());
     gnss_status_buffer.erase(gnss_status_buffer.begin());
   }
-
 }
-
+*/
   std::vector<int> distance_index;
   std::vector<int> gnss_index;
   std::vector<int> velocity_index;
@@ -282,9 +288,10 @@ if (distance.distance-distance_last > separation_distance)
 
   index_length = std::distance(index.begin(), index.end());
 
-  //ROS_ERROR("estimated_number %d",estimated_number);
-  //ROS_ERROR("index_length %zu",index_length);
-  //ROS_ERROR("velocity_index_length %zu",velocity_index_length);
+  debug.log1 = index_length;
+  debug.log3 = estimated_number;
+  debug.log4 = std::distance(gnss_index.begin(), gnss_index.end());
+  debug.log5 = std::distance(velocity_index.begin(), velocity_index.end());
 
   if (data_status == true)
   {
@@ -473,6 +480,16 @@ if (distance.distance-distance_last > separation_distance)
     }
   }
 
+  debug.log2 = index_length;
+  debug.log6 = enu_absolute_pos.status.estimate_status;
+  pub_debug.publish(debug);
+  ROS_ERROR("before index length %lf",debug.log1);
+  ROS_ERROR("after index length %lf",debug.log2);
+  ROS_ERROR("estimate number %lf",debug.log3);
+  ROS_ERROR("gnss index length %lf",debug.log4);
+  ROS_ERROR("velocity index length %lf",debug.log5);
+  ROS_ERROR("flag %lf",debug.log6);
+
   time_last = msg->header.stamp.toSec();
   distance_last = distance.distance;
   enu_absolute_pos.status.estimate_status = false;
@@ -505,6 +522,9 @@ int main(int argc, char** argv)
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
+
+  pub_debug = n.advertise<eagleye_msgs::Debug_log>("/eagleye/debug_log", 1000);
+
   ros::spin();
 
   return 0;
