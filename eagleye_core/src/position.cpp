@@ -66,6 +66,9 @@ static double distance_last;
 static std::size_t index_length;
 static std::size_t velocity_index_length;
 
+static std::size_t debug_velocity_index_length;
+static std::size_t distance_index_length;
+
 static std::vector<double> enu_pos_x_buffer, enu_pos_y_buffer,  enu_pos_z_buffer;
 static std::vector<double> enu_relative_pos_x_buffer, enu_relative_pos_y_buffer, enu_relative_pos_z_buffer;
 static std::vector<double> base_enu_pos_x_buffer, base_enu_pos_y_buffer, base_enu_pos_z_buffer;
@@ -75,7 +78,6 @@ static std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
 static std::vector<double> diff_buffer;
 static std::vector<double> correction_velocity_buffer;
 static std::vector<double> distance_buffer;
-static std::vector<double> gnss_status_buffer;
 
 //static std::vector<double>::iterator max; //pattern1
 static std::vector<double>::iterator max_x, max_y; //pattern2,3
@@ -198,7 +200,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
     enu_relative_pos_z_buffer.push_back(0);
     distance_buffer.push_back(distance.distance);
-    gnss_status_buffer.push_back(gnss_status);//
 
     data_status = true; //judgment that refreshed data
 
@@ -212,53 +213,10 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       enu_relative_pos_y_buffer.erase(enu_relative_pos_y_buffer.begin());
       enu_relative_pos_z_buffer.erase(enu_relative_pos_z_buffer.begin());
       distance_buffer.erase(distance_buffer.begin());
-      gnss_status_buffer.erase(gnss_status_buffer.begin());//
     }
-
   }
 
-/*
-if (distance.distance-distance_last > separation_distance)
-{
-  if (estimated_number < estimated_number_max)
-  {
-    ++estimated_number;
-  }
-  else
-  {
-    estimated_number = estimated_number_max;
-  }
-
-  enu_pos_x_buffer.push_back(enu_pos[0]);
-  enu_pos_y_buffer.push_back(enu_pos[1]);
-  //enu_pos_z_buffer.push_back(enu_pos[2]);
-  enu_pos_z_buffer.push_back(0);
-  correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
-  enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);
-  enu_relative_pos_y_buffer.push_back(enu_relative_pos_y);
-  //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
-  enu_relative_pos_z_buffer.push_back(0);
-  distance_buffer.push_back(distance.distance);
-  gnss_status_buffer.push_back(gnss_status);
-
-  data_status = true; //judgment that refreshed data
-
-  if (distance_buffer.end() - distance_buffer.begin() > estimated_number_max)
-  {
-    enu_pos_x_buffer.erase(enu_pos_x_buffer.begin());
-    enu_pos_y_buffer.erase(enu_pos_y_buffer.begin());
-    enu_pos_z_buffer.erase(enu_pos_z_buffer.begin());
-    correction_velocity_buffer.erase(correction_velocity_buffer.begin());
-    enu_relative_pos_x_buffer.erase(enu_relative_pos_x_buffer.begin());
-    enu_relative_pos_y_buffer.erase(enu_relative_pos_y_buffer.begin());
-    enu_relative_pos_z_buffer.erase(enu_relative_pos_z_buffer.begin());
-    distance_buffer.erase(distance_buffer.begin());
-    gnss_status_buffer.erase(gnss_status_buffer.begin());
-  }
-}
-*/
   std::vector<int> distance_index;
-  std::vector<int> gnss_index;
   std::vector<int> velocity_index;
   std::vector<int> index;
 
@@ -268,10 +226,6 @@ if (distance.distance-distance_last > separation_distance)
     {
       distance_index.push_back(i);
     }
-    if (gnss_status_buffer[i] == true)
-      {
-        gnss_index.push_back(i);
-      }
     if (correction_velocity_buffer[i] > estimated_velocity_threshold)
     {
       velocity_index.push_back(i);
@@ -280,18 +234,20 @@ if (distance.distance-distance_last > separation_distance)
 
   velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-  set_intersection(distance_index.begin(), distance_index.end(), gnss_index.begin(), gnss_index.end(),
-                   inserter(index, index.end()));
-
-  set_intersection(index.begin(), index.end(), velocity_index.begin(), velocity_index.end(),
+  set_intersection(velocity_index.begin(), velocity_index.end(), distance_index.begin(), distance_index.end(),
                    inserter(index, index.end()));
 
   index_length = std::distance(index.begin(), index.end());
 
   debug.log1 = index_length;
   debug.log3 = estimated_number;
-  debug.log4 = std::distance(gnss_index.begin(), gnss_index.end());
+  debug.log4 = estimated_number;
   debug.log5 = std::distance(velocity_index.begin(), velocity_index.end());
+
+  debug_velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
+  index_length = std::distance(index.begin(), index.end());
+  distance_index_length = std::distance(distance_index.begin(), distance_index.end());
+  //ROS_ERROR("estimated_number %d index length %zu velocity_index %zu distance_index %zu",estimated_number, index_length,debug_velocity_index_length,distance_index_length);
 
   if (data_status == true)
   {
@@ -483,12 +439,14 @@ if (distance.distance-distance_last > separation_distance)
   debug.log2 = index_length;
   debug.log6 = enu_absolute_pos.status.estimate_status;
   pub_debug.publish(debug);
+  /*
   ROS_ERROR("before index length %lf",debug.log1);
   ROS_ERROR("after index length %lf",debug.log2);
   ROS_ERROR("estimate number %lf",debug.log3);
   ROS_ERROR("gnss index length %lf",debug.log4);
   ROS_ERROR("velocity index length %lf",debug.log5);
   ROS_ERROR("flag %lf",debug.log6);
+  */
 
   time_last = msg->header.stamp.toSec();
   distance_last = distance.distance;
