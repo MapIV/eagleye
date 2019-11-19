@@ -178,7 +178,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
   }
 
-  if (distance.distance-distance_last > separation_distance && gnss_status == true)
+  if (distance.distance-distance_last >= separation_distance && gnss_status == true)
   {
 
     if (estimated_number < estimated_number_max)
@@ -214,46 +214,48 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       enu_relative_pos_z_buffer.erase(enu_relative_pos_z_buffer.begin());
       distance_buffer.erase(distance_buffer.begin());
     }
+    distance_last = distance.distance;
   }
 
-  std::vector<int> distance_index;
-  std::vector<int> velocity_index;
-  std::vector<int> index;
-
-  for (i = 0; i < estimated_number; i++)
-  {
-    if (distance_buffer[estimated_number-1] - distance_buffer[i]  <= estimated_distance)
-    {
-      distance_index.push_back(i);
-    }
-    if (correction_velocity_buffer[i] > estimated_velocity_threshold)
-    {
-      velocity_index.push_back(i);
-    }
-  }
-
-  velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
-
-  set_intersection(velocity_index.begin(), velocity_index.end(), distance_index.begin(), distance_index.end(),
-                   inserter(index, index.end()));
-
-  index_length = std::distance(index.begin(), index.end());
-
-  debug.log1 = index_length;
-  debug.log3 = estimated_number;
-  debug.log4 = estimated_number;
-  debug.log5 = std::distance(velocity_index.begin(), velocity_index.end());
-
-  debug_velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
-  index_length = std::distance(index.begin(), index.end());
-  distance_index_length = std::distance(distance_index.begin(), distance_index.end());
-  //ROS_ERROR("estimated_number %d index length %zu velocity_index %zu distance_index %zu",estimated_number, index_length,debug_velocity_index_length,distance_index_length);
+ debug.log1 = 0;
+ debug.log2 = 0;
+ debug.log3 = 0;
+ debug.log4 = 0;
+ debug.log5 = 0;
 
   if (data_status == true)
   {
     if (distance.distance > estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold && heading_estimate_status_count > 0 &&
         count > 1)
     {
+
+      std::vector<int> distance_index;
+      std::vector<int> velocity_index;
+      std::vector<int> index;
+
+      for (i = 0; i < estimated_number; i++)
+      {
+        if (distance_buffer[estimated_number-1] - distance_buffer[i]  <= estimated_distance)
+        {
+          distance_index.push_back(i);
+        }
+        if (correction_velocity_buffer[i] > estimated_velocity_threshold)
+        {
+          velocity_index.push_back(i);
+        }
+      }
+
+      set_intersection(velocity_index.begin(), velocity_index.end(), distance_index.begin(), distance_index.end(),
+                       inserter(index, index.end()));
+
+      index_length = std::distance(index.begin(), index.end());
+      velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
+
+      debug.log1 = index_length;
+      debug.log3 = estimated_number;
+      debug.log4 = estimated_number;
+      debug.log5 = velocity_index_length;
+
       if (index_length > velocity_index_length * estimated_enu_vel_coefficient)
       {
         while (1)
@@ -412,6 +414,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
         index_length = std::distance(index.begin(), index.end());
         velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
+        debug.log2 = index_length;
 
         if (index_length >= velocity_index_length * estimated_position_coefficient)
         {
@@ -436,20 +439,10 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     }
   }
 
-  debug.log2 = index_length;
   debug.log6 = enu_absolute_pos.status.estimate_status;
   pub_debug.publish(debug);
-  /*
-  ROS_ERROR("before index length %lf",debug.log1);
-  ROS_ERROR("after index length %lf",debug.log2);
-  ROS_ERROR("estimate number %lf",debug.log3);
-  ROS_ERROR("gnss index length %lf",debug.log4);
-  ROS_ERROR("velocity index length %lf",debug.log5);
-  ROS_ERROR("flag %lf",debug.log6);
-  */
 
   time_last = msg->header.stamp.toSec();
-  distance_last = distance.distance;
   enu_absolute_pos.status.estimate_status = false;
   data_status = false;
 }
