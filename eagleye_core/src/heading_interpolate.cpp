@@ -193,6 +193,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     }
   }
 
+  /*
   // angle reversal processing (-3.14~3.14)
   if (provisional_heading_angle > M_PI)
   {
@@ -202,6 +203,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   {
     provisional_heading_angle = provisional_heading_angle + 2.0 * M_PI;
   }
+  */
 
   if (heading_estimate_start_status == true)
   {

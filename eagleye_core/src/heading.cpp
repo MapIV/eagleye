@@ -59,6 +59,7 @@ static int index_max;
 
 static double avg = 0.0;
 static double doppler_heading_angle = 0.0;
+static double doppler_heading_angle2 = 0.0;
 static double yawrate = 0.0;
 static double tmp_heading_angle = 0.0;
 
@@ -83,6 +84,7 @@ static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset yawrate_offset;
 static eagleye_msgs::SlipAngle slip_angle;
+static eagleye_msgs::Heading heading_interpolate;
 
 static ros::Publisher pub;
 static eagleye_msgs::Heading heading;
@@ -108,6 +110,11 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
   doppler_heading_angle = atan2(enu_vel[0], enu_vel[1]);
+
+  if(doppler_heading_angle<0){
+    doppler_heading_angle = doppler_heading_angle + 2*M_PI;
+  }
+
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -138,6 +145,13 @@ void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
   slip_angle.coefficient = msg->coefficient;
   slip_angle.slip_angle = msg->slip_angle;
   slip_angle.status = msg->status;
+}
+
+void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+{
+  heading_interpolate.header = msg->header;
+  heading_interpolate.heading_angle = msg->heading_angle;
+  heading_interpolate.status = msg->status;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
@@ -232,6 +246,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
     index_length = std::distance(index.begin(), index.end());
 
+    //ROS_INFO("index_length = %d",index_length);
+
     if (index_length > estimated_number * estimated_gnss_coefficient)
     {
       std::vector<double> provisional_heading_angle_buffer(estimated_number, 0);
@@ -258,6 +274,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       std::vector<double> inversion_down_index;
 
       // angle reversal processing (-3.14~3.14)
+      /*
       for (i = 0; i < estimated_number; i++)
       {
         base_heading_angle_buffer.push_back(heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
@@ -297,6 +314,32 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         {
           heading_angle_buffer[inversion_down_index[i]] = heading_angle_buffer[inversion_down_index[i]] - 2.0 * M_PI;
         }
+      }*/
+
+     if(heading_interpolate.status.enabled_status == false)
+     {
+       heading_interpolate.heading_angle = heading_angle_buffer[index[index_length-1]];
+       ROS_WARN("heading_interpolate FALSE");
+     }
+
+     //ROS_INFO("heading_interpolate = %lf",heading_interpolate.heading_angle);
+
+      int ref_cnt;
+      std::vector<double> heading_angle_buffer2;
+
+      copy(heading_angle_buffer.begin(), heading_angle_buffer.end(), back_inserter(heading_angle_buffer2) );
+
+      for (i = 0; i < estimated_number; i++)
+      {
+        base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+      }
+
+      for (i = 0; i < index_length; i++)
+      {
+        ref_cnt = (base_heading_angle_buffer[index[i]] - fmod(base_heading_angle_buffer[index[i]],2*M_PI))/(2*M_PI);
+        if(base_heading_angle_buffer[index[i]] < 0) ref_cnt = ref_cnt -1;
+        heading_angle_buffer2[index[i]] = heading_angle_buffer[index[i]] + ref_cnt * 2*M_PI;
+        ROS_INFO("%lf , %lf , %lf , %lf , %d",heading_interpolate.heading_angle,heading_angle_buffer2[index[i]],base_heading_angle_buffer[index[i]],fmod(base_heading_angle_buffer[index[i]],2*M_PI),ref_cnt);
       }
 
       while (1)
@@ -306,17 +349,18 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         base_heading_angle_buffer.clear();
         for (i = 0; i < estimated_number; i++)
         {
-          base_heading_angle_buffer.push_back(heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+          base_heading_angle_buffer.push_back(heading_angle_buffer2[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+          //base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
         }
 
         diff_buffer.clear();
         for (i = 0; i < index_length; i++)
         {
-          diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer[index[i]]);
+          diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer2[index[i]]);
         }
 
         avg = std::accumulate(diff_buffer.begin(), diff_buffer.end(), 0.0) / index_length;
-        tmp_heading_angle = heading_angle_buffer[index[index_length-1]] - avg;
+        tmp_heading_angle = heading_angle_buffer2[index[index_length-1]] - avg;
 
         base_heading_angle_buffer2.clear();
         for (i = 0; i < estimated_number; i++)
@@ -327,7 +371,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         diff_buffer.clear();
         for (i = 0; i < index_length; i++)
         {
-          diff_buffer.push_back(fabsf(base_heading_angle_buffer2[index[i]] - heading_angle_buffer[index[i]]));
+          diff_buffer.push_back(fabsf(base_heading_angle_buffer2[index[i]] - heading_angle_buffer2[index[i]]));
         }
 
         max = std::max_element(diff_buffer.begin(), diff_buffer.end());
@@ -360,7 +404,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         {
           heading.heading_angle = tmp_heading_angle + (provisional_heading_angle_buffer[estimated_number-1] - provisional_heading_angle_buffer[index[index_length-1]]);
         }
-
+        /*
         if (heading.heading_angle > M_PI)
         {
           heading.heading_angle = heading.heading_angle - 2.0 * M_PI;
@@ -369,6 +413,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         {
           heading.heading_angle = heading.heading_angle + 2.0 * M_PI;
         }
+        */
         heading.header = msg->header;
         heading.status.estimate_status = true;
 
@@ -405,6 +450,7 @@ int main(int argc, char** argv)
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+  std::string subscribe_topic_name2 = "/subscribe_topic_name2/invalid";
 
   if (argc == 2)
   {
@@ -412,16 +458,19 @@ int main(int argc, char** argv)
     {
       publish_topic_name = "/eagleye/heading_1st";
       subscribe_topic_name = "/eagleye/yawrate_offset_stop";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "/eagleye/heading_2nd";
       subscribe_topic_name = "/eagleye/yawrate_offset_1st";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
       publish_topic_name = "/eagleye/heading_3rd";
       subscribe_topic_name = "/eagleye/yawrate_offset_2nd";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_3rd";
     }
     else
     {
@@ -435,12 +484,15 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
+
+
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback);
   ros::Subscriber sub6 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback);
+  ros::Subscriber sub7 = n.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback);
 
   pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 

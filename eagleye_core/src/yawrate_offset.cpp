@@ -205,11 +205,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       std::vector<double> inversion_up_index;
       std::vector<double> inversion_down_index;
 
+      /*
       for (i = 0; i < estimated_number; i++)
       {
         base_heading_angle_buffer.push_back(heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
       }
 
+　　　　
       for (i = 0; i < index_length; i++)
       {
         diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer[index[i]]);
@@ -245,16 +247,17 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
           heading_angle_buffer[inversion_down_index[i]] = heading_angle_buffer[inversion_down_index[i]] - 2.0 * M_PI;
         }
       }
+      */
 
       index_length = std::distance(index.begin(), index.end());
 
-      base_heading_angle_buffer.clear();
+      //base_heading_angle_buffer.clear();
       for (i = 0; i < estimated_number; i++)
       {
         base_heading_angle_buffer.push_back(heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
       }
 
-      diff_buffer.clear();
+      //diff_buffer.clear();
       for (i = 0; i < index_length; i++)
       {
         // diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer[index[i]]);
