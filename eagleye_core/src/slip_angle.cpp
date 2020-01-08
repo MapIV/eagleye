@@ -190,6 +190,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
         if(heading_estimate_status_count > estimated_number_min)
           {
             double sum_xy_avg,sum_x_square = 0.0;
+            acceleration_y_buffer_length = std::distance(acceleration_y_buffer.begin(), acceleration_y_buffer.end());
 
             // Least-square
             sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
