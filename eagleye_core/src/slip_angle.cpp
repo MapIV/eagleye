@@ -53,7 +53,8 @@ static double doppler_heading_angle;
 static double doppler_slip;
 static double yawrate;
 static double acceleration_y;
-static double estimate_coefficient = 0;
+static double estimate_coefficient;
+static double sum_xy, sum_x, sum_y, sum_x2;
 
 static std::size_t acceleration_y_buffer_length;
 static std::vector<double> acceleration_y_buffer;
@@ -190,18 +191,18 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
           {
             double sum_xy_avg,sum_x_square = 0.0;
 
-            for(i = 0 ; i < heading_estimate_status_count ; ++i)
+            // Least-square
+            sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
+            for (i = 0; i < acceleration_y_buffer_length ; i++)
             {
-              sum_xy_avg += (acceleration_y_buffer[i]*doppler_slip_buffer[i]);
-              sum_x_square += pow(acceleration_y_buffer[i],2);
+              sum_xy += acceleration_y_buffer[i] * doppler_slip_buffer[i];
+              sum_x += acceleration_y_buffer[i];
+              sum_y += doppler_slip_buffer[i];
+              sum_x2 += pow(acceleration_y_buffer[i], 2);
             }
-
-            if (isnan(sum_xy_avg) == false && isnan(sum_x_square) == false && isinf(sum_xy_avg) == false && isinf(sum_x_square) == false && sum_xy_avg != 0.0 && sum_x_square != 0.0)
-            {
-              estimate_coefficient = (sum_xy_avg/sum_x_square);
-              slip_angle.status.enabled_status = true;
-              slip_angle.status.estimate_status = true;
-            }
+            estimate_coefficient = (heading_estimate_status_count * sum_xy - sum_x * sum_y) / (heading_estimate_status_count * sum_x2 - pow(sum_x, 2));
+            slip_angle.status.enabled_status = true;
+            slip_angle.status.estimate_status = true;
           }
         }
       }
