@@ -26,64 +26,43 @@
 void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos[0])
 {
   //ecef2llh
-  double x = ecef_base_pos[0];
-  double y = ecef_base_pos[1];
-  double z = ecef_base_pos[2];
-  double x2 = x * x;
-  double y2 = y * y;
-  double z2 = z * z;
-  double a = 6378137.0000;
-  double b = 6356752.3142;
-  double e = sqrt(1 - pow(b / a, 2.0));
-  double r = sqrt(x2 + y2);
-  double ep = e * (a / b);
-  double b2 = b * b;
-  double e2 = e * e;
-  double r2 = r * r;
-  double f = 54 * b2 * z2;
-  double g = r2 + (1 - e2) * z2 - e2 * (a * a - b * b);
-  double i = (e2 * e2 * f * r2) / (g * g * g);
-  double o = pow((1 + i + sqrt(i * i + 2 * i)), 1.0 / 3.0);
-  double p = f / (3 * pow((o + 1 / o + 1), 2.0) * g * g);
-  double q = sqrt(1 + 2 * e2 * e2 * p);
-  double s =
-      -(p * e2 * r) / (1 + q) + sqrt((a * a / 2) * (1 + 1 / q) - (p * (1 - e2) * z2) / (q * (1 + q)) - p * r2 / 2);
-  double tmp = pow((r - e2 * s), 2.0);
-  double u = sqrt(tmp + z2);
-  double v = sqrt(tmp + (1 - e2) * z2);
-  double w = (b2 * z) / (a * v);
-  double tmp_lon = atan(y / x);
-  double base_lat = atan((z + ep * ep * w) / r);
-  double base_lon = 0;
+  double semi_major_axis = 6378137.0000;
+  double semi_minor_axis = 6356752.3142;
+  double a1 = sqrt(1 - pow(semi_minor_axis / semi_major_axis, 2.0));
+  double a2 = sqrt((ecef_base_pos[0] * ecef_base_pos[0]) + (ecef_base_pos[1] * ecef_base_pos[1]));
+  double a3 = 54 * (semi_minor_axis * semi_minor_axis) * (ecef_base_pos[2] * ecef_base_pos[2]);
+  double a4 = (a2 * a2) + (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2]) - (a1 * a1) * (semi_major_axis * semi_major_axis - semi_minor_axis * semi_minor_axis);
+  double a5 = ((a1 * a1) * (a1 * a1) * a3 * (a2 * a2)) / (a4 * a4 * a4);
+  double a6 = pow((1 + a5 + sqrt(a5 * a5 + 2 * a5)), 1.0 / 3.0);
+  double a7 = a3 / (3 * pow((a6 + 1 / a6 + 1), 2.0) * a4 * a4);
+  double a8 = sqrt(1 + 2 * (a1 * a1) * (a1 * a1) * a7);
+  double a9 = -(a7 * (a1 * a1) * a2) / (1 + a8) + sqrt((semi_major_axis * semi_major_axis / 2) * (1 + 1 / a8) - (a7 * (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2])) / (a8 * (1 + a8)) - a7 * (a2 * a2) / 2);
+  double a10 = sqrt((pow((a2 - (a1 * a1) * a9), 2.0)) + (ecef_base_pos[2] * ecef_base_pos[2]));
+  double a11 = sqrt((pow((a2 - (a1 * a1) * a9), 2.0)) + (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2]));
+  double a12 = ((semi_minor_axis * semi_minor_axis) * ecef_base_pos[2]) / (semi_major_axis * a11);
+  double base_latitude = atan((ecef_base_pos[2] + (a1 * (semi_major_axis / semi_minor_axis)) * (a1 * (semi_major_axis / semi_minor_axis)) * a12) / a2);
+  double base_longitude = 0;
 
-  if (x >= 0)
+  if (ecef_base_pos[0] >= 0)
   {
-    base_lon = tmp_lon;
+    base_longitude = (atan(ecef_base_pos[1] / ecef_base_pos[0]));
   }
   else
   {
-    if (x < 0 && y >= 0)
+    if (ecef_base_pos[0] < 0 && ecef_base_pos[1] >= 0)
     {
-      base_lon = M_PI + tmp_lon;
+      base_longitude = M_PI + (atan(ecef_base_pos[1] / ecef_base_pos[0]));
     }
     else
     {
-      base_lon = tmp_lon - M_PI;
+      base_longitude = (atan(ecef_base_pos[1] / ecef_base_pos[0])) - M_PI;
     }
   }
 
-  double base_alt = u * (1 - b2 / (a * v));
+  double base_alt = a10 * (1 - (semi_minor_axis * semi_minor_axis) / (semi_major_axis * a11));
 
   //ecef2enu
-  double phi = base_lat;
-  double lam = base_lon;
-
-  double sin_phi = sin(phi);
-  double cos_phi = cos(phi);
-  double sin_lam = sin(lam);
-  double cos_lam = cos(lam);
-
-  enu_pos[0] = ((-sin_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_lam * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos[1] = ((-sin_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (-sin_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (cos_phi * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos[2] = ((cos_phi * cos_lam * (ecef_pos[0] - ecef_base_pos[0])) + (cos_phi * sin_lam * (ecef_pos[1] - ecef_base_pos[1])) + (sin_phi * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[0] = ((-(sin(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[1] = ((-(sin(base_latitude)) * (cos(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + (-(sin(base_latitude)) * (sin(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + ((cos(base_latitude)) * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[2] = (((cos(base_latitude)) * (cos(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(base_latitude)) * (sin(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + ((sin(base_latitude)) * (ecef_pos[2] - ecef_base_pos[2])));
 }
