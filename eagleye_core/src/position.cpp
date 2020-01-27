@@ -38,8 +38,10 @@
 #include "xyz2enu.hpp"
 #include <math.h>
 #include <numeric>
+#include <time.h>
 
 #include "eagleye_msgs/Debug_log.h"
+#include "sensor_msgs/Imu.h"
 
 //default value
 static double estimated_distance = 500;
@@ -57,6 +59,7 @@ static int tow_last = 0;
 //static int max_index = 0; //pattern1
 static int max_x_index, max_y_index; //pattern2,3
 static double time_last = 0.0;
+static double time_now = 0.0;
 static double avg_x, avg_y, avg_z;
 static double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
 static double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
@@ -92,6 +95,12 @@ static ros::Publisher pub;
 
 static eagleye_msgs::Debug_log debug;
 static ros::Publisher pub_debug;
+static sensor_msgs::Imu imu;
+
+void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  imu.header = msg->header;
+}
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -148,6 +157,13 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   ++count;
 
+  struct timespec startTime, endTime, sleepTime;
+
+  clock_gettime(CLOCK_REALTIME, &startTime);
+  sleepTime.tv_sec = 0;
+  sleepTime.tv_nsec = 123;
+
+
   if (tow_last == rtklib_nav.tow)
   {
     gnss_status = false;
@@ -177,6 +193,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_y = enu_relative_pos_y + msg->vector.y * (msg->header.stamp.toSec() - time_last);
     enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
   }
+
 
   if (distance.distance-distance_last >= separation_distance && gnss_status == true)
   {
@@ -238,10 +255,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
         if (distance_buffer[estimated_number-1] - distance_buffer[i]  <= estimated_distance)
         {
           distance_index.push_back(i);
-        }
-        if (correction_velocity_buffer[i] > estimated_velocity_threshold)
-        {
-          velocity_index.push_back(i);
+
+          if (correction_velocity_buffer[i] > estimated_velocity_threshold)
+          {
+            velocity_index.push_back(i);
+          }
+
         }
       }
 
@@ -324,11 +343,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
           {
             diff_buffer.push_back(sqrt((diff_x_buffer[i] * diff_x_buffer[i]) + (diff_y_buffer[i] * diff_y_buffer[i]) + (diff_z_buffer[i] * diff_z_buffer[i])));
           }
-
           max = std::max_element(diff_buffer.begin(), diff_buffer.end());
-
           max_index = std::distance(diff_buffer.begin(), max);
-
                 if (diff_buffer[max_index] > outlier_threshold)
                 {
                   index.erase(index.begin() + max_index);
@@ -343,10 +359,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
           //pattern2
           max_x = std::max_element(diff_x_buffer.begin(), diff_x_buffer.end());
           max_y = std::max_element(diff_y_buffer.begin(), diff_y_buffer.end());
-
           max_x_index = std::distance(diff_x_buffer.begin(), max_x);
           max_y_index = std::distance(diff_y_buffer.begin(), max_y);
-
           if(diff_x_buffer[max_x_index] > diff_y_buffer[max_y_index])
           {
             if (diff_x_buffer[max_x_index] > outlier_threshold)
@@ -369,7 +383,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
               break;
             }
           }
-
 */
 
 	        //pattern3
@@ -445,6 +458,19 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   time_last = msg->header.stamp.toSec();
   enu_absolute_pos.status.estimate_status = false;
   data_status = false;
+
+  clock_gettime(CLOCK_REALTIME, &endTime);
+
+  if (endTime.tv_nsec < startTime.tv_nsec) {
+    ROS_INFO("ProTime = %ld.%09ld ", endTime.tv_sec - startTime.tv_sec - 1
+            ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec );
+  }
+  else {
+    ROS_INFO("ProTime = %ld.%09ld ", endTime.tv_sec - startTime.tv_sec
+          ,endTime.tv_nsec - startTime.tv_nsec );
+  }
+
+
 }
 
 int main(int argc, char** argv)
@@ -471,6 +497,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback);
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub6 = n.subscribe("/imu/data_raw", 1000, imu_callback);
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
 
