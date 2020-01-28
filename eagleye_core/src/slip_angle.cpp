@@ -147,6 +147,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
 
+  /*
+
   if (heading_interpolate_3rd.status.estimate_status == true)
   {
     heading_interpolate_3rd.status.estimate_status = false; //in order to prevent being judged many times
@@ -224,6 +226,16 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       slip_angle.status.estimate_status = false;
     }
   }
+  */
+
+  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
+  {
+      slip_angle.coefficient = manual_coefficient;
+      slip_angle.slip_angle = manual_coefficient * acceleration_y;
+      slip_angle.status.enabled_status = false;
+      slip_angle.status.estimate_status = false;
+  }
+
   pub.publish(slip_angle);
   slip_angle.status.estimate_status = false;
 }
