@@ -422,7 +422,6 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback);
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
-  ros::Subscriber sub6 = n.subscribe("/imu/data_raw", 1000, imu_callback);
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
 
