@@ -95,12 +95,6 @@ static ros::Publisher pub;
 
 static eagleye_msgs::Debug_log debug;
 static ros::Publisher pub_debug;
-static sensor_msgs::Imu imu;
-
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
-{
-  imu.header = msg->header;
-}
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -156,13 +150,6 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   ++count;
-
-  struct timespec startTime, endTime, sleepTime;
-
-  clock_gettime(CLOCK_REALTIME, &startTime);
-  sleepTime.tv_sec = 0;
-  sleepTime.tv_nsec = 123;
-
 
   if (tow_last == rtklib_nav.tow)
   {
@@ -336,56 +323,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
             diff_z_buffer.push_back(fabsf(base_enu_pos_z_buffer2[index[i]] - enu_pos_z_buffer[index[i]]));
           }
 
-/*
-          //pattern1
-          diff_buffer.clear();
-          for (i = 0; i < index_length; i++)
-          {
-            diff_buffer.push_back(sqrt((diff_x_buffer[i] * diff_x_buffer[i]) + (diff_y_buffer[i] * diff_y_buffer[i]) + (diff_z_buffer[i] * diff_z_buffer[i])));
-          }
-          max = std::max_element(diff_buffer.begin(), diff_buffer.end());
-          max_index = std::distance(diff_buffer.begin(), max);
-                if (diff_buffer[max_index] > outlier_threshold)
-                {
-                  index.erase(index.begin() + max_index);
-                }
-                else
-                {
-                  break;
-                }
-*/
-
-/*
-          //pattern2
-          max_x = std::max_element(diff_x_buffer.begin(), diff_x_buffer.end());
-          max_y = std::max_element(diff_y_buffer.begin(), diff_y_buffer.end());
-          max_x_index = std::distance(diff_x_buffer.begin(), max_x);
-          max_y_index = std::distance(diff_y_buffer.begin(), max_y);
-          if(diff_x_buffer[max_x_index] > diff_y_buffer[max_y_index])
-          {
-            if (diff_x_buffer[max_x_index] > outlier_threshold)
-            {
-              index.erase(index.begin() + max_x_index);
-            }
-            else
-            {
-              break;
-            }
-          }
-          else
-          {
-            if (diff_y_buffer[max_y_index] > outlier_threshold)
-            {
-              index.erase(index.begin() + max_y_index);
-            }
-            else
-            {
-              break;
-            }
-          }
-*/
-
-	        //pattern3
           max_x = std::max_element(diff_x_buffer.begin(), diff_x_buffer.end());
           max_y = std::max_element(diff_y_buffer.begin(), diff_y_buffer.end());
 
@@ -458,18 +395,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   time_last = msg->header.stamp.toSec();
   enu_absolute_pos.status.estimate_status = false;
   data_status = false;
-
-  clock_gettime(CLOCK_REALTIME, &endTime);
-
-  if (endTime.tv_nsec < startTime.tv_nsec) {
-    ROS_INFO("ProTime = %ld.%09ld ", endTime.tv_sec - startTime.tv_sec - 1
-            ,endTime.tv_nsec + 1000000000 - startTime.tv_nsec );
-  }
-  else {
-    ROS_INFO("ProTime = %ld.%09ld ", endTime.tv_sec - startTime.tv_sec
-          ,endTime.tv_nsec - startTime.tv_nsec );
-  }
-
 
 }
 
