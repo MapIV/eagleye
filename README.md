@@ -3,154 +3,97 @@
 
 [![CircleCI](https://circleci.com/gh/MapIV/eagleye.svg?style=svg&circle-token=7961cc3947c36b93252f458a679dfcb9aa977b5b)](https://circleci.com/gh/MapIV/eagleye)
 
-## Overview
+## What is Eagleye
 
-It is a program that combines IMU and GNSS to perform highly accurate self position estimation.
+Eagleye is an open-source software for vehicle localization utilizing GNSS and IMU. Eagleye provides highly accurate and stable vehicle position and orientation. The flowchart of the algorithm is shown in the figure below.
 
-## Description
+![Flowchart of Eagleye](docs/flowchart.png)
 
-This is an algorithm to estimate the vehicle position with high cycle and high accuracy using IMU, GNSS receiver and wheel speed sensor.
-The main functions are as follows.
-*  IMU temperature drift estimation
-*  Wheel speed scale factor estimation Azimuth estimation
-*  Latitude and longitude estimation
-is.  
+## Getting started
 
-Both relative position and absolute position can be output.
+### Hardware
+**GNSS receiver**
+* [Ublox EVK-M8T](https://www.u-blox.com/product/evk-8evk-m8)
+* [Ublox ZED-F9P](https://www.u-blox.com/en/product/zed-f9p-module)
 
-## Recommended sensor
+**GNSS Antenna**
 
-GNSS receiver: [Ublox EVK-M8T](https://www.u-blox.com/product/evk-8evk-m8)  
-GNSS antenna: [Tallysman TW2710](http://www.tallysman.com/index.php/gnss/products/antennas-gpsbeidougalileoglonass/tw2710/)  
-IMU: [ANALOG DEVICES ADIS16475](https://www.analog.com/products/adis16475.html#product-overview)  
-Wheel speed sensor: Sensor equipped on the vehicle.
+* [Ublox ANN-MB Series](https://www.u-blox.com/en/product/ann-mb-series)
+* [Tallysman TW2710](http://www.tallysman.com/index.php/gnss/products/antennas-gpsbeidougalileoglonass/tw2710/)
 
-## Install
+**IMU**
+* [Tamagawa Seiki TAG300 Series](http://mems.tamagawa-seiki.com/en/product/)
+* [ANALOG DEVICES ADIS16475](https://www.analog.com/products/adis16475.html#product-overview)
 
-1) First, download the modified RTKLIB to your home directory.
+**Wheel speed sensor**
+
+Eagleye uses vehicle speed acquired from CAN bus.
+
+### Prerequisites
+
+1. Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rtklib_ros_bridge). You can find more details about RTKLIB [here](http://www.rtklib.com/).
 
 		cd $HOME  
-		git clone https://github.com/MapIV/RTKLIB.git
-		cd $HOME/RTKLIB     
-		git checkout rtklib_ros_bridge    
-
-	[About RTKLIB](http://www.rtklib.com)
-
-2) Build RTKLIB.
-
+		git clone -b rtklib_ros_bridge https://github.com/MapIV/RTKLIB.git
 		cd $HOME/RTKLIB/lib/iers/gcc/  
 		make   
 		cd $HOME/RTKLIB/app  
 		make   
 
-3) Change the permissions of the two files.
-
-		cd $HOME/RTKLIB/app/rtkrcv/gcc  
-		chmod 755 rtkstart.sh  
-		chmod 755 rtkshut.sh  
-
-4) Next, download and build rtklib_ros_bridge.
+2. Clone and build [rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge).
 
 		cd $HOME/catkin_ws/src  
 		git clone https://github.com/MapIV/rtklib_ros_bridge.git  
 		cd ..  
 		catkin_make -DCMAKE_BUILD_TYPE=Release  
 
-5) Download and build ADI's IMU driver.
+3. RTKLIB settings.
 
-		cd
-		cd catkin_ws/src
-		git clone https://github.com/tork-a/adi_driver.git
-		cd ..
-		catkin_make
+Change `inpstr1-path` of `$HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.conf` according to the serial device you use.
 
-## Configuration
-1) Open RTKLIB settings.
+ie)
+>inpstr1-path =/serial/by-id/usb-u-blox_AG_-_ www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off  
 
-		gedit $HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.conf
+Or you can specify device port like `/dev/ttyUSB0` or `/dev/ttyACM0`.
 
-2) Set the serial device on line 10. If you connect using USB, it is OK.
+4. GNSS receiver settings.
+Configure the receiver settings using [u-center](https://www.u-blox.com/product/u-center).
 
->Line 10:  
->inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off  
+* Enable UBX message ※ Set to output only RAWX and SFRBX
 
-※If you know the device number "/dev/ttyACM-" but OK.
+Further details will be provided later.
 
-3) Next, configure the receiver from ublox application, u-center.The usage of u-center is not described here. Below is an overview of the settings. (Here is how to use a Ublox receiver)  
+5. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/launch/eagleye_localization.launch`.
 
-* Enable UBX message ※Set to output only RAWX and SFRBX
-* Save your settings last.
+		param name="/eagleye/reverse_imu" type="bool" value="true"
 
-	[About u-center](https://www.u-blox.com/product/u-center)  
 
-4) Configure the ADI IMU driver settings. Configure the ADI IMU driver settings. Open the launch file and configure the serial settings and output rate settings.
+### Running eagleye node
 
-		cd
-		gedit catkin_ws/src/adi_driver/launch/adis16470.launch
-
->Line 2:  
->arg name="with_filter" default="false"  
->Line 5:  
->arg name="device" default="/dev/serial/by-id/usb-Devantech_Ltd._USB-ISS._00041745-if00"  
->Line 9:  
->arg name="rate" default="50"  
->Line 10:  
->arg name="publish_tf" default="false"  
-
-※If you know the device number "/dev/ttyACM-" but OK.
-
-5) When using ADIS 16475, rewrite the program as follows. ※It is not necessary to use  ADIS 16470.
-
-		cd  
-		gedit catkin_ws/src/adi_driver/src/adis16470.cpp  
-
->Line 361~362:  
->    gyro[i] = ((int32_t(gyro_out[i]) << 16) + int32_t(gyro_low[i])) * M_PI / 180.0 / 2621440.0;  
-    accl[i] = ((int32_t(accl_out[i]) << 16) + int32_t(accl_low[i])) * 9.8 / 262144000.0;  
-
-[ADIS 16475 Data Sheet](https://www.analog.com/media/en/technical-documentation/data-sheets/ADIS16475.pdf)  
-
-		cd  
-		cd catkin_ws  
-		catkin_make  
-
-6) Check the rotation direction of z axis of IMU being used.If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" in the launch file to "true".
-
-		cd  
-		gedit catkin_ws/src/eagleye/launch/eagleye.launch  
-
->param name="/eagleye/reverse_imu" type="bool" value="true"  
-
-## Usage
-1) The wheel speed information (vehicle speed information) is published as follows.
+1. Check if wheel speed (vehicle speed) is published in `/can_twist` topic.
 
 * Topic name: /can_twist
 * Message type: geometry_msgs/TwistStamped twist.liner.x
 
-2) Connect the IMU and start the ADI driver.
 
-		cd  
-		cd catkin_ws/src/adi_driver/launch  
-		roslaunch adis16470.launch  
+2. Check if the IMU data is published in `/imu_raw` topic.
 
-3) Connect the GNSS receiver and start RTKLIB.
+3. Start RTKLIB.
 
-		cd $HOME/RTKLIB  
-		bash rtklib_ros_bridge_sample.sh  
+		cd $HOME/RTKLIB
+		bash rtklib_ros_bridge_sample.sh
 
-4) Check the status of RTKLIB. If GPS Time is moving, it is OK. Execute the following command in the terminal of item 3.
+4. Check if RTKLIB is working by execute the following command in the terminal. If the RTKLIB is working correctly, positioning information is appeared continuously in the terminal.
 
 		status 0.1  
 
-※If GPS Time is not working, there may be a mistake in the receiver settings or RTKLIB settings.
-
-5) Start rtklib_ros_bridge.
+5. Start rtklib_ros_bridge.
 
 		rosrun rtklib_bridge rtklib_bridge   
 
-6) Start eagleye.
+6. Start eagleye.
 
-		roslaunch eagleye_localization.launch
+		roslaunch eagleye_core eagleye_localization.launch
 
 
 ## Research Papers for Citation
