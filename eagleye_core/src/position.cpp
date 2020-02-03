@@ -39,7 +39,6 @@
 #include <math.h>
 #include <numeric>
 #include <time.h>
-
 #include "eagleye_msgs/Debug_log.h"
 
 //default value
