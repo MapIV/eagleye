@@ -41,7 +41,6 @@
 #include <time.h>
 
 #include "eagleye_msgs/Debug_log.h"
-#include "sensor_msgs/Imu.h"
 
 //default value
 static double estimated_distance = 500;
