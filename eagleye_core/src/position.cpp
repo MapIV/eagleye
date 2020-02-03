@@ -38,7 +38,7 @@
 #include "xyz2enu.hpp"
 #include <math.h>
 #include <numeric>
-
+#include <time.h>
 #include "eagleye_msgs/Debug_log.h"
 
 //default value
@@ -57,6 +57,7 @@ static int tow_last = 0;
 //static int max_index = 0; //pattern1
 static int max_x_index, max_y_index; //pattern2,3
 static double time_last = 0.0;
+static double time_now = 0.0;
 static double avg_x, avg_y, avg_z;
 static double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
 static double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
@@ -178,6 +179,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_z = enu_relative_pos_z + msg->vector.z * (msg->header.stamp.toSec() - time_last);
   }
 
+
   if (distance.distance-distance_last >= separation_distance && gnss_status == true)
   {
 
@@ -238,10 +240,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
         if (distance_buffer[estimated_number-1] - distance_buffer[i]  <= estimated_distance)
         {
           distance_index.push_back(i);
-        }
-        if (correction_velocity_buffer[i] > estimated_velocity_threshold)
-        {
-          velocity_index.push_back(i);
+
+          if (correction_velocity_buffer[i] > estimated_velocity_threshold)
+          {
+            velocity_index.push_back(i);
+          }
+
         }
       }
 
@@ -317,62 +321,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
             diff_z_buffer.push_back(fabsf(base_enu_pos_z_buffer2[index[i]] - enu_pos_z_buffer[index[i]]));
           }
 
-/*
-          //pattern1
-          diff_buffer.clear();
-          for (i = 0; i < index_length; i++)
-          {
-            diff_buffer.push_back(sqrt((diff_x_buffer[i] * diff_x_buffer[i]) + (diff_y_buffer[i] * diff_y_buffer[i]) + (diff_z_buffer[i] * diff_z_buffer[i])));
-          }
-
-          max = std::max_element(diff_buffer.begin(), diff_buffer.end());
-
-          max_index = std::distance(diff_buffer.begin(), max);
-
-                if (diff_buffer[max_index] > outlier_threshold)
-                {
-                  index.erase(index.begin() + max_index);
-                }
-                else
-                {
-                  break;
-                }
-*/
-
-/*
-          //pattern2
-          max_x = std::max_element(diff_x_buffer.begin(), diff_x_buffer.end());
-          max_y = std::max_element(diff_y_buffer.begin(), diff_y_buffer.end());
-
-          max_x_index = std::distance(diff_x_buffer.begin(), max_x);
-          max_y_index = std::distance(diff_y_buffer.begin(), max_y);
-
-          if(diff_x_buffer[max_x_index] > diff_y_buffer[max_y_index])
-          {
-            if (diff_x_buffer[max_x_index] > outlier_threshold)
-            {
-              index.erase(index.begin() + max_x_index);
-            }
-            else
-            {
-              break;
-            }
-          }
-          else
-          {
-            if (diff_y_buffer[max_y_index] > outlier_threshold)
-            {
-              index.erase(index.begin() + max_y_index);
-            }
-            else
-            {
-              break;
-            }
-          }
-
-*/
-
-	        //pattern3
           max_x = std::max_element(diff_x_buffer.begin(), diff_x_buffer.end());
           max_y = std::max_element(diff_y_buffer.begin(), diff_y_buffer.end());
 
@@ -445,6 +393,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   time_last = msg->header.stamp.toSec();
   enu_absolute_pos.status.estimate_status = false;
   data_status = false;
+
 }
 
 int main(int argc, char** argv)
