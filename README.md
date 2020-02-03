@@ -5,7 +5,7 @@
 
 ## What is Eagleye
 
-Eagleye is an open-source software for vehicle localization utilizing GNSS and IMU. Eagleye provides highly accurate and stable vehicle position and orientation. The flowchart of the algorithm is shown in the figure below. The algorithms in this software  based on the outcome of the research undertaken by [Machinery Information Systems Lab (Meguro Lab)](https://www2.meijo-u.ac.jp/~meguro/index.html) in Meijo University.
+Eagleye is an open-source software for vehicle localization utilizing GNSS and IMU. Eagleye provides highly accurate and stable vehicle position and orientation. The flowchart of the algorithm is shown in the figure below. The algorithms in this software are based on the outcome of the research undertaken by [Machinery Information Systems Lab (Meguro Lab)](https://www2.meijo-u.ac.jp/~meguro/index.html) in Meijo University.
 
 ![Flowchart of Eagleye](docs/flowchart.png)
 
