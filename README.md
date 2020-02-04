@@ -1,5 +1,5 @@
 
-# eagleye
+# Eagleye (Alpha version)
 
 [![CircleCI](https://circleci.com/gh/MapIV/eagleye.svg?style=svg&circle-token=7961cc3947c36b93252f458a679dfcb9aa977b5b)](https://circleci.com/gh/MapIV/eagleye)
 
