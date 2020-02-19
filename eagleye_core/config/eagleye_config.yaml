@@ -46,12 +46,13 @@ eagleye:
    stop_judgment_velocity_threshold: 0.0001              #Speed threshold for judgment at stop. (m/s)
 
  position:
-   estimated_distance: 500
+   estimated_distance: 200
    separation_distance: 0.1
    estimated_velocity_threshold: 2.78
    outlier_threshold: 3.0
    estimated_enu_vel_coefficient : 0.025
    estimated_position_coefficient: 0.005
+   specify_base_pos: false
    ecef_base_pos_x : 0.0                               #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
    ecef_base_pos_y : 0.0
    ecef_base_pos_z : 0.0
