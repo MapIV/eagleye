@@ -172,12 +172,15 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
     ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
+    //enu_pos[2] = 0;
+
+
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
     eagleye_fix.longitude = llh_pos[0];
     eagleye_fix.latitude = llh_pos[1];
-    eagleye_fix.altitude = 0;
-    //eagleye_fix.altitude = llh_pos[2];
+    //eagleye_fix.altitude = 0;
+    eagleye_fix.altitude = llh_pos[2];
 
     pub2.publish(eagleye_fix);
   }

@@ -48,6 +48,10 @@ static double estimated_velocity_threshold = 10/3.6;
 static double outlier_threshold = 5.0;
 static double estimated_enu_vel_coefficient = 1.0/10;
 static double estimated_position_coefficient = 1.0/50;
+static bool specify_base_pos;
+static double ecef_base_pos_x;
+static double ecef_base_pos_y;
+static double ecef_base_pos_z;
 
 static bool data_status, gnss_status;
 static int i, count, heading_estimate_status_count;
@@ -124,12 +128,19 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
 
-  if(enu_absolute_pos.ecef_base_pos.x == 0 && enu_absolute_pos.ecef_base_pos.y == 0 && enu_absolute_pos.ecef_base_pos.z == 0)
+  if(specify_base_pos == true)
+  {
+    enu_absolute_pos.ecef_base_pos.x = ecef_base_pos_x;
+    enu_absolute_pos.ecef_base_pos.y = ecef_base_pos_y;
+    enu_absolute_pos.ecef_base_pos.z = ecef_base_pos_z;
+  }
+  else if(enu_absolute_pos.ecef_base_pos.x == 0 && enu_absolute_pos.ecef_base_pos.y == 0 && enu_absolute_pos.ecef_base_pos.z == 0)
   {
     enu_absolute_pos.ecef_base_pos.x = msg->ecef_pos.x;
     enu_absolute_pos.ecef_base_pos.y = msg->ecef_pos.y;
     enu_absolute_pos.ecef_base_pos.z = msg->ecef_pos.z;
   }
+
 
   double ecef_pos[3];
   double ecef_base_pos[3];
@@ -370,7 +381,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
           {
             enu_absolute_pos.enu_pos.x = tmp_enu_pos_x;
             enu_absolute_pos.enu_pos.y = tmp_enu_pos_y;
-            enu_absolute_pos.enu_pos.z = tmp_enu_pos_z;
+            //enu_absolute_pos.enu_pos.z = tmp_enu_pos_z;
+            enu_absolute_pos.enu_pos.z = enu_pos[2];
             enu_absolute_pos.header = msg->header;
             enu_absolute_pos.status.enabled_status = true;
             enu_absolute_pos.status.estimate_status = true;
@@ -407,6 +419,11 @@ int main(int argc, char** argv)
   n.getParam("/eagleye/position/outlier_threshold",outlier_threshold);
   n.getParam("/eagleye/position/estimated_enu_vel_coefficient",estimated_enu_vel_coefficient);
   n.getParam("/eagleye/position/estimated_position_coefficient",estimated_position_coefficient);
+  n.getParam("/eagleye/position/specify_base_pos",specify_base_pos);
+  n.getParam("/eagleye/position/ecef_base_pos_x",ecef_base_pos_x);
+  n.getParam("/eagleye/position/ecef_base_pos_y",ecef_base_pos_y);
+  n.getParam("/eagleye/position/ecef_base_pos_z",ecef_base_pos_z);
+
 
   std::cout<< "estimated_distance "<<estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<separation_distance<<std::endl;
@@ -414,6 +431,8 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<outlier_threshold<<std::endl;
   std::cout<< "estimated_enu_vel_coefficient "<<estimated_enu_vel_coefficient<<std::endl;
   std::cout<< "estimated_position_coefficient "<<estimated_position_coefficient<<std::endl;
+  std::cout<< "specify_base_pos "<<specify_base_pos<<std::endl;
+
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
