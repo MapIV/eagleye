@@ -9,7 +9,7 @@
 #include "tf/transform_broadcaster.h"
 #include "xyz2enu.hpp"
 #include "enu2llh.hpp"
-
+#include "hgeoid.hpp"
 
 static eagleye_msgs::Heading eagleye_heading;
 static eagleye_msgs::Position eagleye_position;
@@ -32,6 +32,7 @@ static bool specify_base_pos = false;
 static double ecef_base_pos_x = 0;
 static double ecef_base_pos_y = 0;
 static double ecef_base_pos_z = 0;
+
 
 void eagleye_heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
@@ -330,9 +331,21 @@ void conv_llh2xyz(void)
 void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
 
+  double llh[3],hei;
+
+  llh[0] = msg->latitude;
+  llh[1] = msg->longitude;
+  llh[2] = msg->altitude;
+
   m_lat = msg->latitude * M_PI / 180;
   m_lon = msg->longitude * M_PI / 180;
   m_h = msg->altitude;
+
+  hgeoid(llh,&hei);
+
+  ROS_INFO("h = %lf",hei);
+
+  m_h = m_h - hei;
 
   set_plane(_plane);
   conv_llh2xyz();
@@ -363,7 +376,8 @@ void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   m_lat = llh_pos[1]* M_PI / 180;
   m_lon = llh_pos[0]* M_PI / 180;
   m_h = llh_pos[2];
-  //m_h = 0;
+  m_h = m_h - hei;
+
 
   set_plane(_plane);
   conv_llh2xyz();
