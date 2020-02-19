@@ -38,7 +38,6 @@
 #include "xyz2enu.hpp"
 #include <math.h>
 #include <numeric>
-#include <time.h>
 #include "eagleye_msgs/Debug_log.h"
 
 //default value
@@ -61,7 +60,6 @@ static int tow_last = 0;
 //static int max_index = 0; //pattern1
 static int max_x_index, max_y_index; //pattern2,3
 static double time_last = 0.0;
-static double time_now = 0.0;
 static double avg_x, avg_y, avg_z;
 static double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
 static double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
@@ -211,7 +209,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);
     enu_relative_pos_y_buffer.push_back(enu_relative_pos_y);
     //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
-    enu_relative_pos_z_buffer.push_back(0);
+    //enu_relative_pos_z_buffer.push_back(0);
     distance_buffer.push_back(distance.distance);
 
     data_status = true; //judgment that refreshed data
@@ -408,6 +406,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
 }
 
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "position");
@@ -424,7 +423,6 @@ int main(int argc, char** argv)
   n.getParam("/eagleye/position/ecef_base_pos_y",ecef_base_pos_y);
   n.getParam("/eagleye/position/ecef_base_pos_z",ecef_base_pos_z);
 
-
   std::cout<< "estimated_distance "<<estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<separation_distance<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<estimated_velocity_threshold<<std::endl;
@@ -433,7 +431,6 @@ int main(int argc, char** argv)
   std::cout<< "estimated_position_coefficient "<<estimated_position_coefficient<<std::endl;
   std::cout<< "specify_base_pos "<<specify_base_pos<<std::endl;
 
-
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
@@ -441,7 +438,6 @@ int main(int argc, char** argv)
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
-
   pub_debug = n.advertise<eagleye_msgs::Debug_log>("/eagleye/debug_log", 1000);
 
   ros::spin();
