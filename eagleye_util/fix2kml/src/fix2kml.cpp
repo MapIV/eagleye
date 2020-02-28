@@ -24,14 +24,14 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * eagleye_fix2kml.cpp
+ * fix2kml.cpp
  * Author MapIV Sekino
  */
 
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Distance.h"
-#include "eagleye_fix2kml/GoogleEarthPath.hpp"
+#include "fix2kml/GoogleEarthPath.hpp"
 
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
@@ -55,7 +55,7 @@ void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "eagleye_fix2kml");
+  ros::init(argc, argv, "fix2kml");
   ros::NodeHandle n;
   ros::Subscriber sub1 = n.subscribe("/eagleye/fix", 1000, receive_data);
   ros::Subscriber sub2 = n.subscribe("/eagleye/distance", 1000, distance_callback);

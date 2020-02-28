@@ -397,7 +397,7 @@ void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "eagleye_fix2pose");
+  ros::init(argc, argv, "fix2pose");
   ros::NodeHandle n;
 
   n.getParam("/eagleye/position/specify_base_pos",specify_base_pos);
@@ -414,8 +414,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, eagleye_enu_absolute_pos_callback);
   ros::Subscriber sub3 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback);
   ros::Subscriber sub4 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
-  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/eagleye_pose", 1000);
-  //pub = n.advertise<geometry_msgs::PoseStamped>("gnss_pose", 1000);
+  //pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/eagleye_pose", 1000);
+  pub = n.advertise<geometry_msgs::PoseStamped>("gnss_pose", 1000);
   ros::spin();
 
   return 0;

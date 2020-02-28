@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <rosparam command="load" file="$(find fix2pose)/config/fix2pose.yaml"/>
+  <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
+
+</launch>
