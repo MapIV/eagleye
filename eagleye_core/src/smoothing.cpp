@@ -94,7 +94,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
   if (time_buffer_length > estimated_number_max)
   {
-    ROS_INFO("diff_time = %d",time_buffer_length);
+    ROS_INFO("diff_time = %lu",time_buffer_length);
     time_buffer.erase(time_buffer.begin());
     enu_pos_x_buffer.erase(enu_pos_x_buffer.begin());
     enu_pos_y_buffer.erase(enu_pos_y_buffer.begin());
@@ -134,7 +134,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
     index_length = std::distance(index.begin(), index.end());
     velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-    ROS_INFO("index_length = %d , velocity_index_length = %d ",index_length,velocity_index_length);
+    ROS_INFO("index_length = %lu , velocity_index_length = %lu ",index_length,velocity_index_length);
 
 
     for (i = 0; i < velocity_index_length; i++)
