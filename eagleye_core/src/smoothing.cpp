@@ -177,7 +177,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "gnss_smoothing");
+  ros::init(argc, argv, "smoothing");
   ros::NodeHandle n;
 
   n.getParam("/eagleye/position/specify_base_pos",specify_base_pos);
