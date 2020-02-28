@@ -185,7 +185,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     {
       provisional_heading_angle = heading.heading_angle;
       heading_interpolate.status.enabled_status = true;
-      heading_interpolate.status.estimate_status = true;
+      heading_interpolate.status.estimate_status = false;
     }
     else if (count > 1)
     {

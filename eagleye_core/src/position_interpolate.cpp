@@ -147,7 +147,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       provisional_enu_pos_y = enu_absolute_pos.enu_pos.y;
       provisional_enu_pos_z = enu_absolute_pos.enu_pos.z;
       enu_absolute_pos_interpolate.status.enabled_status = true;
-      enu_absolute_pos_interpolate.status.estimate_status = true;
+      enu_absolute_pos_interpolate.status.estimate_status = false;
     }
     else if (count > 1)
     {
