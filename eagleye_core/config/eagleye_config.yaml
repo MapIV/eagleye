@@ -13,7 +13,7 @@ eagleye:
 
  yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
    estimated_number_min: 1500                          #Minimum number of data used for estimation.
-   estimated_coefficient: 0.02                        #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate.
+   estimated_coefficient: 0.01                        #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate.
    estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (m/s)
    1st:
      estimated_number_max: 14000                       #Maximum number of data used for estimation.
@@ -23,8 +23,8 @@ eagleye:
  heading:                                              #Parameters for estimating the azimuth of a car
    estimated_number_min: 500                          #Minimum number of data used for estimation.
    estimated_number_max: 1500                          #Maximum number of data used for estimation.
-   estimated_gnss_coefficient: 0.05
-   estimated_heading_coefficient: 0.025
+   estimated_gnss_coefficient: 0.025
+   estimated_heading_coefficient: 0.0125
    outlier_threshold: 0.0524
    estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (m/s)
    stop_judgment_velocity_threshold: 0.0001              #Speed threshold for judgment at stop. (m/s)
@@ -34,7 +34,7 @@ eagleye:
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (m/s)
 
  slip_angle:
-   slip_angle_estimate: true                           #When the estimate is not valid, the manual_coefficient factor is used
+   slip_angle_estimate: false                           #When the estimate is not valid, the manual_coefficient factor is used
    manual_coefficient: 0.0                          #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
    estimated_number_min: 100
    estimated_number_max: 1000
@@ -46,12 +46,12 @@ eagleye:
    stop_judgment_velocity_threshold: 0.0001              #Speed threshold for judgment at stop. (m/s)
 
  position:
-   estimated_distance: 200
+   estimated_distance: 300
    separation_distance: 0.1
    estimated_velocity_threshold: 2.78
    outlier_threshold: 3.0
    estimated_enu_vel_coefficient : 0.025
-   estimated_position_coefficient: 0.005
+   estimated_position_coefficient: 0.25
    specify_base_pos: false
    ecef_base_pos_x : 0.0                               #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
    ecef_base_pos_y : 0.0
