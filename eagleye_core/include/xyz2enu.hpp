@@ -23,46 +23,13 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos[0])
+#include "ecef2llh.hpp"
+
+void xyz2enu(double ecef_pos[3], double ecef_base_pos[3], double enu_pos[3])
 {
-  //ecef2llh
-  double semi_major_axis = 6378137.0000;
-  double semi_minor_axis = 6356752.3142;
-  double a1 = sqrt(1 - pow(semi_minor_axis / semi_major_axis, 2.0));
-  double a2 = sqrt((ecef_base_pos[0] * ecef_base_pos[0]) + (ecef_base_pos[1] * ecef_base_pos[1]));
-  double a3 = 54 * (semi_minor_axis * semi_minor_axis) * (ecef_base_pos[2] * ecef_base_pos[2]);
-  double a4 = (a2 * a2) + (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2]) - (a1 * a1) * (semi_major_axis * semi_major_axis - semi_minor_axis * semi_minor_axis);
-  double a5 = ((a1 * a1) * (a1 * a1) * a3 * (a2 * a2)) / (a4 * a4 * a4);
-  double a6 = pow((1 + a5 + sqrt(a5 * a5 + 2 * a5)), 1.0 / 3.0);
-  double a7 = a3 / (3 * pow((a6 + 1 / a6 + 1), 2.0) * a4 * a4);
-  double a8 = sqrt(1 + 2 * (a1 * a1) * (a1 * a1) * a7);
-  double a9 = -(a7 * (a1 * a1) * a2) / (1 + a8) + sqrt((semi_major_axis * semi_major_axis / 2) * (1 + 1 / a8) - (a7 * (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2])) / (a8 * (1 + a8)) - a7 * (a2 * a2) / 2);
-  double a10 = sqrt((pow((a2 - (a1 * a1) * a9), 2.0)) + (ecef_base_pos[2] * ecef_base_pos[2]));
-  double a11 = sqrt((pow((a2 - (a1 * a1) * a9), 2.0)) + (1 - (a1 * a1)) * (ecef_base_pos[2] * ecef_base_pos[2]));
-  double a12 = ((semi_minor_axis * semi_minor_axis) * ecef_base_pos[2]) / (semi_major_axis * a11);
-  double base_latitude = atan((ecef_base_pos[2] + (a1 * (semi_major_axis / semi_minor_axis)) * (a1 * (semi_major_axis / semi_minor_axis)) * a12) / a2);
-  double base_longitude = 0;
-
-  if (ecef_base_pos[0] >= 0)
-  {
-    base_longitude = (atan(ecef_base_pos[1] / ecef_base_pos[0]));
-  }
-  else
-  {
-    if (ecef_base_pos[0] < 0 && ecef_base_pos[1] >= 0)
-    {
-      base_longitude = M_PI + (atan(ecef_base_pos[1] / ecef_base_pos[0]));
-    }
-    else
-    {
-      base_longitude = (atan(ecef_base_pos[1] / ecef_base_pos[0])) - M_PI;
-    }
-  }
-
-  double base_alt = a10 * (1 - (semi_minor_axis * semi_minor_axis) / (semi_major_axis * a11));
-
-  //ecef2enu
-  enu_pos[0] = ((-(sin(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos[1] = ((-(sin(base_latitude)) * (cos(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + (-(sin(base_latitude)) * (sin(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + ((cos(base_latitude)) * (ecef_pos[2] - ecef_base_pos[2])));
-  enu_pos[2] = (((cos(base_latitude)) * (cos(base_longitude)) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(base_latitude)) * (sin(base_longitude)) * (ecef_pos[1] - ecef_base_pos[1])) + ((sin(base_latitude)) * (ecef_pos[2] - ecef_base_pos[2])));
+  double llh_base_pos[3];
+  ecef2llh(ecef_base_pos,llh_base_pos);
+  enu_pos[0] = ((-(sin(llh_base_pos[1])) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(llh_base_pos[1])) * (ecef_pos[1] - ecef_base_pos[1])) + (0 * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[1] = ((-(sin(llh_base_pos[0])) * (cos(llh_base_pos[1])) * (ecef_pos[0] - ecef_base_pos[0])) + (-(sin(llh_base_pos[0])) * (sin(llh_base_pos[1])) * (ecef_pos[1] - ecef_base_pos[1])) + ((cos(llh_base_pos[0])) * (ecef_pos[2] - ecef_base_pos[2])));
+  enu_pos[2] = (((cos(llh_base_pos[0])) * (cos(llh_base_pos[1])) * (ecef_pos[0] - ecef_base_pos[0])) + ((cos(llh_base_pos[0])) * (sin(llh_base_pos[1])) * (ecef_pos[1] - ecef_base_pos[1])) + ((sin(llh_base_pos[0])) * (ecef_pos[2] - ecef_base_pos[2])));
 }
