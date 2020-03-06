@@ -7231,7 +7231,6 @@ void hgeoid(double llh_pos[3],double *h)
 
     if (llh_pos[1]<th_range[0]||th_range[1]<llh_pos[1]||llh_pos[0]<th_range[2]||th_range[3]<llh_pos[0]) {
       *h = 0;
-      printf("h %lf\n",*h );
     }else{
     a=(int)(llh_pos[1]-th_range[0])/dlon;
     b=(int)(llh_pos[0]-th_range[2])/dlat;
@@ -7244,6 +7243,5 @@ void hgeoid(double llh_pos[3],double *h)
     *h = y[0]*(1.0-a)*(1.0-b)+y[1]*a*(1.0-b)+y[2]*(1.0-a)*b+y[3]*a*b;
     }
 
-    printf("h %lf\n",*h );
 
 }
