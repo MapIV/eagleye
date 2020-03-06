@@ -52,6 +52,7 @@ eagleye:
    outlier_threshold: 3.0
    estimated_enu_vel_coefficient : 0.025
    estimated_position_coefficient: 0.25
+   altitude_estimate: true
    specify_base_pos: false
    ecef_base_pos_x : 0.0                               #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
    ecef_base_pos_y : 0.0

@@ -33,6 +33,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "enu2llh.hpp"
+#include "hgeoid.hpp"
 #include <boost/circular_buffer.hpp>
 
 static double number_buffer_max = 100;
@@ -40,6 +41,8 @@ static bool position_estimate_status, position_estimate_start_status;
 static int i, count, position_estimate_status_count;
 static int estimate_index = 0;
 static int number_buffer = 0;
+static bool altitude_estimate = true;
+
 
 static double position_stamp_last = 0;
 static double time_last = 0.0;
@@ -163,7 +166,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
     double enu_pos[3];
     double ecef_base_pos[3];
-    double llh_pos[3];
+    double llh_pos[3],_llh[3];
+    double height;
 
     enu_pos[0] = enu_absolute_pos_interpolate.enu_pos.x;
     enu_pos[1] = enu_absolute_pos_interpolate.enu_pos.y;
@@ -176,6 +180,15 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
 
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
+
+    if (altitude_estimate = true)
+    {
+      _llh[0] = llh_pos[1];
+      _llh[1] = llh_pos[0];
+      _llh[2] = llh_pos[2];
+      hgeoid(_llh,&height);
+      llh_pos[2] = llh_pos[2] - height;
+    }
 
     eagleye_fix.longitude = llh_pos[0];
     eagleye_fix.latitude = llh_pos[1];
@@ -193,6 +206,9 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle n;
+
+  n.getParam("/eagleye/position/altitude_estimate",altitude_estimate);
+  std::cout<< "altitude_estimate "<<altitude_estimate<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
