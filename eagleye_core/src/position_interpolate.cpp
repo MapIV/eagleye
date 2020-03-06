@@ -181,7 +181,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
-    if (altitude_estimate = true)
+    if (altitude_estimate == true)
     {
       _llh[0] = llh_pos[1];
       _llh[1] = llh_pos[0];
