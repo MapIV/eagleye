@@ -16,5 +16,4 @@ include_directories(include
 )
 
 add_executable(fix2kml src/fix2kml.cpp)
-add_dependencies(fix2kml ${PROJECT_NAME}_generate_messages_cpp)
 target_link_libraries(fix2kml ${catkin_LIBRARIES})
