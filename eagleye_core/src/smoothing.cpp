@@ -11,7 +11,6 @@ static double estimated_number = 0;
 static double estimated_number_max = 5*5; //GNSS output cycle　* Smoothing time
 static double estimated_velocity_threshold = 10/3.6;
 static double estimated_threshold = 1/10;
-static bool specify_base_pos;
 static double ecef_base_pos_x;
 static double ecef_base_pos_y;
 static double ecef_base_pos_z;
@@ -56,13 +55,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
 
-  if(specify_base_pos == true)
-  {
-    enu_absolute_pos.ecef_base_pos.x = ecef_base_pos_x;
-    enu_absolute_pos.ecef_base_pos.y = ecef_base_pos_y;
-    enu_absolute_pos.ecef_base_pos.z = ecef_base_pos_z;
-  }
-  else if(enu_absolute_pos.ecef_base_pos.x == 0 && enu_absolute_pos.ecef_base_pos.y == 0 && enu_absolute_pos.ecef_base_pos.z == 0)
+  if(enu_absolute_pos.ecef_base_pos.x == 0 && enu_absolute_pos.ecef_base_pos.y == 0 && enu_absolute_pos.ecef_base_pos.z == 0)
   {
     enu_absolute_pos.ecef_base_pos.x = msg->ecef_pos.x;
     enu_absolute_pos.ecef_base_pos.y = msg->ecef_pos.y;
@@ -180,12 +173,10 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "smoothing");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position/specify_base_pos",specify_base_pos);
   n.getParam("/eagleye/position/ecef_base_pos_x",ecef_base_pos_x);
   n.getParam("/eagleye/position/ecef_base_pos_y",ecef_base_pos_y);
   n.getParam("/eagleye/position/ecef_base_pos_z",ecef_base_pos_z);
 
-  std::cout<< "specify_base_pos "<<specify_base_pos<<std::endl;
   std::cout<< "ecef_base_pos_x "<<ecef_base_pos_x<<std::endl;
   std::cout<< "ecef_base_pos_y "<<ecef_base_pos_y<<std::endl;
   std::cout<< "ecef_base_pos_z "<<ecef_base_pos_z<<std::endl;
