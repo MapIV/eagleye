@@ -2,7 +2,7 @@
 
 <launch>
 
-  <rosparam command="load" file="$(find fix2pose)/config/fix2pose.yaml"/>
+  <param name="plane" value="7"/>
   <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
 
 </launch>

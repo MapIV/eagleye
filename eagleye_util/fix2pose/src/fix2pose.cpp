@@ -19,14 +19,14 @@ static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
 static int plane = 7;
 
-void eagleye_heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
   eagleye_heading.header = msg->header;
   eagleye_heading.heading_angle = msg->heading_angle;
   eagleye_heading.status = msg->status;
 }
 
-void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
 
   double llh[3] = {0};
@@ -64,11 +64,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle n;
 
-  n.getParam("/fix2pose/plane",plane);
+  n.getParam("plane",plane);
   std::cout<< "plane "<<plane<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, eagleye_heading_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback);
+  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  ros::Subscriber sub2 = n.subscribe("/eagleye/fix", 1000, fix_callback);
   pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/eagleye_pose", 1000);
   ros::spin();
 
