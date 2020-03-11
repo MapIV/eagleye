@@ -89,7 +89,7 @@ static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
-
+static eagleye_msgs::Position gnss_smooth_pos;
 static eagleye_msgs::Position enu_absolute_pos;
 static ros::Publisher pub;
 
@@ -148,6 +148,14 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
 }
 
+void gnss_smooth_pos_enu_callback(const eagleye_msgs::Position::ConstPtr& msg)
+{
+  gnss_smooth_pos.header = msg->header;
+  gnss_smooth_pos.enu_pos = msg->enu_pos;
+  gnss_smooth_pos.ecef_base_pos = msg->ecef_base_pos;
+  gnss_smooth_pos.status = msg->status;
+}
+
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   ++count;
@@ -203,7 +211,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     enu_relative_pos_x_buffer.push_back(enu_relative_pos_x);
     enu_relative_pos_y_buffer.push_back(enu_relative_pos_y);
     //enu_relative_pos_z_buffer.push_back(enu_relative_pos_z);
-    //enu_relative_pos_z_buffer.push_back(0);
+    enu_relative_pos_z_buffer.push_back(0);
     distance_buffer.push_back(distance.distance);
 
     data_status = true; //judgment that refreshed data
@@ -374,7 +382,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
             enu_absolute_pos.enu_pos.x = tmp_enu_pos_x;
             enu_absolute_pos.enu_pos.y = tmp_enu_pos_y;
             //enu_absolute_pos.enu_pos.z = tmp_enu_pos_z;
-            enu_absolute_pos.enu_pos.z = enu_pos[2];
+            enu_absolute_pos.enu_pos.z = gnss_smooth_pos.enu_pos.z;
             enu_absolute_pos.header = msg->header;
             enu_absolute_pos.status.enabled_status = true;
             enu_absolute_pos.status.estimate_status = true;
@@ -428,6 +436,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback);
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub6 = n.subscribe("/eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback);
+
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
   pub_debug = n.advertise<eagleye_msgs::Debug_log>("/eagleye/debug_log", 1000);

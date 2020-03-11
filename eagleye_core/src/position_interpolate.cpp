@@ -183,15 +183,15 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
     if (altitude_estimate == true)
     {
-      _llh[0] = llh_pos[1];
-      _llh[1] = llh_pos[0];
+      _llh[0] = llh_pos[0] * 180/M_PI;
+      _llh[1] = llh_pos[1] * 180/M_PI;
       _llh[2] = llh_pos[2];
       hgeoid(_llh,&height);
       llh_pos[2] = llh_pos[2] - height;
     }
 
-    eagleye_fix.longitude = llh_pos[0];
-    eagleye_fix.latitude = llh_pos[1];
+    eagleye_fix.longitude = llh_pos[1] * 180/M_PI;
+    eagleye_fix.latitude = llh_pos[0] * 180/M_PI;
     //eagleye_fix.altitude = 0;
     eagleye_fix.altitude = llh_pos[2];
 
