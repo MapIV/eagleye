@@ -40,12 +40,8 @@
 //default value
 static bool reverse_imu = false;
 static double stop_judgment_velocity_threshold = 0.01;
-static bool slip_angle_estimate = true;
 static double manual_coefficient = 0;
-static double estimated_number_min = 100;
-static double estimated_number_max = 1000;
-static double estimated_velocity_threshold = 2.77;
-static double estimated_yawrate_threshold = 0.017453;
+
 
 static int i, count, heading_estimate_status_count;
 static double time_last;
@@ -166,20 +162,10 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   n.getParam("/eagleye/reverse_imu", reverse_imu);
-  n.getParam("/eagleye/slip_angle/slip_angle_estimate", slip_angle_estimate);
   n.getParam("/eagleye/slip_angle/manual_coefficient", manual_coefficient);
-  n.getParam("/eagleye/slip_angle/estimated_number_min", estimated_number_min);
-  n.getParam("/eagleye/slip_angle/estimated_number_max", estimated_number_max);
-  n.getParam("/eagleye/slip_angle/estimated_velocity_threshold", estimated_velocity_threshold);
-  n.getParam("/eagleye/slip_angle/estimated_yawrate_threshold", estimated_yawrate_threshold);
   n.getParam("/eagleye/slip_angle/stop_judgment_velocity_threshold", stop_judgment_velocity_threshold);
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
-  std::cout<< "slip_angle_estimate "<<slip_angle_estimate<<std::endl;
   std::cout<< "manual_coefficient "<<manual_coefficient<<std::endl;
-  std::cout<< "estimated_number_min "<<estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_yawrate_threshold "<<estimated_yawrate_threshold<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);

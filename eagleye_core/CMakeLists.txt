@@ -67,3 +67,7 @@ add_dependencies(position_interpolate ${catkin_EXPORTED_TARGETS})
 add_executable(debug src/debug.cpp)
 target_link_libraries(debug ${catkin_LIBRARIES})
 add_dependencies(debug ${catkin_EXPORTED_TARGETS})
+
+add_executable(smoothing src/smoothing.cpp)
+target_link_libraries(smoothing ${catkin_LIBRARIES})
+add_dependencies(smoothing ${catkin_EXPORTED_TARGETS})

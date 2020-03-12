@@ -48,6 +48,9 @@ static double estimated_velocity_threshold = 10/3.6;
 static double outlier_threshold = 5.0;
 static double estimated_enu_vel_coefficient = 1.0/10;
 static double estimated_position_coefficient = 1.0/50;
+static double ecef_base_pos_x;
+static double ecef_base_pos_y;
+static double ecef_base_pos_z;
 
 static bool data_status, gnss_status;
 static int i, count, heading_estimate_status_count;
@@ -57,7 +60,6 @@ static int tow_last = 0;
 //static int max_index = 0; //pattern1
 static int max_x_index, max_y_index; //pattern2,3
 static double time_last = 0.0;
-static double time_now = 0.0;
 static double avg_x, avg_y, avg_z;
 static double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
 static double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
@@ -87,7 +89,7 @@ static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
-
+static eagleye_msgs::Position gnss_smooth_pos;
 static eagleye_msgs::Position enu_absolute_pos;
 static ros::Publisher pub;
 
@@ -131,6 +133,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
     enu_absolute_pos.ecef_base_pos.z = msg->ecef_pos.z;
   }
 
+
   double ecef_pos[3];
   double ecef_base_pos[3];
 
@@ -143,6 +146,14 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
   xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
+}
+
+void gnss_smooth_pos_enu_callback(const eagleye_msgs::Position::ConstPtr& msg)
+{
+  gnss_smooth_pos.header = msg->header;
+  gnss_smooth_pos.enu_pos = msg->enu_pos;
+  gnss_smooth_pos.ecef_base_pos = msg->ecef_base_pos;
+  gnss_smooth_pos.status = msg->status;
 }
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
@@ -370,7 +381,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
           {
             enu_absolute_pos.enu_pos.x = tmp_enu_pos_x;
             enu_absolute_pos.enu_pos.y = tmp_enu_pos_y;
-            enu_absolute_pos.enu_pos.z = tmp_enu_pos_z;
+            //enu_absolute_pos.enu_pos.z = tmp_enu_pos_z;
+            enu_absolute_pos.enu_pos.z = gnss_smooth_pos.enu_pos.z;
             enu_absolute_pos.header = msg->header;
             enu_absolute_pos.status.enabled_status = true;
             enu_absolute_pos.status.estimate_status = true;
@@ -396,6 +408,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
 }
 
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "position");
@@ -407,6 +420,9 @@ int main(int argc, char** argv)
   n.getParam("/eagleye/position/outlier_threshold",outlier_threshold);
   n.getParam("/eagleye/position/estimated_enu_vel_coefficient",estimated_enu_vel_coefficient);
   n.getParam("/eagleye/position/estimated_position_coefficient",estimated_position_coefficient);
+  n.getParam("/eagleye/position/ecef_base_pos_x",ecef_base_pos_x);
+  n.getParam("/eagleye/position/ecef_base_pos_y",ecef_base_pos_y);
+  n.getParam("/eagleye/position/ecef_base_pos_z",ecef_base_pos_z);
 
   std::cout<< "estimated_distance "<<estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<separation_distance<<std::endl;
@@ -420,9 +436,10 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback);
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub6 = n.subscribe("/eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback);
+
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
-
   pub_debug = n.advertise<eagleye_msgs::Debug_log>("/eagleye/debug_log", 1000);
 
   ros::spin();
