@@ -69,7 +69,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
   ros::Subscriber sub2 = n.subscribe("/eagleye/fix", 1000, fix_callback);
-  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/eagleye_pose", 1000);
+  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 
   return 0;

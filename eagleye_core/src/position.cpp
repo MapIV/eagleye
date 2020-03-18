@@ -39,7 +39,6 @@
 #include <math.h>
 #include <numeric>
 #include <time.h>
-#include "eagleye_msgs/Debug_log.h"
 
 //default value
 static double estimated_distance = 500;
@@ -68,8 +67,6 @@ static double distance_last;
 
 static std::size_t index_length;
 static std::size_t velocity_index_length;
-
-static std::size_t debug_velocity_index_length;
 static std::size_t distance_index_length;
 
 static std::vector<double> enu_pos_x_buffer, enu_pos_y_buffer,  enu_pos_z_buffer;
@@ -92,9 +89,6 @@ static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::Position gnss_smooth_pos;
 static eagleye_msgs::Position enu_absolute_pos;
 static ros::Publisher pub;
-
-static eagleye_msgs::Debug_log debug;
-static ros::Publisher pub_debug;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -230,12 +224,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     distance_last = distance.distance;
   }
 
- debug.log1 = 0;
- debug.log2 = 0;
- debug.log3 = 0;
- debug.log4 = 0;
- debug.log5 = 0;
-
   if (data_status == true)
   {
     if (distance.distance > estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > estimated_velocity_threshold && heading_estimate_status_count > 0 &&
@@ -265,11 +253,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
       index_length = std::distance(index.begin(), index.end());
       velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
-
-      debug.log1 = index_length;
-      debug.log3 = estimated_number;
-      debug.log4 = estimated_number;
-      debug.log5 = velocity_index_length;
 
       if (index_length > velocity_index_length * estimated_enu_vel_coefficient)
       {
@@ -373,7 +356,6 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
         index_length = std::distance(index.begin(), index.end());
         velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
-        debug.log2 = index_length;
 
         if (index_length >= velocity_index_length * estimated_position_coefficient)
         {
@@ -399,13 +381,9 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     }
   }
 
-  debug.log6 = enu_absolute_pos.status.estimate_status;
-  pub_debug.publish(debug);
-
   time_last = msg->header.stamp.toSec();
   enu_absolute_pos.status.estimate_status = false;
   data_status = false;
-
 }
 
 
@@ -440,8 +418,6 @@ int main(int argc, char** argv)
 
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
-  pub_debug = n.advertise<eagleye_msgs::Debug_log>("/eagleye/debug_log", 1000);
-
   ros::spin();
 
   return 0;

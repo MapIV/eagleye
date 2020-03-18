@@ -112,6 +112,8 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
   heading_1st.header = msg->header;
+  heading_1st.heading_angle = msg->heading_angle;
+  heading_1st.status = msg->status;
 }
 
 void heading_interpolate_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
@@ -258,21 +260,77 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   debug.eagleye_fix = eagleye_fix;
   debug.eagleye_twist = eagleye_twist;
 
-  std::cout<<"eagleye status"<<std::endl;
-  std::cout<<"imu(input)"<<std::endl;
-  std::cout<<"linear_acceleration x "<<debug.imu.linear_acceleration.x<<" m/s^2"<<std::endl;
-  std::cout<<"linear acceleration y "<<debug.imu.linear_acceleration.y<<" m/s^2"<<std::endl;
-  std::cout<<"linear acceleration z "<<debug.imu.linear_acceleration.z<<" m/s^2"<<std::endl;
-  std::cout<<"angular_velocity x "<<debug.imu.angular_velocity.x<<" rad/s"<<std::endl;
-  std::cout<<"angular_velocity y "<<debug.imu.angular_velocity.y<<" rad/s"<<std::endl;
-  std::cout<<"angular_velocity z "<<debug.imu.angular_velocity.z<<" rad/s"<<std::endl;
-  std::cout<<"velocity(input)"<<std::endl;
-  std::cout<<"velocity "<<debug.velocity.twist.linear.x<<" m/s"<<std::endl;
-  std::cout<<"rtklib(input)"<<std::endl;
-  std::cout<<"time of week "<<debug.rtklib_nav.tow<<" ms"<<std::endl;
-  std::cout<<"longitude "<<debug.rtklib_nav.status.longitude<<" deg"<<std::endl;
-  std::cout<<"latitude "<<debug.rtklib_nav.status.latitude<<" deg"<<std::endl;
-  std::cout<<"altitude "<<debug.rtklib_nav.status.altitude<<" deg"<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--------------------------------------------------------------------------------------------------"<< std::endl;
+  std::cout<<"\033[1;34m eagleye status \033[m"<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m imu(input)\033[m -------------------------------------"<< std::endl;
+  std::cout<<"\033[1m linear_acceleration \033[mx "<<debug.imu.linear_acceleration.x<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m linear acceleration \033[my "<<debug.imu.linear_acceleration.y<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m linear acceleration \033[mz "<<debug.imu.linear_acceleration.z<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m angular_velocity \033[mx "<<debug.imu.angular_velocity.x<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular_velocity \033[my "<<debug.imu.angular_velocity.y<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular_velocity \033[mz "<<debug.imu.angular_velocity.z<<" [rad/s]"<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m velocity(input)\033[m -------------------------------------"<< std::endl;
+  std::cout<<"\033[1m velocity \033[m"<<debug.velocity.twist.linear.x<<" [m/s]"<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m rtklib(input)\033[m ---------------------------------------"<< std::endl;
+  std::cout<<"\033[1m time of week  \033[m"<<debug.rtklib_nav.tow<<" [ms]"<<std::endl;
+  std::cout<<"\033[1m longitude  \033[m"<<debug.rtklib_nav.status.longitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m latitude  \033[m"<<debug.rtklib_nav.status.latitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m altitude  \033[m"<<debug.rtklib_nav.status.altitude<<" [m]"<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------------------"<< std::endl;
+  std::cout<<"\033[1m scale factor \033[m "<<debug.velocity_scale_factor.scale_factor<<std::endl;
+  std::cout<<"\033[1m correction velocity \033[m "<<debug.velocity_scale_factor.correction_velocity.linear.x<<" [m/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.velocity_scale_factor.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------------------"<< std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_stop.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_stop.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_stop.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m yawrate offset 1st\033[m ----------------------------------"<< std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_1st.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_1st.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_1st.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m yawrate offset 2nd\033[m ----------------------------------"<< std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_2nd.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_2nd.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m heading 1st\033[m -----------------------------------------"<< std::endl;
+  std::cout<<"\033[1m heading \033[m "<<  debug.heading_1st.heading_angle<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.heading_1st.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.heading_1st.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m heading 2nd\033[m -----------------------------------------"<< std::endl;
+  std::cout<<"\033[1m heading \033[m "<<  debug.heading_2nd.heading_angle<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.heading_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.heading_2nd.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m heading 3rd\033[m -----------------------------------------"<< std::endl;
+  std::cout<<"\033[1m heading \033[m "<<  debug.heading_3rd.heading_angle<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.heading_3rd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.heading_3rd.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m slip angle\033[m ------------------------------------------"<< std::endl;
+  std::cout<<"\033[1m coefficient \033[m "<<  debug.slip_angle.coefficient<<std::endl;
+  std::cout<<"\033[1m slip angle \033[m "<<  debug.slip_angle.slip_angle<<" [rad]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.slip_angle.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.slip_angle.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m position\033[m --------------------------------------------"<< std::endl;
+  std::cout<<"\033[1m absolute position enu \033[me "<<  debug.enu_absolute_pos.enu_pos.x<<" [m]"<<std::endl;
+  std::cout<<"\033[1m absolute position enu \033[mn "<<  debug.enu_absolute_pos.enu_pos.y<<" [m]"<<std::endl;
+  std::cout<<"\033[1m absolute position enu \033[mu "<<  debug.enu_absolute_pos.enu_pos.z<<" [m]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.enu_absolute_pos.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout<< "\033[1m status estimate \033[m "<<(debug.enu_absolute_pos.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+
 
   pub.publish(debug);
 }

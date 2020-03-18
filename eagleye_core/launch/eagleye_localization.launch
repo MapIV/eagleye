@@ -19,6 +19,6 @@
   <node pkg="eagleye_core" name="position" type="position" />
   <node pkg="eagleye_core" name="position_interpolate" type="position_interpolate" />
   <node pkg="eagleye_core" name="smoothing" type="smoothing" />
-  <node pkg="eagleye_core" name="debug" type="debug" />
+  <node pkg="eagleye_core" name="debug" type="debug" output="screen" />
 
 </launch>
