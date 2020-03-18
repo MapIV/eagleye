@@ -181,9 +181,9 @@ int main(int argc, char** argv)
   std::cout<< "ecef_base_pos_y "<<ecef_base_pos_y<<std::endl;
   std::cout<< "ecef_base_pos_z "<<ecef_base_pos_z<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
-  ros::Subscriber sub3 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
+  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/gnss_smooth_pos_enu", 1000);
 

@@ -122,8 +122,8 @@ int main(int argc, char** argv)
   std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_number "<<estimated_number<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback);
-  ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, imu_callback);
+  ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   pub = n.advertise<eagleye_msgs::YawrateOffset>("/eagleye/yawrate_offset_stop", 1000);
 
   ros::spin();

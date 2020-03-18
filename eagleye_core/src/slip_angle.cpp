@@ -42,7 +42,6 @@ static bool reverse_imu = false;
 static double stop_judgment_velocity_threshold = 0.01;
 static double manual_coefficient = 0;
 
-
 static int i, count, heading_estimate_status_count;
 static double time_last;
 static double doppler_heading_angle;
@@ -147,7 +146,14 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   {
       slip_angle.coefficient = manual_coefficient;
       slip_angle.slip_angle = manual_coefficient * acceleration_y;
-      slip_angle.status.enabled_status = false;
+      if (manual_coefficient != 0)
+      {
+        slip_angle.status.enabled_status = true;
+      }
+      else
+      {
+        slip_angle.status.enabled_status = false;
+      }
       slip_angle.status.estimate_status = false;
   }
 
@@ -168,12 +174,12 @@ int main(int argc, char** argv)
   std::cout<< "manual_coefficient "<<manual_coefficient<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  ros::Subscriber sub6 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   pub = n.advertise<eagleye_msgs::SlipAngle>("/eagleye/slip_angle", 1000);
 
   ros::spin();

@@ -210,8 +210,8 @@ int main(int argc, char** argv)
   n.getParam("/eagleye/position/altitude_estimate",altitude_estimate);
   std::cout<< "altitude_estimate "<<altitude_estimate<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
+  ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
   pub1 = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos_interpolate", 1000);
   pub2 = n.advertise<sensor_msgs::NavSatFix>("/eagleye/fix", 1000);
 

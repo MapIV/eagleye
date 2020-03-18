@@ -261,37 +261,37 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   debug.eagleye_twist = eagleye_twist;
 
   std::cout << std::endl;
-  std::cout << "--------------------------------------------------------------------------------------------------"<< std::endl;
-  std::cout<<"\033[1;34m eagleye status \033[m"<<std::endl;
+  std::cout<<"\033[1;33m Eagleye status \033[m"<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m imu(input)\033[m -------------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m imu(input)\033[m ------------------------------"<< std::endl;
   std::cout<<"\033[1m linear_acceleration \033[mx "<<debug.imu.linear_acceleration.x<<" [m/s^2]"<<std::endl;
   std::cout<<"\033[1m linear acceleration \033[my "<<debug.imu.linear_acceleration.y<<" [m/s^2]"<<std::endl;
   std::cout<<"\033[1m linear acceleration \033[mz "<<debug.imu.linear_acceleration.z<<" [m/s^2]"<<std::endl;
-  std::cout<<"\033[1m angular_velocity \033[mx "<<debug.imu.angular_velocity.x<<" [rad/s]"<<std::endl;
-  std::cout<<"\033[1m angular_velocity \033[my "<<debug.imu.angular_velocity.y<<" [rad/s]"<<std::endl;
-  std::cout<<"\033[1m angular_velocity \033[mz "<<debug.imu.angular_velocity.z<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[mx "<<debug.imu.angular_velocity.x<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[my "<<debug.imu.angular_velocity.y<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[mz "<<debug.imu.angular_velocity.z<<" [rad/s]"<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m velocity(input)\033[m -------------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m velocity(input)\033[m -------------------------"<< std::endl;
   std::cout<<"\033[1m velocity \033[m"<<debug.velocity.twist.linear.x<<" [m/s]"<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m rtklib(input)\033[m ---------------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m rtklib(input)\033[m ---------------------------"<< std::endl;
   std::cout<<"\033[1m time of week  \033[m"<<debug.rtklib_nav.tow<<" [ms]"<<std::endl;
   std::cout<<"\033[1m longitude  \033[m"<<debug.rtklib_nav.status.longitude<<" [deg]"<<std::endl;
   std::cout<<"\033[1m latitude  \033[m"<<debug.rtklib_nav.status.latitude<<" [deg]"<<std::endl;
   std::cout<<"\033[1m altitude  \033[m"<<debug.rtklib_nav.status.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
   std::cout<<"\033[1m scale factor \033[m "<<debug.velocity_scale_factor.scale_factor<<std::endl;
   std::cout<<"\033[1m correction velocity \033[m "<<debug.velocity_scale_factor.correction_velocity.linear.x<<" [m/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
-  std::cout<< "\033[1m status estimate \033[m "<<(debug.velocity_scale_factor.status.estimate_status ? "True" : "")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.velocity_scale_factor.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
   std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_stop.yawrate_offset<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_stop.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
-  std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_stop.status.estimate_status ? "True" : "")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_stop.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
+  /*
   std::cout << "--- \033[1;34m yawrate offset 1st\033[m ----------------------------------"<< std::endl;
   std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_1st.yawrate_offset<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_1st.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
@@ -302,6 +302,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_2nd.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
+  */
+  std::cout << "--- \033[1;34m yawrate offset\033[m --------------------------"<< std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<  debug.yawrate_offset_2nd.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.yawrate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.yawrate_offset_2nd.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  /*
   std::cout << "--- \033[1;34m heading 1st\033[m -----------------------------------------"<< std::endl;
   std::cout<<"\033[1m heading \033[m "<<  debug.heading_1st.heading_angle<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.heading_1st.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
@@ -317,18 +324,33 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   std::cout<< "\033[1m status enable \033[m "<<(debug.heading_3rd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout<< "\033[1m status estimate \033[m "<<(debug.heading_3rd.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
-  std::cout << "--- \033[1;34m slip angle\033[m ------------------------------------------"<< std::endl;
+  */
+  std::cout << "--- \033[1;34m heading\033[m ---------------------------------"<< std::endl;
+  std::cout<<"\033[1m heading \033[m "<<  debug.heading_interpolate_3rd.heading_angle<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.heading_interpolate_3rd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.heading_interpolate_3rd.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  std::cout << "--- \033[1;34m slip angle\033[m ------------------------------"<< std::endl;
   std::cout<<"\033[1m coefficient \033[m "<<  debug.slip_angle.coefficient<<std::endl;
   std::cout<<"\033[1m slip angle \033[m "<<  debug.slip_angle.slip_angle<<" [rad]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.slip_angle.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
-  std::cout<< "\033[1m status estimate \033[m "<<(debug.slip_angle.status.estimate_status ? "True" : "")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.slip_angle.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
+  /*
   std::cout << "--- \033[1;34m position\033[m --------------------------------------------"<< std::endl;
   std::cout<<"\033[1m absolute position enu \033[me "<<  debug.enu_absolute_pos.enu_pos.x<<" [m]"<<std::endl;
   std::cout<<"\033[1m absolute position enu \033[mn "<<  debug.enu_absolute_pos.enu_pos.y<<" [m]"<<std::endl;
   std::cout<<"\033[1m absolute position enu \033[mu "<<  debug.enu_absolute_pos.enu_pos.z<<" [m]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.enu_absolute_pos.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout<< "\033[1m status estimate \033[m "<<(debug.enu_absolute_pos.status.estimate_status ? "True" : "")<<std::endl;
+  std::cout << std::endl;
+  */
+  std::cout << "--- \033[1;34m position\033[m --------------------------------"<< std::endl;
+  std::cout<<"\033[1m absolute position enu \033[meast "<<  debug.enu_absolute_pos_interpolate.enu_pos.x<<" [m]"<<std::endl;
+  std::cout<<"\033[1m absolute position enu \033[mnorth "<<  debug.enu_absolute_pos_interpolate.enu_pos.y<<" [m]"<<std::endl;
+  std::cout<<"\033[1m absolute position enu \033[mup "<<  debug.enu_absolute_pos_interpolate.enu_pos.z<<" [m]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(debug.enu_absolute_pos_interpolate.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  //std::cout<< "\033[1m status estimate \033[m "<<(debug.enu_absolute_pos_interpolate.status.estimate_status ? "True" : "")<<std::endl;
   std::cout << std::endl;
 
 
@@ -340,28 +362,28 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "debug");
 
   ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
-  ros::Subscriber sub3 = n.subscribe("/fix", 1000, fix_callback);
-  ros::Subscriber sub4 = n.subscribe("/can_twist", 1000, velocity_callback);
-  ros::Subscriber sub5 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  ros::Subscriber sub6 = n.subscribe("/eagleye/distance", 1000, distance_callback);
-  ros::Subscriber sub7 = n.subscribe("/eagleye/heading_1st", 1000, heading_1st_callback);
-  ros::Subscriber sub8 = n.subscribe("/eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback);
-  ros::Subscriber sub9 = n.subscribe("/eagleye/heading_2nd", 1000, heading_2nd_callback);
-  ros::Subscriber sub10 = n.subscribe("/eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback);
-  ros::Subscriber sub11 = n.subscribe("/eagleye/heading_3rd", 1000, heading_3rd_callback);
-  ros::Subscriber sub12 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
-  ros::Subscriber sub13 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  ros::Subscriber sub14 = n.subscribe("/eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback);
-  ros::Subscriber sub15 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  ros::Subscriber sub16 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback);
-  ros::Subscriber sub17 = n.subscribe("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback);
-  ros::Subscriber sub18 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback);
-  ros::Subscriber sub19 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback);
-  ros::Subscriber sub20 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback);
-  ros::Subscriber sub21 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback);
-  ros::Subscriber sub22 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback);
+  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("/can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("/eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe("/eagleye/heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = n.subscribe("/eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = n.subscribe("/eagleye/heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub10 = n.subscribe("/eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub11 = n.subscribe("/eagleye/heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub12 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub13 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub14 = n.subscribe("/eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub15 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub16 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub17 = n.subscribe("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub18 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub19 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub20 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub21 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub22 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
 
   pub = n.advertise<eagleye_msgs::Debug>("/eagleye/debug", 1000);
 
