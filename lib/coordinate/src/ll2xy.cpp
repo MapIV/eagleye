@@ -23,138 +23,142 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-void ll2xy(int num, double llh[3], double xyz[3])
+#include "coordinate.hpp"
+#include <math.h>
+
+
+void ll2xy(int* num, double llh[3], double xyz[3])
 {
   int lon_deg, lon_min, lat_deg, lat_min; // longitude and latitude of origin of each plane in Japan
   double m_PLo,m_PLato;
 
-  if (num == 1)
+  if (*num == 1)
   {
     lon_deg = 33;
     lon_min = 0;
     lat_deg = 129;
     lat_min = 30;
   }
-  else if (num == 2)
+  else if (*num == 2)
   {
     lon_deg = 33;
     lon_min = 0;
     lat_deg = 131;
     lat_min = 0;
   }
-  else if (num == 3)
+  else if (*num == 3)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 132;
     lat_min = 10;
   }
-  else if (num == 4)
+  else if (*num == 4)
   {
     lon_deg = 33;
     lon_min = 0;
     lat_deg = 133;
     lat_min = 30;
   }
-  else if (num == 5)
+  else if (*num == 5)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 134;
     lat_min = 20;
   }
-  else if (num == 6)
+  else if (*num == 6)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 136;
     lat_min = 0;
   }
-  else if (num == 7)
+  else if (*num == 7)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 137;
     lat_min = 10;
   }
-  else if (num == 8)
+  else if (*num == 8)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 138;
     lat_min = 30;
   }
-  else if (num == 9)
+  else if (*num == 9)
   {
     lon_deg = 36;
     lon_min = 0;
     lat_deg = 139;
     lat_min = 50;
   }
-  else if (num == 10)
+  else if (*num == 10)
   {
     lon_deg = 40;
     lon_min = 0;
     lat_deg = 140;
     lat_min = 50;
   }
-  else if (num == 11)
+  else if (*num == 11)
   {
     lon_deg = 44;
     lon_min = 0;
     lat_deg = 140;
     lat_min = 15;
   }
-  else if (num == 12)
+  else if (*num == 12)
   {
     lon_deg = 44;
     lon_min = 0;
     lat_deg = 142;
     lat_min = 15;
   }
-  else if (num == 13)
+  else if (*num == 13)
   {
     lon_deg = 44;
     lon_min = 0;
     lat_deg = 144;
     lat_min = 15;
   }
-  else if (num == 14)
+  else if (*num == 14)
   {
     lon_deg = 26;
     lon_min = 0;
     lat_deg = 142;
     lat_min = 0;
   }
-  else if (num == 15)
+  else if (*num == 15)
   {
     lon_deg = 26;
     lon_min = 0;
     lat_deg = 127;
     lat_min = 30;
   }
-  else if (num == 16)
+  else if (*num == 16)
   {
     lon_deg = 26;
     lon_min = 0;
     lat_deg = 124;
     lat_min = 0;
   }
-  else if (num == 17)
+  else if (*num == 17)
   {
     lon_deg = 26;
     lon_min = 0;
     lat_deg = 131;
     lat_min = 0;
   }
-  else if (num == 18)
+  else if (*num == 18)
   {
     lon_deg = 20;
     lon_min = 0;
     lat_deg = 136;
     lat_min = 0;
   }
-  else if (num == 19)
+  else if (*num == 19)
   {
     lon_deg = 26;
     lon_min = 0;

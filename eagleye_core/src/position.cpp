@@ -35,7 +35,7 @@
 #include "eagleye_msgs/VelocityScaleFactor.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "geometry_msgs/Vector3Stamped.h"
-#include "xyz2enu.hpp"
+#include "coordinate.hpp"
 #include <math.h>
 #include <numeric>
 #include <time.h>

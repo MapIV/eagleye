@@ -33,7 +33,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "sensor_msgs/Imu.h"
 #include "rtklib_msgs/RtklibNav.h"
-#include "xyz2enu_vel.hpp"
+#include "coordinate.hpp"
 
 //default value
 static double estimated_number_min = 1000;

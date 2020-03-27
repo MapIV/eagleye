@@ -5,8 +5,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Heading.h"
 #include "tf/transform_broadcaster.h"
-#include "hgeoid.hpp"
-#include "ll2xy.hpp"
+#include "coordinate.hpp"
 
 
 static eagleye_msgs::Heading eagleye_heading;
@@ -36,7 +35,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  ll2xy(plane,llh,xyz);
+  ll2xy(&plane,llh,xyz);
 
   eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
   _quat = tf::createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
