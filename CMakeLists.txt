@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 
 add_subdirectory(eagleye_msgs)
-add_subdirectory(eagleye_core)
+add_subdirectory(Navigation)
+add_subdirectory(Coordinate)
 add_subdirectory(eagleye_util)
-add_subdirectory(eagleye_coordinate)
+
+

@@ -26,7 +26,7 @@
 #ifndef COORDINATE_H
 #define COORDINATE_H
 
-extern void ll2xy(int*, double*, double*);
+extern void ll2xy(int, double*, double*);
 extern void ecef2llh(double*, double*);
 extern void enu2llh(double*, double*, double*);
 extern void hgeoid(double*, double*);

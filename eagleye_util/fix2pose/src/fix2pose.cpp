@@ -35,7 +35,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  ll2xy(&plane,llh,xyz);
+  ll2xy(plane,llh,xyz);
 
   eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
   _quat = tf::createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);

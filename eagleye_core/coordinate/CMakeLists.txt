@@ -16,8 +16,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-message(${PROJECT_SOURCE_DIR}/include)
-
 add_library(coordinate
   src/ecef2llh.cpp
   src/enu2llh.cpp

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(eagleye_core)
+project(navigation)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
