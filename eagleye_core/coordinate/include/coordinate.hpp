@@ -23,15 +23,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "ecef2llh.hpp"
+#ifndef COORDINATE_H
+#define COORDINATE_H
 
-void enu2llh(double enu_pos[3], double ecef_base_pos[3], double llh_pos[3])
-{
-  double llh_base_pos[3];
-  double ecef_pos[3];
-  ecef2llh(ecef_base_pos,llh_base_pos);
-  ecef_pos[0] = ecef_base_pos[0] + ((-(sin(llh_base_pos[1])) * enu_pos[0]) + (-(cos(llh_base_pos[1])) * (sin(llh_base_pos[0])) * enu_pos[1]) + ((cos(llh_base_pos[1])) * (cos(llh_base_pos[0])) * enu_pos[2]));
-  ecef_pos[1] = ecef_base_pos[1] + (((cos(llh_base_pos[1])) * enu_pos[0]) + (-(sin(llh_base_pos[1])) * (sin(llh_base_pos[0])) * enu_pos[1]) + ((sin(llh_base_pos[1])) * (cos(llh_base_pos[0])) * enu_pos[2]));
-  ecef_pos[2] = ecef_base_pos[2] + ((0 * enu_pos[0]) + ((cos(llh_base_pos[0])) * enu_pos[1]) + ((sin(llh_base_pos[0])) * enu_pos[2]));
-  ecef2llh(ecef_pos,llh_pos);
-}
+extern void ll2xy(int, double*, double*);
+extern void ecef2llh(double*, double*);
+extern void enu2llh(double*, double*, double*);
+extern void hgeoid(double*, double*);
+extern void xyz2enu(double*, double*, double*);
+extern void xyz2enu_vel(double*, double*, double*);
+
+#endif /*COORDINATE_H */

@@ -5,8 +5,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Heading.h"
 #include "tf/transform_broadcaster.h"
-#include "hgeoid.hpp"
-#include "ll2xy.hpp"
+#include "coordinate.hpp"
 
 
 static eagleye_msgs::Heading eagleye_heading;

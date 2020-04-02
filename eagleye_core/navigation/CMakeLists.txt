@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(eagleye_core)
+project(navigation)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rtklib_msgs
   eagleye_msgs
+  coordinate
 )
 
 catkin_package(
@@ -18,9 +19,11 @@ catkin_package(
    sensor_msgs
    rtklib_msgs
    eagleye_msgs
+   coordinate
 )
 
-include_directories(include
+include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
 )
 

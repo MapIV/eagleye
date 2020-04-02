@@ -5,7 +5,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "rtklib_msgs/RtklibNav.h"
-#include "xyz2enu.hpp"
+#include "coordinate.hpp"
 
 static double estimated_number = 0;
 static double estimated_number_max = 5*5; //GNSS output cycle　* Smoothing time

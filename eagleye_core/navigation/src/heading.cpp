@@ -36,7 +36,7 @@
 #include "rtklib_msgs/RtklibNav.h"
 #include "sensor_msgs/Imu.h"
 #include "geometry_msgs/TwistStamped.h"
-#include "xyz2enu_vel.hpp"
+#include "coordinate.hpp"
 #include <math.h>
 #include <numeric>
 

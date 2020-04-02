@@ -35,7 +35,7 @@
 #include "eagleye_msgs/Heading.h"
 #include "rtklib_msgs/RtklibNav.h"
 #include "sensor_msgs/Imu.h"
-#include "xyz2enu_vel.hpp"
+#include "coordinate.hpp"
 
 //default value
 static bool reverse_imu = false;

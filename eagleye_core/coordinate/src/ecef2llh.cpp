@@ -23,6 +23,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "coordinate.hpp"
+#include <math.h>
+
+
 void ecef2llh(double ecef_pos[3], double llh_pos[3])
 {
   double semi_major_axis = 6378137.0000;
