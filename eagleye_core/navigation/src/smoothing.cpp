@@ -65,7 +65,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
 
   time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-  if (time_buffer_length > smoothing_param.estimated_number_max)
+  if (time_buffer_length > estimated_number_max)
   {
     smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
     smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());

@@ -140,6 +140,7 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   enu_absolute_pos_interpolate->enu_pos.x = position_interpolate_status->provisional_enu_pos_x;
   enu_absolute_pos_interpolate->enu_pos.y = position_interpolate_status->provisional_enu_pos_y;
   enu_absolute_pos_interpolate->enu_pos.z = position_interpolate_status->provisional_enu_pos_z;
+<<<<<<< 6664f5bd860fff7d2375b72d63f2a53622e8e8ce
 
   enu_pos[0] = enu_absolute_pos_interpolate->enu_pos.x;
   enu_pos[1] = enu_absolute_pos_interpolate->enu_pos.y;
@@ -148,9 +149,23 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
   ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
+=======
+
+  enu_pos[0] = enu_absolute_pos_interpolate->enu_pos.x;
+  enu_pos[1] = enu_absolute_pos_interpolate->enu_pos.y;
+  enu_pos[2] = enu_absolute_pos_interpolate->enu_pos.z;
+  ecef_base_pos[0] = enu_absolute_pos.ecef_base_pos.x;
+  ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
+  ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
+>>>>>>> functionalization of estimation part
 
   enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
+<<<<<<< 6664f5bd860fff7d2375b72d63f2a53622e8e8ce
+=======
+  enu2llh(enu_pos, ecef_base_pos, llh_pos);
+
+>>>>>>> functionalization of estimation part
   if (position_interpolate_param.altitude_estimate == true && enu_absolute_pos_interpolate->status.enabled_status == true)
   {
     _llh[0] = llh_pos[0] * 180/M_PI;
