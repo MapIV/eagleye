@@ -1,20 +1,44 @@
 
+// Copyright (c) 2019, Map IV, Inc.
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// * Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+// * Neither the name of the Map IV, Inc. nor the names of its contributors
+//   may be used to endorse or promote products derived from this software
+//   without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+/*
+ * smoothing.cpp
+ * Author MapIV Takanose
+ */
+
 #include "ros/ros.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "geometry_msgs/Vector3Stamped.h"
-#include "rtklib_msgs/RtklibNav.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
-
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::Position enu_absolute_pos,gnss_smooth_pos_enu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static ros::Publisher pub;
 
-struct PositionParam smoothing_param;
+struct SmoothingParam smoothing_param;
 struct SmoothingStatus smoothing_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -25,14 +49,6 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   velocity_scale_factor.status = msg->status;
 }
 
-// void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
-// {
-//   enu_absolute_pos.header = msg->header;
-//   enu_absolute_pos.enu_pos = msg->enu_pos;
-//   enu_absolute_pos.ecef_base_pos = msg->ecef_base_pos;
-//   enu_absolute_pos.status = msg->status;
-// }
-
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -40,7 +56,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_pos = msg->ecef_pos;
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
-  calc_smoothing(rtklib_nav,velocity_scale_factor,smoothing_param,&smoothing_status,&gnss_smooth_pos_enu);
+  smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_param,&smoothing_status,&gnss_smooth_pos_enu);
   gnss_smooth_pos_enu.header = msg->header;
   pub.publish(gnss_smooth_pos_enu);
 }
@@ -50,6 +66,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "smoothing");
   ros::NodeHandle n;
 
+  n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_param.ecef_base_pos_x);
+  n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_param.ecef_base_pos_y);
+  n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_param.ecef_base_pos_z);
   n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_param.ecef_base_pos_x);
   n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_param.ecef_base_pos_y);
   n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_param.ecef_base_pos_z);

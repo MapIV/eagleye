@@ -29,13 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "coordinate.hpp"
-#include <boost/circular_buffer.hpp>
 #include "navigation.hpp"
-
 
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_absolute_vel;
@@ -61,7 +56,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_absolute_vel.header = msg->header;
   enu_absolute_vel.vector = msg->vector;
-  calc_position_interpolate(enu_absolute_pos,enu_absolute_vel,position_interpolate_param,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
+  position_interpolate_estimate(enu_absolute_pos,enu_absolute_vel,position_interpolate_param,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
   enu_absolute_pos_interpolate.header = msg->header;
   eagleye_fix.header = msg->header;
   pub1.publish(enu_absolute_pos_interpolate);

@@ -28,16 +28,9 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/Imu.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "navigation.hpp"
 
-void calc_trajectory(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const TrajectoryParam trajectory_param, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
+void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const TrajectoryParam trajectory_param, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {
 
   if (trajectory_param.reverse_imu == false)

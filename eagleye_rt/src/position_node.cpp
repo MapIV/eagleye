@@ -29,17 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/Distance.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/Position.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
-#include <math.h>
-#include <numeric>
-#include <time.h>
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -96,7 +87,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_absolute_vel.header = msg->header;
   enu_absolute_vel.vector = msg->vector;
-  calc_position(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_absolute_vel, position_param, &position_status, &enu_absolute_pos);
+  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_absolute_vel, position_param, &position_status, &enu_absolute_pos);
   enu_absolute_pos.header = msg->header;
   if(enu_absolute_pos.status.estimate_status == true)
   {

@@ -20,7 +20,6 @@ catkin_package(
    rtklib_msgs
    eagleye_msgs
    coordinate
-   
 )
 
 catkin_package(
@@ -36,6 +35,7 @@ include_directories(
 
 add_library(navigation
   src/velocity_scale_factor.cpp
+  src/distance.cpp
   src/yawrate_offset_stop.cpp
   src/yawrate_offset.cpp
   src/heading.cpp

@@ -28,15 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "coordinate.hpp"
-#include <boost/circular_buffer.hpp>
 #include "navigation.hpp"
 
-
-void calc_position_interpolate(const eagleye_msgs::Position enu_absolute_pos, const geometry_msgs::Vector3Stamped enu_absolute_vel,const PositionInterpolateParam position_interpolate_param, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
+void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos, const geometry_msgs::Vector3Stamped enu_absolute_vel,const PositionInterpolateParam position_interpolate_param, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   int i;

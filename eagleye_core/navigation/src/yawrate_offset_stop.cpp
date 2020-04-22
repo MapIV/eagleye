@@ -28,13 +28,9 @@
  * Author MapIV Sekino
  */
 
-#include <boost/circular_buffer.hpp>
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
-#include "eagleye_msgs/YawrateOffset.h"
 #include "navigation.hpp"
 
-void calc_yawrate_offset_stop(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParam yawrate_offset_stop_param, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
+void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParam yawrate_offset_stop_param, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
 {
 
   int i;

@@ -29,17 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/SlipAngle.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "sensor_msgs/Imu.h"
-#include "geometry_msgs/TwistStamped.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
-#include <math.h>
-#include <numeric>
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static sensor_msgs::Imu imu;
@@ -105,7 +96,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  calc_heading(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_param,&heading_status,&heading);
+  heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_param,&heading_status,&heading);
   heading.header = msg->header;
 
   if (heading.status.estimate_status == true)

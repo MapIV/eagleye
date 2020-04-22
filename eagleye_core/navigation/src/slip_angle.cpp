@@ -28,18 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/SlipAngle.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Heading.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "sensor_msgs/Imu.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-
-
-void calc_slip_angle(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParam slip_angle_param,eagleye_msgs::SlipAngle* slip_angle)
+void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParam slip_angle_param,eagleye_msgs::SlipAngle* slip_angle)
 {
 
   int i;

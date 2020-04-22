@@ -28,18 +28,9 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/SlipAngle.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
-#include <boost/circular_buffer.hpp>
-#include <math.h>
-#include <numeric>
 #include "navigation.hpp"
 
-void calc_heading_interpolate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParam heading_interpolate_param, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
+void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParam heading_interpolate_param, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;

@@ -29,30 +29,24 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/Distance.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-
-static int count;
-static double time_last;
+#include "navigation.hpp"
 
 static ros::Publisher pub;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
+
+struct DistanceStatus distance_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  ++count;
   distance.header = msg->header;
+  velocity_scale_factor.header = msg->header;
+  velocity_scale_factor.correction_velocity.linear.x = msg->correction_velocity.linear.x;
+  distance_estimate(velocity_scale_factor,&distance_status,&distance);
 
-  if(time_last != 0)
+  if(distance_status.time_last != 0)
   {
-    distance.distance = distance.distance + msg->correction_velocity.linear.x * (msg->header.stamp.toSec() - time_last);
-    distance.status.enabled_status = distance.status.estimate_status = true;
     pub.publish(distance);
-    time_last = msg->header.stamp.toSec();
-  }
-  else
-  {
-    time_last = msg->header.stamp.toSec();
   }
 }
 

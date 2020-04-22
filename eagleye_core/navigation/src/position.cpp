@@ -28,20 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/Distance.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/Position.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/SlipAngle.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
-#include <math.h>
-#include <numeric>
-#include <time.h>
 
-void calc_position(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_absolute_vel, PositionParam position_param, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_absolute_vel, PositionParam position_param, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
 
   int i;

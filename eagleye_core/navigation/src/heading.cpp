@@ -28,19 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/SlipAngle.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "sensor_msgs/Imu.h"
-#include "geometry_msgs/TwistStamped.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
-#include <math.h>
-#include <numeric>
 
-void calc_heading(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,  eagleye_msgs::SlipAngle slip_angle, eagleye_msgs::Heading heading_interpolate, HeadingParam heading_param, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,  eagleye_msgs::SlipAngle slip_angle, eagleye_msgs::Heading heading_interpolate, HeadingParam heading_param, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
 
   double ecef_vel[3];

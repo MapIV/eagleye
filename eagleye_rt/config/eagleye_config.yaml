@@ -55,3 +55,8 @@ eagleye:                                               #GNSS cycle 5Hz, IMU cycl
  position_interpolate:
    altitude_estimate: true                             #Height output options (default:true => Altitude , false => Ellipsoid)
    number_buffer_max: 100
+
+ smoothing:
+   estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_threshold: 0.1

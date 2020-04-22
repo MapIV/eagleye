@@ -28,43 +28,18 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "eagleye_msgs/Distance.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
+#include "navigation.hpp"
 
-static int count;
-static double time_last;
-
-static ros::Publisher pub;
-static eagleye_msgs::Distance distance;
-
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void distance_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, DistanceStatus* distance_status,eagleye_msgs::Distance* distance)
 {
-  ++count;
-  distance.header = msg->header;
-
-  if(time_last != 0)
+  if(distance_status->time_last != 0)
   {
-    distance.distance = distance.distance + msg->correction_velocity.linear.x * (msg->header.stamp.toSec() - time_last);
-    distance.status.enabled_status = distance.status.estimate_status = true;
-    pub.publish(distance);
-    time_last = msg->header.stamp.toSec();
+    distance->distance = distance->distance + velocity_scale_factor.correction_velocity.linear.x * (velocity_scale_factor.header.stamp.toSec() - distance_status->time_last);
+    distance->status.enabled_status = distance->status.estimate_status = true;
+    distance_status->time_last = velocity_scale_factor.header.stamp.toSec();
   }
   else
   {
-    time_last = msg->header.stamp.toSec();
+    distance_status->time_last = velocity_scale_factor.header.stamp.toSec();
   }
-}
-
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "distance");
-
-  ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  pub = n.advertise<eagleye_msgs::Distance>("/eagleye/distance", 1000);
-
-  ros::spin();
-
-  return 0;
 }

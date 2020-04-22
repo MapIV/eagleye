@@ -28,15 +28,9 @@
  * Author MapIV Sekino
  */
 
-// #include "eagleye_msgs/VelocityScaleFactor.h"
-// #include "eagleye_msgs/Heading.h"
-// #include "eagleye_msgs/YawrateOffset.h"
-// #include "geometry_msgs/TwistStamped.h"
-// #include "sensor_msgs/Imu.h"
 #include "navigation.hpp"
-#include <math.h>
 
-void calc_yawrate_offset(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParam yawrate_offset_param, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
+void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParam yawrate_offset_param, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
 {
   int i;
   double yawrate = 0.0;

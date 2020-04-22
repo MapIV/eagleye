@@ -29,12 +29,7 @@
  */
 
 #include "ros/ros.h"
-#include <boost/circular_buffer.hpp>
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
-#include "eagleye_msgs/YawrateOffset.h"
 #include "navigation.hpp"
-
 
 static geometry_msgs::TwistStamped velocity;
 static ros::Publisher pub;
@@ -54,7 +49,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  calc_yawrate_offset_stop(velocity, imu, yawrate_offset_stop_param, &yawrate_offset_stop_status, &yawrate_offset_stop);
+  yawrate_offset_stop_estimate(velocity, imu, yawrate_offset_stop_param, &yawrate_offset_stop_status, &yawrate_offset_stop);
   yawrate_offset_stop.header = msg->header;
   pub.publish(yawrate_offset_stop);
 }

@@ -29,10 +29,6 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
-#include "rtklib_msgs/RtklibNav.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
@@ -63,7 +59,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  calc_velocity_scale_factor(rtklib_nav,velocity,velocity_scale_factor_param,&velocity_scale_factor_Status,&velocity_scale_factor);
+  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_param,&velocity_scale_factor_Status,&velocity_scale_factor);
   velocity_scale_factor.header = msg->header;
   pub.publish(velocity_scale_factor);
 }

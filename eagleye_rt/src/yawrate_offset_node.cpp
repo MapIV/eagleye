@@ -29,13 +29,7 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
 #include "navigation.hpp"
-#include <math.h>
 
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
@@ -73,7 +67,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  calc_yawrate_offset(velocity_scale_factor,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_param, &yawrate_offset_status, &yawrate_offset);
+  yawrate_offset_estimate(velocity_scale_factor,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_param, &yawrate_offset_status, &yawrate_offset);
   yawrate_offset.header = msg->header;
   pub.publish(yawrate_offset);
   yawrate_offset.status.estimate_status = false;

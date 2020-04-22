@@ -29,13 +29,6 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/Imu.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "geometry_msgs/Vector3Stamped.h"
 #include "navigation.hpp"
 
 static sensor_msgs::Imu imu;
@@ -87,7 +80,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  calc_trajectory(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,trajectory_param,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
+  trajectory_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,trajectory_param,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
   enu_vel.header = msg->header;
   enu_relative_pos.header = msg->header;
   eagleye_twist.header = msg->header;

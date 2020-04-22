@@ -1,20 +1,37 @@
+// Copyright (c) 2019, Map IV, Inc.
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// * Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+// * Neither the name of the Map IV, Inc. nor the names of its contributors
+//   may be used to endorse or promote products derived from this software
+//   without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/Position.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "geometry_msgs/Vector3Stamped.h"
-#include "rtklib_msgs/RtklibNav.h"
+/*
+ * smoothing.cpp
+ * Author MapIV Takanose
+ */
+
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-
-static double estimated_number = 0;
-static double estimated_number_max = 5*5; //GNSS output cycle　* Smoothing time
-static double estimated_velocity_threshold = 10/3.6;
-static double estimated_threshold = 1/10;
-
-
-void calc_smoothing(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,PositionParam smoothing_param, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
+void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParam smoothing_param, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
 {
 
   double ecef_pos[3];
@@ -48,7 +65,7 @@ void calc_smoothing(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocitySca
 
   time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-  if (time_buffer_length > estimated_number_max)
+  if (time_buffer_length > smoothing_param.estimated_number_max)
   {
     smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
     smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
@@ -57,14 +74,14 @@ void calc_smoothing(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocitySca
     smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
   }
 
-  if (estimated_number < estimated_number_max)
+  if (smoothing_status->estimated_number < smoothing_param.estimated_number_max)
   {
-    ++estimated_number;
+    ++smoothing_status->estimated_number;
     gnss_smooth_pos_enu->status.enabled_status = false;
   }
   else
   {
-    estimated_number = estimated_number_max;
+    smoothing_status->estimated_number = smoothing_param.estimated_number_max;
     gnss_smooth_pos_enu->status.enabled_status = true;
   }
 
@@ -75,12 +92,12 @@ void calc_smoothing(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocitySca
   double sum_gnss_pos[3] = {0};
 
 
-  if (estimated_number == estimated_number_max)
+  if (smoothing_status->estimated_number == smoothing_param.estimated_number_max)
   {
-    for (i = 0; i < estimated_number; i++)
+    for (i = 0; i < smoothing_status->estimated_number; i++)
     {
       index.push_back(i);
-      if (smoothing_status->correction_velocity_buffer[i] > estimated_velocity_threshold)
+      if (smoothing_status->correction_velocity_buffer[i] > smoothing_param.estimated_velocity_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -96,7 +113,7 @@ void calc_smoothing(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocitySca
       sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
     }
 
-    if (velocity_index_length > index_length * estimated_threshold)
+    if (velocity_index_length > index_length * smoothing_param.estimated_threshold)
     {
       gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
       gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;

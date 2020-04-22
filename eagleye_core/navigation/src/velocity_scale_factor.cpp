@@ -27,14 +27,10 @@
  * Author MapIV Sekino
  */
 
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "sensor_msgs/Imu.h"
-#include "rtklib_msgs/RtklibNav.h"
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void calc_velocity_scale_factor(const rtklib_msgs::RtklibNav rtklib_nav, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParam velocity_scale_factor_param, VelocityScaleFactorStatus* velocity_scale_factor_Status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
+void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParam velocity_scale_factor_param, VelocityScaleFactorStatus* velocity_scale_factor_Status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
 {
     double ecef_vel[3];
     double ecef_pos[3];
