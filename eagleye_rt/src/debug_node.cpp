@@ -29,19 +29,7 @@
  */
 
 #include "ros/ros.h"
-#include "eagleye_msgs/Debug.h"
-#include "eagleye_msgs/Distance.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/Position.h"
-#include "eagleye_msgs/Status.h"
-#include "eagleye_msgs/VelocityScaleFactor.h"
-#include "eagleye_msgs/YawrateOffset.h"
-#include "eagleye_msgs/SlipAngle.h"
-#include "rtklib_msgs/RtklibNav.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "sensor_msgs/Imu.h"
-#include "geometry_msgs/TwistStamped.h"
-#include "geometry_msgs/Vector3Stamped.h"
+#include "navigation.hpp"
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static sensor_msgs::NavSatFix fix;
