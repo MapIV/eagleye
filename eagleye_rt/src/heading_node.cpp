@@ -43,7 +43,7 @@ static eagleye_msgs::Heading heading_interpolate;
 static ros::Publisher pub;
 static eagleye_msgs::Heading heading;
 
-struct HeadingParam heading_param;
+struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
@@ -96,7 +96,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_param,&heading_status,&heading);
+  heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
   heading.header = msg->header;
 
   if (heading.status.estimate_status == true)
@@ -112,25 +112,25 @@ int main(int argc, char** argv)
   ros::NodeHandle n("~");
 
 
-  n.getParam("/eagleye/reverse_imu", heading_param.reverse_imu);
-  n.getParam("/eagleye/heading/estimated_number_min",heading_param.estimated_number_min);
-  n.getParam("/eagleye/heading/estimated_number_max",heading_param.estimated_number_max);
-  n.getParam("/eagleye/heading/estimated_gnss_coefficient",heading_param.estimated_gnss_coefficient);
-  n.getParam("/eagleye/heading/estimated_heading_coefficient",heading_param.estimated_heading_coefficient);
-  n.getParam("/eagleye/heading/outlier_threshold",heading_param.outlier_threshold);
-  n.getParam("/eagleye/heading/estimated_velocity_threshold",heading_param.estimated_velocity_threshold);
-  n.getParam("/eagleye/heading/stop_judgment_velocity_threshold",heading_param.stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/heading/estimated_yawrate_threshold",heading_param.estimated_yawrate_threshold);
+  n.getParam("/eagleye/reverse_imu", heading_parameter.reverse_imu);
+  n.getParam("/eagleye/heading/estimated_number_min",heading_parameter.estimated_number_min);
+  n.getParam("/eagleye/heading/estimated_number_max",heading_parameter.estimated_number_max);
+  n.getParam("/eagleye/heading/estimated_gnss_coefficient",heading_parameter.estimated_gnss_coefficient);
+  n.getParam("/eagleye/heading/estimated_heading_coefficient",heading_parameter.estimated_heading_coefficient);
+  n.getParam("/eagleye/heading/outlier_threshold",heading_parameter.outlier_threshold);
+  n.getParam("/eagleye/heading/estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
+  n.getParam("/eagleye/heading/stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
+  n.getParam("/eagleye/heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
-  std::cout<< "reverse_imu "<<heading_param.reverse_imu<<std::endl;
-  std::cout<< "estimated_number_min "<<heading_param.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<heading_param.estimated_number_max<<std::endl;
-  std::cout<< "estimated_gnss_coefficient "<<heading_param.estimated_gnss_coefficient<<std::endl;
-  std::cout<< "estimated_heading_coefficient "<<heading_param.estimated_heading_coefficient<<std::endl;
-  std::cout<< "outlier_threshold "<<heading_param.outlier_threshold<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<heading_param.estimated_velocity_threshold<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<heading_param.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "estimated_yawrate_threshold "<<heading_param.estimated_yawrate_threshold<<std::endl;
+  std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
+  std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
+  std::cout<< "estimated_number_max "<<heading_parameter.estimated_number_max<<std::endl;
+  std::cout<< "estimated_gnss_coefficient "<<heading_parameter.estimated_gnss_coefficient<<std::endl;
+  std::cout<< "estimated_heading_coefficient "<<heading_parameter.estimated_heading_coefficient<<std::endl;
+  std::cout<< "outlier_threshold "<<heading_parameter.outlier_threshold<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<heading_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<heading_parameter.stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "estimated_yawrate_threshold "<<heading_parameter.estimated_yawrate_threshold<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";

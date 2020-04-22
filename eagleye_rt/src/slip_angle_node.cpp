@@ -41,7 +41,7 @@ static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
 static ros::Publisher pub;
 static eagleye_msgs::SlipAngle slip_angle;
 
-struct SlipangleParam slip_angle_param;
+struct SlipangleParameter slip_angle_parameter;
 
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -70,7 +70,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  slip_angle_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_param,&slip_angle);
+  slip_angle_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
   slip_angle.header = msg->header;
   pub.publish(slip_angle);
   slip_angle.status.estimate_status = false;
@@ -82,12 +82,12 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", slip_angle_param.reverse_imu);
-  n.getParam("/eagleye/slip_angle/manual_coefficient", slip_angle_param.manual_coefficient);
-  n.getParam("/eagleye/slip_angle/stop_judgment_velocity_threshold", slip_angle_param.stop_judgment_velocity_threshold);
-  std::cout<< "reverse_imu "<<slip_angle_param.reverse_imu<<std::endl;
-  std::cout<< "manual_coefficient "<<slip_angle_param.manual_coefficient<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<slip_angle_param.stop_judgment_velocity_threshold<<std::endl;
+  n.getParam("/eagleye/reverse_imu", slip_angle_parameter.reverse_imu);
+  n.getParam("/eagleye/slip_angle/manual_coefficient", slip_angle_parameter.manual_coefficient);
+  n.getParam("/eagleye/slip_angle/stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
+  std::cout<< "reverse_imu "<<slip_angle_parameter.reverse_imu<<std::endl;
+  std::cout<< "manual_coefficient "<<slip_angle_parameter.manual_coefficient<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<slip_angle_parameter.stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());

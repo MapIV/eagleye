@@ -30,7 +30,7 @@
 
 #include "navigation.hpp"
 
-void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParam heading_interpolate_param, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
+void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
@@ -39,16 +39,16 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
   bool heading_estimate_status, heading_estimate_start_status;
   std::size_t imu_stamp_buffer_length;
 
-  if (heading_interpolate_param.reverse_imu == false)
+  if (heading_interpolate_parameter.reverse_imu == false)
   {
     yawrate = imu.angular_velocity.z;
   }
-  else if (heading_interpolate_param.reverse_imu == true)
+  else if (heading_interpolate_parameter.reverse_imu == true)
   {
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (velocity_scale_factor.correction_velocity.linear.x > heading_interpolate_param.stop_judgment_velocity_threshold)
+  if (velocity_scale_factor.correction_velocity.linear.x > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset.yawrate_offset;
   }
@@ -57,13 +57,13 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
   }
 
-  if (heading_interpolate_status->number_buffer < heading_interpolate_param.number_buffer_max)
+  if (heading_interpolate_status->number_buffer < heading_interpolate_parameter.number_buffer_max)
   {
     ++heading_interpolate_status->number_buffer;
   }
   else
   {
-    heading_interpolate_status->number_buffer = heading_interpolate_param.number_buffer_max;
+    heading_interpolate_status->number_buffer = heading_interpolate_parameter.number_buffer_max;
   }
 
   if (heading_interpolate_status->heading_stamp_last == heading.header.stamp.toSec())
@@ -87,7 +87,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
   heading_interpolate_status->imu_stamp_buffer.push_back(imu.header.stamp.toSec());
   imu_stamp_buffer_length = std::distance(heading_interpolate_status->imu_stamp_buffer.begin(), heading_interpolate_status->imu_stamp_buffer.end());
 
-  if (imu_stamp_buffer_length > heading_interpolate_param.number_buffer_max)
+  if (imu_stamp_buffer_length > heading_interpolate_parameter.number_buffer_max)
   {
     heading_interpolate_status->provisional_heading_angle_buffer.erase(heading_interpolate_status->provisional_heading_angle_buffer .begin());
     heading_interpolate_status->imu_stamp_buffer.erase(heading_interpolate_status->imu_stamp_buffer .begin());

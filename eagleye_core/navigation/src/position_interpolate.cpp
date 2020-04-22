@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos, const geometry_msgs::Vector3Stamped enu_absolute_vel,const PositionInterpolateParam position_interpolate_param, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
+void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos, const geometry_msgs::Vector3Stamped enu_absolute_vel,const PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   int i;
@@ -48,13 +48,13 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
 
   enu_absolute_pos_interpolate->ecef_base_pos = enu_absolute_pos.ecef_base_pos;
 
-  if (position_interpolate_status->number_buffer < position_interpolate_param.number_buffer_max)
+  if (position_interpolate_status->number_buffer < position_interpolate_parameter.number_buffer_max)
   {
     ++position_interpolate_status->number_buffer;
   }
   else
   {
-    position_interpolate_status->number_buffer = position_interpolate_param.number_buffer_max;
+    position_interpolate_status->number_buffer = position_interpolate_parameter.number_buffer_max;
   }
 
   if (position_interpolate_status->position_stamp_last == enu_absolute_pos.header.stamp.toSec())
@@ -84,7 +84,7 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   position_interpolate_status->imu_stamp_buffer.push_back(enu_absolute_vel.header.stamp.toSec());
   imu_stamp_buffer_length = std::distance(position_interpolate_status->imu_stamp_buffer.begin(), position_interpolate_status->imu_stamp_buffer.end());
 
-  if (imu_stamp_buffer_length > position_interpolate_param.number_buffer_max)
+  if (imu_stamp_buffer_length > position_interpolate_parameter.number_buffer_max)
   {
     position_interpolate_status->provisional_enu_pos_x_buffer.erase(position_interpolate_status->provisional_enu_pos_x_buffer .begin());
     position_interpolate_status->provisional_enu_pos_y_buffer.erase(position_interpolate_status->provisional_enu_pos_y_buffer .begin());
@@ -140,7 +140,6 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   enu_absolute_pos_interpolate->enu_pos.x = position_interpolate_status->provisional_enu_pos_x;
   enu_absolute_pos_interpolate->enu_pos.y = position_interpolate_status->provisional_enu_pos_y;
   enu_absolute_pos_interpolate->enu_pos.z = position_interpolate_status->provisional_enu_pos_z;
-<<<<<<< 6664f5bd860fff7d2375b72d63f2a53622e8e8ce
 
   enu_pos[0] = enu_absolute_pos_interpolate->enu_pos.x;
   enu_pos[1] = enu_absolute_pos_interpolate->enu_pos.y;
@@ -149,24 +148,10 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
   ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
-=======
-
-  enu_pos[0] = enu_absolute_pos_interpolate->enu_pos.x;
-  enu_pos[1] = enu_absolute_pos_interpolate->enu_pos.y;
-  enu_pos[2] = enu_absolute_pos_interpolate->enu_pos.z;
-  ecef_base_pos[0] = enu_absolute_pos.ecef_base_pos.x;
-  ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
-  ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
->>>>>>> functionalization of estimation part
 
   enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
-<<<<<<< 6664f5bd860fff7d2375b72d63f2a53622e8e8ce
-=======
-  enu2llh(enu_pos, ecef_base_pos, llh_pos);
-
->>>>>>> functionalization of estimation part
-  if (position_interpolate_param.altitude_estimate == true && enu_absolute_pos_interpolate->status.enabled_status == true)
+  if (position_interpolate_parameter.altitude_estimate == true && enu_absolute_pos_interpolate->status.enabled_status == true)
   {
     _llh[0] = llh_pos[0] * 180/M_PI;
     _llh[1] = llh_pos[1] * 180/M_PI;

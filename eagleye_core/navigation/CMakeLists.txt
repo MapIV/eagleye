@@ -20,12 +20,6 @@ catkin_package(
    rtklib_msgs
    eagleye_msgs
    coordinate
-
-)
-
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES navigation
 )
 
 catkin_package(

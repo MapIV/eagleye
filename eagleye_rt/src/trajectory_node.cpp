@@ -44,7 +44,7 @@ static ros::Publisher pub1;
 static ros::Publisher pub2;
 static ros::Publisher pub3;
 
-struct TrajectoryParam trajectory_param;
+struct TrajectoryParameter trajectory_parameter;
 struct TrajectoryStatus trajectory_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -80,7 +80,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  trajectory_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,trajectory_param,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
+  trajectory_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
   enu_vel.header = msg->header;
   enu_relative_pos.header = msg->header;
   eagleye_twist.header = msg->header;
@@ -95,9 +95,9 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", trajectory_param.reverse_imu);
-  n.getParam("/eagleye/trajectory/stop_judgment_velocity_threshold",trajectory_param.stop_judgment_velocity_threshold);
-  std::cout<< "reverse_imu "<<trajectory_param.reverse_imu<<std::endl;
+  n.getParam("/eagleye/reverse_imu", trajectory_parameter.reverse_imu);
+  n.getParam("/eagleye/trajectory/stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  std::cout<< "reverse_imu "<<trajectory_parameter.reverse_imu<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());

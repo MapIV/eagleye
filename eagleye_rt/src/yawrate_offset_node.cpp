@@ -38,7 +38,7 @@ static sensor_msgs::Imu imu;
 static ros::Publisher pub;
 static eagleye_msgs::YawrateOffset yawrate_offset;
 
-struct YawrateOffsetParam yawrate_offset_param;
+struct YawrateOffsetParameter yawrate_offset_parameter;
 struct YawrateOffsetStatus yawrate_offset_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -67,7 +67,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header  = msg->header;
   imu.angular_velocity = msg->angular_velocity;
-  yawrate_offset_estimate(velocity_scale_factor,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_param, &yawrate_offset_status, &yawrate_offset);
+  yawrate_offset_estimate(velocity_scale_factor,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_parameter, &yawrate_offset_status, &yawrate_offset);
   yawrate_offset.header = msg->header;
   pub.publish(yawrate_offset);
   yawrate_offset.status.estimate_status = false;
@@ -78,15 +78,15 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "yawrate_offset");
   ros::NodeHandle n("~");
 
-  n.getParam("/eagleye/reverse_imu", yawrate_offset_param.reverse_imu);
-  n.getParam("/eagleye/yawrate_offset/estimated_number_min",yawrate_offset_param.estimated_number_min);
-  n.getParam("/eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_param.estimated_coefficient);
-  n.getParam("/eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_param.estimated_velocity_threshold);
+  n.getParam("/eagleye/reverse_imu", yawrate_offset_parameter.reverse_imu);
+  n.getParam("/eagleye/yawrate_offset/estimated_number_min",yawrate_offset_parameter.estimated_number_min);
+  n.getParam("/eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
+  n.getParam("/eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
 
-  std::cout<< "reverse_imu "<<yawrate_offset_param.reverse_imu<<std::endl;
-  std::cout<< "estimated_number_min "<<yawrate_offset_param.estimated_number_min<<std::endl;
-  std::cout<< "estimated_coefficient "<<yawrate_offset_param.estimated_coefficient<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<yawrate_offset_param.estimated_velocity_threshold<<std::endl;
+  std::cout<< "reverse_imu "<<yawrate_offset_parameter.reverse_imu<<std::endl;
+  std::cout<< "estimated_number_min "<<yawrate_offset_parameter.estimated_number_min<<std::endl;
+  std::cout<< "estimated_coefficient "<<yawrate_offset_parameter.estimated_coefficient<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -97,17 +97,17 @@ int main(int argc, char** argv)
     {
       publish_topic_name = "/eagleye/yawrate_offset_1st";
       subscribe_topic_name = "/eagleye/heading_interpolate_1st";
-      // yawrate_offset_param.estimated_number_max = 14000;  // parameters for 1st
-      n.getParam("/eagleye/yawrate_offset/1st/estimated_number_max",yawrate_offset_param.estimated_number_max);
-      std::cout<< "estimated_number_max "<<yawrate_offset_param.estimated_number_max<<std::endl;
+      // yawrate_offset_parameter.estimated_number_max = 14000;  // parameters for 1st
+      n.getParam("/eagleye/yawrate_offset/1st/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "/eagleye/yawrate_offset_2nd";
       subscribe_topic_name = "/eagleye/heading_interpolate_2nd";
       // estimated_number_max = 25000;  // parameters for 2nd
-      n.getParam("/eagleye/yawrate_offset/2nd/estimated_number_max",yawrate_offset_param.estimated_number_max);
-      std::cout<< "estimated_number_max "<<yawrate_offset_param.estimated_number_max<<std::endl;
+      n.getParam("/eagleye/yawrate_offset/2nd/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else
     {

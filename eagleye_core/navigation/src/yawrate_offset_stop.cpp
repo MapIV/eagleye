@@ -30,7 +30,7 @@
 
 #include "navigation.hpp"
 
-void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParam yawrate_offset_stop_param, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
+void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParameter yawrate_offset_stop_parameter, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
 {
 
   int i;
@@ -38,23 +38,23 @@ void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, co
   double initial_yawrate_offset_stop = 0.0;
   std::size_t yawrate_buffer_length;
   // data buffer generate
-  if (yawrate_offset_stop_param.reverse_imu == false)
+  if (yawrate_offset_stop_parameter.reverse_imu == false)
   {
     yawrate_offset_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
   }
-  else if (yawrate_offset_stop_param.reverse_imu == true)
+  else if (yawrate_offset_stop_parameter.reverse_imu == true)
   {
     yawrate_offset_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
   }
 
   yawrate_buffer_length = std::distance(yawrate_offset_stop_status->yawrate_buffer.begin(), yawrate_offset_stop_status->yawrate_buffer.end());
 
-  if (yawrate_buffer_length > yawrate_offset_stop_param.estimated_number)
+  if (yawrate_buffer_length > yawrate_offset_stop_parameter.estimated_number)
   {
     yawrate_offset_stop_status->yawrate_buffer.erase(yawrate_offset_stop_status->yawrate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < yawrate_offset_stop_param.stop_judgment_velocity_threshold)
+  if (velocity.twist.linear.x < yawrate_offset_stop_parameter.stop_judgment_velocity_threshold)
   {
     ++yawrate_offset_stop_status->stop_count;
   }
@@ -64,14 +64,14 @@ void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, co
   }
 
   // mean
-  if (yawrate_offset_stop_status->stop_count > yawrate_offset_stop_param.estimated_number)
+  if (yawrate_offset_stop_status->stop_count > yawrate_offset_stop_parameter.estimated_number)
   {
     tmp = 0.0;
-    for (i = 0; i < yawrate_offset_stop_param.estimated_number; i++)
+    for (i = 0; i < yawrate_offset_stop_parameter.estimated_number; i++)
     {
       tmp += yawrate_offset_stop_status->yawrate_buffer[i];
     }
-    yawrate_offset_stop->yawrate_offset = -1 * tmp / yawrate_offset_stop_param.estimated_number;
+    yawrate_offset_stop->yawrate_offset = -1 * tmp / yawrate_offset_stop_parameter.estimated_number;
     yawrate_offset_stop->status.enabled_status = true;
     yawrate_offset_stop->status.estimate_status = true;
     yawrate_offset_stop_status->estimate_start_status = true;
