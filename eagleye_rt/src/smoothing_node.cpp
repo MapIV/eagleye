@@ -1,4 +1,3 @@
-
 // Copyright (c) 2019, Map IV, Inc.
 // All rights reserved.
 //
@@ -38,7 +37,7 @@ static eagleye_msgs::Position enu_absolute_pos,gnss_smooth_pos_enu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static ros::Publisher pub;
 
-struct SmoothingParam smoothing_param;
+struct SmoothingParameter smoothing_parameter;
 struct SmoothingStatus smoothing_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -56,8 +55,8 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_pos = msg->ecef_pos;
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
-  smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_param,&smoothing_status,&gnss_smooth_pos_enu);
   gnss_smooth_pos_enu.header = msg->header;
+  smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_parameter,&smoothing_status,&gnss_smooth_pos_enu);
   pub.publish(gnss_smooth_pos_enu);
 }
 
@@ -66,20 +65,22 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "smoothing");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_param.ecef_base_pos_x);
-  n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_param.ecef_base_pos_y);
-  n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_param.ecef_base_pos_z);
-  n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_param.ecef_base_pos_x);
-  n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_param.ecef_base_pos_y);
-  n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_param.ecef_base_pos_z);
+  n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
+  n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
+  n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
+  n.getParam("/eagleye/smoothing/estimated_number_max",smoothing_parameter.estimated_number_max);
+  n.getParam("/eagleye/smoothing/estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
+  n.getParam("/eagleye/smoothing/estimated_threshold",smoothing_parameter.estimated_threshold);
 
-  std::cout<< "ecef_base_pos_x "<<smoothing_param.ecef_base_pos_x<<std::endl;
-  std::cout<< "ecef_base_pos_y "<<smoothing_param.ecef_base_pos_y<<std::endl;
-  std::cout<< "ecef_base_pos_z "<<smoothing_param.ecef_base_pos_z<<std::endl;
+  std::cout<< "ecef_base_pos_x "<<smoothing_parameter.ecef_base_pos_x<<std::endl;
+  std::cout<< "ecef_base_pos_y "<<smoothing_parameter.ecef_base_pos_y<<std::endl;
+  std::cout<< "ecef_base_pos_z "<<smoothing_parameter.ecef_base_pos_z<<std::endl;
+  std::cout<< "estimated_number_max "<<smoothing_parameter.estimated_number_max<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<smoothing_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "estimated_threshold "<<smoothing_parameter.estimated_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  // ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/gnss_smooth_pos_enu", 1000);
 

@@ -31,11 +31,11 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_absolute_vel, PositionParam position_param, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_absolute_vel, PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
 
   int i;
-  int estimated_number_max = position_param.estimated_distance/position_param.separation_distance;
+  int estimated_number_max = position_parameter.estimated_distance/position_parameter.separation_distance;
   int max_x_index, max_y_index;
   double ecef_pos[3];
   double ecef_base_pos[3];
@@ -103,7 +103,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
   }
 
 
-  if (distance.distance-position_status->distance_last >= position_param.separation_distance && gnss_status == true)
+  if (distance.distance-position_status->distance_last >= position_parameter.separation_distance && gnss_status == true)
   {
 
     if (position_status->estimated_number < estimated_number_max)
@@ -147,7 +147,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
 
     std::cout << std::endl;
 
-    if (distance.distance > position_param.estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > position_param.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
+    if (distance.distance > position_parameter.estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > position_parameter.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
       std::vector<int> velocity_index;
@@ -155,11 +155,11 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
 
       for (i = 0; i < position_status->estimated_number; i++)
       {
-        if (position_status->distance_buffer[position_status->estimated_number-1] - position_status->distance_buffer[i]  <= position_param.estimated_distance)
+        if (position_status->distance_buffer[position_status->estimated_number-1] - position_status->distance_buffer[i]  <= position_parameter.estimated_distance)
         {
           distance_index.push_back(i);
 
-          if (position_status->correction_velocity_buffer[i] > position_param.estimated_velocity_threshold)
+          if (position_status->correction_velocity_buffer[i] > position_parameter.estimated_velocity_threshold)
           {
             velocity_index.push_back(i);
           }
@@ -173,7 +173,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
       index_length = std::distance(index.begin(), index.end());
       velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-      if (index_length > velocity_index_length * position_param.estimated_enu_vel_coefficient)
+      if (index_length > velocity_index_length * position_parameter.estimated_enu_vel_coefficient)
       {
 
         // std::cout << "--- \033[1;34m position\033[m ------------------------------"<< std::endl;
@@ -247,7 +247,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
 
           if(diff_x_buffer[max_x_index] < diff_y_buffer[max_y_index])
           {
-            if (diff_x_buffer[max_x_index] > position_param.outlier_threshold)
+            if (diff_x_buffer[max_x_index] > position_parameter.outlier_threshold)
             {
               index.erase(index.begin() + max_x_index);
             }
@@ -258,7 +258,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
           }
           else
           {
-            if (diff_y_buffer[max_y_index] > position_param.outlier_threshold)
+            if (diff_y_buffer[max_y_index] > position_parameter.outlier_threshold)
             {
               index.erase(index.begin() + max_y_index);
             }
@@ -271,7 +271,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
           index_length = std::distance(index.begin(), index.end());
           velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-          if (index_length < velocity_index_length * position_param.estimated_position_coefficient)
+          if (index_length < velocity_index_length * position_parameter.estimated_position_coefficient)
           {
             break;
           }
@@ -281,7 +281,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
         index_length = std::distance(index.begin(), index.end());
         velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-        if (index_length >= velocity_index_length * position_param.estimated_position_coefficient)
+        if (index_length >= velocity_index_length * position_parameter.estimated_position_coefficient)
         {
           if (index[index_length - 1] == position_status->estimated_number-1)
           {

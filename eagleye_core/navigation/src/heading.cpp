@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,  eagleye_msgs::SlipAngle slip_angle, eagleye_msgs::Heading heading_interpolate, HeadingParam heading_param, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,  eagleye_msgs::SlipAngle slip_angle, eagleye_msgs::Heading heading_interpolate, HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
 
   double ecef_vel[3];
@@ -62,20 +62,20 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
   }
 
-  if (heading_status->estimated_number  < heading_param.estimated_number_max)
+  if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
   {
     ++heading_status->estimated_number ;
   }
   else
   {
-    heading_status->estimated_number  = heading_param.estimated_number_max;
+    heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
-  if (heading_param.reverse_imu == false)
+  if (heading_parameter.reverse_imu == false)
   {
     yawrate = imu.angular_velocity.z;
   }
-  else if (heading_param.reverse_imu == true)
+  else if (heading_parameter.reverse_imu == true)
   {
     yawrate = -1 * imu.angular_velocity.z;
   }
@@ -105,7 +105,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
 
-  if (time_buffer_length > heading_param.estimated_number_max)
+  if (time_buffer_length > heading_parameter.estimated_number_max)
   {
     heading_status->time_buffer .erase(heading_status->time_buffer .begin());
     heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
@@ -121,7 +121,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_param.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_param.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_param.estimated_yawrate_threshold)
+  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -138,7 +138,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
       {
         gnss_index.push_back(i);
       }
-      if (heading_status->correction_velocity_buffer [i] > heading_param.estimated_velocity_threshold)
+      if (heading_status->correction_velocity_buffer [i] > heading_parameter.estimated_velocity_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -149,7 +149,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
 
     index_length = std::distance(index.begin(), index.end());
 
-    if (index_length > heading_status->estimated_number  * heading_param.estimated_gnss_coefficient)
+    if (index_length > heading_status->estimated_number  * heading_parameter.estimated_gnss_coefficient)
     {
       std::vector<double> provisional_heading_angle_buffer(heading_status->estimated_number , 0);
 
@@ -157,7 +157,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
       {
         if (i > 0)
         {
-          if (heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_param.stop_judgment_velocity_threshold)
+          if (heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.stop_judgment_velocity_threshold)
           {
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
@@ -177,7 +177,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
      if(heading_interpolate.status.enabled_status == false)
      {
        heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-       std::cout<<"\033[1;33m heading_interpolate FALSE \033[m"<<std::endl;
+       // std::cout<<"\033[1;33m heading_interpolate FALSE \033[m"<<std::endl;
      }
 
       int ref_cnt;
@@ -231,7 +231,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
         max = std::max_element(diff_buffer.begin(), diff_buffer.end());
         index_max = std::distance(diff_buffer.begin(), max);
 
-        if (diff_buffer[index_max] > heading_param.outlier_threshold)
+        if (diff_buffer[index_max] > heading_parameter.outlier_threshold)
         {
           index.erase(index.begin() + index_max);
         }
@@ -242,13 +242,13 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
 
         index_length = std::distance(index.begin(), index.end());
 
-        if (index_length < heading_status->estimated_number  * heading_param.estimated_heading_coefficient)
+        if (index_length < heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
         {
           break;
         }
       }
 
-      if (index_length == 0 || index_length > heading_status->estimated_number  * heading_param.estimated_heading_coefficient)
+      if (index_length == 0 || index_length > heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
       {
         if (index[index_length-1] == heading_status->estimated_number -1)
         {

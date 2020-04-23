@@ -34,11 +34,13 @@
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static geometry_msgs::TwistStamped velocity;
+static sensor_msgs::Imu imu;
+
 
 static ros::Publisher pub;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 
-struct VelocityScaleFactorParam velocity_scale_factor_param;
+struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
 struct VelocityScaleFactorStatus velocity_scale_factor_Status;
 
 
@@ -59,7 +61,14 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_param,&velocity_scale_factor_Status,&velocity_scale_factor);
+  imu.header = msg->header;
+  imu.orientation = msg->orientation;
+  imu.orientation_covariance = msg->orientation_covariance;
+  imu.angular_velocity = msg->angular_velocity;
+  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
+  imu.linear_acceleration = msg->linear_acceleration;
+  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_Status,&velocity_scale_factor);
   velocity_scale_factor.header = msg->header;
   pub.publish(velocity_scale_factor);
 }
@@ -69,15 +78,15 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "velocity_scale_factor");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/velocity_scale_factor/estimated_number_min",velocity_scale_factor_param.estimated_number_min);
-  n.getParam("/eagleye/velocity_scale_factor/estimated_number_max",velocity_scale_factor_param.estimated_number_max);
-  n.getParam("/eagleye/velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_param.estimated_velocity_threshold);
-  n.getParam("/eagleye/velocity_scale_factor/estimated_coefficient",velocity_scale_factor_param.estimated_coefficient);
+  n.getParam("/eagleye/velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  n.getParam("/eagleye/velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  n.getParam("/eagleye/velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  n.getParam("/eagleye/velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
 
-  std::cout<< "estimated_number_min "<<velocity_scale_factor_param.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<velocity_scale_factor_param.estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_param.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_coefficient "<<velocity_scale_factor_param.estimated_coefficient<<std::endl;
+  std::cout<< "estimated_number_min "<<velocity_scale_factor_parameter.estimated_number_min<<std::endl;
+  std::cout<< "estimated_number_max "<<velocity_scale_factor_parameter.estimated_number_max<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "estimated_coefficient "<<velocity_scale_factor_parameter.estimated_coefficient<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());

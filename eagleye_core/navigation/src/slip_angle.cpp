@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParam slip_angle_param,eagleye_msgs::SlipAngle* slip_angle)
+void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::SlipAngle* slip_angle)
 {
 
   int i;
@@ -39,16 +39,16 @@ void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor
   double yawrate;
   double acceleration_y;
 
-  if (slip_angle_param.reverse_imu == false)
+  if (slip_angle_parameter.reverse_imu == false)
   {
     yawrate = imu.angular_velocity.z;
   }
-  else if (slip_angle_param.reverse_imu == true)
+  else if (slip_angle_parameter.reverse_imu == true)
   {
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (velocity_scale_factor.correction_velocity.linear.x > slip_angle_param.stop_judgment_velocity_threshold)
+  if (velocity_scale_factor.correction_velocity.linear.x > slip_angle_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
@@ -61,9 +61,9 @@ void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor
 
   if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
   {
-      slip_angle->coefficient = slip_angle_param.manual_coefficient;
-      slip_angle->slip_angle = slip_angle_param.manual_coefficient * acceleration_y;
-      if (slip_angle_param.manual_coefficient != 0)
+      slip_angle->coefficient = slip_angle_parameter.manual_coefficient;
+      slip_angle->slip_angle = slip_angle_parameter.manual_coefficient * acceleration_y;
+      if (slip_angle_parameter.manual_coefficient != 0)
       {
         slip_angle->status.enabled_status = true;
       }
