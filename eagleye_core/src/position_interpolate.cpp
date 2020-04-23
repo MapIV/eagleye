@@ -32,7 +32,8 @@
 #include "eagleye_msgs/Position.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/Vector3Stamped.h"
-#include "coordinate.hpp"
+#include "enu2llh.hpp"
+#include "hgeoid.hpp"
 #include <boost/circular_buffer.hpp>
 
 static double number_buffer_max = 100;

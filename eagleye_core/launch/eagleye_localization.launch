@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <rosparam command="load" file="$(find eagleye_core)/config/eagleye_config.yaml"/>
+  <node pkg="eagleye_core" name="velocity_scale_factor" type="velocity_scale_factor" />
+  <node pkg="eagleye_core" name="yawrate_offset_stop" type="yawrate_offset_stop" />
+  <node pkg="eagleye_core" name="yawrate_offset_1st" type="yawrate_offset" args="1st"/>
+  <node pkg="eagleye_core" name="yawrate_offset_2nd" type="yawrate_offset" args="2nd"/>
+  <node pkg="eagleye_core" name="heading_1st" type="heading" args="1st"/>
+  <node pkg="eagleye_core" name="heading_2nd" type="heading" args="2nd"/>
+  <node pkg="eagleye_core" name="heading_3rd" type="heading" args="3rd"/>
+  <node pkg="eagleye_core" name="heading_interpolate_1st" type="heading_interpolate" args="1st"/>
+  <node pkg="eagleye_core" name="heading_interpolate_2nd" type="heading_interpolate" args="2nd"/>
+  <node pkg="eagleye_core" name="heading_interpolate_3rd" type="heading_interpolate" args="3rd"/>
+  <node pkg="eagleye_core" name="slip_angle" type="slip_angle" />
+  <node pkg="eagleye_core" name="distance" type="distance" />
+  <node pkg="eagleye_core" name="trajectory" type="trajectory" />
+  <node pkg="eagleye_core" name="position" type="position" />
+  <node pkg="eagleye_core" name="position_interpolate" type="position_interpolate" />
+  <node pkg="eagleye_core" name="smoothing" type="smoothing" />
+  <node pkg="eagleye_core" name="debug" type="debug" output="screen" />
+
+</launch>
