@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <rosparam command="load" file="$(find navigation)/config/eagleye_config.yaml"/>
+  <node pkg="navigation" name="velocity_scale_factor" type="velocity_scale_factor" />
+  <node pkg="navigation" name="yawrate_offset_stop" type="yawrate_offset_stop" />
+  <node pkg="navigation" name="yawrate_offset_1st" type="yawrate_offset" args="1st"/>
+  <node pkg="navigation" name="yawrate_offset_2nd" type="yawrate_offset" args="2nd"/>
+  <node pkg="navigation" name="heading_1st" type="heading" args="1st"/>
+  <node pkg="navigation" name="heading_2nd" type="heading" args="2nd"/>
+  <node pkg="navigation" name="heading_3rd" type="heading" args="3rd"/>
+  <node pkg="navigation" name="heading_interpolate_1st" type="heading_interpolate" args="1st"/>
+  <node pkg="navigation" name="heading_interpolate_2nd" type="heading_interpolate" args="2nd"/>
+  <node pkg="navigation" name="heading_interpolate_3rd" type="heading_interpolate" args="3rd"/>
+  <node pkg="navigation" name="slip_angle" type="slip_angle" />
+  <node pkg="navigation" name="distance" type="distance" />
+  <node pkg="navigation" name="trajectory" type="trajectory" />
+  <node pkg="navigation" name="position" type="position" />
+  <node pkg="navigation" name="position_interpolate" type="position_interpolate" />
+  <node pkg="navigation" name="smoothing" type="smoothing" />
+  <node pkg="navigation" name="debug" type="debug" output="screen" />
+
+</launch>

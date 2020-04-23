@@ -28,32 +28,85 @@
  * Author MapIV Sekino
  */
 
+#include "ros/ros.h"
+#include "eagleye_msgs/Heading.h"
+#include "eagleye_msgs/VelocityScaleFactor.h"
+#include "eagleye_msgs/YawrateOffset.h"
+#include "eagleye_msgs/SlipAngle.h"
+#include "rtklib_msgs/RtklibNav.h"
+#include "sensor_msgs/Imu.h"
+#include "geometry_msgs/TwistStamped.h"
 #include "coordinate.hpp"
-#include "navigation.hpp"
+#include <math.h>
+#include <numeric>
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,  eagleye_msgs::SlipAngle slip_angle, eagleye_msgs::Heading heading_interpolate, HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+//default value
+static bool reverse_imu = false;
+static double estimated_number_min = 500;
+static double estimated_number_max = 1500;
+static double estimated_gnss_coefficient = 1.0 / 10;
+static double estimated_heading_coefficient = 1.0 / 20;
+static double outlier_threshold = 3.0 / 180 * M_PI;
+static double estimated_velocity_threshold = 10 / 3.6;
+static double stop_judgment_velocity_threshold = 0.01;
+static double estimated_yawrate_threshold = 5.0 / 180 * M_PI;
+
+static bool gnss_status;
+static int i, count;
+static int tow_last;
+static int estimated_number;
+static int index_max;
+
+static double avg = 0.0;
+static double doppler_heading_angle = 0.0;
+static double doppler_heading_angle2 = 0.0;
+static double yawrate = 0.0;
+static double tmp_heading_angle = 0.0;
+
+static std::size_t index_length;
+static std::size_t time_buffer_length;
+static std::size_t inversion_up_index_length;
+static std::size_t inversion_down_index_length;
+
+static std::vector<double>::iterator max;
+
+static std::vector<double> time_buffer;
+static std::vector<double> heading_angle_buffer;
+static std::vector<double> yawrate_buffer;
+static std::vector<double> correction_velocity_buffer;
+static std::vector<double> yawrate_offset_stop_buffer;
+static std::vector<double> yawrate_offset_buffer;
+static std::vector<double> slip_angle_buffer;
+static std::vector<double> gnss_status_buffer;
+
+static rtklib_msgs::RtklibNav rtklib_nav;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset yawrate_offset;
+static eagleye_msgs::SlipAngle slip_angle;
+static eagleye_msgs::Heading heading_interpolate;
+
+static ros::Publisher pub;
+static eagleye_msgs::Heading heading;
+
+void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
+  rtklib_nav.header = msg->header;
+  rtklib_nav.tow = msg->tow;
+  rtklib_nav.ecef_pos = msg->ecef_pos;
+  rtklib_nav.ecef_vel = msg->ecef_vel;
+  rtklib_nav.status = msg->status;
 
   double ecef_vel[3];
   double ecef_pos[3];
   double enu_vel[3];
 
-  int i,index_max;
-  double yawrate = 0.0 , doppler_heading_angle = 0.0;
-  double avg = 0.0,tmp_heading_angle;
-  bool gnss_status;
-  std::size_t index_length;
-  std::size_t time_buffer_length;
-  std::size_t inversion_up_index_length;
-  std::size_t inversion_down_index_length;
-  std::vector<double>::iterator max;
-
-  ecef_vel[0] = rtklib_nav.ecef_vel.x;
-  ecef_vel[1] = rtklib_nav.ecef_vel.y;
-  ecef_vel[2] = rtklib_nav.ecef_vel.z;
-  ecef_pos[0] = rtklib_nav.ecef_pos.x;
-  ecef_pos[1] = rtklib_nav.ecef_pos.y;
-  ecef_pos[2] = rtklib_nav.ecef_pos.z;
+  ecef_vel[0] = msg->ecef_vel.x;
+  ecef_vel[1] = msg->ecef_vel.y;
+  ecef_vel[2] = msg->ecef_vel.z;
+  ecef_pos[0] = msg->ecef_pos.x;
+  ecef_pos[1] = msg->ecef_pos.y;
+  ecef_pos[2] = msg->ecef_pos.z;
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
   doppler_heading_angle = atan2(enu_vel[0], enu_vel[1]);
@@ -62,83 +115,127 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
   }
 
-  if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
+}
+
+void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+{
+  velocity_scale_factor.header = msg->header;
+  velocity_scale_factor.scale_factor = msg->scale_factor;
+  velocity_scale_factor.correction_velocity = msg->correction_velocity;
+  velocity_scale_factor.status = msg->status;
+}
+
+void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+{
+  yawrate_offset_stop.header = msg->header;
+  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
+  yawrate_offset_stop.status = msg->status;
+}
+
+void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+{
+  yawrate_offset.header = msg->header;
+  yawrate_offset.yawrate_offset = msg->yawrate_offset;
+  yawrate_offset.status = msg->status;
+}
+
+void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+{
+  slip_angle.header = msg->header;
+  slip_angle.coefficient = msg->coefficient;
+  slip_angle.slip_angle = msg->slip_angle;
+  slip_angle.status = msg->status;
+}
+
+void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+{
+  heading_interpolate.header = msg->header;
+  heading_interpolate.heading_angle = msg->heading_angle;
+  heading_interpolate.status = msg->status;
+}
+
+void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  ++count;
+
+  if (estimated_number < estimated_number_max)
   {
-    ++heading_status->estimated_number ;
+    ++estimated_number;
   }
   else
   {
-    heading_status->estimated_number  = heading_parameter.estimated_number_max;
+    estimated_number = estimated_number_max;
   }
 
-  if (heading_parameter.reverse_imu == false)
+  if (reverse_imu == false)
   {
-    yawrate = imu.angular_velocity.z;
+    yawrate = msg->angular_velocity.z;
   }
-  else if (heading_parameter.reverse_imu == true)
+  else if (reverse_imu == true)
   {
-    yawrate = -1 * imu.angular_velocity.z;
+    yawrate = -1 * msg->angular_velocity.z;
   }
 
-  if (heading_status->tow_last  == rtklib_nav.tow)
+  if (tow_last == rtklib_nav.tow)
   {
     gnss_status = false;
     doppler_heading_angle = 0;
-    heading_status->tow_last  = rtklib_nav.tow;
+    tow_last = rtklib_nav.tow;
   }
   else
   {
     gnss_status = true;
     doppler_heading_angle = doppler_heading_angle;
-    heading_status->tow_last  = rtklib_nav.tow;
+    tow_last = rtklib_nav.tow;
   }
 
   // data buffer generate
-  heading_status->time_buffer .push_back(imu.header.stamp.toSec());
-  heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
-  heading_status->yawrate_buffer .push_back(yawrate);
-  heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
-  heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
-  heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
-  heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);
-  heading_status->gnss_status_buffer .push_back(gnss_status);
+  time_buffer.push_back(msg->header.stamp.toSec());
+  heading_angle_buffer.push_back(doppler_heading_angle);
+  yawrate_buffer.push_back(yawrate);
+  correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+  yawrate_offset_stop_buffer.push_back(yawrate_offset_stop.yawrate_offset);
+  yawrate_offset_buffer.push_back(yawrate_offset.yawrate_offset);
+  slip_angle_buffer.push_back(slip_angle.slip_angle);
+  gnss_status_buffer.push_back(gnss_status);
 
-  time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
+  time_buffer_length = std::distance(time_buffer.begin(), time_buffer.end());
 
-  if (time_buffer_length > heading_parameter.estimated_number_max)
+  if (time_buffer_length > estimated_number_max)
   {
-    heading_status->time_buffer .erase(heading_status->time_buffer .begin());
-    heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
-    heading_status->yawrate_buffer .erase(heading_status->yawrate_buffer .begin());
-    heading_status->correction_velocity_buffer .erase(heading_status->correction_velocity_buffer .begin());
-    heading_status->yawrate_offset_stop_buffer .erase(heading_status->yawrate_offset_stop_buffer .begin());
-    heading_status->yawrate_offset_buffer .erase(heading_status->yawrate_offset_buffer .begin());
-    heading_status->slip_angle_buffer .erase(heading_status->slip_angle_buffer .begin());
-    heading_status->gnss_status_buffer .erase(heading_status->gnss_status_buffer .begin());
+    time_buffer.erase(time_buffer.begin());
+    heading_angle_buffer.erase(heading_angle_buffer.begin());
+    yawrate_buffer.erase(yawrate_buffer.begin());
+    correction_velocity_buffer.erase(correction_velocity_buffer.begin());
+    yawrate_offset_stop_buffer.erase(yawrate_offset_stop_buffer.begin());
+    yawrate_offset_buffer.erase(yawrate_offset_buffer.begin());
+    slip_angle_buffer.erase(slip_angle_buffer.begin());
+    gnss_status_buffer.erase(gnss_status_buffer.begin());
   }
 
   std::vector<int> gnss_index;
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
+  if (estimated_number > estimated_number_min && gnss_status_buffer[estimated_number-1] == true &&
+      correction_velocity_buffer[estimated_number-1] > estimated_velocity_threshold && fabsf(yawrate_buffer[estimated_number-1]) < estimated_yawrate_threshold)
   {
-    heading->status.enabled_status = true;
+    heading.status.enabled_status = true;
   }
   else
   {
-    heading->status.enabled_status = false;
+    heading.status.enabled_status = false;
   }
 
-  if (heading->status.enabled_status == true)
+  if (heading.status.enabled_status == true)
   {
-    for (i = 0; i < heading_status->estimated_number ; i++)
+    for (i = 0; i < estimated_number; i++)
     {
-      if (heading_status->gnss_status_buffer [i] == true)
+      if (gnss_status_buffer[i] == true)
       {
         gnss_index.push_back(i);
       }
-      if (heading_status->correction_velocity_buffer [i] > heading_parameter.estimated_velocity_threshold)
+      if (correction_velocity_buffer[i] > estimated_velocity_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -149,21 +246,23 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
 
     index_length = std::distance(index.begin(), index.end());
 
-    if (index_length > heading_status->estimated_number  * heading_parameter.estimated_gnss_coefficient)
-    {
-      std::vector<double> provisional_heading_angle_buffer(heading_status->estimated_number , 0);
+    //ROS_INFO("index_length = %d",index_length);
 
-      for (i = 0; i < heading_status->estimated_number ; i++)
+    if (index_length > estimated_number * estimated_gnss_coefficient)
+    {
+      std::vector<double> provisional_heading_angle_buffer(estimated_number, 0);
+
+      for (i = 0; i < estimated_number; i++)
       {
         if (i > 0)
         {
-          if (heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.stop_judgment_velocity_threshold)
+          if (correction_velocity_buffer[estimated_number-1] > stop_judgment_velocity_threshold)
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_buffer[i]) * (time_buffer[i] - time_buffer[i-1]));
           }
           else
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((yawrate_buffer[i] + yawrate_offset_stop_buffer[i]) * (time_buffer[i] - time_buffer[i-1]));
           }
         }
       }
@@ -174,18 +273,63 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
       std::vector<double> inversion_up_index;
       std::vector<double> inversion_down_index;
 
+      // angle reversal processing (-3.14~3.14)
+      /*
+      for (i = 0; i < estimated_number; i++)
+      {
+        base_heading_angle_buffer.push_back(heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+      }
+
+      for (i = 0; i < index_length; i++)
+      {
+        diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer[index[i]]);
+      }
+
+      for (i = 0; i < index_length; i++)
+      {
+        if (diff_buffer[i] > M_PI / 2.0)
+        {
+          inversion_up_index.push_back(index[i]);
+        }
+        if (diff_buffer[i] < -M_PI / 2.0)
+        {
+          inversion_down_index.push_back(index[i]);
+        }
+      }
+
+      inversion_up_index_length = std::distance(inversion_up_index.begin(), inversion_up_index.end());
+      inversion_down_index_length = std::distance(inversion_down_index.begin(), inversion_down_index.end());
+
+      if (inversion_up_index_length != 0)
+      {
+        for (i = 0; i < inversion_up_index_length; i++)
+        {
+          heading_angle_buffer[inversion_up_index[i]] = heading_angle_buffer[inversion_up_index[i]] + 2.0 * M_PI;
+        }
+      }
+
+      if (inversion_down_index_length != 0)
+      {
+        for (i = 0; i < inversion_down_index_length; i++)
+        {
+          heading_angle_buffer[inversion_down_index[i]] = heading_angle_buffer[inversion_down_index[i]] - 2.0 * M_PI;
+        }
+      }*/
+
      if(heading_interpolate.status.enabled_status == false)
      {
-       heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-       std::cout<<"\033[1;33m heading_interpolate FALSE \033[m"<<std::endl;
+       heading_interpolate.heading_angle = heading_angle_buffer[index[index_length-1]];
+       ROS_WARN("heading_interpolate FALSE");
      }
+
+     //ROS_INFO("heading_interpolate = %lf",heading_interpolate.heading_angle);
 
       int ref_cnt;
       std::vector<double> heading_angle_buffer2;
 
-      copy(heading_status->heading_angle_buffer .begin(), heading_status->heading_angle_buffer .end(), back_inserter(heading_angle_buffer2) );
+      copy(heading_angle_buffer.begin(), heading_angle_buffer.end(), back_inserter(heading_angle_buffer2) );
 
-      for (i = 0; i < heading_status->estimated_number ; i++)
+      for (i = 0; i < estimated_number; i++)
       {
         base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
       }
@@ -194,7 +338,8 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
       {
         ref_cnt = (base_heading_angle_buffer[index[i]] - fmod(base_heading_angle_buffer[index[i]],2*M_PI))/(2*M_PI);
         if(base_heading_angle_buffer[index[i]] < 0) ref_cnt = ref_cnt -1;
-        heading_angle_buffer2[index[i]] = heading_status->heading_angle_buffer [index[i]] + ref_cnt * 2*M_PI;
+        heading_angle_buffer2[index[i]] = heading_angle_buffer[index[i]] + ref_cnt * 2*M_PI;
+        ROS_INFO("%lf , %lf , %lf , %lf , %d",heading_interpolate.heading_angle,heading_angle_buffer2[index[i]],base_heading_angle_buffer[index[i]],fmod(base_heading_angle_buffer[index[i]],2*M_PI),ref_cnt);
       }
 
       while (1)
@@ -202,9 +347,10 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
         index_length = std::distance(index.begin(), index.end());
 
         base_heading_angle_buffer.clear();
-        for (i = 0; i < heading_status->estimated_number ; i++)
+        for (i = 0; i < estimated_number; i++)
         {
           base_heading_angle_buffer.push_back(heading_angle_buffer2[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+          //base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
         }
 
         diff_buffer.clear();
@@ -217,7 +363,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
         tmp_heading_angle = heading_angle_buffer2[index[index_length-1]] - avg;
 
         base_heading_angle_buffer2.clear();
-        for (i = 0; i < heading_status->estimated_number ; i++)
+        for (i = 0; i < estimated_number; i++)
         {
           base_heading_angle_buffer2.push_back(tmp_heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
         }
@@ -231,7 +377,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
         max = std::max_element(diff_buffer.begin(), diff_buffer.end());
         index_max = std::distance(diff_buffer.begin(), max);
 
-        if (diff_buffer[index_max] > heading_parameter.outlier_threshold)
+        if (diff_buffer[index_max] > outlier_threshold)
         {
           index.erase(index.begin() + index_max);
         }
@@ -242,24 +388,115 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
 
         index_length = std::distance(index.begin(), index.end());
 
-        if (index_length < heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
+        if (index_length < estimated_number * estimated_heading_coefficient)
         {
           break;
         }
       }
 
-      if (index_length == 0 || index_length > heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
+      if (index_length == 0 || index_length > estimated_number * estimated_heading_coefficient)
       {
-        if (index[index_length-1] == heading_status->estimated_number -1)
+        if (index[index_length-1] == estimated_number-1)
         {
-          heading->heading_angle = tmp_heading_angle;
+          heading.heading_angle = tmp_heading_angle;
         }
         else
         {
-          heading->heading_angle = tmp_heading_angle + (provisional_heading_angle_buffer[heading_status->estimated_number -1] - provisional_heading_angle_buffer[index[index_length-1]]);
+          heading.heading_angle = tmp_heading_angle + (provisional_heading_angle_buffer[estimated_number-1] - provisional_heading_angle_buffer[index[index_length-1]]);
         }
-        heading->status.estimate_status = true;
+        /*
+        if (heading.heading_angle > M_PI)
+        {
+          heading.heading_angle = heading.heading_angle - 2.0 * M_PI;
+        }
+        else if (heading.heading_angle < -M_PI)
+        {
+          heading.heading_angle = heading.heading_angle + 2.0 * M_PI;
+        }
+        */
+        heading.header = msg->header;
+        heading.status.estimate_status = true;
+
+        pub.publish(heading);
       }
     }
   }
+  heading.status.estimate_status = false;
+}
+
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "heading");
+  ros::NodeHandle n("~");
+  n.getParam("/eagleye/reverse_imu", reverse_imu);
+  n.getParam("/eagleye/heading/estimated_number_min",estimated_number_min);
+  n.getParam("/eagleye/heading/estimated_number_max",estimated_number_max);
+  n.getParam("/eagleye/heading/estimated_gnss_coefficient",estimated_gnss_coefficient);
+  n.getParam("/eagleye/heading/estimated_heading_coefficient",estimated_heading_coefficient);
+  n.getParam("/eagleye/heading/outlier_threshold",outlier_threshold);
+  n.getParam("/eagleye/heading/estimated_velocity_threshold",estimated_velocity_threshold);
+  n.getParam("/eagleye/heading/stop_judgment_velocity_threshold",stop_judgment_velocity_threshold);
+  n.getParam("/eagleye/heading/estimated_yawrate_threshold",estimated_yawrate_threshold);
+
+  std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
+  std::cout<< "estimated_number_min "<<estimated_number_min<<std::endl;
+  std::cout<< "estimated_number_max "<<estimated_number_max<<std::endl;
+  std::cout<< "estimated_gnss_coefficient "<<estimated_gnss_coefficient<<std::endl;
+  std::cout<< "estimated_heading_coefficient "<<estimated_heading_coefficient<<std::endl;
+  std::cout<< "outlier_threshold "<<outlier_threshold<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<estimated_velocity_threshold<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "estimated_yawrate_threshold "<<estimated_yawrate_threshold<<std::endl;
+
+  std::string publish_topic_name = "/publish_topic_name/invalid";
+  std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+  std::string subscribe_topic_name2 = "/subscribe_topic_name2/invalid";
+
+  if (argc == 2)
+  {
+    if (strcmp(argv[1], "1st") == 0)
+    {
+      publish_topic_name = "/eagleye/heading_1st";
+      subscribe_topic_name = "/eagleye/yawrate_offset_stop";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_1st";
+    }
+    else if (strcmp(argv[1], "2nd") == 0)
+    {
+      publish_topic_name = "/eagleye/heading_2nd";
+      subscribe_topic_name = "/eagleye/yawrate_offset_1st";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_2nd";
+    }
+    else if (strcmp(argv[1], "3rd") == 0)
+    {
+      publish_topic_name = "/eagleye/heading_3rd";
+      subscribe_topic_name = "/eagleye/yawrate_offset_2nd";
+      subscribe_topic_name2 = "/eagleye/heading_interpolate_3rd";
+    }
+    else
+    {
+      ROS_ERROR("Invalid argument");
+      ros::shutdown();
+    }
+  }
+  else
+  {
+    ROS_ERROR("No arguments");
+    ros::shutdown();
+  }
+
+
+
+  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("/eagleye/slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
+
+  pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
+
+  ros::spin();
+
+  return 0;
 }
