@@ -41,7 +41,7 @@ static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_absolute_vel;
 static ros::Publisher pub;
 
-struct PositionParam position_param;
+struct PositionParameter position_parameter;
 struct PositionStatus position_status;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
@@ -87,8 +87,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_absolute_vel.header = msg->header;
   enu_absolute_vel.vector = msg->vector;
-  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_absolute_vel, position_param, &position_status, &enu_absolute_pos);
   enu_absolute_pos.header = msg->header;
+  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_absolute_vel, position_parameter, &position_status, &enu_absolute_pos);
   if(enu_absolute_pos.status.estimate_status == true)
   {
     pub.publish(enu_absolute_pos);
@@ -101,22 +101,22 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position/estimated_distance",position_param.estimated_distance);
-  n.getParam("/eagleye/position/separation_distance",position_param.separation_distance);
-  n.getParam("/eagleye/position/estimated_velocity_threshold",position_param.estimated_velocity_threshold);
-  n.getParam("/eagleye/position/outlier_threshold",position_param.outlier_threshold);
-  n.getParam("/eagleye/position/estimated_enu_vel_coefficient",position_param.estimated_enu_vel_coefficient);
-  n.getParam("/eagleye/position/estimated_position_coefficient",position_param.estimated_position_coefficient);
-  n.getParam("/eagleye/position/ecef_base_pos_x",position_param.ecef_base_pos_x);
-  n.getParam("/eagleye/position/ecef_base_pos_y",position_param.ecef_base_pos_y);
-  n.getParam("/eagleye/position/ecef_base_pos_z",position_param.ecef_base_pos_z);
+  n.getParam("/eagleye/position/estimated_distance",position_parameter.estimated_distance);
+  n.getParam("/eagleye/position/separation_distance",position_parameter.separation_distance);
+  n.getParam("/eagleye/position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
+  n.getParam("/eagleye/position/outlier_threshold",position_parameter.outlier_threshold);
+  n.getParam("/eagleye/position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
+  n.getParam("/eagleye/position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
+  n.getParam("/eagleye/position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
+  n.getParam("/eagleye/position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
+  n.getParam("/eagleye/position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
 
-  std::cout<< "estimated_distance "<<position_param.estimated_distance<<std::endl;
-  std::cout<< "separation_distance "<<position_param.separation_distance<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<position_param.estimated_velocity_threshold<<std::endl;
-  std::cout<< "outlier_threshold "<<position_param.outlier_threshold<<std::endl;
-  std::cout<< "estimated_enu_vel_coefficient "<<position_param.estimated_enu_vel_coefficient<<std::endl;
-  std::cout<< "estimated_position_coefficient "<<position_param.estimated_position_coefficient<<std::endl;
+  std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
+  std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<position_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "outlier_threshold "<<position_parameter.outlier_threshold<<std::endl;
+  std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
+  std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());

@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParam smoothing_param, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
+void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
 {
 
   double ecef_pos[3];
@@ -41,19 +41,19 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
 
-  if(smoothing_param.ecef_base_pos_x == 0 && smoothing_param.ecef_base_pos_y == 0 && smoothing_param.ecef_base_pos_z == 0)
+  if(smoothing_parameter.ecef_base_pos_x == 0 && smoothing_parameter.ecef_base_pos_y == 0 && smoothing_parameter.ecef_base_pos_z == 0)
   {
-    smoothing_param.ecef_base_pos_x = rtklib_nav.ecef_pos.x;
-    smoothing_param.ecef_base_pos_y = rtklib_nav.ecef_pos.y;
-    smoothing_param.ecef_base_pos_z = rtklib_nav.ecef_pos.z;
+    smoothing_parameter.ecef_base_pos_x = rtklib_nav.ecef_pos.x;
+    smoothing_parameter.ecef_base_pos_y = rtklib_nav.ecef_pos.y;
+    smoothing_parameter.ecef_base_pos_z = rtklib_nav.ecef_pos.z;
   }
 
   ecef_pos[0] = rtklib_nav.ecef_pos.x;
   ecef_pos[1] = rtklib_nav.ecef_pos.y;
   ecef_pos[2] = rtklib_nav.ecef_pos.z;
-  ecef_base_pos[0] = smoothing_param.ecef_base_pos_x;
-  ecef_base_pos[1] = smoothing_param.ecef_base_pos_y;
-  ecef_base_pos[2] = smoothing_param.ecef_base_pos_z;
+  ecef_base_pos[0] = smoothing_parameter.ecef_base_pos_x;
+  ecef_base_pos[1] = smoothing_parameter.ecef_base_pos_y;
+  ecef_base_pos[2] = smoothing_parameter.ecef_base_pos_z;
 
   xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
@@ -65,7 +65,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
 
   time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-  if (time_buffer_length > smoothing_param.estimated_number_max)
+  if (time_buffer_length > smoothing_parameter.estimated_number_max)
   {
     smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
     smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
@@ -74,14 +74,14 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
     smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
   }
 
-  if (smoothing_status->estimated_number < smoothing_param.estimated_number_max)
+  if (smoothing_status->estimated_number < smoothing_parameter.estimated_number_max)
   {
     ++smoothing_status->estimated_number;
     gnss_smooth_pos_enu->status.enabled_status = false;
   }
   else
   {
-    smoothing_status->estimated_number = smoothing_param.estimated_number_max;
+    smoothing_status->estimated_number = smoothing_parameter.estimated_number_max;
     gnss_smooth_pos_enu->status.enabled_status = true;
   }
 
@@ -92,12 +92,12 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   double sum_gnss_pos[3] = {0};
 
 
-  if (smoothing_status->estimated_number == smoothing_param.estimated_number_max)
+  if (smoothing_status->estimated_number == smoothing_parameter.estimated_number_max)
   {
     for (i = 0; i < smoothing_status->estimated_number; i++)
     {
       index.push_back(i);
-      if (smoothing_status->correction_velocity_buffer[i] > smoothing_param.estimated_velocity_threshold)
+      if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.estimated_velocity_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -113,7 +113,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
       sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
     }
 
-    if (velocity_index_length > index_length * smoothing_param.estimated_threshold)
+    if (velocity_index_length > index_length * smoothing_parameter.estimated_threshold)
     {
       gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
       gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;

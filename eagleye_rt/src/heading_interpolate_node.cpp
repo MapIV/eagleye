@@ -41,7 +41,7 @@ static eagleye_msgs::SlipAngle slip_angle;
 static ros::Publisher pub;
 static eagleye_msgs::Heading heading_interpolate;
 
-struct HeadingInterpolateParam heading_interpolate_param;
+struct HeadingInterpolateParameter heading_interpolate_parameter;
 struct HeadingInterpolateStatus heading_interpolate_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -83,10 +83,15 @@ void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header  = msg->header;
+  imu.header = msg->header;
+  imu.orientation = msg->orientation;
+  imu.orientation_covariance = msg->orientation_covariance;
   imu.angular_velocity = msg->angular_velocity;
-  heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_param,&heading_interpolate_status,&heading_interpolate);
+  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
+  imu.linear_acceleration = msg->linear_acceleration;
+  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   heading_interpolate.header = msg->header;
+  heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_parameter,&heading_interpolate_status,&heading_interpolate);
   pub.publish(heading_interpolate);
 }
 
@@ -95,12 +100,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading_interpolate");
   ros::NodeHandle n("~");
 
-  n.getParam("/eagleye/reverse_imu", heading_interpolate_param.reverse_imu);
-  n.getParam("/eagleye/heading_interpolate/stop_judgment_velocity_threshold", heading_interpolate_param.stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/heading_interpolate/number_buffer_max", heading_interpolate_param.number_buffer_max);
-  std::cout<< "reverse_imu "<<heading_interpolate_param.reverse_imu<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_param.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "number_buffer_max "<<heading_interpolate_param.number_buffer_max<<std::endl;
+  n.getParam("/eagleye/reverse_imu", heading_interpolate_parameter.reverse_imu);
+  n.getParam("/eagleye/heading_interpolate/stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
+  n.getParam("/eagleye/heading_interpolate/number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+  std::cout<< "reverse_imu "<<heading_interpolate_parameter.reverse_imu<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "number_buffer_max "<<heading_interpolate_parameter.number_buffer_max<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";
