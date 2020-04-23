@@ -24,53 +24,41 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * slip_angle.cpp
+ * distance.cpp
  * Author MapIV Sekino
  */
 
-#include "coordinate.hpp"
+#include "ros/ros.h"
 #include "navigation.hpp"
 
-void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::SlipAngle* slip_angle)
+static ros::Publisher pub;
+static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::Distance distance;
+
+struct DistanceStatus distance_status;
+
+void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
+  distance.header = msg->header;
+  velocity_scale_factor.header = msg->header;
+  velocity_scale_factor.correction_velocity.linear.x = msg->correction_velocity.linear.x;
+  distance_estimate(velocity_scale_factor,&distance_status,&distance);
 
-  int i;
-  double doppler_slip;
-  double yawrate;
-  double acceleration_y;
+  if(distance_status.time_last != 0)
+  {
+    pub.publish(distance);
+  }
+}
 
-  if (slip_angle_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_angle_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+int main(int argc, char** argv)
+{
+  ros::init(argc, argv, "distance");
 
-  if (velocity_scale_factor.correction_velocity.linear.x > slip_angle_parameter.stop_judgment_velocity_threshold)
-  {
-    yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
-  }
-  else
-  {
-    yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
-  }
+  ros::NodeHandle n;
+  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  pub = n.advertise<eagleye_msgs::Distance>("/eagleye/distance", 1000);
 
-  acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
+  ros::spin();
 
-  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
-  {
-      slip_angle->coefficient = slip_angle_parameter.manual_coefficient;
-      slip_angle->slip_angle = slip_angle_parameter.manual_coefficient * acceleration_y;
-      if (slip_angle_parameter.manual_coefficient != 0)
-      {
-        slip_angle->status.enabled_status = true;
-      }
-      else
-      {
-        slip_angle->status.enabled_status = false;
-      }
-      slip_angle->status.estimate_status = false;
-  }
+  return 0;
 }
