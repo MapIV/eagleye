@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_absolute_vel, PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_vel, PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
 
   int i;
@@ -97,9 +97,9 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
 
   if(position_status->time_last != 0)
   {
-    position_status->enu_relative_pos_x = position_status->enu_relative_pos_x + enu_absolute_vel.vector.x * (enu_absolute_vel.header.stamp.toSec() - position_status->time_last);
-    position_status->enu_relative_pos_y = position_status->enu_relative_pos_y + enu_absolute_vel.vector.y * (enu_absolute_vel.header.stamp.toSec() - position_status->time_last);
-    position_status->enu_relative_pos_z = position_status->enu_relative_pos_z + enu_absolute_vel.vector.z * (enu_absolute_vel.header.stamp.toSec() - position_status->time_last);
+    position_status->enu_relative_pos_x = position_status->enu_relative_pos_x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - position_status->time_last);
+    position_status->enu_relative_pos_y = position_status->enu_relative_pos_y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - position_status->time_last);
+    position_status->enu_relative_pos_z = position_status->enu_relative_pos_z + enu_vel.vector.z * (enu_vel.header.stamp.toSec() - position_status->time_last);
   }
 
 
@@ -296,6 +296,6 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
       }
     }
   }
-  position_status->time_last = enu_absolute_vel.header.stamp.toSec();
+  position_status->time_last = enu_vel.header.stamp.toSec();
   data_status = false;
 }

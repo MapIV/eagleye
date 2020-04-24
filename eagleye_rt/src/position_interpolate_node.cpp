@@ -33,7 +33,7 @@
 #include "navigation.hpp"
 
 static eagleye_msgs::Position enu_absolute_pos;
-static geometry_msgs::Vector3Stamped enu_absolute_vel;
+static geometry_msgs::Vector3Stamped enu_vel;
 
 static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
@@ -54,11 +54,11 @@ void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_absolute_vel.header = msg->header;
-  enu_absolute_vel.vector = msg->vector;
+  enu_vel.header = msg->header;
+  enu_vel.vector = msg->vector;
   enu_absolute_pos_interpolate.header = msg->header;
   eagleye_fix.header = msg->header;
-  position_interpolate_estimate(enu_absolute_pos,enu_absolute_vel,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
+  position_interpolate_estimate(enu_absolute_pos,enu_vel,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
   pub1.publish(enu_absolute_pos_interpolate);
   pub2.publish(eagleye_fix);
 }

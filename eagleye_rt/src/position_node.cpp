@@ -38,7 +38,7 @@ static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::Position gnss_smooth_pos;
 static eagleye_msgs::Position enu_absolute_pos;
-static geometry_msgs::Vector3Stamped enu_absolute_vel;
+static geometry_msgs::Vector3Stamped enu_vel;
 static ros::Publisher pub;
 
 struct PositionParameter position_parameter;
@@ -86,9 +86,9 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_absolute_vel.header = msg->header;
-  enu_absolute_vel.vector = msg->vector;
+  enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
-  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_absolute_vel, position_parameter, &position_status, &enu_absolute_pos);
+  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   if(enu_absolute_pos.status.estimate_status == true)
   {
     pub.publish(enu_absolute_pos);

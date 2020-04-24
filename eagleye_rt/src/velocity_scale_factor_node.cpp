@@ -41,7 +41,7 @@ static ros::Publisher pub;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 
 struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
-struct VelocityScaleFactorStatus velocity_scale_factor_Status;
+struct VelocityScaleFactorStatus velocity_scale_factor_status;
 
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
@@ -68,8 +68,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.angular_velocity_covariance = msg->angular_velocity_covariance;
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
-  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_Status,&velocity_scale_factor);
   velocity_scale_factor.header = msg->header;
+  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
   pub.publish(velocity_scale_factor);
 }
 
