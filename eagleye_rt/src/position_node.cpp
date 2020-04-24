@@ -85,7 +85,7 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_absolute_vel.header = msg->header;
+  enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
   position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
