@@ -50,3 +50,8 @@ add_library(navigation
 target_link_libraries(navigation
   ${catkin_LIBRARIES}
 )
+
+add_dependencies(${PROJECT_NAME}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
