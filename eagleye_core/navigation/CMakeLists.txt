@@ -45,6 +45,7 @@ add_library(navigation
   src/trajectory.cpp
   src/heading_interpolate.cpp
   src/position_interpolate.cpp
+  src/slip_coefficient.cpp
 )
 
 target_link_libraries(navigation
