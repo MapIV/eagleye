@@ -1,1 +1,0 @@
-slip_coefficient 0.009065
