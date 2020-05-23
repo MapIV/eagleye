@@ -60,11 +60,12 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
     enu_absolute_pos->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
     enu_absolute_pos->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
     enu_absolute_pos->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
-  }
-  else{
-    enu_absolute_pos->ecef_base_pos.x = position_parameter.ecef_base_pos_x;
-    enu_absolute_pos->ecef_base_pos.y = position_parameter.ecef_base_pos_y;
-    enu_absolute_pos->ecef_base_pos.z = position_parameter.ecef_base_pos_z;
+
+    if(position_parameter.ecef_base_pos_x != 0 && position_parameter.ecef_base_pos_y != 0 && position_parameter.ecef_base_pos_z != 0){
+      enu_absolute_pos->ecef_base_pos.x = position_parameter.ecef_base_pos_x;
+      enu_absolute_pos->ecef_base_pos.y = position_parameter.ecef_base_pos_y;
+      enu_absolute_pos->ecef_base_pos.z = position_parameter.ecef_base_pos_z;
+    }
   }
 
 
