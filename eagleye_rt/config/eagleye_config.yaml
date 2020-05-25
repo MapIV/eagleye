@@ -38,6 +38,14 @@ eagleye:                                               #GNSS cycle 5Hz, IMU cycl
    manual_coefficient: 0.0                             #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
 
+ slip_coefficient:
+   estimated_number_min: 100                           #Minimum number of data used for estimation. (default:100)
+   estimated_number_max: 5000                          #Maximum number of data used for estimation. (default:5000)
+   estimated_velocity_threshold: 3                     #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_yawrate_threshold: 0.017453               #Yaw rate threshold for curve judgment. (default:0.017453 rad/s = 1 degree/s)
+   lever_arm: 0.26                                     #Distance from center of rear wheel axle to GNSS antenna. (m)
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+
  trajectory:
    stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
 
