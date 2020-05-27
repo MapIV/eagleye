@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <param name="altitude_estimate" value="false"/>
+  <node pkg="nmea2fix" name="nmea2fix" type="nmea2fix" />
+
+</launch>
