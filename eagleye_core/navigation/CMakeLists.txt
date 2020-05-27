@@ -45,14 +45,9 @@ add_library(navigation
   src/trajectory.cpp
   src/heading_interpolate.cpp
   src/position_interpolate.cpp
-  src/slip_coefficient.cpp
+  src/height.cpp
 )
 
 target_link_libraries(navigation
   ${catkin_LIBRARIES}
-)
-
-add_dependencies(${PROJECT_NAME}
-  ${${PROJECT_NAME}_EXPORTED_TARGETS}
-  ${catkin_EXPORTED_TARGETS}
 )
