@@ -103,6 +103,19 @@ Further details will be provided later.
 
 Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4757p5m1qk4iuub/eagleye_sample.bag?dl=0). This sample data is collected along this [route](https://www.google.com/maps/d/u/0/embed?mid=1pK4BgrGtoo14nguArDf-rZDqIL5Cg-v5) in Nagoya. The 3D maps of the route is also available as [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
 
+### How to try the sample data
+
+1. Play the sample data.  
+
+		rosparam set use_sim_time true
+		rosbag play --clock eagleye_sample.bag
+
+2. Launch eagleye.  
+
+		roslaunch eagleye_core eagleye_localization.launch  
+		
+The estimated results will be output about 100 seconds after playing the rosbag. This is because we need to wait for the data to accumulate for estimation.
+
 ## Research Papers for Citation
 1. J Meguro, T Arakawa, S Mizutani, A Takanose, "Low-cost Lane-level Positioning in Urban Area Using Optimized Long Time Series GNSS and IMU Data", International Conference on Intelligent Transportation Systems(ITSC), 2018 [Link](https://www.researchgate.net/publication/329619280_Low-cost_Lane-level_Positioning_in_Urban_Area_Using_Optimized_Long_Time_Series_GNSS_and_IMU_Data)
 
