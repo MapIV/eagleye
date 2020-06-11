@@ -32,11 +32,6 @@
  #include "coordinate.hpp"
  #include "navigation.hpp"
 
- // #include "eagleye_msgs/AccXScaleFactor.h"
- // #include "eagleye_msgs/AccXOffset.h"
- // #include "eagleye_msgs/Height.h"
- // #include "eagleye_msgs/Pitching.h"
-
  static sensor_msgs::Imu imu;
  static sensor_msgs::NavSatFix fix;
  static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -50,17 +45,6 @@
 
  struct HeightParameter height_parameter;
  struct HeightStatus height_status;
-
-
-
-// void nmea_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
-// {
-//   nmea.header = msg->header;
-//   nmea.utc_seconds = msg->utc_seconds;
-//   nmea.alt = msg->alt;
-//   nmea.gps_qual = msg->gps_qual;
-//   nmea.undulation = msg->undulation;
-// }
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
@@ -106,6 +90,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   pub2.publish(pitching);
   pub3.publish(acc_x_offset);
   pub4.publish(acc_x_scale_factor);
+
   height.status.estimate_status = false;
   pitching.status.estimate_status = false;
   acc_x_offset.status.estimate_status = false;
@@ -135,13 +120,12 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<height_parameter.outlier_threshold<<std::endl;
   std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
 
-  std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+  std::string subscribe_topic_name = "f9p/fix";
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-
 
   pub1 = n.advertise<eagleye_msgs::Height>("/eagleye/height", 1000);
   pub2 = n.advertise<eagleye_msgs::Pitching>("/eagleye/pitching", 1000);

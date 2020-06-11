@@ -35,9 +35,14 @@
 #include "eagleye_msgs/Position.h"
 #include "eagleye_msgs/SlipAngle.h"
 #include "eagleye_msgs/Debug.h"
+#include "eagleye_msgs/AccXScaleFactor.h"
+#include "eagleye_msgs/AccXOffset.h"
+#include "eagleye_msgs/Height.h"
+#include "eagleye_msgs/Pitching.h"
 #include <boost/circular_buffer.hpp>
 #include <math.h>
 #include <numeric>
+
 
 
 #ifndef NAVIGATION_H
@@ -206,24 +211,6 @@ struct SlipangleParameter
   double manual_coefficient;
 };
 
-struct SlipCoefficientParameter
-{
-  bool reverse_imu;
-  double stop_judgment_velocity_threshold;
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_velocity_threshold;
-  double estimated_yawrate_threshold;
-  double lever_arm;
-};
-
-struct SlipCoefficientStatus
-{
-  int heading_estimate_status_count;
-  std::vector<double> acceleration_y_buffer;
-  std::vector<double> doppler_slip_buffer;
-};
-
 struct SmoothingParameter
 {
   double ecef_base_pos_x;
@@ -255,6 +242,46 @@ struct TrajectoryStatus
   double time_last;
 };
 
+struct HeightParameter
+{
+  double estimated_distance;
+  double estimated_distance_max;
+  double separation_distance;
+  double estimated_velocity_threshold;
+  double estimated_velocity_coefficient;
+  double estimated_height_coefficient;
+  double outlier_threshold;
+  int average_num;
+};
+
+struct HeightStatus
+{
+  double relative_height_G;
+  double relative_height_diffvel;
+  double relative_height_offset;
+  double acceleration_offset_linear_x_last;
+  double acceleration_SF_linear_x_last;
+  double height_last;
+  double time_last;
+  double distance_last;
+  double correction_velocity_x_last;
+  double fix_time_last;
+  bool height_estimate_start_status;
+  bool estimate_start_status;
+  bool acceleration_SF_estimate_status;
+  int data_number;
+  std::vector<double> height_buffer;
+  std::vector<double> height_buffer2;
+  std::vector<double> relative_height_G_buffer;
+  std::vector<double> relative_height_diffvel_buffer;
+  std::vector<double> relative_height_offset_buffer;
+  std::vector<double> correction_relative_height_buffer;
+  std::vector<double> correction_relative_height_buffer2;
+  std::vector<double> correction_velocity_buffer;
+  std::vector<double> distance_buffer;
+  std::vector<double> acc_buffer;
+};
+
 extern void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav, const geometry_msgs::TwistStamped, const VelocityScaleFactorParameter, VelocityScaleFactorStatus*, eagleye_msgs::VelocityScaleFactor*);
 extern void distance_estimate(const eagleye_msgs::VelocityScaleFactor, DistanceStatus*,eagleye_msgs::Distance*);
 extern void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter, YawrateOffsetStopStatus*, eagleye_msgs::YawrateOffset*);
@@ -266,6 +293,7 @@ extern void smoothing_estimate(const rtklib_msgs::RtklibNav,const eagleye_msgs::
 extern void trajectory_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
 extern void heading_interpolate_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,eagleye_msgs::Heading*);
 extern void position_interpolate_estimate(const eagleye_msgs::Position,const geometry_msgs::Vector3Stamped,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
-extern void slip_coefficient_estimate(const sensor_msgs::Imu,const rtklib_msgs::RtklibNav,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const SlipCoefficientParameter,SlipCoefficientStatus*,double*);
+extern void pitching_estimate(const sensor_msgs::Imu,const sensor_msgs::NavSatFix,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Distance,const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
+extern void trajectory3d_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
 
 #endif /*NAVIGATION_H */

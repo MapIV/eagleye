@@ -46,6 +46,7 @@ add_library(navigation
   src/heading_interpolate.cpp
   src/position_interpolate.cpp
   src/height.cpp
+  src/trajectory3d.cpp
 )
 
 target_link_libraries(navigation
