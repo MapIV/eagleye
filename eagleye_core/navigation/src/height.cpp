@@ -332,7 +332,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   height_status->acc_buffer.push_back((correction_acceleration_linear_x - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
   data_num_acc = height_status->acc_buffer.size();
 
-  if (data_num_acc > height_parameter.average_num)
+  if (data_num_acc > height_parameter.average_num && height_status->estimate_start_status == true)
   {
     height_status->acc_buffer.erase(height_status->acc_buffer.begin());
     data_num_acc--;
@@ -362,5 +362,4 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   height_status->time_last = imu.header.stamp.toSec();
   height_status->correction_velocity_x_last = velocity_scale_factor.correction_velocity.linear.x;
   height_status->distance_last = distance.distance;
-
 }

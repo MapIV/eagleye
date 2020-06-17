@@ -84,7 +84,3 @@ add_dependencies(debug ${catkin_EXPORTED_TARGETS})
 add_executable(height src/height_node.cpp)
 target_link_libraries(height ${catkin_LIBRARIES})
 add_dependencies(height ${catkin_EXPORTED_TARGETS})
-
-add_executable(trajectory3d src/trajectory3d_node.cpp)
-target_link_libraries(trajectory3d ${catkin_LIBRARIES})
-add_dependencies(trajectory3d ${catkin_EXPORTED_TARGETS})
