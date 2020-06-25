@@ -10,7 +10,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
+  <build_depend>geodesy</build_depend>
   <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>geodesy</build_export_depend>
+
 
   <export>
   </export>

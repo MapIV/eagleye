@@ -3,6 +3,7 @@
 <launch>
 
   <param name="plane" value="7"/>
+  <param name="tf_num" value="1"/>
   <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
 
 </launch>

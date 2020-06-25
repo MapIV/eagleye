@@ -17,6 +17,7 @@ static geometry_msgs::PoseStamped pose;
 static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
 static int plane = 7;
+static int tf_num = 1;
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
@@ -35,7 +36,16 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  ll2xy(plane,llh,xyz);
+  if (tf_num == 1)
+  {
+    ll2xy(plane,llh,xyz);
+  }
+  else if (tf_num == 2)
+  {
+    ll2xy_mgrs(llh,xyz);
+  }
+
+
 
   eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
   _quat = tf::createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
@@ -64,7 +74,9 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   n.getParam("plane",plane);
+  n.getParam("tf_num",tf_num);
   std::cout<< "plane "<<plane<<std::endl;
+  std::cout<< "tf_num "<<tf_num<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
   ros::Subscriber sub2 = n.subscribe("/eagleye/fix", 1000, fix_callback);
