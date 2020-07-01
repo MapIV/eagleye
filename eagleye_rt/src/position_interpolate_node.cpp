@@ -68,9 +68,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position_interpolate/altitude_estimate",position_interpolate_parameter.altitude_estimate);
   n.getParam("/eagleye/position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);
-  std::cout<< "altitude_estimate "<<position_interpolate_parameter.altitude_estimate<<std::endl;
   std::cout<< "number_buffer_max "<<position_interpolate_parameter.number_buffer_max<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());

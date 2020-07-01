@@ -181,7 +181,6 @@ struct PositionStatus
 struct PositionInterpolateParameter
 {
   double number_buffer_max;
-  bool altitude_estimate;
 };
 
 struct PositionInterpolateStatus

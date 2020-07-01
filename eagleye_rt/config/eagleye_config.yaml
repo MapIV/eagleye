@@ -61,7 +61,6 @@ eagleye:                                               #GNSS cycle 5Hz, IMU cycl
    ecef_base_pos_z : 0.0
 
  position_interpolate:
-   altitude_estimate: true                             #Height output options (default:true => Altitude , false => Ellipsoid)
    number_buffer_max: 100
 
  smoothing:
