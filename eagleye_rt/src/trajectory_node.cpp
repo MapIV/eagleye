@@ -78,10 +78,10 @@ void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& ms
   yawrate_offset_2nd.status = msg->status;
 }
 
-void pitching_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 {
   pitching.header = msg->header;
-  pitching.pitching_angle = msg->heading_angle;
+  pitching.pitching_angle = msg->pitching_angle;
   pitching.status = msg->status;
 }
 
