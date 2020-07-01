@@ -191,8 +191,8 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
     }
   }
 
-  xyz[0] = m_x;
-  xyz[1] = m_y;
+  xyz[1] = m_x;
+  xyz[0] = m_y;
   xyz[2] = m_z;
 
 
