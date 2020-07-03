@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   eagleye_msgs
   navigation
   coordinate
+  geodesy
+  geographic_msgs
 )
 
 catkin_package(
@@ -22,6 +24,8 @@ catkin_package(
    eagleye_msgs
    navigation
    coordinate
+   geodesy
+   geographic_msgs
 )
 
 include_directories(
@@ -76,7 +80,3 @@ add_dependencies(distance ${catkin_EXPORTED_TARGETS})
 add_executable(debug src/debug_node.cpp)
 target_link_libraries(debug ${catkin_LIBRARIES})
 add_dependencies(debug ${catkin_EXPORTED_TARGETS})
-
-add_executable(slip_coefficient src/slip_coefficient_node.cpp)
-target_link_libraries(slip_coefficient ${catkin_LIBRARIES})
-add_dependencies(slip_coefficient ${catkin_EXPORTED_TARGETS})
