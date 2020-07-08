@@ -39,7 +39,6 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
   double enu_pos[3];
   double ecef_base_pos[3];
   double llh_pos[3],_llh[3];
-  double height;
   double diff_estimate_enu_pos_x = 0.0;
   double diff_estimate_enu_pos_y = 0.0;
   double diff_estimate_enu_pos_z = 0.0;

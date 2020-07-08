@@ -67,3 +67,13 @@ eagleye:                                               #GNSS cycle 5Hz, IMU cycl
    estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
    estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
    estimated_threshold: 0.1
+
+ height:
+   estimated_distance: 200                             #Vehicle trajectory length used for acc x offset estimation. (default:200 m)
+   estimated_distance_max: 2000                        #Vehicle trajectory length used for acc x scale factor estimation. (default:2000 m)
+   separation_distance: 0.1                            #Minimum travel distance to buffer. (0.1 m)
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_velocity_coefficient: 0.1                 #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.1 = 10%)
+   estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
+   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
+   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])

@@ -87,7 +87,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   }
 
 ///  buffering  ///
-  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality == 0)
+  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality != -1)
   {
     height_status->height_buffer.push_back(gnss_height);
     height_status->relative_height_G_buffer.push_back(height_status->relative_height_G);
@@ -108,8 +108,6 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
       height_status->correction_velocity_buffer.erase(height_status->correction_velocity_buffer.begin());
       height_status->distance_buffer.erase(height_status->distance_buffer.begin());
       height_status->acceleration_SF_estimate_status = true;
-
-
     }
 
     height_status->data_number = height_status->distance_buffer.size();
@@ -187,7 +185,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality == 0 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality != -1 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
