@@ -41,19 +41,25 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
 
-  if(smoothing_parameter.ecef_base_pos_x == 0 && smoothing_parameter.ecef_base_pos_y == 0 && smoothing_parameter.ecef_base_pos_z == 0)
+  if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
   {
-    smoothing_parameter.ecef_base_pos_x = rtklib_nav.ecef_pos.x;
-    smoothing_parameter.ecef_base_pos_y = rtklib_nav.ecef_pos.y;
-    smoothing_parameter.ecef_base_pos_z = rtklib_nav.ecef_pos.z;
+    gnss_smooth_pos_enu->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
+    gnss_smooth_pos_enu->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
+    gnss_smooth_pos_enu->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
+
+    if(smoothing_parameter.ecef_base_pos_x != 0 && smoothing_parameter.ecef_base_pos_y != 0 && smoothing_parameter.ecef_base_pos_z != 0){
+      gnss_smooth_pos_enu->ecef_base_pos.x = smoothing_parameter.ecef_base_pos_x;
+      gnss_smooth_pos_enu->ecef_base_pos.y = smoothing_parameter.ecef_base_pos_y;
+      gnss_smooth_pos_enu->ecef_base_pos.z = smoothing_parameter.ecef_base_pos_z;
+    }
   }
 
   ecef_pos[0] = rtklib_nav.ecef_pos.x;
   ecef_pos[1] = rtklib_nav.ecef_pos.y;
   ecef_pos[2] = rtklib_nav.ecef_pos.z;
-  ecef_base_pos[0] = smoothing_parameter.ecef_base_pos_x;
-  ecef_base_pos[1] = smoothing_parameter.ecef_base_pos_y;
-  ecef_base_pos[2] = smoothing_parameter.ecef_base_pos_z;
+  ecef_base_pos[0] = gnss_smooth_pos_enu->ecef_base_pos.x;
+  ecef_base_pos[1] = gnss_smooth_pos_enu->ecef_base_pos.y;
+  ecef_base_pos[2] = gnss_smooth_pos_enu->ecef_base_pos.z;
 
   xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
