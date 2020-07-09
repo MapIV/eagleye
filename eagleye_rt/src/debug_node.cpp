@@ -52,6 +52,8 @@ static eagleye_msgs::Position enu_absolute_pos;
 static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 static geometry_msgs::TwistStamped eagleye_twist;
+static eagleye_msgs::Height height;
+static eagleye_msgs::Pitching pitching;
 
 static ros::Publisher pub;
 static eagleye_msgs::Debug debug;
@@ -215,6 +217,22 @@ void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   eagleye_twist.twist = msg->twist;
 }
 
+void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
+{
+  height.header = msg->header;
+  height.height = msg->height;
+  height.status = msg->status;
+}
+
+void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+{
+  pitching.header = msg->header;
+  pitching.pitching_angle = msg->pitching_angle;
+  pitching.status = msg->status;
+}
+
+
+
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   debug.header.stamp = ros::Time::now();
@@ -293,10 +311,20 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   std::cout<< "\033[1m status enable \033[m "<<(debug.heading_interpolate_3rd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
+  std::cout << "--- \033[1;34m pitching\033[m ---------------------------------"<< std::endl;
+  std::cout<<"\033[1m pitching \033[m "<<  pitching.pitching_angle<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(pitching.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout << std::endl;
+
   std::cout << "--- \033[1;34m slip angle\033[m ------------------------------"<< std::endl;
   std::cout<<"\033[1m coefficient \033[m "<<  debug.slip_angle.coefficient<<std::endl;
   std::cout<<"\033[1m slip angle \033[m "<<  debug.slip_angle.slip_angle<<" [rad]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(debug.slip_angle.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout << std::endl;
+
+  std::cout << "--- \033[1;34m height\033[m ---------------------------------"<< std::endl;
+  std::cout<<"\033[1m height \033[m "<<  height.height<<" [m]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(height.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m position\033[m --------------------------------"<< std::endl;
@@ -336,6 +364,9 @@ int main(int argc, char** argv)
   ros::Subscriber sub20 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub21 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub22 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub23 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub24 = n.subscribe("/eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
+
 
   pub = n.advertise<eagleye_msgs::Debug>("/eagleye/debug", 1000);
 
