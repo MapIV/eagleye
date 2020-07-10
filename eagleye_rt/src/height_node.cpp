@@ -42,6 +42,7 @@
  static eagleye_msgs::Pitching pitching;
  static eagleye_msgs::AccXOffset acc_x_offset;
  static eagleye_msgs::AccXScaleFactor acc_x_scale_factor;
+ static eagleye_msgs::Position enu_absolute_pos;
 
  struct HeightParameter height_parameter;
  struct HeightStatus height_status;
@@ -72,6 +73,14 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
   distance.status = msg->status;
 }
 
+void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
+{
+  enu_absolute_pos.header = msg->header;
+  enu_absolute_pos.enu_pos = msg->enu_pos;
+  enu_absolute_pos.ecef_base_pos = msg->ecef_base_pos;
+  enu_absolute_pos.status = msg->status;
+}
+
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header = msg->header;
@@ -85,7 +94,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   pitching.header = msg->header;
   acc_x_offset.header = msg->header;
   acc_x_scale_factor.header = msg->header;
-  pitching_estimate(imu,fix,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
+  pitching_estimate(imu,fix,velocity_scale_factor,distance,enu_absolute_pos,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
   pub1.publish(height);
   pub2.publish(pitching);
   pub3.publish(acc_x_offset);
@@ -124,6 +133,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = n.subscribe("/f9p/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
 
   pub1 = n.advertise<eagleye_msgs::Height>("/eagleye/height", 1000);
   pub2 = n.advertise<eagleye_msgs::Pitching>("/eagleye/pitching", 1000);

@@ -28,11 +28,12 @@
  * Author MapIV  Takanose
  */
 
+#include "coordinate.hpp"
 #include "navigation.hpp"
 
 #define g 9.80665
 
-void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix fix,const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::Height* height,eagleye_msgs::Pitching* pitching,eagleye_msgs::AccXOffset* acc_x_offset,eagleye_msgs::AccXScaleFactor* acc_x_scale_factor)
+void pitching_estimate(sensor_msgs::Imu imu,sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Position enu_absolute_pos,HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::Height* height,eagleye_msgs::Pitching* pitching,eagleye_msgs::AccXOffset* acc_x_offset,eagleye_msgs::AccXScaleFactor* acc_x_scale_factor)
 {
   int gps_quality = 0;
   double gnss_height = 0.0;
@@ -56,6 +57,13 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   double mean_acc = 0;
   double pitch = 0;
   double correction_acceleration_linear_x = 0;
+  /*
+  double llh_pos[3];
+  double enu_pos[3];
+  double ecef_pos1[3];
+  double ecef_pos2[3];
+  double ecef_base_pos[3];
+  */
   std::size_t index_length;
   std::size_t velocity_index_length;
   std::size_t distance_index_length;
@@ -382,9 +390,28 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
     pitching->status.estimate_status = false;
   }
 
+/*
+  if (bool(enu_absolute_pos.status.enabled_status) == true){
+    llh_pos[0] = fix.latitude * M_PI/180;
+    llh_pos[1] = fix.longitude * M_PI/180;
+    llh_pos[2] = height_status->height_last;
+
+    llh2xyz(llh_pos, ecef_pos1);
+    ecef_pos1[0] = ecef_pos2[0];
+    ecef_pos1[1] = ecef_pos2[1];
+    ecef_pos1[2] = ecef_pos2[2];
+    xyz2enu(ecef_pos2, ecef_base_pos, enu_pos);
+  }
+  else{
+    height->status.enabled_status = false;
+    height->status.estimate_status = false;
+  }
+*/
+
   acc_x_offset->acc_x_offset = height_status->acceleration_offset_linear_x_last;
   acc_x_scale_factor->acc_x_scale_factor = height_status->acceleration_SF_linear_x_last;
   height->height = height_status->height_last;
+  //height->height = enu_pos[2];
   pitching->pitching_angle = tmp_pitch;
 
   height_status->time_last = imu.header.stamp.toSec();

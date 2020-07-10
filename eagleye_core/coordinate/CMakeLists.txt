@@ -25,6 +25,7 @@ add_library(coordinate
   src/enu2llh.cpp
   src/hgeoid.cpp
   src/ll2xy.cpp
+  src/llh2xyz.cpp
   src/xyz2enu.cpp
   src/xyz2enu_vel.cpp
   src/ll2xy_mgrs.cpp
