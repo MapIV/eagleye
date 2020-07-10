@@ -102,7 +102,7 @@ Further details will be provided later.
 3. Start RTKLIB.
 
 		cd $HOME/RTKLIB
-		bash rtklib_ros_bridge_sample.sh
+		bash rtklib_ros_bridge_single.sh
 
 4. Check if RTKLIB is working by execute the following command in the terminal. If the RTKLIB is working correctly, positioning information is appeared continuously in the terminal.
 
