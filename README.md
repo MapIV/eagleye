@@ -65,7 +65,8 @@ Change `inpstr1-path` of `$HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.
 ie)
 >inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:230400:8:n:1:off  
 
-5. nmea_navsat_driver settings.
+5. nmea_navsat_driver settings.  
+
 Change `arg name="port"` of `$HOME/catkin_ws/src/nmea_navsat_driver/launch/f9p_nmea_serial_driver.launch` according to the serial device you use.
 
 ie)
