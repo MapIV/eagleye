@@ -36,6 +36,8 @@ static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::Pitching pitching;
+
 
 static geometry_msgs::Vector3Stamped enu_vel;
 static eagleye_msgs::Position enu_relative_pos;
@@ -76,6 +78,13 @@ void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& ms
   yawrate_offset_2nd.status = msg->status;
 }
 
+void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+{
+  pitching.header = msg->header;
+  pitching.pitching_angle = msg->pitching_angle;
+  pitching.status = msg->status;
+}
+
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   imu.header = msg->header;
@@ -84,11 +93,11 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.angular_velocity = msg->angular_velocity;
   imu.angular_velocity_covariance = msg->angular_velocity_covariance;
   imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;  
+  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   enu_vel.header = msg->header;
   enu_relative_pos.header = msg->header;
   eagleye_twist.header = msg->header;
-  trajectory_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
+  trajectory3d_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
   pub1.publish(enu_vel);
   pub2.publish(enu_relative_pos);
   pub3.publish(eagleye_twist);
@@ -109,6 +118,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("/eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
   pub1 = n.advertise<geometry_msgs::Vector3Stamped>("/eagleye/enu_vel", 1000);
   pub2 = n.advertise<eagleye_msgs::Position>("/eagleye/enu_relative_pos", 1000);
   pub3 = n.advertise<geometry_msgs::TwistStamped>("/eagleye/twist", 1000);

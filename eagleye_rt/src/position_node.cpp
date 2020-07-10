@@ -38,6 +38,7 @@ static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::Position gnss_smooth_pos;
 static eagleye_msgs::Position enu_absolute_pos;
+static eagleye_msgs::Height height;
 static geometry_msgs::Vector3Stamped enu_vel;
 static ros::Publisher pub;
 
@@ -83,12 +84,19 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
   heading_interpolate_3rd.status = msg->status;
 }
 
+void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
+{
+  height.header = msg->header;
+  height.height = msg->height;
+  height.status = msg->status;
+}
+
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
-  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+  position_estimate(rtklib_nav, gnss_smooth_pos, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, height, position_parameter, &position_status, &enu_absolute_pos);
   if(enu_absolute_pos.status.estimate_status == true)
   {
     pub.publish(enu_absolute_pos);
@@ -124,6 +132,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = n.subscribe("/eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+
 
 
   pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);

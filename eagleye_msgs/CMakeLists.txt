@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
  add_message_files(
-   DIRECTORY msg
    FILES
    Status.msg
    Distance.msg
@@ -20,6 +19,10 @@ find_package(catkin REQUIRED COMPONENTS
    SlipAngle.msg
    Position.msg
    Debug.msg
+   AccXScaleFactor.msg
+   AccXOffset.msg
+   Height.msg
+   Pitching.msg
  )
 
  generate_messages(
