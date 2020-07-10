@@ -63,6 +63,11 @@ jobs:
             rosdep install --from-paths . --ignore-src -y --rosdistro melodic
 
       - run:
+          name: Install ros-melodic-can-msgs
+          command: |
+            apt-get install ros-melodic-can-msgs
+
+      - run:
           name: Install ros-melodic-geodesy
           command: |
             apt-get install ros-melodic-geodesy
