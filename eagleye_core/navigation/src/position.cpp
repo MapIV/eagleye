@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::Distance distance, eagleye_msgs::Heading heading_interpolate_3rd, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Height height, PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::Position gnss_smooth_pos,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,eagleye_msgs::Height height,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
 
   int i;

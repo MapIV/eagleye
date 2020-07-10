@@ -23,20 +23,31 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef COORDINATE_H
-#define COORDINATE_H
+#include "coordinate.hpp"
+#include <math.h>
 
-#include <geodesy/utm.h>
-#include "geographic_msgs/GeoPoint.h"
+void llh2xyz(double llh_pos[3], double ecef_pos[3])
+{
+  double semi_major_axis = 6378137.0000;
+  double semi_minor_axis = 6356752.3142;
+  double a1 = sqrt (pow(1-(semi_minor_axis/semi_major_axis), 2.0));
+  double a2 = a1 * a1;
 
+  double phi = llh_pos[0];
+  double lam = llh_pos[1];
+  double hei = llh_pos[2];
 
-extern void ll2xy(int, double*, double*);
-extern void ll2xy_mgrs(double*, double*);
-extern void ecef2llh(double*, double*);
-extern void enu2llh(double*, double*, double*);
-extern void llh2xyz(double*, double*);
-extern void hgeoid(double*, double*);
-extern void xyz2enu(double*, double*, double*);
-extern void xyz2enu_vel(double*, double*, double*);
+  double sin_phi = sin(phi);
+  double cos_phi = cos(phi);
+  double cos_lam = cos(lam);
+  double sin_lam = sin(lam);
+  double tan2_phi = pow((tan(phi)), 2.0);
 
-#endif /*COORDINATE_H */
+  double tmp = 1 - a2;
+  double tmp_s = sqrt( 1 + tmp*tan2_phi );
+  double tmp2 = sqrt(1 - a2*sin_phi*sin_phi);
+
+  ecef_pos[0] = (semi_major_axis*cos_lam)/tmp_s + hei*cos_lam*cos_phi;
+  ecef_pos[1] = (semi_major_axis*sin_lam)/tmp_s + hei*sin_lam*cos_phi;
+  ecef_pos[2] = (semi_major_axis*tmp*sin_phi)/tmp2 + hei*sin_phi;
+}

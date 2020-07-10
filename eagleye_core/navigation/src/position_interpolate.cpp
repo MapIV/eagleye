@@ -31,7 +31,7 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos, const geometry_msgs::Vector3Stamped enu_vel,const PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
+void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   int i;
@@ -151,7 +151,14 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
 
       eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
       eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
-      eagleye_fix->altitude = llh_pos[2];
+
+      if(height.status.enabled_status == true){
+        eagleye_fix->altitude = height.height;
+      }
+      else{
+        eagleye_fix->altitude = llh_pos[2];
+      }
+
   }
   else
   {

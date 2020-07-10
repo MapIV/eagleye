@@ -31,22 +31,6 @@
  #include "coordinate.hpp"
  #include "navigation.hpp"
 
-// static int i, heading_estimate_status_count;
-// static double doppler_heading_angle;
-// static double doppler_slip;
-// static double rear_slip;
-// static double yawrate;
-// static double acceleration_y;
-// static double estimate_coefficient;
-// static double sum_xy, sum_x, sum_y, sum_x2;
-
-
-// int heading_estimate_status_count;
-// std::vector<double> acceleration_y_buffer;
-// std::vector<double> doppler_slip_buffer;
-
-
-
 void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset_2nd,eagleye_msgs::Heading heading_interpolate_3rd,SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
 {
 

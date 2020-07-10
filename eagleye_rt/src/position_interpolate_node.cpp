@@ -34,6 +34,8 @@
 
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_vel;
+static eagleye_msgs::Height height;
+static eagleye_msgs::Pitching pitching;
 
 static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
@@ -58,9 +60,16 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.vector = msg->vector;
   enu_absolute_pos_interpolate.header = msg->header;
   eagleye_fix.header = msg->header;
-  position_interpolate_estimate(enu_absolute_pos,enu_vel,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
+  position_interpolate_estimate(enu_absolute_pos,enu_vel,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
   pub1.publish(enu_absolute_pos_interpolate);
   pub2.publish(eagleye_fix);
+}
+
+void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
+{
+  height.header = msg->header;
+  height.height = msg->height;
+  height.status = msg->status;
 }
 
 int main(int argc, char** argv)
@@ -73,6 +82,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub20 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
   pub1 = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos_interpolate", 1000);
   pub2 = n.advertise<sensor_msgs::NavSatFix>("/eagleye/fix", 1000);
 
