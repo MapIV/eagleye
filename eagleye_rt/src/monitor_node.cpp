@@ -339,7 +339,7 @@ void timer_callback(const ros::TimerEvent& e)
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m pitching\033[m --------------------------------"<< std::endl;
-  std::cout<<"\033[1m pitching \033[m "<<pitching.pitching_angle<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m pitching \033[m "<<pitching.pitching_angle<<" [rad]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(pitching.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
