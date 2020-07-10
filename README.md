@@ -117,7 +117,7 @@ Further details will be provided later.
 
 7. Start eagleye.
 
-		roslaunch eagleye_core eagleye_localization.launch
+		roslaunch eagleye_rt eagleye_rt.launch
 
 ## Sample data
 
@@ -133,7 +133,7 @@ Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4
 
 2. Launch eagleye.  
 
-		roslaunch eagleye_core eagleye_localization.launch  
+		roslaunch eagleye_rt eagleye_rt.launch 
 
 The estimated results will be output about 100 seconds after playing the rosbag. This is because we need to wait for the data to accumulate for estimation.
 
