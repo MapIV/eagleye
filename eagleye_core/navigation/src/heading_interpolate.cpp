@@ -48,7 +48,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (velocity_scale_factor.correction_velocity.linear.x > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if (abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset.yawrate_offset;
   }

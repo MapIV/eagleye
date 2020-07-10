@@ -86,7 +86,7 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (velocity_scale_factor.correction_velocity.linear.x > slip_coefficient_parameter.stop_judgment_velocity_threshold)
+  if (abs(velocity_scale_factor.correction_velocity.linear.x) > slip_coefficient_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }

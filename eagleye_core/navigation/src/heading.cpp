@@ -157,7 +157,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
       {
         if (i > 0)
         {
-          if (heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.stop_judgment_velocity_threshold)
+          if (abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.stop_judgment_velocity_threshold)
           {
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
