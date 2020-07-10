@@ -124,7 +124,6 @@ Further details will be provided later.
 
 Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4757p5m1qk4iuub/eagleye_sample.bag?dl=0). This sample data is collected along this [route](https://www.google.com/maps/d/u/0/embed?mid=1pK4BgrGtoo14nguArDf-rZDqIL5Cg-v5) in Nagoya. The 3D maps of the route is also available as [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
 
-
 ### How to try the sample data
 
 1. Play the sample data.  
@@ -134,7 +133,7 @@ Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4
 
 2. Launch eagleye.  
 
-		roslaunch eagleye_rt eagleye_rt.launch 
+		roslaunch eagleye_rt eagleye_rt.launch
 
 The estimated results will be output about 100 seconds after playing the rosbag. This is because we need to wait for the data to accumulate for estimation.
 

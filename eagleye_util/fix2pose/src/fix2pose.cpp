@@ -6,7 +6,8 @@
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/Position.h"
 #include "tf/transform_broadcaster.h"
-#include "coordinate.hpp"
+#include "hgeoid.hpp"
+#include "ll2xy.hpp"
 
 
 static eagleye_msgs::Heading eagleye_heading;
