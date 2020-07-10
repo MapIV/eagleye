@@ -1,0 +1,79 @@
+eagleye:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
+ reverse_imu: false
+
+ velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
+  estimated_number_min: 1000                           #Minimum number of data used for estimation. (default:1000 = 20s)
+  estimated_number_max: 20000                          #Maximum number of data used for estimation. (default:20000 = 400s)
+  estimated_velocity_threshold: 2.78                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
+
+ yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+   estimated_number: 200                               #Number of data used for estimation. (default:200 = 4s)
+
+ yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
+   estimated_number_min: 1500                          #Minimum number of data used for estimation. (default:1500 = 30s)
+   estimated_coefficient: 0.01                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.01 =10%)
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   1st:
+     estimated_number_max: 14000                       #Maximum number of data used for estimation. (default:14000 = 280s)
+   2nd:
+     estimated_number_max: 25000                       #Maximum number of data used for estimation. (default:25000 = 500s)
+
+ heading:                                              #Parameters for estimating the azimuth of a car
+   estimated_number_min: 500                           #Minimum number of data used for estimation. (default:500 = 10s)
+   estimated_number_max: 1500                          #Maximum number of data used for estimation. (default:1500 = 30s)
+   estimated_gnss_coefficient: 0.025                   #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
+   estimated_heading_coefficient: 0.0125               #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.0125 = 1.25%)
+   outlier_threshold: 0.0524                           #Threshold for ending estimated outlier rejection. (default:0.0524 rad = 3 degree)
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+   estimated_yawrate_threshold: 0.0873                 #Yaw rate threshold for curve judgment. (default:0.0873 rad/s = 5 degree/s)
+
+ heading_interpolate:
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+   number_buffer_max: 100
+
+ slip_angle:
+   manual_coefficient: 0.0                             #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+
+ slip_coefficient:
+   estimated_number_min: 100                           #Minimum number of data used for estimation. (default:100)
+   estimated_number_max: 5000                          #Maximum number of data used for estimation. (default:5000)
+   estimated_velocity_threshold: 3                     #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_yawrate_threshold: 0.017453               #Yaw rate threshold for curve judgment. (default:0.017453 rad/s = 1 degree/s)
+   lever_arm: 0.26                                     #Distance from center of rear wheel axle to GNSS antenna. (m)
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+
+ trajectory:
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+
+ position:
+   estimated_distance: 300                             #Vehicle trajectory length used for estimation. (default:300 m)
+   separation_distance: 0.1                            #Minimum travel distance to buffer. (0.1 m)
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   outlier_threshold: 3.0                              #Threshold for ending estimated outlier rejection. (default:3 m)
+   estimated_enu_vel_coefficient : 0.025               #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
+   estimated_position_coefficient: 0.25                #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.25 = 25%)
+   ecef_base_pos_x : 0.0                               #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
+   ecef_base_pos_y : 0.0
+   ecef_base_pos_z : 0.0
+
+ position_interpolate:
+   number_buffer_max: 100
+
+ smoothing:
+   estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_threshold: 0.1
+
+ height:
+   estimated_distance: 200                             #Vehicle trajectory length used for acc x offset estimation. (default:200 m)
+   estimated_distance_max: 2000                        #Vehicle trajectory length used for acc x scale factor estimation. (default:2000 m)
+   separation_distance: 0.1                            #Minimum travel distance to buffer. (0.1 m)
+   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+   estimated_velocity_coefficient: 0.1                 #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.1 = 10%)
+   estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
+   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
+   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])

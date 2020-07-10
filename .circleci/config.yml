@@ -27,6 +27,11 @@ jobs:
             apt-get install ros-kinetic-can-msgs
 
       - run:
+          name: Install ros-kinetic-geodesy
+          command: |
+            apt-get install ros-kinetic-geodesy
+
+      - run:
           name: Build
           command: |
             source /opt/ros/kinetic/setup.bash
@@ -61,6 +66,11 @@ jobs:
           name: Install ros-melodic-can-msgs
           command: |
             apt-get install ros-melodic-can-msgs
+
+      - run:
+          name: Install ros-melodic-geodesy
+          command: |
+            apt-get install ros-melodic-geodesy
 
       - run:
           name: Build

@@ -17,3 +17,8 @@ include_directories(include
 
 add_executable(fix2kml src/fix2kml.cpp)
 target_link_libraries(fix2kml ${catkin_LIBRARIES})
+
+add_dependencies(${PROJECT_NAME}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)

@@ -3,6 +3,9 @@
 <launch>
 
   <param name="plane" value="7"/>
+  <param name="tf_num" value="2"/>
+  <!-- 1 : plane  2 : mgrs  -->
+  <param name="altitude_estimate" value="true"/>
   <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
 
 </launch>
