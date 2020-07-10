@@ -51,10 +51,6 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
   std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
   std::vector<double>::iterator max_x, max_y;
 
-  // std::cout << "--- \033[1;34m position\033[m ------------------------------"<< std::endl;
-  // std::cout<<"\033[1m cheak A \033[m "<<std::endl;
-  // std::cout << std::endl;
-
   if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
   {
     enu_absolute_pos->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
@@ -152,8 +148,6 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
   if (data_status == true)
   {
 
-    std::cout << std::endl;
-
     if (distance.distance > position_parameter.estimated_distance && gnss_status == true && velocity_scale_factor.correction_velocity.linear.x > position_parameter.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
@@ -182,10 +176,6 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Position
 
       if (index_length > velocity_index_length * position_parameter.estimated_enu_vel_coefficient)
       {
-
-        // std::cout << "--- \033[1;34m position\033[m ------------------------------"<< std::endl;
-        // std::cout<<"\033[1m cheak    D \033[m "<<std::endl;
-        // std::cout << std::endl;
 
         while (1)
         {

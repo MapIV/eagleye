@@ -177,7 +177,6 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav, sensor_msgs::Imu imu, e
      if(heading_interpolate.status.enabled_status == false)
      {
        heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-       // std::cout<<"\033[1;33m heading_interpolate FALSE \033[m"<<std::endl;
      }
 
       int ref_cnt;
