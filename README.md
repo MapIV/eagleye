@@ -51,23 +51,39 @@ Eagleye uses vehicle speed acquired from CAN bus.
 		cd ..  
 		catkin_make -DCMAKE_BUILD_TYPE=Release  
 
-3. RTKLIB settings.
+3. Clone and build [nmea_navsat_driver](https://github.com/MapIV/nmea_navsat_driver.git).
+
+		cd $HOME/catkin_ws/src  
+		git clone https://github.com/MapIV/nmea_navsat_driver.git  
+		cd ..  
+		catkin_make -DCMAKE_BUILD_TYPE=Release  
+
+4. RTKLIB settings.
 
 Change `inpstr1-path` of `$HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.conf` according to the serial device you use.
 
 ie)
->inpstr1-path =/serial/by-id/usb-u-blox_AG_-_ www.u-blox.com_u-blox_GNSS_receiver-if00:9600:8:n:1:off  
+>inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:230400:8:n:1:off  
 
-Or you can specify device port like `/dev/ttyUSB0` or `/dev/ttyACM0`.
+5. nmea_navsat_driver settings.
+Change `arg name="port"` of `$HOME/catkin_ws/src/nmea_navsat_driver/launch/f9p_nmea_serial_driver.launch` according to the serial device you use.
 
-4. GNSS receiver settings.
+ie)
+>\<arg name="port" default="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AG0JNPDS-if00-port0" />
+
+6. GNSS receiver settings.
 Configure the receiver settings using [u-center](https://www.u-blox.com/product/u-center).
 
-* Enable UBX message ※ Set to output only RAWX and SFRBX
+* UART1(Connect to RTKLIB) Enable UBX message (output rate 5Hz, baudrate 230400) ※ Set to output only RAWX and SFRBX
+* UART2(Connect to nmea_navsat_driver) Enable NMEA message (output rate 1Hz, baudrate 115200) ※ Set to output only GGA and RMC
 
 Further details will be provided later.
 
-5. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/launch/eagleye_localization.launch`.
+7. IMU settings.
+
+* Output rate 50Hz
+
+8. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/launch/eagleye_localization.launch`.
 
 		param name="/eagleye/reverse_imu" type="bool" value="true"
 
@@ -95,13 +111,31 @@ Further details will be provided later.
 
 		rosrun rtklib_bridge rtklib_bridge   
 
-6. Start eagleye.
+6. Start nmea_navsat_driver.
+
+		rosrun nmea_navsat_driver f9p_nmea_serial_driver.launch   
+
+7. Start eagleye.
 
 		roslaunch eagleye_core eagleye_localization.launch
 
 ## Sample data
 
 Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4757p5m1qk4iuub/eagleye_sample.bag?dl=0). This sample data is collected along this [route](https://www.google.com/maps/d/u/0/embed?mid=1pK4BgrGtoo14nguArDf-rZDqIL5Cg-v5) in Nagoya. The 3D maps of the route is also available as [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
+
+
+### How to try the sample data
+
+1. Play the sample data.  
+
+		rosparam set use_sim_time true
+		rosbag play --clock eagleye_sample.bag
+
+2. Launch eagleye.  
+
+		roslaunch eagleye_core eagleye_localization.launch  
+
+The estimated results will be output about 100 seconds after playing the rosbag. This is because we need to wait for the data to accumulate for estimation.
 
 ## Research Papers for Citation
 1. J Meguro, T Arakawa, S Mizutani, A Takanose, "Low-cost Lane-level Positioning in Urban Area Using Optimized Long Time Series GNSS and IMU Data", International Conference on Intelligent Transportation Systems(ITSC), 2018 [Link](https://www.researchgate.net/publication/329619280_Low-cost_Lane-level_Positioning_in_Urban_Area_Using_Optimized_Long_Time_Series_GNSS_and_IMU_Data)
