@@ -34,7 +34,6 @@
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/Position.h"
 #include "eagleye_msgs/SlipAngle.h"
-#include "eagleye_msgs/Debug.h"
 #include "eagleye_msgs/AccXScaleFactor.h"
 #include "eagleye_msgs/AccXOffset.h"
 #include "eagleye_msgs/Height.h"

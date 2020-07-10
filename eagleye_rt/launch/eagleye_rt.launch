@@ -20,7 +20,6 @@
   <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate"/>
   <node pkg="eagleye_rt" name="smoothing_node" type="smoothing"/>
   <node pkg="eagleye_rt" name="height_node" type="height"/>
-  <node pkg="eagleye_rt" name="debug" type="debug" output="screen" />
-
+  <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" />
 
 </launch>
