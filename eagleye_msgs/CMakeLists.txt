@@ -18,7 +18,6 @@ find_package(catkin REQUIRED COMPONENTS
    Heading.msg
    SlipAngle.msg
    Position.msg
-   Debug.msg
    AccXScaleFactor.msg
    AccXOffset.msg
    Height.msg

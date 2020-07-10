@@ -77,9 +77,9 @@ add_executable(distance src/distance_node.cpp)
 target_link_libraries(distance ${catkin_LIBRARIES})
 add_dependencies(distance ${catkin_EXPORTED_TARGETS})
 
-add_executable(debug src/debug_node.cpp)
-target_link_libraries(debug ${catkin_LIBRARIES})
-add_dependencies(debug ${catkin_EXPORTED_TARGETS})
+add_executable(monitor src/monitor_node.cpp)
+target_link_libraries(monitor ${catkin_LIBRARIES})
+add_dependencies(monitor ${catkin_EXPORTED_TARGETS})
 
 add_executable(height src/height_node.cpp)
 target_link_libraries(height ${catkin_LIBRARIES})
