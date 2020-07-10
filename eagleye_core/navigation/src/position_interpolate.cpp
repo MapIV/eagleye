@@ -151,7 +151,8 @@ void position_interpolate_estimate(const eagleye_msgs::Position enu_absolute_pos
 
       eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
       eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
-      eagleye_fix->altitude = llh_pos[2];
+      //eagleye_fix->altitude = llh_pos[2];
+      eagleye_fix->altitude = enu_absolute_pos_interpolate->enu_pos.z;
   }
   else
   {
