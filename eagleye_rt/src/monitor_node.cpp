@@ -54,7 +54,7 @@ static eagleye_msgs::Pitching pitching;
 //static geometry_msgs::Vector3Stamped enu_vel;
 //static eagleye_msgs::Position enu_absolute_pos;
 static eagleye_msgs::Position enu_absolute_pos_interpolate;
-//static sensor_msgs::NavSatFix eagleye_fix;
+static sensor_msgs::NavSatFix eagleye_fix;
 //static geometry_msgs::TwistStamped eagleye_twist;
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
@@ -249,6 +249,7 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
   pitching.status = msg->status;
 }
 
+
 void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
   enu_absolute_pos_interpolate.header = msg->header;
@@ -257,7 +258,6 @@ void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPt
   enu_absolute_pos_interpolate.status = msg->status;
 }
 
-/*
 void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
   eagleye_fix.header = msg->header;
@@ -268,7 +268,7 @@ void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   eagleye_fix.position_covariance = msg->position_covariance;
   eagleye_fix.position_covariance_type = msg->position_covariance_type;
 }
-*/
+
 
 /*
 void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
@@ -283,75 +283,76 @@ void timer_callback(const ros::TimerEvent& e)
   std::cout << std::endl;
   std::cout<<"\033[1;33m Eagleye status \033[m"<<std::endl;
   std::cout << std::endl;
+  std::cout << std::fixed;
 
   std::cout << "--- \033[1;34m imu(input)\033[m ------------------------------"<< std::endl;
-  std::cout<<"\033[1m linear_acceleration \033[mx "<<imu.linear_acceleration.x<<" [m/s^2]"<<std::endl;
-  std::cout<<"\033[1m linear acceleration \033[my "<<imu.linear_acceleration.y<<" [m/s^2]"<<std::endl;
-  std::cout<<"\033[1m linear acceleration \033[mz "<<imu.linear_acceleration.z<<" [m/s^2]"<<std::endl;
-  std::cout<<"\033[1m angular velocity \033[mx "<<imu.angular_velocity.x<<" [rad/s]"<<std::endl;
-  std::cout<<"\033[1m angular velocity \033[my "<<imu.angular_velocity.y<<" [rad/s]"<<std::endl;
-  std::cout<<"\033[1m angular velocity \033[mz "<<imu.angular_velocity.z<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m linear_acceleration \033[mx "<<std::setprecision(6)<<imu.linear_acceleration.x<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m linear acceleration \033[my "<<std::setprecision(6)<<imu.linear_acceleration.y<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m linear acceleration \033[mz "<<std::setprecision(6)<<imu.linear_acceleration.z<<" [m/s^2]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[mx "<<std::setprecision(6)<<imu.angular_velocity.x<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[my "<<std::setprecision(6)<<imu.angular_velocity.y<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m angular velocity \033[mz "<<std::setprecision(6)<<imu.angular_velocity.z<<" [rad/s]"<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m velocity(input)\033[m -------------------------"<< std::endl;
-  std::cout<<"\033[1m velocity \033[m"<<velocity.twist.linear.x<<" [m/s]"<<std::endl;
+  std::cout<<"\033[1m velocity \033[m"<<std::setprecision(4)<<velocity.twist.linear.x * 3.6<<" [km/h]"<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m rtklib(input)\033[m ---------------------------"<< std::endl;
   std::cout<<"\033[1m time of week  \033[m"<<rtklib_nav.tow<<" [ms]"<<std::endl;
-  std::cout<<"\033[1m longitude  \033[m"<<rtklib_nav.status.longitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m latitude  \033[m"<<rtklib_nav.status.latitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m altitude  \033[m"<<rtklib_nav.status.altitude<<" [m]"<<std::endl;
+  std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<rtklib_nav.status.latitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<rtklib_nav.status.longitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<rtklib_nav.status.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m f9p(input)\033[m ------------------------------"<< std::endl;
-  std::cout<< "\033[1m rtk status \033[m "<<(f9p_fix.status.status ? "\033[1;32mFix\033[m" : "\033[1;31mNo Fix\033[m")<<std::endl;
-  std::cout<<"\033[1m longitude  \033[m"<<f9p_fix.longitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m latitude  \033[m"<<f9p_fix.latitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m altitude  \033[m"<<f9p_fix.altitude<<" [m]"<<std::endl;
+  std::cout<< "\033[1m rtk status \033[m "<<int(f9p_fix.status.status)<<std::endl;
+  std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<f9p_fix.latitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<f9p_fix.longitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<f9p_fix.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
-  std::cout<<"\033[1m scale factor \033[m "<<velocity_scale_factor.scale_factor<<std::endl;
-  std::cout<<"\033[1m correction velocity \033[m "<<velocity_scale_factor.correction_velocity.linear.x<<" [m/s]"<<std::endl;
+  std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<velocity_scale_factor.scale_factor<<std::endl;
+  std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<velocity_scale_factor.correction_velocity.linear.x * 3.6<<" [km/h]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
-  std::cout<<"\033[1m yawrate offset \033[m "<<yawrate_offset_stop.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<std::setprecision(6)<<yawrate_offset_stop.yawrate_offset<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(yawrate_offset_stop.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m yawrate offset\033[m --------------------------"<< std::endl;
-  std::cout<<"\033[1m yawrate offset \033[m "<<yawrate_offset_2nd.yawrate_offset<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m yawrate offset \033[m "<<std::setprecision(6)<<yawrate_offset_2nd.yawrate_offset<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(yawrate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m slip angle\033[m ------------------------------"<< std::endl;
-  std::cout<<"\033[1m coefficient \033[m "<<slip_angle.coefficient<<std::endl;
-  std::cout<<"\033[1m slip angle \033[m "<<slip_angle.slip_angle<<" [rad]"<<std::endl;
+  std::cout<<"\033[1m coefficient \033[m "<<std::setprecision(6)<<slip_angle.coefficient<<std::endl;
+  std::cout<<"\033[1m slip angle \033[m "<<std::setprecision(6)<<slip_angle.slip_angle<<" [rad]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(slip_angle.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m heading\033[m ---------------------------------"<< std::endl;
-  std::cout<<"\033[1m heading \033[m "<<heading_interpolate_3rd.heading_angle<<" [rad/s]"<<std::endl;
+  std::cout<<"\033[1m heading \033[m "<<std::setprecision(6)<<heading_interpolate_3rd.heading_angle<<" [rad/s]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(heading_interpolate_3rd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m pitching\033[m --------------------------------"<< std::endl;
-  std::cout<<"\033[1m pitching \033[m "<<pitching.pitching_angle<<" [rad]"<<std::endl;
+  std::cout<<"\033[1m pitching \033[m "<<std::setprecision(6)<<pitching.pitching_angle<<" [rad]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(pitching.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m height\033[m ----------------------------------"<< std::endl;
-  std::cout<<"\033[1m height \033[m "<<height.height<<" [m]"<<std::endl;
+  std::cout<<"\033[1m height \033[m "<<std::setprecision(4)<<height.height<<" [m]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(height.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m position\033[m --------------------------------"<< std::endl;
-  std::cout<<"\033[1m absolute position enu \033[meast "<<enu_absolute_pos_interpolate.enu_pos.x<<" [m]"<<std::endl;
-  std::cout<<"\033[1m absolute position enu \033[mnorth "<<enu_absolute_pos_interpolate.enu_pos.y<<" [m]"<<std::endl;
-  std::cout<<"\033[1m absolute position enu \033[mup "<<enu_absolute_pos_interpolate.enu_pos.z<<" [m]"<<std::endl;
+  std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<eagleye_fix.latitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<eagleye_fix.longitude<<" [deg]"<<std::endl;
+  std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<eagleye_fix.altitude<<" [m]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(enu_absolute_pos_interpolate.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 }
@@ -387,7 +388,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub21 = n.subscribe("/eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub22 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub23 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub24 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub24 = n.subscribe("/eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub25 = n.subscribe("/eagleye/twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
 
   ros::spin();
