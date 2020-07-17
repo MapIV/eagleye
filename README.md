@@ -15,7 +15,7 @@ Eagleye is an open-source software for vehicle localization utilizing GNSS and I
 
 ## Getting started
 
-### Hardware
+### Recommended Sensors
 **GNSS receiver**
 * [Ublox NEO-M8T](https://www.u-blox.com/en/product/neolea-m8t-series) / [EVK-M8T](https://www.u-blox.com/product/evk-8evk-m8)
 * [Ublox ZED-F9P](https://www.u-blox.com/en/product/zed-f9p-module) / [C099-F9P](https://www.u-blox.com/en/product/c099-f9p-application-board)
