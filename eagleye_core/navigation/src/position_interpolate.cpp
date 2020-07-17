@@ -31,13 +31,14 @@
 #include "coordinate.hpp"
 #include "navigation.hpp"
 
-void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
+void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   int i;
   int estimate_index = 0;
   double enu_pos[3];
   double ecef_base_pos[3];
+  double ecef_pos[3];
   double llh_pos[3],_llh[3];
   double diff_estimate_enu_pos_x = 0.0;
   double diff_estimate_enu_pos_y = 0.0;
@@ -136,28 +137,32 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
 
   if (position_interpolate_status->position_estimate_start_status == true)
   {
-    enu_absolute_pos_interpolate->enu_pos.x = position_interpolate_status->provisional_enu_pos_x;
-    enu_absolute_pos_interpolate->enu_pos.y = position_interpolate_status->provisional_enu_pos_y;
-    enu_absolute_pos_interpolate->enu_pos.z = position_interpolate_status->provisional_enu_pos_z;
-
-    enu_pos[0] = enu_absolute_pos_interpolate->enu_pos.x;
-    enu_pos[1] = enu_absolute_pos_interpolate->enu_pos.y;
-    enu_pos[2] = enu_absolute_pos_interpolate->enu_pos.z;
+    enu_pos[0] = position_interpolate_status->provisional_enu_pos_x;
+    enu_pos[1] = position_interpolate_status->provisional_enu_pos_y;
+    // enu_pos[2] = position_interpolate_status->provisional_enu_pos_z;
+    enu_pos[2] = gnss_smooth_pos.enu_pos.z;
     ecef_base_pos[0] = enu_absolute_pos.ecef_base_pos.x;
     ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
     ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
-      eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
-      eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
+    eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
+    eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
 
-      if(height.status.enabled_status == true){
-        eagleye_fix->altitude = height.height;
-      }
-      else{
-        eagleye_fix->altitude = llh_pos[2];
-      }
+    if(height.status.enabled_status == true){
+      llh_pos[2] = height.height;
+
+      llh2xyz(llh_pos, ecef_pos);
+      xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
+
+      enu_absolute_pos_interpolate->enu_pos.x = enu_pos[0];
+      enu_absolute_pos_interpolate->enu_pos.y = enu_pos[1];
+      enu_absolute_pos_interpolate->enu_pos.z = enu_pos[2];
+
+    }
+
+    eagleye_fix->altitude = llh_pos[2];
 
   }
   else

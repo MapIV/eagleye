@@ -35,7 +35,7 @@
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_vel;
 static eagleye_msgs::Height height;
-static eagleye_msgs::Pitching pitching;
+static eagleye_msgs::Position gnss_smooth_pos;
 
 static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
@@ -54,15 +54,12 @@ void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
   enu_absolute_pos.status = msg->status;
 }
 
-void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+void gnss_smooth_pos_enu_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
-  enu_absolute_pos_interpolate.header = msg->header;
-  eagleye_fix.header = msg->header;
-  position_interpolate_estimate(enu_absolute_pos,enu_vel,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
-  pub1.publish(enu_absolute_pos_interpolate);
-  pub2.publish(eagleye_fix);
+  gnss_smooth_pos.header = msg->header;
+  gnss_smooth_pos.enu_pos = msg->enu_pos;
+  gnss_smooth_pos.ecef_base_pos = msg->ecef_base_pos;
+  gnss_smooth_pos.status = msg->status;
 }
 
 void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
@@ -70,6 +67,17 @@ void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
   height.header = msg->header;
   height.height = msg->height;
   height.status = msg->status;
+}
+
+void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+{
+  enu_vel.header = msg->header;
+  enu_vel.vector = msg->vector;
+  enu_absolute_pos_interpolate.header = msg->header;
+  eagleye_fix.header = msg->header;
+  position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
+  pub1.publish(enu_absolute_pos_interpolate);
+  pub2.publish(eagleye_fix);
 }
 
 int main(int argc, char** argv)
@@ -82,7 +90,8 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub20 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("/eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
   pub1 = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos_interpolate", 1000);
   pub2 = n.advertise<sensor_msgs::NavSatFix>("/eagleye/fix", 1000);
 
