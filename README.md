@@ -121,8 +121,15 @@ Further details will be provided later.
 		roslaunch eagleye_rt eagleye_rt.launch
 
 ## Sample data
+### ROSBAG
 
-Sample data to test Eagleye is available from [here](https://www.dropbox.com/s/4757p5m1qk4iuub/eagleye_sample.bag?dl=0). This sample data is collected along this [route](https://www.google.com/maps/d/u/0/embed?mid=1pK4BgrGtoo14nguArDf-rZDqIL5Cg-v5) in Nagoya. The 3D maps of the route is also available as [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
+| No. | Date | Place | Sensors | Link |
+|-----|------|-------|---------| ---- |
+|1|2020/01/27|Moriyama, Nagoya<br>[route](https://www.google.com/maps/d/edit?mid=1pK4BgrGtoo14nguArDf-rZDqIL5Cg-v5&usp=sharing)|GNSS: Ublox F9P<br>IMU: Tamagawa AU7684<br>LiDAR: Velodyne HDL-32E|[Download](https://www.dropbox.com/sh/ks5kg8033f5n3w8/AADv9plEjXnwlxex23Z91kR_a?dl=0)|
+|2|2020/07/15|Moriyama, Nagoya<br>[route](https://www.google.com/maps/d/edit?mid=1DnXfZBTSsHpWlzTAcENmFxo17r3PxGxM&usp=sharing)|GNSS: Ublox F9P with RTK<br>IMU: Tamagawa AU7684<br>LiDAR: Velodyne VLP-32C|[Download](https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0)
+
+### Maps
+The 3D maps (point cloud and vector data) of the route is also available from [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
 
 ### How to try the sample data
 
