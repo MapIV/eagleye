@@ -37,6 +37,7 @@ Eagleye uses vehicle speed acquired from CAN bus.
 
 1. Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rtklib_ros_bridge). You can find more details about RTKLIB [here](http://www.rtklib.com/).
 
+		sudo apt-get install gfortran  
 		cd $HOME  
 		git clone -b rtklib_ros_bridge https://github.com/MapIV/RTKLIB.git
 		cd $HOME/RTKLIB/lib/iers/gcc/  
@@ -58,21 +59,40 @@ Eagleye uses vehicle speed acquired from CAN bus.
 		cd ..  
 		catkin_make -DCMAKE_BUILD_TYPE=Release  
 
-4. RTKLIB settings.
+
+4. Installing dependent packages  
+
+In the case of Ubuntu18.04 melodic.   
+
+		sudo apt-get install ros-melodic-geodesy   
+		sudo apt-get install ros-melodic-can-msgs  
+In the case of Ubuntu16.04 kinetic.  
+
+		sudo apt-get install ros-kinetic-geodesy   
+		sudo apt-get install ros-kinetic-can-msgs  
+
+5. Clone and build [eagleye](https://github.com/MapIV/eagleye.git).
+
+		cd $HOME/catkin_ws/src  
+		git clone https://github.com/MapIV/eagleye.git  
+		cd ..  
+		catkin_make -DCMAKE_BUILD_TYPE=Release  
+
+6. RTKLIB settings.
 
 Change `inpstr1-path` of `$HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_sample.conf` according to the serial device you use.
 
 ie)
 >inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:230400:8:n:1:off  
 
-5. nmea_navsat_driver settings.  
+7. nmea_navsat_driver settings.  
 
 Change `arg name="port"` of `$HOME/catkin_ws/src/nmea_navsat_driver/launch/f9p_nmea_serial_driver.launch` according to the serial device you use.
 
 ie)
 >\<arg name="port" default="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AG0JNPDS-if00-port0" />
 
-6. GNSS receiver settings.
+8. GNSS receiver settings.
 Configure the receiver settings using [u-center](https://www.u-blox.com/product/u-center).
 
 * UART1(Connect to RTKLIB) Enable UBX message (output rate 5Hz, baudrate 230400) ※ Set to output only RAWX and SFRBX
@@ -80,11 +100,11 @@ Configure the receiver settings using [u-center](https://www.u-blox.com/product/
 
 Further details will be provided later.
 
-7. IMU settings.
+9. IMU settings.
 
 * Output rate 50Hz
 
-8. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/launch/eagleye_localization.launch`.
+10. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/launch/eagleye_localization.launch`.
 
 		param name="/eagleye/reverse_imu" type="bool" value="true"
 
