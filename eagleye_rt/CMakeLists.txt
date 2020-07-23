@@ -84,3 +84,11 @@ add_dependencies(monitor ${catkin_EXPORTED_TARGETS})
 add_executable(height src/height_node.cpp)
 target_link_libraries(height ${catkin_LIBRARIES})
 add_dependencies(height ${catkin_EXPORTED_TARGETS})
+
+add_executable(angular_velocity_offset_stop src/angular_velocity_offset_stop_node.cpp)
+target_link_libraries(angular_velocity_offset_stop ${catkin_LIBRARIES})
+add_dependencies(angular_velocity_offset_stop ${catkin_EXPORTED_TARGETS})
+
+add_executable(correction_imu src/correction_imu.cpp)
+target_link_libraries(correction_imu ${catkin_LIBRARIES})
+add_dependencies(correction_imu ${catkin_EXPORTED_TARGETS})
