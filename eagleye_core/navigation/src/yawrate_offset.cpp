@@ -188,4 +188,9 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
     yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }
 
+  if (fabs(yawrate_offset->yawrate_offset - yawrate_offset_stop.yawrate_offset) > yawrate_offset_parameter.outlier_threshold)
+  {
+    yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
+  }
+
 }
