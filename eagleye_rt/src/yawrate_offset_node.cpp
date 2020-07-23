@@ -87,11 +87,13 @@ int main(int argc, char** argv)
   n.getParam("/eagleye/yawrate_offset/estimated_number_min",yawrate_offset_parameter.estimated_number_min);
   n.getParam("/eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
   n.getParam("/eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
+  n.getParam("/eagleye/yawrate_offset/outlier_threshold",yawrate_offset_parameter.outlier_threshold);
 
   std::cout<< "reverse_imu "<<yawrate_offset_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<yawrate_offset_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_coefficient "<<yawrate_offset_parameter.estimated_coefficient<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "outlier_threshold "<<yawrate_offset_parameter.outlier_threshold<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
