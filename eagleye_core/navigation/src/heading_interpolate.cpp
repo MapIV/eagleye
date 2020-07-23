@@ -77,7 +77,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     heading_estimate_status = false;
   }
 
-  if(heading_interpolate_status->time_last != 0)
+  if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu.header.stamp.toSec() - heading_interpolate_status->time_last));
   }
