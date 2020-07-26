@@ -130,7 +130,7 @@ Further details will be provided later.
 
 5. Start rtklib_ros_bridge.
 
-		rosrun rtklib_bridge rtklib_bridge   
+		roslaunch rtklib_bridge rtklib_bridge.launch   
 
 6. Start nmea_navsat_driver.
 
