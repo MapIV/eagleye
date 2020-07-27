@@ -185,6 +185,7 @@ struct PositionStatus
 struct PositionInterpolateParameter
 {
   double number_buffer_max;
+  double stop_judgment_velocity_threshold;
 };
 
 struct PositionInterpolateStatus

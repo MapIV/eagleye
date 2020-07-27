@@ -86,7 +86,9 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   n.getParam("/eagleye/position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);
+  n.getParam("/eagleye/position_interpolate/stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
   std::cout<< "number_buffer_max "<<position_interpolate_parameter.number_buffer_max<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<position_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());

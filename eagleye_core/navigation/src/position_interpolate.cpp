@@ -68,7 +68,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     position_estimate_status = false;
   }
 
-  if(position_interpolate_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > 0.01)
+  if(position_interpolate_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
     position_interpolate_status->provisional_enu_pos_y = enu_absolute_pos_interpolate->enu_pos.y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);

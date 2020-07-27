@@ -62,6 +62,7 @@ eagleye:                                               #GNSS cycle 5Hz, IMU cycl
 
  position_interpolate:
    number_buffer_max: 100
+   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
 
  smoothing:
    estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
