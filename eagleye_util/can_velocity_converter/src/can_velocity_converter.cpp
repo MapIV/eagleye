@@ -32,18 +32,17 @@
 #include "can_msgs/Frame.h"
 #include "geometry_msgs/TwistStamped.h"
 
-ros::Publisher pub;
-geometry_msgs::TwistStamped msg_velocity;
+static ros::Publisher pub;
+static geometry_msgs::TwistStamped msg_velocity;
 
-int can_id = 0x001;
-int start_bit = 0;
-int length = 16;
-double factor = 0.01;
-double offset = 0.0;
-std::string byte_order = "Motorola";
-std::string value_type = "Unsigned";
-
-double velocity = 0.0;
+static int can_id = 0x001;
+static int start_bit = 0;
+static int length = 16;
+static double factor = 0.01;
+static double offset = 0.0;
+static std::string byte_order = "Motorola";
+static std::string value_type = "Unsigned";
+static double velocity = 0.0;
 
 void can_callback(const can_msgs::Frame::ConstPtr& msg)
 {
@@ -70,6 +69,7 @@ void can_callback(const can_msgs::Frame::ConstPtr& msg)
     }
 
     tmp_unsigned_data = (can_data >> (msg->dlc * 8 - start_bit - length)) & data_mask;
+    ROS_INFO("CAN DATA %04llx",can_data);
 
     if(value_type == "Signed")
     {
@@ -88,7 +88,7 @@ void can_callback(const can_msgs::Frame::ConstPtr& msg)
 
     msg_velocity.twist.linear.x = velocity / 3.6;
 
-    ROS_INFO("CAN DATA %02x%02x%02x%02x%02x%02x%02x%02x",msg->data[0],msg->data[1],msg->data[2],msg->data[3],msg->data[4],msg->data[5],msg->data[6],msg->data[7]);
+    ROS_INFO("RAW CAN DATA %02x%02x%02x%02x%02x%02x%02x%02x",msg->data[0],msg->data[1],msg->data[2],msg->data[3],msg->data[4],msg->data[5],msg->data[6],msg->data[7]);
     ROS_INFO("DATA %04llx",tmp_unsigned_data);
     ROS_INFO("%lf m/s", msg_velocity.twist.linear.x);
     pub.publish(msg_velocity);
@@ -117,7 +117,7 @@ int main(int argc, char **argv){
   std::cout<< "byte_order "<<byte_order<<std::endl;
   std::cout<< "value_type "<<value_type<<std::endl;
 
-  ros::Subscriber sub = n.subscribe("/received_messages", 1000, can_callback);
+  ros::Subscriber sub = n.subscribe("/vehicle/can_tx", 1000, can_callback);
 
   pub = n.advertise<geometry_msgs::TwistStamped>("/can_twist", 1000);
 
