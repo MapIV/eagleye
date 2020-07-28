@@ -68,7 +68,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     position_estimate_status = false;
   }
 
-  if(position_interpolate_status->time_last != 0)
+  if(position_interpolate_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
     position_interpolate_status->provisional_enu_pos_y = enu_absolute_pos_interpolate->enu_pos.y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
@@ -156,11 +156,11 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
       llh2xyz(llh_pos, ecef_pos);
       xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
-      enu_absolute_pos_interpolate->enu_pos.x = enu_pos[0];
-      enu_absolute_pos_interpolate->enu_pos.y = enu_pos[1];
-      enu_absolute_pos_interpolate->enu_pos.z = enu_pos[2];
-
     }
+
+    enu_absolute_pos_interpolate->enu_pos.x = enu_pos[0];
+    enu_absolute_pos_interpolate->enu_pos.y = enu_pos[1];
+    enu_absolute_pos_interpolate->enu_pos.z = enu_pos[2];
 
     eagleye_fix->altitude = llh_pos[2];
 
