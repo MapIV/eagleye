@@ -131,7 +131,11 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("/eagleye/acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("/eagleye/acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+<<<<<<< HEAD
   pub = n.advertise<sensor_msgs::Imu>("/imu/data_corrected", 1000);
+=======
+  pub = n.advertise<sensor_msgs::Imu>("/eagleye/imu/correction_data", 1000);
+>>>>>>> 1b9d043b3d64dfcd3f1b41d33bfee3fb3cc72456
 
   ros::spin();
 
