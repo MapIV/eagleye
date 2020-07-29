@@ -38,6 +38,7 @@
 #include "eagleye_msgs/AccXOffset.h"
 #include "eagleye_msgs/Height.h"
 #include "eagleye_msgs/Pitching.h"
+#include "eagleye_msgs/AngularVelocityOffset.h"
 #include <boost/circular_buffer.hpp>
 #include <math.h>
 #include <numeric>
@@ -75,6 +76,7 @@ struct YawrateOffsetStopParameter
   bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double estimated_number;
+  double outlier_threshold;
 };
 
 struct YawrateOffsetStopStatus
@@ -92,6 +94,7 @@ struct YawrateOffsetParameter
   double estimated_number_max;
   double estimated_coefficient;
   double estimated_velocity_threshold;
+  double outlier_threshold;
 };
 
 struct YawrateOffsetStatus
@@ -282,6 +285,27 @@ struct HeightStatus
   std::vector<double> acc_buffer;
 };
 
+struct AngularVelocityOffsetStopParameter
+{
+  bool reverse_imu;
+  double stop_judgment_velocity_threshold;
+  double estimated_number;
+  double outlier_threshold;
+};
+
+struct AngularVelocityOffsetStopStatus
+{
+  int stop_count;
+  double rollrate_offset_stop_last;
+  double pitchrate_offset_stop_last;
+  double yawrate_offset_stop_last;
+  bool estimate_start_status;
+  std::vector<double> rollrate_buffer;
+  std::vector<double> pitchrate_buffer;
+  std::vector<double> yawrate_buffer;
+
+};
+
 extern void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav, const geometry_msgs::TwistStamped, const VelocityScaleFactorParameter, VelocityScaleFactorStatus*, eagleye_msgs::VelocityScaleFactor*);
 extern void distance_estimate(const eagleye_msgs::VelocityScaleFactor, DistanceStatus*,eagleye_msgs::Distance*);
 extern void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter, YawrateOffsetStopStatus*, eagleye_msgs::YawrateOffset*);
@@ -295,5 +319,6 @@ extern void heading_interpolate_estimate(const sensor_msgs::Imu,const eagleye_ms
 extern void position_interpolate_estimate(const eagleye_msgs::Position,const geometry_msgs::Vector3Stamped,const eagleye_msgs::Position,const eagleye_msgs::Height,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void pitching_estimate(const sensor_msgs::Imu,const sensor_msgs::NavSatFix,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Distance,const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
+extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter, AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
 
 #endif /*NAVIGATION_H */
