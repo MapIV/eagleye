@@ -29,9 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "coordinate.hpp"
-#include "navigation.hpp"
-
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;

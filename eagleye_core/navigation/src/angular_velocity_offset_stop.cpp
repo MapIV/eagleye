@@ -28,8 +28,9 @@
  * Author MapIV Sekino
  */
 
-#include "navigation.hpp"
-
+ #include "coordinate/coordinate.hpp"
+ #include "navigation/navigation.hpp"
+ 
 void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status, eagleye_msgs::AngularVelocityOffset* angular_velocity_offset_stop)
 {
 

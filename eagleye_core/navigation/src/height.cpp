@@ -28,7 +28,8 @@
  * Author MapIV  Takanose
  */
 
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 #define g 9.80665
 

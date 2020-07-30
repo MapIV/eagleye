@@ -28,8 +28,9 @@
  * Author MapIV Sekino
  */
 
-#include "navigation.hpp"
-
+ #include "coordinate/coordinate.hpp"
+ #include "navigation/navigation.hpp"
+ 
 void distance_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, DistanceStatus* distance_status,eagleye_msgs::Distance* distance)
 {
   if(distance_status->time_last != 0)

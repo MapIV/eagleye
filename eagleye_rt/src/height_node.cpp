@@ -29,8 +29,8 @@
  */
 
  #include "ros/ros.h"
- #include "coordinate.hpp"
- #include "navigation.hpp"
+ #include "coordinate/coordinate.hpp"
+ #include "navigation/navigation.hpp"
 
  static sensor_msgs::Imu imu;
  static sensor_msgs::NavSatFix fix;

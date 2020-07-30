@@ -29,8 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "coordinate.hpp"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;

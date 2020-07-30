@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static ros::Publisher pub;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;

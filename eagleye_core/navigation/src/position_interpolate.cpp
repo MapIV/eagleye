@@ -28,8 +28,8 @@
  * Author MapIV Sekino
  */
 
-#include "coordinate.hpp"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {

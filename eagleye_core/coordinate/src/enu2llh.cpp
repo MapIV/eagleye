@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "coordinate.hpp"
+#include "coordinate/coordinate.hpp"
 #include <math.h>
 
 void enu2llh(double enu_pos[3], double ecef_base_pos[3], double llh_pos[3])

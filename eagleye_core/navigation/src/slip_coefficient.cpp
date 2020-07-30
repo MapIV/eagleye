@@ -28,8 +28,8 @@
  * Author MapIV Takanose
  */
 
- #include "coordinate.hpp"
- #include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset_2nd,eagleye_msgs::Heading heading_interpolate_3rd,SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
 {

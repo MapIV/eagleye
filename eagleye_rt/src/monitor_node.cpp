@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static sensor_msgs::Imu imu;
 static rtklib_msgs::RtklibNav rtklib_nav;

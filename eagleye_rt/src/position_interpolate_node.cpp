@@ -29,8 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "coordinate.hpp"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_vel;

@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
