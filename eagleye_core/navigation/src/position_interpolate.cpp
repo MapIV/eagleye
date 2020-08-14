@@ -36,7 +36,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
 
   int i;
   int estimate_index = 0;
-  double enu_pos[3];
+  double enu_pos[3],tmp_enu[3];
   double ecef_base_pos[3];
   double ecef_pos[3];
   double llh_pos[3],_llh[3];
@@ -154,8 +154,9 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
       llh_pos[2] = height.height;
 
       llh2xyz(llh_pos, ecef_pos);
-      xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
+      xyz2enu(ecef_pos, ecef_base_pos, tmp_enu);
 
+      enu_pos[2] =  tmp_enu[2];
     }
 
     enu_absolute_pos_interpolate->enu_pos.x = enu_pos[0];
