@@ -79,6 +79,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
+  enu_absolute_pos.header.frame_id = "enu";
   position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   if(enu_absolute_pos.status.estimate_status == true)
   {

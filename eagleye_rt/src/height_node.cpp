@@ -82,7 +82,9 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   height.header = msg->header;
+  height.header.frame_id = "llh";
   pitching.header = msg->header;
+  pitching.header.frame_id = "enu";
   acc_x_offset.header = msg->header;
   acc_x_scale_factor.header = msg->header;
   pitching_estimate(imu,fix,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);

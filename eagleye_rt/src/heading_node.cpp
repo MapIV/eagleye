@@ -102,6 +102,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   heading.header = msg->header;
+  heading.header.frame_id = "enu";
   heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)

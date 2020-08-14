@@ -96,12 +96,19 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   enu_vel.header = msg->header;
+  enu_vel.header.frame_id = "gps";
   enu_relative_pos.header = msg->header;
+  enu_relative_pos.header.frame_id = "enu";
   eagleye_twist.header = msg->header;
+  eagleye_twist.header.frame_id = "base_link";
   trajectory3d_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
-  pub1.publish(enu_vel);
-  pub2.publish(enu_relative_pos);
-  pub3.publish(eagleye_twist);
+
+  if(heading_interpolate_3rd.status.enabled_status == true)
+  {
+    pub1.publish(enu_vel);
+    pub2.publish(enu_relative_pos);
+    pub3.publish(eagleye_twist);
+  }
 }
 
 int main(int argc, char** argv)

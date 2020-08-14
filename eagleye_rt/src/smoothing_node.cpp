@@ -56,6 +56,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
   gnss_smooth_pos_enu.header = msg->header;
+  gnss_smooth_pos_enu.header.frame_id = "enu";
   smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_parameter,&smoothing_status,&gnss_smooth_pos_enu);
   pub.publish(gnss_smooth_pos_enu);
 }

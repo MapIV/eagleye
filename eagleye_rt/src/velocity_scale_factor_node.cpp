@@ -69,6 +69,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   velocity_scale_factor.header = msg->header;
+  velocity_scale_factor.header.frame_id = "base_link";
   velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
   pub.publish(velocity_scale_factor);
 }

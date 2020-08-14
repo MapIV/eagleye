@@ -74,10 +74,15 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_pos_interpolate.header = msg->header;
+  enu_absolute_pos_interpolate.header.frame_id = "enu";
   eagleye_fix.header = msg->header;
+  eagleye_fix.header.frame_id = "gps";
   position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
-  pub1.publish(enu_absolute_pos_interpolate);
-  pub2.publish(eagleye_fix);
+  if(enu_absolute_pos.status.enabled_status == true)
+  {
+    pub1.publish(enu_absolute_pos_interpolate);
+    pub2.publish(eagleye_fix);
+  }
 }
 
 int main(int argc, char** argv)

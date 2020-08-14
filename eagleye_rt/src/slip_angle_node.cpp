@@ -75,6 +75,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   slip_angle.header = msg->header;
+  slip_angle.header.frame_id = "base_link";
   slip_angle_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
   pub.publish(slip_angle);
   slip_angle.status.estimate_status = false;
