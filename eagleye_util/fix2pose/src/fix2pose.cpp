@@ -45,6 +45,9 @@ static geometry_msgs::Quaternion _quat;
 static ros::Publisher pub;
 static geometry_msgs::PoseStamped pose;
 
+static double gps_x,gps_y,gps_z,gps_yaw,gps_pitch,gps_roll;
+static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
+
 static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
 static bool altitude_estimate;
@@ -123,7 +126,24 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
   q.setRPY(0, 0, (90* M_PI / 180)-eagleye_heading.heading_angle);
   transform.setRotation(q);
-  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "map", "eagleye"));
+  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "map", "gps"));
+
+  static tf::TransformBroadcaster br2;
+  tf::Transform transform2;
+  tf::Quaternion q2;
+  transform2.setOrigin(tf::Vector3(gps_x, gps_y,gps_z));
+  q2.setRPY(gps_yaw, gps_pitch, gps_roll);
+  transform2.setRotation(q2);
+  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, "gps", "base_link"));
+
+  static tf::TransformBroadcaster br3;
+  tf::Transform transform3;
+  tf::Quaternion q3;
+  transform3.setOrigin(tf::Vector3(imu_x, imu_y,imu_z));
+  q3.setRPY(imu_yaw, imu_pitch, imu_roll);
+  transform3.setRotation(q3);
+  br3.sendTransform(tf::StampedTransform(transform3, msg->header.stamp, "base_link", "imu"));
+
 
 }
 
@@ -135,9 +155,34 @@ int main(int argc, char** argv)
   n.getParam("plane",plane);
   n.getParam("tf_num",tf_num);
   n.getParam("altitude_estimate",altitude_estimate);
+  n.getParam("gps_x",gps_x);
+  n.getParam("gps_y",gps_y);
+  n.getParam("gps_z",gps_z);
+  n.getParam("gps_yaw",gps_yaw);
+  n.getParam("gps_pitch",gps_pitch);
+  n.getParam("gps_roll",gps_roll);
+  n.getParam("imu_x",imu_x);
+  n.getParam("imu_y",imu_y);
+  n.getParam("imu_z",imu_z);
+  n.getParam("imu_yaw",imu_yaw);
+  n.getParam("imu_pitch",imu_pitch);
+  n.getParam("imu_roll",imu_roll);
+
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
   std::cout<< "altitude_estimate "<<altitude_estimate<<std::endl;
+  std::cout<< "gps_x "<<plane<<std::endl;
+  std::cout<< "gps_y "<<tf_num<<std::endl;
+  std::cout<< "gps_z "<<altitude_estimate<<std::endl;
+  std::cout<< "gps_yaw "<<plane<<std::endl;
+  std::cout<< "gps_pitch "<<tf_num<<std::endl;
+  std::cout<< "gps_roll "<<altitude_estimate<<std::endl;
+  std::cout<< "imu_x "<<plane<<std::endl;
+  std::cout<< "imu_y "<<tf_num<<std::endl;
+  std::cout<< "imu_z "<<altitude_estimate<<std::endl;
+  std::cout<< "imu_yaw "<<plane<<std::endl;
+  std::cout<< "imu_pitch "<<tf_num<<std::endl;
+  std::cout<< "imu_roll "<<altitude_estimate<<std::endl;
 
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
