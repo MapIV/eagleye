@@ -58,17 +58,6 @@ static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 //static geometry_msgs::TwistStamped eagleye_twist;
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
-{
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
-}
-
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -279,8 +268,16 @@ void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 }
 */
 
-void timer_callback(const ros::TimerEvent& e)
+void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  imu.header = msg->header;
+  imu.orientation = msg->orientation;
+  imu.orientation_covariance = msg->orientation_covariance;
+  imu.angular_velocity = msg->angular_velocity;
+  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
+  imu.linear_acceleration = msg->linear_acceleration;
+  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+
   std::cout << std::endl;
   std::cout<<"\033[1;33m Eagleye status \033[m"<<std::endl;
   std::cout << std::endl;
@@ -363,8 +360,6 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "monitor");
 
   ros::NodeHandle n;
-
-  ros::Timer timer = n.createTimer(ros::Duration(0.1), timer_callback);
 
   ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
