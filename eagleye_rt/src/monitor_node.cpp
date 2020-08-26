@@ -58,6 +58,8 @@ static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 //static geometry_msgs::TwistStamped eagleye_twist;
 
+static bool f9p_fix_sub_status;
+
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -89,6 +91,7 @@ void f9p_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   f9p_fix.altitude = msg->altitude;
   f9p_fix.position_covariance = msg->position_covariance;
   f9p_fix.position_covariance_type = msg->position_covariance_type;
+  f9p_fix_sub_status = true;
 }
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
@@ -304,11 +307,23 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m f9p(input)\033[m ------------------------------"<< std::endl;
-  std::cout<< "\033[1m rtk status \033[m "<<int(f9p_fix.status.status)<<std::endl;
-  std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<f9p_fix.latitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<f9p_fix.longitude<<" [deg]"<<std::endl;
-  std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<f9p_fix.altitude<<" [m]"<<std::endl;
-  std::cout << std::endl;
+
+  if(f9p_fix_sub_status)
+  {
+    std::cout<< "\033[1m rtk status \033[m "<<int(f9p_fix.status.status)<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<(f9p_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
+    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<f9p_fix.latitude<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<f9p_fix.longitude<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<f9p_fix.altitude<<" [m]"<<std::endl;
+    std::cout << std::endl;
+  }
+  else
+  {
+    std::cout << std::endl;
+    std::cout<<"\033[1;31m no subscription \033[m"<<std::endl;
+    std::cout << std::endl;
+  }
+
 
   std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
   std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<velocity_scale_factor.scale_factor<<std::endl;
