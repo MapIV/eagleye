@@ -2,27 +2,8 @@
 
 <launch>
 
-  <param name="gps_x" value="-1.5"/>
-  <param name="gps_y" value="0.5"/>
-  <param name="gps_z" value="-1.5"/>
-  <param name="gps_yaw" value="0.0"/>
-  <param name="gps_pitch" value="0.0"/>
-  <param name="gps_roll" value="0.0"/>
-  <param name="gps_frame_id" value="base_link"/>
-  <param name="gps_child_frame_id" value="gps"/>
-  <param name="gps_child_frame_id" value="base_link"/>
-  <param name="gps_frame_id" value="gps"/>
-  <param name="gps_period_in_ms" value="10"/>
-
-  <param name="imu_x" value="0.0"/>
-  <param name="imu_y" value="-0.3"/>
-  <param name="imu_z" value="0.5"/>
-  <param name="imu_yaw" value="0.0"/>
-  <param name="imu_pitch" value="0.0"/>
-  <param name="imu_roll" value="0.0"/>
-  <param name="imu_frame_id" value="base_link"/>
-  <param name="imu_child_frame_id" value="imu"/>
-  <param name="imu_period_in_ms" value="10"/>
+  <include file="$(find fix2pose)/launch/sample_tf.launch">
+  </include>
 
   <param name="plane" value="7"/>
   <param name="tf_num" value="1"/>
