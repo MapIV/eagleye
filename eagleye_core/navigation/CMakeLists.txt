@@ -12,17 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-   CATKIN_DEPENDS
-   roscpp
-   std_msgs
-   geometry_msgs
-   sensor_msgs
-   rtklib_msgs
-   eagleye_msgs
-   coordinate
-)
-
-catkin_package(
   INCLUDE_DIRS include
   LIBRARIES navigation
 )
@@ -46,8 +35,20 @@ add_library(navigation
   src/heading_interpolate.cpp
   src/position_interpolate.cpp
   src/height.cpp
+  src/angular_velocity_offset_stop.cpp
 )
 
 target_link_libraries(navigation
   ${catkin_LIBRARIES}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(TARGETS navigation
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

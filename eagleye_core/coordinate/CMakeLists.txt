@@ -29,9 +29,19 @@ add_library(coordinate
   src/xyz2enu.cpp
   src/xyz2enu_vel.cpp
   src/ll2xy_mgrs.cpp
-
 )
 
 target_link_libraries(coordinate
   ${catkin_LIBRARIES}
+)
+
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+  FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(TARGETS coordinate
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

@@ -1,3 +1,32 @@
+// Copyright (c) 2019, Map IV, Inc.
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+// * Redistributions of source code must retain the above copyright notice,
+//   this list of conditions and the following disclaimer.
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+// * Neither the name of the Map IV, Inc. nor the names of its contributors
+//   may be used to endorse or promote products derived from this software
+//   without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL COPYRIGHT HOLDER BE LIABLE FOR ANY
+// DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+// LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+// ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+// SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+/*
+ * fix2pose.cpp
+ * Author MapIV Sekino
+ */
 
 #include "ros/ros.h"
 #include "geometry_msgs/PointStamped.h"
@@ -6,7 +35,7 @@
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/Position.h"
 #include "tf/transform_broadcaster.h"
-#include "coordinate.hpp"
+#include "coordinate/coordinate.hpp"
 
 
 static eagleye_msgs::Heading eagleye_heading;
@@ -15,6 +44,9 @@ static geometry_msgs::Quaternion _quat;
 
 static ros::Publisher pub;
 static geometry_msgs::PoseStamped pose;
+
+static double gps_x,gps_y,gps_z,gps_yaw,gps_pitch,gps_roll;
+static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
 
 static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
@@ -94,7 +126,14 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
   q.setRPY(0, 0, (90* M_PI / 180)-eagleye_heading.heading_angle);
   transform.setRotation(q);
-  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, "map", "eagleye"));
+
+  static tf::TransformBroadcaster br2;
+  tf::Transform transform2;
+  tf::Quaternion q2;
+  transform2.setOrigin(transform*tf::Vector3(-gps_x, -gps_y,-gps_z));
+  q2.setRPY(gps_yaw, gps_pitch, gps_roll);
+  transform2.setRotation(transform*q2);
+  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, "map", "base_link"));
 
 }
 
@@ -106,9 +145,34 @@ int main(int argc, char** argv)
   n.getParam("plane",plane);
   n.getParam("tf_num",tf_num);
   n.getParam("altitude_estimate",altitude_estimate);
+  n.getParam("gps_x",gps_x);
+  n.getParam("gps_y",gps_y);
+  n.getParam("gps_z",gps_z);
+  n.getParam("gps_yaw",gps_yaw);
+  n.getParam("gps_pitch",gps_pitch);
+  n.getParam("gps_roll",gps_roll);
+  n.getParam("imu_x",imu_x);
+  n.getParam("imu_y",imu_y);
+  n.getParam("imu_z",imu_z);
+  n.getParam("imu_yaw",imu_yaw);
+  n.getParam("imu_pitch",imu_pitch);
+  n.getParam("imu_roll",imu_roll);
+
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
   std::cout<< "altitude_estimate "<<altitude_estimate<<std::endl;
+  std::cout<< "gps_x "<<gps_x<<std::endl;
+  std::cout<< "gps_y "<<gps_y<<std::endl;
+  std::cout<< "gps_z "<<gps_z<<std::endl;
+  std::cout<< "gps_yaw "<<gps_yaw<<std::endl;
+  std::cout<< "gps_pitch "<<gps_pitch<<std::endl;
+  std::cout<< "gps_roll "<<gps_roll<<std::endl;
+  std::cout<< "imu_x "<<imu_x<<std::endl;
+  std::cout<< "imu_y "<<imu_y<<std::endl;
+  std::cout<< "imu_z "<<imu_z<<std::endl;
+  std::cout<< "imu_yaw "<<imu_yaw<<std::endl;
+  std::cout<< "imu_pitch "<<imu_pitch<<std::endl;
+  std::cout<< "imu_roll "<<imu_roll<<std::endl;
 
 
   ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);

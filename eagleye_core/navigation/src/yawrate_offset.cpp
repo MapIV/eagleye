@@ -28,7 +28,8 @@
  * Author MapIV Sekino
  */
 
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
 {
@@ -184,6 +185,11 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   }
 
   if (yawrate_offset->status.enabled_status == false)
+  {
+    yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
+  }
+
+  if (fabs(yawrate_offset->yawrate_offset - yawrate_offset_stop.yawrate_offset) > yawrate_offset_parameter.outlier_threshold)
   {
     yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }
