@@ -22,6 +22,6 @@
   <node pkg="eagleye_rt" name="height_node" type="height"/>
   <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
   <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
-  <!-- <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" /> -->
+  <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" />
 
 </launch>

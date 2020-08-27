@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -91,6 +92,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   heading_interpolate.header = msg->header;
+  heading_interpolate.header.frame_id = "enu";
   heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_parameter,&heading_interpolate_status,&heading_interpolate);
   pub.publish(heading_interpolate);
 }

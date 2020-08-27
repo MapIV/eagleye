@@ -28,7 +28,8 @@
  * Author MapIV Sekino
  */
 
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {

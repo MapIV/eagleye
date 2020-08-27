@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static geometry_msgs::TwistStamped velocity;
 static ros::Publisher pub;

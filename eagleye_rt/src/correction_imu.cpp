@@ -29,7 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static bool reverse_imu;
 
@@ -53,9 +54,7 @@ void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 void angular_velocity_offset_stop_callback(const eagleye_msgs::AngularVelocityOffset::ConstPtr& msg)
 {
   angular_velocity_offset_stop.header = msg->header;
-  angular_velocity_offset_stop.rollrate_offset = msg->rollrate_offset;
-  angular_velocity_offset_stop.pitchrate_offset = msg->pitchrate_offset;
-  angular_velocity_offset_stop.yawrate_offset = msg->yawrate_offset;
+  angular_velocity_offset_stop.angular_velocity_offset = msg->angular_velocity_offset;
   angular_velocity_offset_stop.status = msg->status;
 }
 
@@ -104,15 +103,15 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   if (reverse_imu == false)
   {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.rollrate_offset;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.pitchrate_offset;
-    correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.yawrate_offset);
+    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
+    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
+    correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z);
   }
   else if (reverse_imu == true)
   {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y;
-    correction_imu.angular_velocity.z = -1 * (-1 * (imu.angular_velocity.z + angular_velocity_offset_stop.yawrate_offset));
+    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
+    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
+    correction_imu.angular_velocity.z = -1 * (-1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z));
   }
 
   pub.publish(correction_imu);

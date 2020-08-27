@@ -1,6 +1,4 @@
 Header header
 
-float64 rollrate_offset
-float64 pitchrate_offset
-float64 yawrate_offset
+geometry_msgs/Vector3 angular_velocity_offset
 eagleye_msgs/Status status

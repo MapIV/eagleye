@@ -29,8 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "coordinate.hpp"
-#include "navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::Position enu_absolute_pos,gnss_smooth_pos_enu;
@@ -56,6 +56,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
   gnss_smooth_pos_enu.header = msg->header;
+  gnss_smooth_pos_enu.header.frame_id = "enu";
   smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_parameter,&smoothing_status,&gnss_smooth_pos_enu);
   pub.publish(gnss_smooth_pos_enu);
 }

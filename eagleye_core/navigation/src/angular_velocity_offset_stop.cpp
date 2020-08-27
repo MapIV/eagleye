@@ -28,7 +28,8 @@
  * Author MapIV Sekino
  */
 
-#include "navigation.hpp"
+ #include "coordinate/coordinate.hpp"
+ #include "navigation/navigation.hpp"
 
 void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status, eagleye_msgs::AngularVelocityOffset* angular_velocity_offset_stop)
 {
@@ -105,29 +106,29 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
       pitch_tmp += angular_velocity_stop_status->pitchrate_buffer[i];
       yaw_tmp += angular_velocity_stop_status->yawrate_buffer[i];
     }
-    angular_velocity_offset_stop->rollrate_offset = -1 * roll_tmp / angular_velocity_stop_parameter.estimated_number;
-    angular_velocity_offset_stop->pitchrate_offset = -1 * pitch_tmp / angular_velocity_stop_parameter.estimated_number;
-    angular_velocity_offset_stop->yawrate_offset = -1 * yaw_tmp / angular_velocity_stop_parameter.estimated_number;
+    angular_velocity_offset_stop->angular_velocity_offset.x = -1 * roll_tmp / angular_velocity_stop_parameter.estimated_number;
+    angular_velocity_offset_stop->angular_velocity_offset.y = -1 * pitch_tmp / angular_velocity_stop_parameter.estimated_number;
+    angular_velocity_offset_stop->angular_velocity_offset.z = -1 * yaw_tmp / angular_velocity_stop_parameter.estimated_number;
     angular_velocity_offset_stop->status.enabled_status = true;
     angular_velocity_offset_stop->status.estimate_status = true;
     angular_velocity_stop_status->estimate_start_status = true;
   }
   else
   {
-    angular_velocity_offset_stop->rollrate_offset = angular_velocity_stop_status->rollrate_offset_stop_last;
-    angular_velocity_offset_stop->pitchrate_offset = angular_velocity_stop_status->pitchrate_offset_stop_last;
-    angular_velocity_offset_stop->yawrate_offset = angular_velocity_stop_status->yawrate_offset_stop_last;
+    angular_velocity_offset_stop->angular_velocity_offset.x = angular_velocity_stop_status->rollrate_offset_stop_last;
+    angular_velocity_offset_stop->angular_velocity_offset.y = angular_velocity_stop_status->pitchrate_offset_stop_last;
+    angular_velocity_offset_stop->angular_velocity_offset.z = angular_velocity_stop_status->yawrate_offset_stop_last;
     angular_velocity_offset_stop->status.estimate_status = false;
   }
   if (angular_velocity_stop_status->estimate_start_status == false)
   {
-    angular_velocity_offset_stop->rollrate_offset = initial_angular_velocity_offset_stop;
-    angular_velocity_offset_stop->pitchrate_offset = initial_angular_velocity_offset_stop;
-    angular_velocity_offset_stop->yawrate_offset = initial_angular_velocity_offset_stop;
+    angular_velocity_offset_stop->angular_velocity_offset.x = initial_angular_velocity_offset_stop;
+    angular_velocity_offset_stop->angular_velocity_offset.y = initial_angular_velocity_offset_stop;
+    angular_velocity_offset_stop->angular_velocity_offset.z = initial_angular_velocity_offset_stop;
     angular_velocity_offset_stop->status.estimate_status = false;
     angular_velocity_offset_stop->status.enabled_status = false;
   }
-  angular_velocity_stop_status->rollrate_offset_stop_last = angular_velocity_offset_stop->rollrate_offset;
-  angular_velocity_stop_status->pitchrate_offset_stop_last = angular_velocity_offset_stop->pitchrate_offset;
-  angular_velocity_stop_status->yawrate_offset_stop_last = angular_velocity_offset_stop->yawrate_offset;
+  angular_velocity_stop_status->rollrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.x;
+  angular_velocity_stop_status->pitchrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.y;
+  angular_velocity_stop_status->yawrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.z;
 }
