@@ -124,6 +124,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
       height_status->estimate_start_status = false;
     }
 
+    height_status->distance_last = distance.distance;
+
   }
 
   height_status->data_number = height_status->distance_buffer.size();
@@ -390,5 +392,4 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
   height_status->time_last = imu.header.stamp.toSec();
   height_status->correction_velocity_x_last = velocity_scale_factor.correction_velocity.linear.x;
-  height_status->distance_last = distance.distance;
 }
