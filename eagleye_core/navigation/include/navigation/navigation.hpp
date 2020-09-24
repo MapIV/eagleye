@@ -273,6 +273,7 @@ struct HeightStatus
   bool estimate_start_status;
   bool acceleration_SF_estimate_status;
   int data_number;
+  bool flag_reliability;
   std::vector<double> height_buffer;
   std::vector<double> height_buffer2;
   std::vector<double> relative_height_G_buffer;

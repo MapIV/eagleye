@@ -37,7 +37,7 @@
  static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
  static eagleye_msgs::Distance distance;
 
- static ros::Publisher pub1,pub2,pub3,pub4;
+ static ros::Publisher pub1,pub2,pub3,pub4,pub5;
  static eagleye_msgs::Height height;
  static eagleye_msgs::Pitching pitching;
  static eagleye_msgs::AccXOffset acc_x_offset;
@@ -93,6 +93,12 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   pub3.publish(acc_x_offset);
   pub4.publish(acc_x_scale_factor);
 
+  if(height_status.flag_reliability == true)
+  {
+    pub5.publish(fix);
+  }
+
+  height_status.flag_reliability = false;
   height.status.estimate_status = false;
   pitching.status.estimate_status = false;
   acc_x_offset.status.estimate_status = false;
@@ -133,6 +139,9 @@ int main(int argc, char** argv)
   pub2 = n.advertise<eagleye_msgs::Pitching>("/eagleye/pitching", 1000);
   pub3 = n.advertise<eagleye_msgs::AccXOffset>("/eagleye/acc_x_offset", 1000);
   pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("/eagleye/acc_x_scale_factor", 1000);
+  pub5 = n.advertise<sensor_msgs::NavSatFix>("/f9p/reliability_fix", 1000);
+
+
 
   ros::spin();
 
