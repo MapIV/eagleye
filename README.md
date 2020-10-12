@@ -98,7 +98,9 @@ Configure the receiver settings using [u-center](https://www.u-blox.com/product/
 * UART1(Connect to RTKLIB) Enable UBX message (output rate 5Hz, baudrate 230400) ※ Set to output only RAWX and SFRBX
 * UART2(Connect to nmea_navsat_driver) Enable NMEA message (output rate 1Hz, baudrate 115200) ※ Set to output only GGA and RMC
 
-Further details will be provided later.
+[This file](https://www.dropbox.com/s/5mq9hbygnviojoh/eagleye_f9p_conf.txt?dl=0) is a sample configuration file for F9P.  
+Open u-center.  
+Tools/Receiver Configuration.../Load configuration "Transfer file -> GNSS"
 
 9. IMU settings.
 
