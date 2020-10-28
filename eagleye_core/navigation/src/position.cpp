@@ -75,7 +75,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
 
-  if (position_status->tow_last == rtklib_nav.tow)
+  if (position_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0)
   {
     gnss_status = false;
     enu_pos[0] = 0.0;
@@ -92,7 +92,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
     position_status->tow_last = rtklib_nav.tow;
   }
 
-  if (heading_interpolate_3rd.status.estimate_status == true)
+  if (heading_interpolate_3rd.status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)
   {
     heading_interpolate_3rd.status.estimate_status = false; //in order to prevent being judged many times
     ++position_status->heading_estimate_status_count;
@@ -106,7 +106,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   }
 
 
-  if (distance.distance-position_status->distance_last >= position_parameter.separation_distance && gnss_status == true)
+  if (distance.distance-position_status->distance_last >= position_parameter.separation_distance && gnss_status == true && position_status->heading_estimate_status_count > 0)
   {
 
     if (position_status->estimated_number < estimated_number_max)

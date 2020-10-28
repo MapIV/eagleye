@@ -74,7 +74,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
     enu_vel->vector.z = 0; //vel_u
   }
 
-  if (trajectory_status->estimate_status_count == 2 && velocity_scale_factor.correction_velocity.linear.x > 0 && trajectory_status->time_last != 0)
+  if (trajectory_status->estimate_status_count == 2 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > 0 && trajectory_status->time_last != 0)
   {
     enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
     enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
@@ -128,7 +128,7 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Veloc
     enu_vel->vector.z = sin(pitching.pitching_angle) * velocity_scale_factor.correction_velocity.linear.x; //vel_u
   }
 
-  if (trajectory_status->estimate_status_count == 2 && velocity_scale_factor.correction_velocity.linear.x > 0 && trajectory_status->time_last != 0)
+  if (trajectory_status->estimate_status_count == 2 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > 0 && trajectory_status->time_last != 0)
   {
     enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
     enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);

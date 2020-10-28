@@ -34,12 +34,18 @@
 void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
 {
 
+  int i;
   double ecef_pos[3];
   double ecef_base_pos[3];
   double enu_pos[3];
+  double gnss_smooth_pos[3] = {0};
+  double sum_gnss_pos[3] = {0};
   std::size_t index_length;
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
+  std::vector<int> velocity_index;
+  std::vector<int> index;
+
 
   if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
   {
@@ -54,90 +60,84 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
     }
   }
 
-  ecef_pos[0] = rtklib_nav.ecef_pos.x;
-  ecef_pos[1] = rtklib_nav.ecef_pos.y;
-  ecef_pos[2] = rtklib_nav.ecef_pos.z;
-  ecef_base_pos[0] = gnss_smooth_pos_enu->ecef_base_pos.x;
-  ecef_base_pos[1] = gnss_smooth_pos_enu->ecef_base_pos.y;
-  ecef_base_pos[2] = gnss_smooth_pos_enu->ecef_base_pos.z;
+  if(rtklib_nav.tow != 0){
+    ecef_pos[0] = rtklib_nav.ecef_pos.x;
+    ecef_pos[1] = rtklib_nav.ecef_pos.y;
+    ecef_pos[2] = rtklib_nav.ecef_pos.z;
+    ecef_base_pos[0] = gnss_smooth_pos_enu->ecef_base_pos.x;
+    ecef_base_pos[1] = gnss_smooth_pos_enu->ecef_base_pos.y;
+    ecef_base_pos[2] = gnss_smooth_pos_enu->ecef_base_pos.z;
 
-  xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
+    xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
-  smoothing_status->time_buffer.push_back(rtklib_nav.header.stamp.toSec());
-  smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
-  smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
-  smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
-  smoothing_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    smoothing_status->time_buffer.push_back(rtklib_nav.header.stamp.toSec());
+    smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
+    smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
+    smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
+    smoothing_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
 
-  time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
+    time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-  if (time_buffer_length > smoothing_parameter.estimated_number_max)
-  {
-    smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
-    smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
-    smoothing_status->enu_pos_y_buffer.erase(smoothing_status->enu_pos_y_buffer.begin());
-    smoothing_status->enu_pos_z_buffer.erase(smoothing_status->enu_pos_z_buffer.begin());
-    smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
-  }
-
-  if (smoothing_status->estimated_number < smoothing_parameter.estimated_number_max)
-  {
-    ++smoothing_status->estimated_number;
-    gnss_smooth_pos_enu->status.enabled_status = false;
-  }
-  else
-  {
-    smoothing_status->estimated_number = smoothing_parameter.estimated_number_max;
-    gnss_smooth_pos_enu->status.enabled_status = true;
-  }
-
-  std::vector<int> velocity_index;
-  std::vector<int> index;
-  int i;
-  double gnss_smooth_pos[3] = {0};
-  double sum_gnss_pos[3] = {0};
-
-
-  if (smoothing_status->estimated_number == smoothing_parameter.estimated_number_max)
-  {
-    for (i = 0; i < smoothing_status->estimated_number; i++)
+    if (time_buffer_length > smoothing_parameter.estimated_number_max)
     {
-      index.push_back(i);
-      if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.estimated_velocity_threshold)
-      {
-        velocity_index.push_back(i);
-      }
+      smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
+      smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
+      smoothing_status->enu_pos_y_buffer.erase(smoothing_status->enu_pos_y_buffer.begin());
+      smoothing_status->enu_pos_z_buffer.erase(smoothing_status->enu_pos_z_buffer.begin());
+      smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
     }
 
-    index_length = std::distance(index.begin(), index.end());
-    velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
-
-    for (i = 0; i < velocity_index_length; i++)
+    if (smoothing_status->estimated_number < smoothing_parameter.estimated_number_max)
     {
-      sum_gnss_pos[0] = sum_gnss_pos[0] + smoothing_status->enu_pos_x_buffer[velocity_index[i]];
-      sum_gnss_pos[1] = sum_gnss_pos[1] + smoothing_status->enu_pos_y_buffer[velocity_index[i]];
-      sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
-    }
-
-    if (velocity_index_length > index_length * smoothing_parameter.estimated_threshold)
-    {
-      gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
-      gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;
-      gnss_smooth_pos[2] = sum_gnss_pos[2]/velocity_index_length;
-      gnss_smooth_pos_enu->status.estimate_status = true;
+      ++smoothing_status->estimated_number;
+      gnss_smooth_pos_enu->status.enabled_status = false;
     }
     else
     {
-      gnss_smooth_pos[0] = smoothing_status->last_pos[0];
-      gnss_smooth_pos[1] = smoothing_status->last_pos[1];
-      gnss_smooth_pos[2] = smoothing_status->last_pos[2];
-      gnss_smooth_pos_enu->status.estimate_status = false;
+      smoothing_status->estimated_number = smoothing_parameter.estimated_number_max;
+      gnss_smooth_pos_enu->status.enabled_status = true;
     }
 
-    smoothing_status->last_pos[0] = gnss_smooth_pos[0];
-    smoothing_status->last_pos[1] = gnss_smooth_pos[1];
-    smoothing_status->last_pos[2] = gnss_smooth_pos[2];
+    if (smoothing_status->estimated_number == smoothing_parameter.estimated_number_max){
+      for (i = 0; i < smoothing_status->estimated_number; i++)
+      {
+        index.push_back(i);
+        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.estimated_velocity_threshold)
+        {
+          velocity_index.push_back(i);
+        }
+      }
+
+      index_length = std::distance(index.begin(), index.end());
+      velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
+
+      for (i = 0; i < velocity_index_length; i++)
+      {
+        sum_gnss_pos[0] = sum_gnss_pos[0] + smoothing_status->enu_pos_x_buffer[velocity_index[i]];
+        sum_gnss_pos[1] = sum_gnss_pos[1] + smoothing_status->enu_pos_y_buffer[velocity_index[i]];
+        sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
+      }
+
+      if (velocity_index_length > index_length * smoothing_parameter.estimated_threshold)
+      {
+        gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
+        gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;
+        gnss_smooth_pos[2] = sum_gnss_pos[2]/velocity_index_length;
+        gnss_smooth_pos_enu->status.estimate_status = true;
+      }
+    }
   }
+  else
+  {
+    gnss_smooth_pos[0] = smoothing_status->last_pos[0];
+    gnss_smooth_pos[1] = smoothing_status->last_pos[1];
+    gnss_smooth_pos[2] = smoothing_status->last_pos[2];
+    gnss_smooth_pos_enu->status.estimate_status = false;
+  }
+
+  smoothing_status->last_pos[0] = gnss_smooth_pos[0];
+  smoothing_status->last_pos[1] = gnss_smooth_pos[1];
+  smoothing_status->last_pos[2] = gnss_smooth_pos[2];
 
   gnss_smooth_pos_enu->enu_pos.x = gnss_smooth_pos[0];
   gnss_smooth_pos_enu->enu_pos.y = gnss_smooth_pos[1];
