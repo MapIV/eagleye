@@ -93,15 +93,15 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position/estimated_distance",position_parameter.estimated_distance);
-  n.getParam("/eagleye/position/separation_distance",position_parameter.separation_distance);
-  n.getParam("/eagleye/position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
-  n.getParam("/eagleye/position/outlier_threshold",position_parameter.outlier_threshold);
-  n.getParam("/eagleye/position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
-  n.getParam("/eagleye/position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  n.getParam("/eagleye/position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
-  n.getParam("/eagleye/position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
-  n.getParam("/eagleye/position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
+  n.getParam("eagleye/position/estimated_distance",position_parameter.estimated_distance);
+  n.getParam("eagleye/position/separation_distance",position_parameter.separation_distance);
+  n.getParam("eagleye/position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
+  n.getParam("eagleye/position/outlier_threshold",position_parameter.outlier_threshold);
+  n.getParam("eagleye/position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
+  n.getParam("eagleye/position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
+  n.getParam("eagleye/position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
+  n.getParam("eagleye/position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
+  n.getParam("eagleye/position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
 
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
@@ -110,13 +110,13 @@ int main(int argc, char** argv)
   std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
   std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("/eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
 
-  pub = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos", 1000);
+  pub = n.advertise<eagleye_msgs::Position>("eagleye/enu_absolute_pos", 1000);
   ros::spin();
 
   return 0;

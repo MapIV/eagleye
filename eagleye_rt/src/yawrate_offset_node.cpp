@@ -82,13 +82,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "yawrate_offset");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", yawrate_offset_parameter.reverse_imu);
-  n.getParam("/eagleye/yawrate_offset/estimated_number_min",yawrate_offset_parameter.estimated_number_min);
-  n.getParam("/eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
-  n.getParam("/eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
-  n.getParam("/eagleye/yawrate_offset/outlier_threshold",yawrate_offset_parameter.outlier_threshold);
+  n.getParam("eagleye/reverse_imu", yawrate_offset_parameter.reverse_imu);
+  n.getParam("eagleye/yawrate_offset/estimated_number_min",yawrate_offset_parameter.estimated_number_min);
+  n.getParam("eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
+  n.getParam("eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
+  n.getParam("eagleye/yawrate_offset/outlier_threshold",yawrate_offset_parameter.outlier_threshold);
 
   std::cout<< "reverse_imu "<<yawrate_offset_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<yawrate_offset_parameter.estimated_number_min<<std::endl;
@@ -103,16 +103,16 @@ int main(int argc, char** argv)
   {
     if (strcmp(argv[1], "1st") == 0)
     {
-      publish_topic_name = "/eagleye/yawrate_offset_1st";
-      subscribe_topic_name = "/eagleye/heading_interpolate_1st";
-      n.getParam("/eagleye/yawrate_offset/1st/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      publish_topic_name = "eagleye/yawrate_offset_1st";
+      subscribe_topic_name = "eagleye/heading_interpolate_1st";
+      n.getParam("eagleye/yawrate_offset/1st/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
       std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
-      publish_topic_name = "/eagleye/yawrate_offset_2nd";
-      subscribe_topic_name = "/eagleye/heading_interpolate_2nd";
-      n.getParam("/eagleye/yawrate_offset/2nd/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      publish_topic_name = "eagleye/yawrate_offset_2nd";
+      subscribe_topic_name = "eagleye/heading_interpolate_2nd";
+      n.getParam("eagleye/yawrate_offset/2nd/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
       std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else
@@ -127,10 +127,10 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe(subscribe_topic_name, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   pub = n.advertise<eagleye_msgs::YawrateOffset>(publish_topic_name, 1000);
 
   ros::spin();

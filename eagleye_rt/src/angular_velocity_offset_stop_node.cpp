@@ -63,21 +63,21 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "angular_velocity_offset_stop");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
-  n.getParam("/eagleye/angular_velocity_offset_stop/stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/angular_velocity_offset_stop/estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
-  n.getParam("/eagleye/angular_velocity_offset_stop/outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
+  n.getParam("eagleye/reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  n.getParam("eagleye/angular_velocity_offset_stop/stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  n.getParam("eagleye/angular_velocity_offset_stop/estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  n.getParam("eagleye/angular_velocity_offset_stop/outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
 
   std::cout<< "reverse_imu "<<angular_velocity_offset_stop_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_number "<<angular_velocity_offset_stop_parameter.estimated_number<<std::endl;
   std::cout<< "outlier_threshold "<<angular_velocity_offset_stop_parameter.outlier_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::AngularVelocityOffset>("/eagleye/angular_velocity_offset_stop", 1000);
+  ros::Subscriber sub1 = n.subscribe("can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  pub = n.advertise<eagleye_msgs::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", 1000);
 
   ros::spin();
 

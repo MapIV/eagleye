@@ -104,13 +104,13 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", slip_coefficient_parameter.reverse_imu);
-  n.getParam("/eagleye/slip_coefficient/estimated_number_min", slip_coefficient_parameter.estimated_number_min);
-  n.getParam("/eagleye/slip_coefficient/estimated_number_max", slip_coefficient_parameter.estimated_number_max);
-  n.getParam("/eagleye/slip_coefficient/estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
-  n.getParam("/eagleye/slip_coefficient/estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
-  n.getParam("/eagleye/slip_coefficient/lever_arm", slip_coefficient_parameter.lever_arm);
-  n.getParam("/eagleye/slip_coefficient/stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
+  n.getParam("eagleye/reverse_imu", slip_coefficient_parameter.reverse_imu);
+  n.getParam("eagleye/slip_coefficient/estimated_number_min", slip_coefficient_parameter.estimated_number_min);
+  n.getParam("eagleye/slip_coefficient/estimated_number_max", slip_coefficient_parameter.estimated_number_max);
+  n.getParam("eagleye/slip_coefficient/estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
+  n.getParam("eagleye/slip_coefficient/estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
+  n.getParam("eagleye/slip_coefficient/lever_arm", slip_coefficient_parameter.lever_arm);
+  n.getParam("eagleye/slip_coefficient/stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
 
   std::cout<<std::endl;
   std::cout<< "reverse_imu "<<slip_coefficient_parameter.reverse_imu<<std::endl;
@@ -121,12 +121,12 @@ int main(int argc, char** argv)
   std::cout<< "lever_arm "<<slip_coefficient_parameter.lever_arm<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<slip_coefficient_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/imu/data_raw", 1000, imu_callback);
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  ros::Subscriber sub4 = n.subscribe("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  ros::Subscriber sub5 = n.subscribe("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  ros::Subscriber sub6 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub1 = n.subscribe("imu/data_raw", 1000, imu_callback);
+  ros::Subscriber sub2 = n.subscribe("rtklib_nav", 1000, rtklib_nav_callback);
+  ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  ros::Subscriber sub4 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
+  ros::Subscriber sub5 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
+  ros::Subscriber sub6 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
 
   ros::spin();
 

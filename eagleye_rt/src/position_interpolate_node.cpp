@@ -90,17 +90,17 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);
-  n.getParam("/eagleye/position_interpolate/stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
+  n.getParam("eagleye/position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);
+  n.getParam("eagleye/position_interpolate/stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
   std::cout<< "number_buffer_max "<<position_interpolate_parameter.number_buffer_max<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<position_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("/eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("/eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  pub1 = n.advertise<eagleye_msgs::Position>("/eagleye/enu_absolute_pos_interpolate", 1000);
-  pub2 = n.advertise<sensor_msgs::NavSatFix>("/eagleye/fix", 1000);
+  ros::Subscriber sub1 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("eagleye/gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  pub1 = n.advertise<eagleye_msgs::Position>("eagleye/enu_absolute_pos_interpolate", 1000);
+  pub2 = n.advertise<sensor_msgs::NavSatFix>("eagleye/fix", 1000);
 
   ros::spin();
 

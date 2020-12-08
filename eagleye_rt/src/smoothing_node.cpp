@@ -66,12 +66,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "smoothing");
   ros::NodeHandle n;
 
-  n.getParam("/eagleye/position/ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
-  n.getParam("/eagleye/position/ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
-  n.getParam("/eagleye/position/ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
-  n.getParam("/eagleye/smoothing/estimated_number_max",smoothing_parameter.estimated_number_max);
-  n.getParam("/eagleye/smoothing/estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
-  n.getParam("/eagleye/smoothing/estimated_threshold",smoothing_parameter.estimated_threshold);
+  n.getParam("eagleye/position/ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
+  n.getParam("eagleye/position/ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
+  n.getParam("eagleye/position/ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
+  n.getParam("eagleye/smoothing/estimated_number_max",smoothing_parameter.estimated_number_max);
+  n.getParam("eagleye/smoothing/estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
+  n.getParam("eagleye/smoothing/estimated_threshold",smoothing_parameter.estimated_threshold);
 
   std::cout<< "ecef_base_pos_x "<<smoothing_parameter.ecef_base_pos_x<<std::endl;
   std::cout<< "ecef_base_pos_y "<<smoothing_parameter.ecef_base_pos_y<<std::endl;
@@ -80,10 +80,10 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<smoothing_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "estimated_threshold "<<smoothing_parameter.estimated_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
 
-  pub = n.advertise<eagleye_msgs::Position>("/eagleye/gnss_smooth_pos_enu", 1000);
+  pub = n.advertise<eagleye_msgs::Position>("eagleye/gnss_smooth_pos_enu", 1000);
 
   ros::spin();
 
