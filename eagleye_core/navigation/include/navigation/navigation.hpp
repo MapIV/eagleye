@@ -237,11 +237,13 @@ struct TrajectoryParameter
 {
   bool reverse_imu;
   double stop_judgment_velocity_threshold;
+  double stop_judgment_yawrate_threshold;
 };
 
 struct TrajectoryStatus
 {
   int estimate_status_count;
+  double heading_last;
   double time_last;
 };
 

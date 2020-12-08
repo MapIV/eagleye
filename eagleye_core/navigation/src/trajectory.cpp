@@ -61,6 +61,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
   if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true && heading_interpolate_3rd.status.enabled_status == true)
   {
     trajectory_status->estimate_status_count = 1;
+    trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
   }
   else if (trajectory_status->estimate_status_count == 1)
   {
@@ -76,12 +77,28 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
 
   if (trajectory_status->estimate_status_count == 2 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > 0 && trajectory_status->time_last != 0)
   {
-    enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
-    enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
-    enu_relative_pos->enu_pos.z = 0;
+    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
+    {
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.z = 0;
+    }
+    else if((imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) != 0)
+    {
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.z = 0;
+    }
+    else{
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.z = 0;
+    }
+
     enu_relative_pos->status.enabled_status = enu_relative_pos->status.estimate_status = true;
   }
 
+  trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
   trajectory_status->time_last = imu.header.stamp.toSec();
 }
 
@@ -115,6 +132,7 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Veloc
   if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true && heading_interpolate_3rd.status.enabled_status == true)
   {
     trajectory_status->estimate_status_count = 1;
+    trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
   }
   else if (trajectory_status->estimate_status_count == 1)
   {
@@ -130,11 +148,22 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Veloc
 
   if (trajectory_status->estimate_status_count == 2 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > 0 && trajectory_status->time_last != 0)
   {
-    enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
-    enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
-    enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (imu.header.stamp.toSec() - trajectory_status->time_last);
+    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
+    {
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (imu.header.stamp.toSec() - trajectory_status->time_last);
+    }
+    else
+    {
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (imu.header.stamp.toSec() - trajectory_status->time_last);
+    }
+
     enu_relative_pos->status.enabled_status = enu_relative_pos->status.estimate_status = true;
   }
 
+  trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
   trajectory_status->time_last = imu.header.stamp.toSec();
 }
