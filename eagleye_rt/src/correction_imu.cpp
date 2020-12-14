@@ -121,15 +121,18 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "correction_imu");
   ros::NodeHandle n;
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
 
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
   n.getParam("eagleye/reverse_imu", reverse_imu);
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("eagleye/angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("eagleye/acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("eagleye/acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   pub = n.advertise<sensor_msgs::Imu>("imu/data_corrected", 1000);
 
 

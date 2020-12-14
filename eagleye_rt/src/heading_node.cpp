@@ -117,6 +117,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading");
   ros::NodeHandle n;
 
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
+  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
+  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   n.getParam("eagleye/reverse_imu", heading_parameter.reverse_imu);
   n.getParam("eagleye/heading/estimated_number_min",heading_parameter.estimated_number_min);
   n.getParam("eagleye/heading/estimated_number_max",heading_parameter.estimated_number_max);
@@ -127,6 +132,8 @@ int main(int argc, char** argv)
   n.getParam("eagleye/heading/stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   n.getParam("eagleye/heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_number_max "<<heading_parameter.estimated_number_max<<std::endl;
@@ -173,8 +180,8 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());

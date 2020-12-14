@@ -87,14 +87,18 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
   n.getParam("eagleye/reverse_imu", slip_angle_parameter.reverse_imu);
   n.getParam("eagleye/slip_angle/manual_coefficient", slip_angle_parameter.manual_coefficient);
   n.getParam("eagleye/slip_angle/stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<slip_angle_parameter.reverse_imu<<std::endl;
   std::cout<< "manual_coefficient "<<slip_angle_parameter.manual_coefficient<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<slip_angle_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());

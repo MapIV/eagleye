@@ -110,6 +110,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "height");
   ros::NodeHandle n;
 
+  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
+  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
   n.getParam("eagleye/height/estimated_distance",height_parameter.estimated_distance);
   n.getParam("eagleye/height/estimated_distance_max",height_parameter.estimated_distance_max);
   n.getParam("eagleye/height/separation_distance",height_parameter.separation_distance);
@@ -119,6 +124,8 @@ int main(int argc, char** argv)
   n.getParam("eagleye/height/outlier_threshold",height_parameter.outlier_threshold);
   n.getParam("eagleye/height/average_num",height_parameter.average_num);
 
+  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<height_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_distance_max "<<height_parameter.estimated_distance_max<<std::endl;
   std::cout<< "separation_distance "<<height_parameter.separation_distance<<std::endl;
@@ -128,20 +135,16 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<height_parameter.outlier_threshold<<std::endl;
   std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
 
-  std::string subscribe_topic_name = "f9p/fix";
-
-  ros::Subscriber sub1 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 
   pub1 = n.advertise<eagleye_msgs::Height>("eagleye/height", 1000);
   pub2 = n.advertise<eagleye_msgs::Pitching>("eagleye/pitching", 1000);
   pub3 = n.advertise<eagleye_msgs::AccXOffset>("eagleye/acc_x_offset", 1000);
-  pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("eeagleye/acc_x_scale_factor", 1000);
+  pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("eagleye/acc_x_scale_factor", 1000);
   pub5 = n.advertise<sensor_msgs::NavSatFix>("f9p/reliability_fix", 1000);
-
-
 
   ros::spin();
 

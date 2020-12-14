@@ -376,11 +376,26 @@ int main(int argc, char** argv)
 
   ros::NodeHandle n;
 
-  ros::Subscriber sub1 = n.subscribe("imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("rtklib_nav", 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
+  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+
+  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
+  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
+
+  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+
+  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub3 = n.subscribe("fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("f9p/fix", 1000, f9p_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe("can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, f9p_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub7 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub8 = n.subscribe("eagleye/heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
