@@ -80,7 +80,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (heading_status->tow_last  == rtklib_nav.tow)
+  if (heading_status->tow_last  == rtklib_nav.tow || rtklib_nav.tow == 0)
   {
     gnss_status = false;
     doppler_heading_angle = 0;

@@ -23,24 +23,17 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-/*
- * distance.cpp
- * Author MapIV Sekino
- */
+#ifndef NMEA2FIX_H
+#define NMEA2FIX_H
 
- #include "coordinate/coordinate.hpp"
- #include "navigation/navigation.hpp"
+#include "sensor_msgs/NavSatFix.h"
+#include "nmea_msgs/Sentence.h"
+#include "nmea_msgs/Gpgga.h"
+#include <string>
+#include <time.h>
+#include <memory>
 
-void distance_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, DistanceStatus* distance_status,eagleye_msgs::Distance* distance)
-{
-  if(distance_status->time_last != 0)
-  {
-    distance->distance = distance->distance + velocity_scale_factor.correction_velocity.linear.x * abs((velocity_scale_factor.header.stamp.toSec() - distance_status->time_last));
-    distance->status.enabled_status = distance->status.estimate_status = true;
-    distance_status->time_last = velocity_scale_factor.header.stamp.toSec();
-  }
-  else
-  {
-    distance_status->time_last = velocity_scale_factor.header.stamp.toSec();
-  }
-}
+extern double stringToROSTime(std::string&, double);
+extern void nmea2fix_converter(const nmea_msgs::Sentence,  sensor_msgs::NavSatFix*, nmea_msgs::Gpgga*);
+
+#endif /*NMEA2FIX_H */

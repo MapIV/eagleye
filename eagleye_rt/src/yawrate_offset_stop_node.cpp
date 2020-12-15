@@ -63,21 +63,28 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "yawrate_offset_stop");
-  ros::NodeHandle n("~");
+  ros::NodeHandle n;
 
-  n.getParam("/eagleye/reverse_imu", yawrate_offset_stop_parameter.reverse_imu);
-  n.getParam("/eagleye/yawrate_offset_stop/stop_judgment_velocity_threshold",yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
-  n.getParam("/eagleye/yawrate_offset_stop/estimated_number",yawrate_offset_stop_parameter.estimated_number);
-  n.getParam("/eagleye/yawrate_offset_stop/outlier_threshold",yawrate_offset_stop_parameter.outlier_threshold);
+  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
 
+  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
+  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
+  n.getParam("eagleye/reverse_imu", yawrate_offset_stop_parameter.reverse_imu);
+  n.getParam("eagleye/yawrate_offset_stop/stop_judgment_velocity_threshold",yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
+  n.getParam("eagleye/yawrate_offset_stop/estimated_number",yawrate_offset_stop_parameter.estimated_number);
+  n.getParam("eagleye/yawrate_offset_stop/outlier_threshold",yawrate_offset_stop_parameter.outlier_threshold);
+
+  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<yawrate_offset_stop_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<yawrate_offset_stop_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_number "<<yawrate_offset_stop_parameter.estimated_number<<std::endl;
   std::cout<< "outlier_threshold "<<yawrate_offset_stop_parameter.outlier_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("/can_twist", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("/imu/data_raw", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::YawrateOffset>("/eagleye/yawrate_offset_stop", 1000);
+  ros::Subscriber sub1 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  pub = n.advertise<eagleye_msgs::YawrateOffset>("eagleye/yawrate_offset_stop", 1000);
 
   ros::spin();
 

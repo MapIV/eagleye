@@ -237,11 +237,13 @@ struct TrajectoryParameter
 {
   bool reverse_imu;
   double stop_judgment_velocity_threshold;
+  double stop_judgment_yawrate_threshold;
 };
 
 struct TrajectoryStatus
 {
   int estimate_status_count;
+  double heading_last;
   double time_last;
 };
 
@@ -273,6 +275,7 @@ struct HeightStatus
   bool estimate_start_status;
   bool acceleration_SF_estimate_status;
   int data_number;
+  bool flag_reliability;
   std::vector<double> height_buffer;
   std::vector<double> height_buffer2;
   std::vector<double> relative_height_G_buffer;

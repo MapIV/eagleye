@@ -59,8 +59,8 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "distance");
 
   ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  pub = n.advertise<eagleye_msgs::Distance>("/eagleye/distance", 1000);
+  ros::Subscriber sub1 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  pub = n.advertise<eagleye_msgs::Distance>("eagleye/distance", 1000);
 
   ros::spin();
 
