@@ -88,12 +88,12 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
     if (convert_height_num == 1)
     {
       convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-      llh[2] = llh[2] - convert_height.convert2altitude();
+      llh[2] = convert_height.convert2altitude();
     }
     else if(convert_height_num == 2)
     {
       convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-      llh[2] = llh[2] - convert_height.convert2ellipsoid();
+      llh[2] = convert_height.convert2ellipsoid();
     }
 
     if (tf_num == 1)
