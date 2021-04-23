@@ -50,9 +50,11 @@ static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
 
 static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
-static bool altitude_estimate;
+static int convert_height_num = 0;
 static int plane = 7;
 static int tf_num = 1;
+
+static ConvertHeight convert_height;
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
@@ -75,7 +77,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   double llh[3] = {0};
   double _llh[3] = {0};
   double xyz[3] = {0};
-  double height = 0;
+  double geoid_height = 0;
 
   if (eagleye_position.status.enabled_status == true)
   {
@@ -83,13 +85,15 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
     llh[1] = msg->longitude* M_PI / 180;
     llh[2] = msg->altitude;
 
-    if (altitude_estimate == true)
+    if (convert_height_num == 1)
     {
-      _llh[0] = llh[0] * 180/M_PI;
-      _llh[1] = llh[1] * 180/M_PI;
-      _llh[2] = llh[2];
-      hgeoid(_llh,&height);
-      llh[2] = llh[2] - height;
+      convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
+      llh[2] = llh[2] - convert_height.convert2altitude();
+    }
+    else if(convert_height_num == 2)
+    {
+      convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
+      llh[2] = llh[2] - convert_height.convert2ellipsoid();
     }
 
     if (tf_num == 1)
@@ -144,7 +148,7 @@ int main(int argc, char** argv)
 
   n.getParam("plane",plane);
   n.getParam("tf_num",tf_num);
-  n.getParam("altitude_estimate",altitude_estimate);
+  n.getParam("convert_height_num",convert_height_num);
   n.getParam("gps_x",gps_x);
   n.getParam("gps_y",gps_y);
   n.getParam("gps_z",gps_z);
@@ -160,7 +164,7 @@ int main(int argc, char** argv)
 
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
-  std::cout<< "altitude_estimate "<<altitude_estimate<<std::endl;
+  std::cout<< "convert_height_num "<<convert_height_num<<std::endl;
   std::cout<< "gps_x "<<gps_x<<std::endl;
   std::cout<< "gps_y "<<gps_y<<std::endl;
   std::cout<< "gps_z "<<gps_z<<std::endl;
