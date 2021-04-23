@@ -268,7 +268,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
           for (i = 0; i < index_length; i++)
           {
-            diff_height_buffer.push_back(fabsf(base_height_buffer2[index[i]] - height_status->height_buffer2[index[i]]));
+            diff_height_buffer.push_back(std::fabs(base_height_buffer2[index[i]] - height_status->height_buffer2[index[i]]));
           }
 
           max_height = std::max_element(diff_height_buffer.begin(), diff_height_buffer.end());
@@ -381,7 +381,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
       sum_acc += height_status->acc_buffer[i];
     }
     mean_acc = sum_acc / data_num_acc;
-    tmp_pitch = asin(mean_acc/g);
+    tmp_pitch = std::asin(mean_acc/g);
     pitching->status.enabled_status = true;
     pitching->status.estimate_status = true;
   }
