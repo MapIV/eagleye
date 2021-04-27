@@ -56,7 +56,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   ecef_pos[2] = rtklib_nav.ecef_pos.z;
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
-  doppler_heading_angle = atan2(enu_vel[0], enu_vel[1]);
+  doppler_heading_angle = std::atan2(enu_vel[0], enu_vel[1]);
 
   if(doppler_heading_angle<0){
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
@@ -191,7 +191,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
 
       for (i = 0; i < index_length; i++)
       {
-        ref_cnt = (base_heading_angle_buffer[index[i]] - fmod(base_heading_angle_buffer[index[i]],2*M_PI))/(2*M_PI);
+        ref_cnt = (base_heading_angle_buffer[index[i]] - std::fmod(base_heading_angle_buffer[index[i]],2*M_PI))/(2*M_PI);
         if(base_heading_angle_buffer[index[i]] < 0) ref_cnt = ref_cnt -1;
         heading_angle_buffer2[index[i]] = heading_status->heading_angle_buffer [index[i]] + ref_cnt * 2*M_PI;
       }

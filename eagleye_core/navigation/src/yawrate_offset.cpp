@@ -176,7 +176,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
         sum_xy += time_buffer2[i] * diff_buffer[i];
         sum_x += time_buffer2[i];
         sum_y += diff_buffer[i];
-        sum_x2 += pow(time_buffer2[i], 2);
+        sum_x2 += std::pow(time_buffer2[i], 2);
       }
       yawrate_offset->yawrate_offset = -1 * (index_length * sum_xy - sum_x * sum_y) / (index_length * sum_x2 - pow(sum_x, 2));
       yawrate_offset->status.enabled_status = true;
@@ -189,7 +189,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
     yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }
 
-  if (fabs(yawrate_offset->yawrate_offset - yawrate_offset_stop.yawrate_offset) > yawrate_offset_parameter.outlier_threshold)
+  if (std::fabs(yawrate_offset->yawrate_offset - yawrate_offset_stop.yawrate_offset) > yawrate_offset_parameter.outlier_threshold)
   {
     yawrate_offset->yawrate_offset = yawrate_offset_stop.yawrate_offset;
   }

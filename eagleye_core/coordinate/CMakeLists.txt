@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   geodesy
 )
 
@@ -23,12 +24,15 @@ include_directories(
 add_library(coordinate
   src/ecef2llh.cpp
   src/enu2llh.cpp
-  src/hgeoid.cpp
   src/ll2xy.cpp
   src/llh2xyz.cpp
   src/xyz2enu.cpp
   src/xyz2enu_vel.cpp
   src/ll2xy_mgrs.cpp
+  src/geoid_per_degree.cpp
+  src/geoid_per_minute.cpp
+  src/convertheight.cpp
+
 )
 
 target_link_libraries(coordinate

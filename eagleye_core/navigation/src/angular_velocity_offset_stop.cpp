@@ -58,7 +58,7 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
       angular_velocity_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
     }
   }
-  else if ( fabs(fabs(angular_velocity_stop_status->yawrate_offset_stop_last) - fabs(imu.angular_velocity.z)) < angular_velocity_stop_parameter.outlier_threshold && angular_velocity_stop_status->estimate_start_status == true)
+  else if ( std::fabs(std::fabs(angular_velocity_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) < angular_velocity_stop_parameter.outlier_threshold && angular_velocity_stop_status->estimate_start_status == true)
   {
     if (angular_velocity_stop_parameter.reverse_imu == false)
     {

@@ -92,3 +92,11 @@ add_dependencies(angular_velocity_offset_stop ${catkin_EXPORTED_TARGETS})
 add_executable(correction_imu src/correction_imu.cpp)
 target_link_libraries(correction_imu ${catkin_LIBRARIES})
 add_dependencies(correction_imu ${catkin_EXPORTED_TARGETS})
+
+add_executable(rtk_interpolate src/rtk_interpolate_node.cpp)
+target_link_libraries(rtk_interpolate ${catkin_LIBRARIES})
+add_dependencies(rtk_interpolate ${catkin_EXPORTED_TARGETS})
+
+add_executable(rtk_heading src/rtk_heading_node.cpp)
+target_link_libraries(rtk_heading ${catkin_LIBRARIES})
+add_dependencies(rtk_heading ${catkin_EXPORTED_TARGETS})

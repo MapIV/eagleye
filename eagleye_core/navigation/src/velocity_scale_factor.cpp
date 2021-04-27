@@ -54,7 +54,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
 
     xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
 
-    doppler_velocity = sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
+    doppler_velocity = std::sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
 
   if (velocity_scale_factor_status->estimated_number < velocity_scale_factor_parameter.estimated_number_max)
   {
