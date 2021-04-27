@@ -8,7 +8,8 @@
   <param name="plane" value="7"/>
   <param name="tf_num" value="1"/>
   <!-- 1 : plane  2 : mgrs  -->
-  <param name="altitude_estimate" value="true"/>
+  <param name="convert_height_num" value="0"/>
+  <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
   <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
 
 </launch>

@@ -30,13 +30,36 @@
 #include "geographic_msgs/GeoPoint.h"
 
 
+class ConvertHeight
+{
+public:
+  ConvertHeight();
+
+  double convert2altitude();
+  double convert2ellipsoid();
+  double getGeoidPerMinute();
+  double getGeoidPerDegree();
+  void setLLH(double,double,double);
+
+private:
+  double _latitude;
+  double _longitude;
+  double _height;
+  double geoid;
+  double converted_height;
+  double** geoid_map_data;
+};
+
 extern void ll2xy(int, double*, double*);
 extern void ll2xy_mgrs(double*, double*);
 extern void ecef2llh(double*, double*);
 extern void enu2llh(double*, double*, double*);
 extern void llh2xyz(double*, double*);
-extern void hgeoid(double*, double*);
 extern void xyz2enu(double*, double*, double*);
 extern void xyz2enu_vel(double*, double*, double*);
+extern double geoid_per_degree(double,double);
+extern double geoid_per_minute(double,double,double**);
+extern double** read_geoid_map();
+
 
 #endif /*COORDINATE_H */
