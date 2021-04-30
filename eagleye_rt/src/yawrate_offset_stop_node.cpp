@@ -28,25 +28,25 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static geometry_msgs::TwistStamped velocity;
-static ros::Publisher pub;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static sensor_msgs::Imu imu;
+static geometry_msgs::msg::TwistStamped velocity;
+rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr pub;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static sensor_msgs::msg::Imu imu;
 
 struct YawrateOffsetStopParameter yawrate_offset_stop_parameter;
 struct YawrateOffsetStopStatus yawrate_offset_stop_status;
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity.header = msg->header;
   velocity.twist = msg->twist;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -57,13 +57,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop_estimate(velocity, imu, yawrate_offset_stop_parameter, &yawrate_offset_stop_status, &yawrate_offset_stop);
-  pub.publish(yawrate_offset_stop);
+  pub->publish(yawrate_offset_stop);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "yawrate_offset_stop");
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("yawrate_offset_stop");
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
@@ -82,11 +82,11 @@ int main(int argc, char** argv)
   std::cout<< "estimated_number "<<yawrate_offset_stop_parameter.estimated_number<<std::endl;
   std::cout<< "outlier_threshold "<<yawrate_offset_stop_parameter.outlier_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::YawrateOffset>("eagleye/yawrate_offset_stop", 1000);
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_stop", 1000);
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

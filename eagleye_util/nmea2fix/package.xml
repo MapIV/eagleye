@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>nmea2fix</name>
   <version>1.0.0</version>
   <description>nmea2fix package</description>
@@ -8,16 +8,21 @@
 
   <license>BSD3</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>rclcpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>nmea_msgs</build_depend>
-  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>nmea_msgs</build_export_depend>
-  <exec_depend>roscpp</exec_depend>
+  <exec_depend>rclcpp</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>nmea_msgs</exec_depend>
+  
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

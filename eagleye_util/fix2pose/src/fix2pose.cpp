@@ -38,12 +38,12 @@
 #include "coordinate/coordinate.hpp"
 
 
-static eagleye_msgs::Heading eagleye_heading;
-static eagleye_msgs::Position eagleye_position;
-static geometry_msgs::Quaternion _quat;
+static eagleye_msgs::msg::Heading eagleye_heading;
+static eagleye_msgs::msg::Position eagleye_position;
+static geometry_msgs::msg::Quaternion _quat;
 
-static ros::Publisher pub;
-static geometry_msgs::PoseStamped pose;
+rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub;
+static geometry_msgs::msg::PoseStamped pose;
 
 static double gps_x,gps_y,gps_z,gps_yaw,gps_pitch,gps_roll;
 static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
@@ -54,14 +54,14 @@ static bool altitude_estimate;
 static int plane = 7;
 static int tf_num = 1;
 
-void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   eagleye_heading.header = msg->header;
   eagleye_heading.heading_angle = msg->heading_angle;
   eagleye_heading.status = msg->status;
 }
 
-void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void position_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   eagleye_position.header = msg->header;
   eagleye_position.enu_pos = msg->enu_pos;
@@ -69,7 +69,7 @@ void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
   eagleye_position.status = msg->status;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
 
   double llh[3] = {0};
@@ -174,12 +174,11 @@ int main(int argc, char** argv)
   std::cout<< "imu_pitch "<<imu_pitch<<std::endl;
   std::cout<< "imu_roll "<<imu_roll<<std::endl;
 
-
-  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/fix", 1000, fix_callback);
-  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
-  ros::spin();
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  auto sub3 = node->create_subscription<ensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, fix_callback);
+  pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
+  rclcpp::spin(node);
 
   return 0;
 }

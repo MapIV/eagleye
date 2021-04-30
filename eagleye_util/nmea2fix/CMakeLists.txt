@@ -1,48 +1,55 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(nmea2fix)
 
-set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  sensor_msgs
-  nmea_msgs
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES nmea2fix
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-include_directories(
-  include
-  ${PROJECT_SOURCE_DIR}/include
-  ${catkin_INCLUDE_DIRS}
-)
+# find dependencies
+find_package(ament_cmake_auto REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+ament_auto_find_build_dependencies()
 
-add_library(nmea2fix
+include_directories(include)
+
+# target_include_directories(navigation
+#   PUBLIC
+#     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+#     $<INSTALL_INTERFACE:include>
+# )
+
+ament_auto_add_executable(nmea2fix
   src/nmea2fix_core.cpp
+  src/nmea2fix_node.cpp
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.hpp"
+install(
+  DIRECTORY include/
+  DESTINATION include
 )
 
-target_link_libraries(nmea2fix
-  ${catkin_LIBRARIES}
-)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-install(TARGETS nmea2fix
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+ament_auto_package()
 
-find_package(catkin REQUIRED COMPONENTS
-  nmea2fix
-)
-
-add_executable(nmea2fix_node src/nmea2fix_node.cpp)
-target_link_libraries(nmea2fix_node ${catkin_LIBRARIES} )
-add_dependencies(nmea2fix_node ${catkin_EXPORTED_TARGETS})

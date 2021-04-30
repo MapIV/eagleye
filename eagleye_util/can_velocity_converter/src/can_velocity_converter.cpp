@@ -28,12 +28,12 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "can_msgs/Frame.h"
-#include "geometry_msgs/TwistStamped.h"
+#include "rclcpp/rclcpp.hpp"
+#include "can_msgs/msg/frame.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 
-static ros::Publisher pub;
-static geometry_msgs::TwistStamped msg_velocity;
+rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub; 
+static geometry_msgs::msg::TwistStamped msg_velocity;
 
 static int can_id = 0x001;
 static int start_bit = 0;
@@ -44,7 +44,7 @@ static std::string byte_order = "Motorola";
 static std::string value_type = "Unsigned";
 static double velocity = 0.0;
 
-void can_callback(const can_msgs::Frame::ConstPtr& msg)
+void can_callback(const can_msgs::msg::Frame::ConstSharedPtr msg)
 {
   unsigned long long int can_sep_data[8];
   unsigned long long int can_data, tmp_unsigned_data;
@@ -70,6 +70,7 @@ void can_callback(const can_msgs::Frame::ConstPtr& msg)
 
     tmp_unsigned_data = (can_data >> (msg->dlc * 8 - start_bit - length)) & data_mask;
     ROS_INFO("CAN DATA %04llx",can_data);
+    // RCLCPP_INFO(node->get_logger(), "CAN DATA '%d'",can_data.c_int());
 
     if(value_type == "Signed")
     {
@@ -91,16 +92,16 @@ void can_callback(const can_msgs::Frame::ConstPtr& msg)
     ROS_INFO("RAW CAN DATA %02x%02x%02x%02x%02x%02x%02x%02x",msg->data[0],msg->data[1],msg->data[2],msg->data[3],msg->data[4],msg->data[5],msg->data[6],msg->data[7]);
     ROS_INFO("DATA %04llx",tmp_unsigned_data);
     ROS_INFO("%lf m/s", msg_velocity.twist.linear.x);
-    pub.publish(msg_velocity);
+    pub->publish(msg_velocity);
 
     }
 }
 
 int main(int argc, char **argv){
 
-  ros::init(argc, argv, "can_velocity_converter");
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("can_velocity_converter");
 
-  ros::NodeHandle n;
   n.getParam("/can_velocity_converter/can_id",can_id);
   n.getParam("/can_velocity_converter/start_bit",start_bit);
   n.getParam("/can_velocity_converter/length",length);
@@ -117,11 +118,11 @@ int main(int argc, char **argv){
   std::cout<< "byte_order "<<byte_order<<std::endl;
   std::cout<< "value_type "<<value_type<<std::endl;
 
-  ros::Subscriber sub = n.subscribe("/vehicle/can_tx", 1000, can_callback);
 
-  pub = n.advertise<geometry_msgs::TwistStamped>("/can_twist", 1000);
+  auto sub1 = node->create_subscription<can_msgs::msg::Frame>("/vehicle/can_tx", 1000, can_callback);
+  pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("/can_twist", 1000);
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

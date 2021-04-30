@@ -26,6 +26,7 @@
 #include "coordinate/coordinate.hpp"
 #include <math.h>
 
+int main(){}
 
 void ecef2llh(double ecef_pos[3], double llh_pos[3])
 {

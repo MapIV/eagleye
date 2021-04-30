@@ -28,17 +28,18 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static ros::Publisher pub;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::Distance distance;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::Distance distance;
 
 struct DistanceStatus distance_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+rclcpp::Publisher<eagleye_msgs::msg::Distance>::SharedPtr pub;
+
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   distance.header = msg->header;
   distance.header.frame_id = "base_link";
@@ -50,19 +51,19 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
 
   if(distance_status.time_last != 0)
   {
-    pub.publish(distance);
+    pub->publish(distance);
   }
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "distance");
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("distance");
 
-  ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  pub = n.advertise<eagleye_msgs::Distance>("eagleye/distance", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  pub = node->create_publisher<eagleye_msgs::msg::Distance>("eagleye/distance", 1000);
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

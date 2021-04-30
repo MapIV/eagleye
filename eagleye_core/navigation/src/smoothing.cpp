@@ -31,8 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
+void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::msg::Position* gnss_smooth_pos_enu)
 {
+  rclcpp::Time ros_clock(rtklib_nav.header.stamp);
 
   int i;
   double ecef_pos[3];
@@ -70,7 +71,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
 
     xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
-    smoothing_status->time_buffer.push_back(rtklib_nav.header.stamp.toSec());
+    smoothing_status->time_buffer.push_back(ros_clock.seconds());
     smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
     smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
     smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);

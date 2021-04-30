@@ -98,7 +98,7 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
     exit(4);
   }
 
-  geographic_msgs::GeoPoint wgs_point;
+  geographic_msgs::msg::GeoPoint wgs_point;
   wgs_point.latitude = llh[0]*180/M_PI;
   wgs_point.longitude = llh[1]*180/M_PI;
   //wgs_point.latitude = llh[0];

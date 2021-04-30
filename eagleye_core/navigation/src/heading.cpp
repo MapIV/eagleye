@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void heading_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,sensor_msgs::msg::Imu imu,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset,eagleye_msgs::msg::SlipAngle slip_angle,eagleye_msgs::msg::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::msg::Heading* heading)
 {
 
   double ecef_vel[3];
@@ -57,6 +57,8 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
   doppler_heading_angle = atan2(enu_vel[0], enu_vel[1]);
+
+  rclcpp::Time ros_clock(imu.header.stamp);
 
   if(doppler_heading_angle<0){
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
@@ -94,7 +96,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   }
 
   // data buffer generate
-  heading_status->time_buffer .push_back(imu.header.stamp.toSec());
+  heading_status->time_buffer .push_back(ros_clock.seconds());
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
   heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);

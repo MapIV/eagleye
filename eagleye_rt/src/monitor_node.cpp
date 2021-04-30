@@ -28,39 +28,39 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static sensor_msgs::Imu imu;
-static rtklib_msgs::RtklibNav rtklib_nav;
-//static sensor_msgs::NavSatFix fix;
-static sensor_msgs::NavSatFix f9p_fix;
-static geometry_msgs::TwistStamped velocity;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-//static eagleye_msgs::Distance distance;
-//static eagleye_msgs::Heading heading_1st;
-//static eagleye_msgs::Heading heading_interpolate_1st;
-//static eagleye_msgs::Heading heading_2nd;
-//static eagleye_msgs::Heading heading_interpolate_2nd;
-//static eagleye_msgs::Heading heading_3rd;
-static eagleye_msgs::Heading heading_interpolate_3rd;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-//static eagleye_msgs::YawrateOffset yawrate_offset_1st;
-static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
-static eagleye_msgs::SlipAngle slip_angle;
-static eagleye_msgs::Height height;
-static eagleye_msgs::Pitching pitching;
-//static eagleye_msgs::Position enu_relative_pos;
-//static geometry_msgs::Vector3Stamped enu_vel;
-//static eagleye_msgs::Position enu_absolute_pos;
-static eagleye_msgs::Position enu_absolute_pos_interpolate;
-static sensor_msgs::NavSatFix eagleye_fix;
-//static geometry_msgs::TwistStamped eagleye_twist;
+static sensor_msgs::msg::Imu imu;
+static rtklib_msgs::msg::RtklibNav rtklib_nav;
+//static sensor_msgs::msg::NavSatFix fix;
+static sensor_msgs::msg::NavSatFix f9p_fix;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+//static eagleye_msgs::msg::Distance distance;
+//static eagleye_msgs::msg::Heading heading_1st;
+//static eagleye_msgs::msg::Heading heading_interpolate_1st;
+//static eagleye_msgs::msg::Heading heading_2nd;
+//static eagleye_msgs::msg::Heading heading_interpolate_2nd;
+//static eagleye_msgs::msg::Heading heading_3rd;
+static eagleye_msgs::msg::Heading heading_interpolate_3rd;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+//static eagleye_msgs::msg::YawrateOffset yawrate_offset_1st;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::msg::SlipAngle slip_angle;
+static eagleye_msgs::msg::Height height;
+static eagleye_msgs::msg::Pitching pitching;
+//static eagleye_msgs::msg::Position enu_relative_pos;
+//static geometry_msgs::msg::Vector3Stamped enu_vel;
+//static eagleye_msgs::msg::Position enu_absolute_pos;
+static eagleye_msgs::msg::Position enu_absolute_pos_interpolate;
+static sensor_msgs::msg::NavSatFix eagleye_fix;
+//static geometry_msgs::msg::TwistStamped eagleye_twist;
 
 static bool f9p_fix_sub_status;
 
-void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
+void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav.header = msg->header;
   rtklib_nav.tow = msg->tow;
@@ -70,7 +70,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 }
 
 /*
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   fix.header = msg->header;
   fix.status = msg->status;
@@ -82,7 +82,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 }
 */
 
-void f9p_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void f9p_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   f9p_fix.header = msg->header;
   f9p_fix.status = msg->status;
@@ -94,13 +94,13 @@ void f9p_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   f9p_fix_sub_status = true;
 }
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity.header = msg->header;
   velocity.twist = msg->twist;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.scale_factor = msg->scale_factor;
@@ -109,7 +109,7 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
 }
 
 /*
-void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   distance.header = msg->header;
   distance.distance = msg->distance;
@@ -118,7 +118,7 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 */
 
 /*
-void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_1st.header = msg->header;
   heading_1st.heading_angle = msg->heading_angle;
@@ -127,7 +127,7 @@ void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 */
 
 /*
-void heading_interpolate_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_1st.header = msg->header;
   heading_interpolate_1st.heading_angle = msg->heading_angle;
@@ -136,7 +136,7 @@ void heading_interpolate_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg
 */
 
 /*
-void heading_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_2nd.header = msg->header;
   heading_2nd.heading_angle = msg->heading_angle;
@@ -145,7 +145,7 @@ void heading_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 */
 
 /*
-void heading_interpolate_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_2nd.header = msg->header;
   heading_interpolate_2nd.heading_angle = msg->heading_angle;
@@ -154,7 +154,7 @@ void heading_interpolate_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 */
 
 /*
-void heading_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_3rd.header = msg->header;
   heading_3rd.heading_angle = msg->heading_angle;
@@ -162,14 +162,14 @@ void heading_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 }
 */
 
-void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_3rd.header = msg->header;
   heading_interpolate_3rd.heading_angle = msg->heading_angle;
   heading_interpolate_3rd.status = msg->status;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
@@ -177,7 +177,7 @@ void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& m
 }
 
 /*
-void yawrate_offset_1st_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_1st_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_1st.header = msg->header;
   yawrate_offset_1st.yawrate_offset = msg->yawrate_offset;
@@ -185,14 +185,14 @@ void yawrate_offset_1st_callback(const eagleye_msgs::YawrateOffset::ConstPtr& ms
 }
 */
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_2nd.header = msg->header;
   yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_2nd.status = msg->status;
 }
 
-void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
 {
   slip_angle.header = msg->header;
   slip_angle.coefficient = msg->coefficient;
@@ -201,7 +201,7 @@ void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 }
 
 /*
-void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_relative_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_relative_pos.header = msg->header;
   enu_relative_pos.enu_pos = msg->enu_pos;
@@ -211,7 +211,7 @@ void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 */
 
 /*
-void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
@@ -219,7 +219,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 */
 
 /*
-void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_absolute_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_absolute_pos.header = msg->header;
   enu_absolute_pos.enu_pos = msg->enu_pos;
@@ -228,14 +228,14 @@ void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 }
 */
 
-void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
+void height_callback(const eagleye_msgs::msg::Height::ConstSharedPtr msg)
 {
   height.header = msg->header;
   height.height = msg->height;
   height.status = msg->status;
 }
 
-void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
   pitching.header = msg->header;
   pitching.pitching_angle = msg->pitching_angle;
@@ -243,7 +243,7 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 }
 
 
-void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_absolute_pos_interpolate_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_absolute_pos_interpolate.header = msg->header;
   enu_absolute_pos_interpolate.enu_pos = msg->enu_pos;
@@ -251,7 +251,7 @@ void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPt
   enu_absolute_pos_interpolate.status = msg->status;
 }
 
-void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void eagleye_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   eagleye_fix.header = msg->header;
   eagleye_fix.status = msg->status;
@@ -264,14 +264,15 @@ void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
 
 /*
-void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   eagleye_twist.header = msg->header;
   eagleye_twist.twist = msg->twist;
 }
 */
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+// void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -372,52 +373,57 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "monitor");
-
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("monitor_node");
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_navsatfix_topic_name = "/f9p/fix";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("subscribe_twist_topic_name" , "/can_twist");
+  node->declare_parameter("subscribe_imu_topic_name" , "/imu/data_raw");
+  node->declare_parameter("subscribe_rtklib_nav_topic_name" , "/rtklib_nav");
+  node->declare_parameter("subscribe_navsatfix_topic_name" , "/f9p/fix");
+
+
+  subscribe_twist_topic_name = node->get_parameter("can_twist").as_string();
+  subscribe_imu_topic_name = node->get_parameter("imu/data_raw").as_string();
+  subscribe_rtklib_nav_topic_name = node->get_parameter("rtklib_nav").as_string();
+  subscribe_navsatfix_topic_name = node->get_parameter("f9p/fix").as_string();
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub3 = n.subscribe("fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, f9p_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub7 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub8 = n.subscribe("eagleye/heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub9 = n.subscribe("eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub10 = n.subscribe("eagleye/heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub11 = n.subscribe("eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub12 = n.subscribe("eagleye/heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub13 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub14 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub15 = n.subscribe("eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub16 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub17 = n.subscribe("eagleye/slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub18 = n.subscribe("eagleye/enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub19 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub20 = n.subscribe("eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub21 = n.subscribe("eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub22 = n.subscribe("eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub23 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub24 = n.subscribe("eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
-  //ros::Subscriber sub25 = n.subscribe("eagleye/twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("/imu/data_raw", 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>("/rtklib_nav", 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1000, fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/f9p/fix", 1000, f9p_fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>("/can_twist", 1000, velocity_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub7 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", 1000, distance_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_1st", 1000, heading_1st_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub9 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub10 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_2nd", 1000, heading_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub11 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub12 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_3rd", 1000, heading_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub13 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub17 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("/eagleye/slip_angle", 1000, slip_angle_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub18 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub19 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("/eagleye/enu_vel", 1000, enu_vel_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub20 = node->create_subscription<eagleye_msgs::msg::Height>("/eagleye/height", 1000, height_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub21 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", 1000, pitching_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub22 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub23 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, eagleye_fix_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("/eagleye/twist", 1000, eagleye_twist_callback); //ros::TransportHints().tcpNoDelay()
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

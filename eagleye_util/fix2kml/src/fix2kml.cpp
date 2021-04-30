@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "eagleye_msgs/Distance.h"
-#include "fix2kml/GoogleEarthPath.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "eagleye_msgs/msg/distance.hpp"
+#include "fix2kml/google_earth_path.hpp"
 
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
@@ -39,12 +39,12 @@ static double driving_distance_last = 0.0;
 
 GoogleEarthPath path("eagleye_fix.kml","eagleye_fix");  //contains the simultaneously recorded bagfile name
 
-void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   driving_distance = msg->distance;
 }
 
-void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   if( (driving_distance - driving_distance_last) > interval)
   {
@@ -55,11 +55,12 @@ void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "fix2kml");
-  ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("/eagleye/fix", 1000, receive_data);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/distance", 1000, distance_callback);
-  ros::spin();
+rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("fix2kml");
+
+  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, receive_data);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Distance>("/eagleye/distance", 1000, distance_callback);
+  rclcpp::spin(node);
 
   return 0;
 }

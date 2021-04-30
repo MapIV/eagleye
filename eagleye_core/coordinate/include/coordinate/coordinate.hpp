@@ -26,8 +26,10 @@
 #ifndef COORDINATE_H
 #define COORDINATE_H
 
+#include <cmath>
+#include <iostream>
 #include <geodesy/utm.h>
-#include "geographic_msgs/GeoPoint.h"
+#include "geographic_msgs/msg/geo_point.hpp"
 
 
 extern void ll2xy(int, double*, double*);

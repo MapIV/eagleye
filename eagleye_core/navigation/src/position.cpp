@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::Distance distance,eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
 {
 
   int i;
@@ -50,6 +50,8 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   std::vector<double> base_enu_pos_x_buffer2,  base_enu_pos_y_buffer2, base_enu_pos_z_buffer2;
   std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
   std::vector<double>::iterator max_x, max_y;
+  
+  rclcpp::Time ros_clock(enu_vel.header.stamp);
 
   if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
   {
@@ -100,9 +102,9 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
 
   if(position_status->time_last != 0)
   {
-    position_status->enu_relative_pos_x = position_status->enu_relative_pos_x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - position_status->time_last);
-    position_status->enu_relative_pos_y = position_status->enu_relative_pos_y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - position_status->time_last);
-    position_status->enu_relative_pos_z = position_status->enu_relative_pos_z + enu_vel.vector.z * (enu_vel.header.stamp.toSec() - position_status->time_last);
+    position_status->enu_relative_pos_x = position_status->enu_relative_pos_x + enu_vel.vector.x * (ros_clock.seconds() - position_status->time_last);
+    position_status->enu_relative_pos_y = position_status->enu_relative_pos_y + enu_vel.vector.y * (ros_clock.seconds() - position_status->time_last);
+    position_status->enu_relative_pos_z = position_status->enu_relative_pos_z + enu_vel.vector.z * (ros_clock.seconds() - position_status->time_last);
   }
 
 
@@ -292,6 +294,6 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
       }
     }
   }
-  position_status->time_last = enu_vel.header.stamp.toSec();
+  position_status->time_last = ros_clock.seconds();
   data_status = false;
 }

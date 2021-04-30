@@ -31,8 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
+void trajectory_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::Heading heading_interpolate_3rd, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, const eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::msg::Vector3Stamped* enu_vel, eagleye_msgs::msg::Position* enu_relative_pos, geometry_msgs::msg::TwistStamped* eagleye_twist)
 {
+  rclcpp::Time ros_clock(imu.header.stamp);
 
   if (trajectory_parameter.reverse_imu == false)
   {
@@ -79,19 +80,19 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
   {
     if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
     {
-      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
-      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (ros_clock.seconds() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (ros_clock.seconds() - trajectory_status->time_last);
       enu_relative_pos->enu_pos.z = 0;
     }
     else if((imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) != 0)
     {
-      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
-      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(ros_clock.seconds() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(ros_clock.seconds() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
       enu_relative_pos->enu_pos.z = 0;
     }
     else{
-      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
-      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (ros_clock.seconds() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (ros_clock.seconds() - trajectory_status->time_last);
       enu_relative_pos->enu_pos.z = 0;
     }
 
@@ -99,11 +100,12 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
   }
 
   trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
-  trajectory_status->time_last = imu.header.stamp.toSec();
+  trajectory_status->time_last = ros_clock.seconds();
 }
 
-void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const eagleye_msgs::Pitching pitching, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
+void trajectory3d_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::Heading heading_interpolate_3rd, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, const eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd, const eagleye_msgs::msg::Pitching pitching, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::msg::Vector3Stamped* enu_vel, eagleye_msgs::msg::Position* enu_relative_pos, geometry_msgs::msg::TwistStamped* eagleye_twist)
 {
+  rclcpp::Time ros_clock(imu.header.stamp);
 
   if (trajectory_parameter.reverse_imu == false)
   {
@@ -150,20 +152,20 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Veloc
   {
     if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
     {
-      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu.header.stamp.toSec() - trajectory_status->time_last);
-      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu.header.stamp.toSec() - trajectory_status->time_last);
-      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (ros_clock.seconds() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (ros_clock.seconds() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (ros_clock.seconds() - trajectory_status->time_last);
     }
     else
     {
-      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
-      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(imu.header.stamp.toSec() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
-      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (imu.header.stamp.toSec() - trajectory_status->time_last);
+      enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( -cos(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(ros_clock.seconds() - trajectory_status->time_last)) + cos(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + velocity_scale_factor.correction_velocity.linear.x/(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) * ( sin(trajectory_status->heading_last+(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)*(ros_clock.seconds() - trajectory_status->time_last)) - sin(trajectory_status->heading_last));
+      enu_relative_pos->enu_pos.z = enu_relative_pos->enu_pos.z + enu_vel->vector.z * (ros_clock.seconds() - trajectory_status->time_last);
     }
 
     enu_relative_pos->status.enabled_status = enu_relative_pos->status.estimate_status = true;
   }
 
   trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
-  trajectory_status->time_last = imu.header.stamp.toSec();
+  trajectory_status->time_last = ros_clock.seconds();
 }

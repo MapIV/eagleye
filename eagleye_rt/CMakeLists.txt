@@ -1,94 +1,68 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(eagleye_rt)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  geometry_msgs
-  sensor_msgs
-  rtklib_msgs
-  eagleye_msgs
-  navigation
-  coordinate
-  geodesy
-  geographic_msgs
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
+
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# find dependencies
+find_package(ament_cmake_auto REQUIRED)
+# find_package(navigation REQUIRED)
+# uncomment the following section in order to fill in
+# further dependencies manually.
+# find_package(<dependency> REQUIRED)
+ament_auto_find_build_dependencies()
+
+include_directories(include)
+
+ament_auto_add_library(eagleye_rt
+  src/angular_velocity_offset_stop_node.cpp
+  src/correction_imu.cpp
+  src/distance_node.cpp
+  src/heading_interpolate_node.cpp
+  src/heading_node.cpp
+  src/height_node.cpp
+  src/monitor_node.cpp
+  src/position_interpolate_node.cpp
+  src/position_node.cpp
+  src/slip_angle_node.cpp
+  src/slip_coefficient_node.cpp
+  src/smoothing_node.cpp
+  src/trajectory_node.cpp
+  src/velocity_scale_factor_node.cpp
+  src/yawrate_offset_node.cpp
+  src/yawrate_offset_stop_node.cpp
 )
 
-catkin_package(
-   CATKIN_DEPENDS
-   roscpp
-   std_msgs
-   geometry_msgs
-   sensor_msgs
-   rtklib_msgs
-   eagleye_msgs
-   navigation
-   coordinate
-   geodesy
-   geographic_msgs
+install(TARGETS 
+  eagleye_rt
+  DESTINATION lib/$(PROJECT_NAME)
 )
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
+install(DIRECTORY src config launch
+  DESTINATION share/${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
 )
 
-add_executable(velocity_scale_factor src/velocity_scale_factor_node.cpp)
-target_link_libraries(velocity_scale_factor ${catkin_LIBRARIES})
-add_dependencies(velocity_scale_factor ${catkin_EXPORTED_TARGETS})
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  # the following line skips the linter which checks for copyrights
+  # uncomment the line when a copyright and license is not present in all source files
+  #set(ament_cmake_copyright_FOUND TRUE)
+  # the following line skips cpplint (only works in a git repo)
+  # uncomment the line when this package is not in a git repo
+  #set(ament_cmake_cpplint_FOUND TRUE)
+  ament_lint_auto_find_test_dependencies()
+endif()
 
-add_executable(yawrate_offset_stop src/yawrate_offset_stop_node.cpp)
-target_link_libraries(yawrate_offset_stop ${catkin_LIBRARIES})
-add_dependencies(yawrate_offset_stop ${catkin_EXPORTED_TARGETS})
-
-add_executable(yawrate_offset src/yawrate_offset_node.cpp)
-target_link_libraries(yawrate_offset ${catkin_LIBRARIES})
-add_dependencies(yawrate_offset ${catkin_EXPORTED_TARGETS})
-
-add_executable(heading src/heading_node.cpp)
-target_link_libraries(heading ${catkin_LIBRARIES})
-add_dependencies(heading ${catkin_EXPORTED_TARGETS})
-
-add_executable(position src/position_node.cpp)
-target_link_libraries(position ${catkin_LIBRARIES})
-add_dependencies(position ${catkin_EXPORTED_TARGETS})
-
-add_executable(slip_angle src/slip_angle_node.cpp)
-target_link_libraries(slip_angle ${catkin_LIBRARIES})
-add_dependencies(slip_angle ${catkin_EXPORTED_TARGETS})
-
-add_executable(smoothing src/smoothing_node.cpp)
-target_link_libraries(smoothing ${catkin_LIBRARIES})
-add_dependencies(smoothing ${catkin_EXPORTED_TARGETS})
-
-add_executable(trajectory src/trajectory_node.cpp)
-target_link_libraries(trajectory ${catkin_LIBRARIES})
-add_dependencies(trajectory ${catkin_EXPORTED_TARGETS})
-
-add_executable(heading_interpolate src/heading_interpolate_node.cpp)
-target_link_libraries(heading_interpolate ${catkin_LIBRARIES})
-add_dependencies(heading_interpolate ${catkin_EXPORTED_TARGETS})
-
-add_executable(position_interpolate src/position_interpolate_node.cpp)
-target_link_libraries(position_interpolate ${catkin_LIBRARIES})
-add_dependencies(position_interpolate ${catkin_EXPORTED_TARGETS})
-
-add_executable(distance src/distance_node.cpp)
-target_link_libraries(distance ${catkin_LIBRARIES})
-add_dependencies(distance ${catkin_EXPORTED_TARGETS})
-
-add_executable(monitor src/monitor_node.cpp)
-target_link_libraries(monitor ${catkin_LIBRARIES})
-add_dependencies(monitor ${catkin_EXPORTED_TARGETS})
-
-add_executable(height src/height_node.cpp)
-target_link_libraries(height ${catkin_LIBRARIES})
-add_dependencies(height ${catkin_EXPORTED_TARGETS})
-
-add_executable(angular_velocity_offset_stop src/angular_velocity_offset_stop_node.cpp)
-target_link_libraries(angular_velocity_offset_stop ${catkin_LIBRARIES})
-add_dependencies(angular_velocity_offset_stop ${catkin_EXPORTED_TARGETS})
-
-add_executable(correction_imu src/correction_imu.cpp)
-target_link_libraries(correction_imu ${catkin_LIBRARIES})
-add_dependencies(correction_imu ${catkin_EXPORTED_TARGETS})
+ament_auto_package()
