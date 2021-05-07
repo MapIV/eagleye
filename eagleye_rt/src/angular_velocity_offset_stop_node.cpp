@@ -69,12 +69,19 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
-  n.getParam("eagleye/angular_velocity_offset_stop/stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  n.getParam("eagleye/angular_velocity_offset_stop/estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
-  n.getParam("eagleye/angular_velocity_offset_stop/outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
+  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  node->declare_parameter("angular_velocity_offset_stop.stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("angular_velocity_offset_stop.estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  node->declare_parameter("angular_velocity_offset_stop.outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
+  
+  node->get_parameter("twist_topic",subscribe_twist_topic_name);
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  node->get_parameter("angular_velocity_offset_stop.stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("angular_velocity_offset_stop.estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  node->get_parameter("angular_velocity_offset_stop.outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -83,9 +90,9 @@ int main(int argc, char** argv)
   std::cout<< "estimated_number "<<angular_velocity_offset_stop_parameter.estimated_number<<std::endl;
   std::cout<< "outlier_threshold "<<angular_velocity_offset_stop_parameter.outlier_threshold<<std::endl;
 
-  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  auto pub = node->create_publisher<eagleye_msgs::msg::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", 1000);
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, rclcpp::SensorDataQoS(), velocity_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, rclcpp::SensorDataQoS(), imu_callback);  //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 

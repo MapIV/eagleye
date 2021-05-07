@@ -376,52 +376,51 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("monitor_node");
 
-  std::string subscribe_twist_topic_name = "/can_twist";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_twist_topic_name = "can_twist";
+  std::string subscribe_imu_topic_name = "imu/data_raw";
+  std::string subscribe_rtklib_nav_topic_name = "rtklib_nav";
+  std::string subscribe_navsatfix_topic_name = "f9p/fix";
 
-  node->declare_parameter("subscribe_twist_topic_name" , "/can_twist");
-  node->declare_parameter("subscribe_imu_topic_name" , "/imu/data_raw");
-  node->declare_parameter("subscribe_rtklib_nav_topic_name" , "/rtklib_nav");
-  node->declare_parameter("subscribe_navsatfix_topic_name" , "/f9p/fix");
+  node->declare_parameter("twist_topic" , "can_twist");
+  node->declare_parameter("imu_topic" , "imu/data_raw");
+  node->declare_parameter("rtklib_nav_topic" , "rtklib_nav");
+  node->declare_parameter("navsatfix_topic" , "f9p/fix");
 
-
-  subscribe_twist_topic_name = node->get_parameter("can_twist").as_string();
-  subscribe_imu_topic_name = node->get_parameter("imu/data_raw").as_string();
-  subscribe_rtklib_nav_topic_name = node->get_parameter("rtklib_nav").as_string();
-  subscribe_navsatfix_topic_name = node->get_parameter("f9p/fix").as_string();
+  subscribe_twist_topic_name = node->get_parameter("twist_topic").as_string();
+  subscribe_imu_topic_name = node->get_parameter("imu_topic").as_string();
+  subscribe_rtklib_nav_topic_name = node->get_parameter("rtklib_nav_topic").as_string();
+  subscribe_navsatfix_topic_name = node->get_parameter("navsatfix_topic").as_string();
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("/imu/data_raw", 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>("/rtklib_nav", 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1000, fix_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/f9p/fix", 1000, f9p_fix_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>("/can_twist", 1000, velocity_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("/eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub7 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", 1000, distance_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_1st", 1000, heading_1st_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub9 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub10 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_2nd", 1000, heading_2nd_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub11 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub12 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_3rd", 1000, heading_3rd_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub13 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub17 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("/eagleye/slip_angle", 1000, slip_angle_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub18 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_relative_pos", 1000, enu_relative_pos_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub19 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("/eagleye/enu_vel", 1000, enu_vel_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub20 = node->create_subscription<eagleye_msgs::msg::Height>("/eagleye/height", 1000, height_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub21 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", 1000, pitching_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub22 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub23 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, eagleye_fix_callback); //ros::TransportHints().tcpNoDelay()
-  // auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("/eagleye/twist", 1000, eagleye_twist_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, f9p_fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("/eagleye/velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub7 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_1st", rclcpp::QoS(10), heading_1st_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub9 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_1st", rclcpp::QoS(10), heading_interpolate_1st_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub10 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_2nd", rclcpp::QoS(10), heading_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub11 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_2nd", rclcpp::QoS(10), heading_interpolate_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub12 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_3rd", rclcpp::QoS(10), heading_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub13 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_1st", rclcpp::QoS(10), yawrate_offset_1st_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("/eagleye/yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub17 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("/eagleye/slip_angle", rclcpp::QoS(10), slip_angle_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub18 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_relative_pos", rclcpp::QoS(10), enu_relative_pos_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub19 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("/eagleye/enu_vel", rclcpp::QoS(10), enu_vel_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub20 = node->create_subscription<eagleye_msgs::msg::Height>("/eagleye/height", rclcpp::QoS(10), height_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub21 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", rclcpp::QoS(10), pitching_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub22 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos", rclcpp::QoS(10), enu_absolute_pos_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub23 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", rclcpp::QoS(10), enu_absolute_pos_interpolate_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", rclcpp::QoS(10), eagleye_fix_callback); //ros::TransportHints().tcpNoDelay()
+  // auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("/eagleye/twist", rclcpp::QoS(10), eagleye_twist_callback); //ros::TransportHints().tcpNoDelay()
 
   rclcpp::spin(node);
 

@@ -14,7 +14,7 @@ void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
   nmea_msgs::msg::Gpgga gga;
   sensor_msgs::msg::NavSatFix fix;
 
-  rclcpp::Time ros_clock(fix.header.stamp);
+  rclcpp::Time ros_clock(msg->header.stamp);
 
   sentence.header = msg->header;
   sentence.sentence = msg->sentence;
@@ -32,10 +32,15 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("nmea2fix_node");
 
-  n.getParam("sub_topic_name",sub_topic_name);
-  n.getParam("pub_fix_topic_name",pub_fix_topic_name);
-  n.getParam("pub_gga_topic_name",pub_gga_topic_name);
-  n.getParam("output_gga",output_gga);
+  node->declare_parameter("sub_topic_name",sub_topic_name);
+  node->declare_parameter("pub_fix_topic_name",pub_fix_topic_name);
+  node->declare_parameter("pub_gga_topic_name",pub_gga_topic_name);
+  node->declare_parameter("output_gga",output_gga);
+
+  node->get_parameter("sub_topic_name",sub_topic_name);
+  node->get_parameter("pub_fix_topic_name",pub_fix_topic_name);
+  node->get_parameter("pub_gga_topic_name",pub_gga_topic_name);
+  node->get_parameter("output_gga",output_gga);
   std::cout<< "sub_topic_name "<<sub_topic_name<<std::endl;
   std::cout<< "pub_fix_topic_name "<<pub_fix_topic_name<<std::endl;
   std::cout<< "pub_gga_topic_name "<<pub_gga_topic_name<<std::endl;

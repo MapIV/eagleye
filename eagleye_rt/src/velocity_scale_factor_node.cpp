@@ -83,13 +83,21 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
-  n.getParam("eagleye/velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
-  n.getParam("eagleye/velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->declare_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  node->declare_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  node->declare_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  node->declare_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+
+  node->get_parameter("twist_topic",subscribe_twist_topic_name);
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->get_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  node->get_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  node->get_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  node->get_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -102,7 +110,7 @@ int main(int argc, char** argv)
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);  //ros::TransportHints().tcpNoDelay()
-  pub = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", 1000);
+  pub = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 

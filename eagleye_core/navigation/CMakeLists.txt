@@ -18,14 +18,12 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(coordinate REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+
 ament_auto_find_build_dependencies()
 
 include_directories(include)
 
-ament_auto_add_library(navigation
+ament_auto_add_library(navigation SHARED
   src/angular_velocity_offset_stop.cpp
   src/distance.cpp
   src/heading_interpolate.cpp
@@ -40,7 +38,10 @@ ament_auto_add_library(navigation
   src/velocity_scale_factor.cpp
   src/yawrate_offset_stop.cpp
   src/yawrate_offset.cpp
+  include/navigation/navigation.hpp
 )
+
+ament_auto_find_build_dependencies()
 
 install(TARGETS navigation
   INCLUDES DESTINATION include
@@ -60,6 +61,8 @@ target_include_directories(navigation
 
 ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+ament_export_libraries(navigation)
+
 install(
   DIRECTORY include/${PROJECT_NAME}
   DESTINATION include
@@ -72,19 +75,8 @@ install(TARGETS
   RUNTIME DESTINATION bin
   )
 
-# install(DIRECTORY include/coordinate
-#   TARGETS coordinate
-#   INCLUDES DESTINATION include
-# )
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # uncomment the line when a copyright and license is not present in all source files
-  #set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # uncomment the line when this package is not in a git repo
-  #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
 

@@ -96,40 +96,27 @@ int main(int argc, char** argv)
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  // node->declare_parameter(subscribe_rtklib_nav_topic_name, "eagleye/rtklib_nav_topic");
-  // node->declare_parameter(position_parameter.estimated_distance ,"eagleye/position/estimated_distance";
-  // node->declare_parameter(position_parameter.separation_distance ,"eagleye/position/separation_distance";
-  // node->declare_parameter(position_parameter.estimated_velocity_threshold ,"eagleye/position/estimated_velocity_threshold";
-  // node->declare_parameter(position_parameter.outlier_threshold "eagleye/position/outlier_threshold";
-  // node->declare_parameter(position_parameter.estimated_enu_vel_coefficient ,"eagleye/position/estimated_enu_vel_coefficient";
-  // node->declare_parameter(position_parameter.estimated_position_coefficient ,"eagleye/position/estimated_position_coefficient";
-  // node->declare_parameter(position_parameter.ecef_base_pos_x ,"eagleye/position/ecef_base_pos_x";
-  // node->declare_parameter(position_parameter.ecef_base_pos_y ,"eagleye/position/ecef_base_pos_y";
-  // node->declare_parameter(position_parameter.ecef_base_pos_z ,"eagleye/position/ecef_base_pos_z";
+  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->declare_parameter("position.estimated_distance",position_parameter.estimated_distance);
+  node->declare_parameter("position.separation_distance",position_parameter.separation_distance);
+  node->declare_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
+  node->declare_parameter("position.outlier_threshold",position_parameter.outlier_threshold);
+  node->declare_parameter("position.estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
+  node->declare_parameter("position.estimated_position_coefficient",position_parameter.estimated_position_coefficient);
+  node->declare_parameter("position.ecef_base_pos_x",position_parameter.ecef_base_pos_x);
+  node->declare_parameter("position.ecef_base_pos_y",position_parameter.ecef_base_pos_y);
+  node->declare_parameter("position.ecef_base_pos_z",position_parameter.ecef_base_pos_z);
 
-
-  // subscribe_rtklib_nav_topic_name = node->get_parameter(subscribe_rtklib_nav_topic_name).as_string();
-  // position_parameter.estimated_distance = node->get_parameter(position_parameter.estimated_distance).as_double();
-  // position_parameter.separation_distance = node->get_parameter(position_parameter.separation_distance).as_double();
-  // position_parameter.estimated_velocity_threshold = node->get_parameter(position_parameter.estimated_velocity_threshold).as_double();
-  // position_parameter.estimated_velocity_threshold = node->get_parameter(position_parameter.estimated_velocity_threshold).as_double();
-  // position_parameter.outlier_threshold = node->get_parameter(position_parameter.outlier_threshold).as_double();
-  // position_parameter.estimated_enu_vel_coefficient = node->get_parameter(position_parameter.estimated_enu_vel_coefficient).as_double();
-  // position_parameter.estimated_position_coefficient = node->get_parameter(position_parameter.estimated_position_coefficient).as_double();
-  // position_parameter.ecef_base_pos_x = node->get_parameter(position_parameter.ecef_base_pos_x).as_double();
-  // position_parameter.ecef_base_pos_y = node->get_parameter(position_parameter.ecef_base_pos_y).as_double();
-  // position_parameter.ecef_base_pos_z = node->get_parameter(position_parameter.ecef_base_pos_z).as_double();
-
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/position/estimated_distance",position_parameter.estimated_distance);
-  n.getParam("eagleye/position/separation_distance",position_parameter.separation_distance);
-  n.getParam("eagleye/position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/position/outlier_threshold",position_parameter.outlier_threshold);
-  n.getParam("eagleye/position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
-  n.getParam("eagleye/position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  n.getParam("eagleye/position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
-  n.getParam("eagleye/position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
-  n.getParam("eagleye/position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
+  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->get_parameter("position.estimated_distance",position_parameter.estimated_distance);
+  node->get_parameter("position.separation_distance",position_parameter.separation_distance);
+  node->get_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
+  node->get_parameter("position.outlier_threshold",position_parameter.outlier_threshold);
+  node->get_parameter("position.estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
+  node->get_parameter("position.estimated_position_coefficient",position_parameter.estimated_position_coefficient);
+  node->get_parameter("position.ecef_base_pos_x",position_parameter.ecef_base_pos_x);
+  node->get_parameter("position.ecef_base_pos_y",position_parameter.ecef_base_pos_y);
+  node->get_parameter("position.ecef_base_pos_z",position_parameter.ecef_base_pos_z);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
@@ -139,12 +126,12 @@ int main(int argc, char** argv)
   std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
   std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
 
-  auto sub1 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("eagleye/enu_vel", 1000, enu_vel_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("eagleye/enu_vel", rclcpp::QoS(10), enu_vel_callback); //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("eagleye/distance", 1000, distance_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
-  auto pub = node->create_publisher<eagleye_msgs::msg::Position>("eagleye/enu_absolute_pos", 1000);
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("eagleye/distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::Position>("eagleye/enu_absolute_pos", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 

@@ -58,8 +58,8 @@ int main(int argc, char** argv)
 rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("fix2kml");
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, receive_data);
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Distance>("/eagleye/distance", 1000, distance_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", rclcpp::QoS(10), receive_data);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback);
   rclcpp::spin(node);
 
   return 0;

@@ -17,42 +17,99 @@ endif()
 
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
-# find_package(navigation REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+
 ament_auto_find_build_dependencies()
 
 include_directories(include)
 
-ament_auto_add_library(eagleye_rt
-  src/angular_velocity_offset_stop_node.cpp
+ament_auto_add_executable(correction_imu
   src/correction_imu.cpp
+)
+
+ament_auto_add_executable(distance
   src/distance_node.cpp
+)
+
+ament_auto_add_executable(heading_interpolate
   src/heading_interpolate_node.cpp
+)
+
+ament_auto_add_executable(heading
   src/heading_node.cpp
+)
+
+ament_auto_add_executable(height
   src/height_node.cpp
+)
+
+ament_auto_add_executable(monitor
   src/monitor_node.cpp
+)
+
+ament_auto_add_executable(position_interpolate
   src/position_interpolate_node.cpp
+)
+
+ament_auto_add_executable(position
   src/position_node.cpp
+)
+
+ament_auto_add_executable(slip_angle
   src/slip_angle_node.cpp
+)
+
+ament_auto_add_executable(slip_coefficient
   src/slip_coefficient_node.cpp
+)
+
+ament_auto_add_executable(smoothing
   src/smoothing_node.cpp
+)
+
+ament_auto_add_executable(trajectory
   src/trajectory_node.cpp
+)
+
+ament_auto_add_executable(velocity_scale_factor
   src/velocity_scale_factor_node.cpp
+)
+
+ament_auto_add_executable(yawrate_offset
   src/yawrate_offset_node.cpp
+)
+
+ament_auto_add_executable(yawrate_offset_stop
   src/yawrate_offset_stop_node.cpp
 )
 
+ament_auto_add_executable(angular_velocity_offset_stop
+  src/angular_velocity_offset_stop_node.cpp
+)
+
 install(TARGETS 
-  eagleye_rt
+  correction_imu
+  distance
+  heading_interpolate
+  heading
+  height
+  monitor
+  position_interpolate
+  slip_angle
+  slip_coefficient
+  smoothing
+  trajectory
+  velocity_scale_factor
+  yawrate_offset
+  yawrate_offset_stop
+  angular_velocity_offset_stop
   DESTINATION lib/$(PROJECT_NAME)
 )
 
-install(DIRECTORY src config launch
+install(DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME}
+  #DESTINATION lib/${PROJECT_NAME}
 )
+
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

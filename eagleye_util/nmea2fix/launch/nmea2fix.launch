@@ -2,17 +2,17 @@
 
 <launch>
 
-  <arg name="sub_topic_name" default="/f9p/nmea_sentence"/>
-  <arg name="pub_fix_topic_name" default="/fix"/>
+  <arg name="sub_topic_name" default="/nmea_sentence"/>
+  <arg name="pub_fix_topic_name" default="navsat/fix"/>
   <arg name="pub_gga_topic_name" default="/gga"/>
   <arg name="output_gga" default="false"/>
 
-  <param name="sub_topic_name" value="$(arg sub_topic_name)"/>
-  <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name)"/>
-  <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name)"/>
-  <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name)"/>
-  <param name="output_gga" value="$(arg output_gga)"/>
-
-  <node pkg="nmea2fix" name="nmea2fix_node" type="nmea2fix_node" />
+  <node pkg="nmea2fix" name="nmea2fix_node" exec="nmea2fix">
+        <param name="sub_topic_name" value="$(var sub_topic_name)"/>
+        <param name="pub_fix_topic_name" value="$(var pub_fix_topic_name)"/>
+        <param name="pub_gga_topic_name" value="$(var pub_gga_topic_name)"/>
+        <param name="pub_gga_topic_name" value="$(var pub_gga_topic_name)"/>
+        <param name="output_gga" value="$(var output_gga)"/>
+  </node>
 
 </launch>

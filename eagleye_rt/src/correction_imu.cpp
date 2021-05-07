@@ -124,17 +124,20 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", reverse_imu);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", reverse_imu);
+
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", reverse_imu);
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::AccXOffset>("eagleye/acc_x_offset", 1000, acc_x_offset_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::AccXScaleFactor>("eagleye/acc_x_scale_factor", 1000, acc_x_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", rclcpp::QoS(10), angular_velocity_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::AccXOffset>("eagleye/acc_x_offset", rclcpp::QoS(10), acc_x_offset_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::AccXScaleFactor>("eagleye/acc_x_scale_factor", rclcpp::QoS(10), acc_x_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub5 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  auto pub = node->create_publisher<sensor_msgs::msg::Imu>("imu/data_corrected", 1000);
+  pub = node->create_publisher<sensor_msgs::msg::Imu>("imu/data_corrected", rclcpp::QoS(10));
 
 
   rclcpp::spin(node);

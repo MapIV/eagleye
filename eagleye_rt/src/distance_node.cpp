@@ -48,7 +48,6 @@ void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor
   velocity_scale_factor.correction_velocity = msg->correction_velocity;
   velocity_scale_factor.status = msg->status;
   distance_estimate(velocity_scale_factor,&distance_status,&distance);
-
   if(distance_status.time_last != 0)
   {
     pub->publish(distance);
@@ -60,8 +59,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("distance");
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  pub = node->create_publisher<eagleye_msgs::msg::Distance>("eagleye/distance", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);
+  pub = node->create_publisher<eagleye_msgs::msg::Distance>("eagleye/distance", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 

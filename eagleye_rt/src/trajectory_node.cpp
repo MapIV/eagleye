@@ -118,21 +118,26 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", trajectory_parameter.reverse_imu);
-  n.getParam("eagleye/trajectory/stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
-  n.getParam("eagleye/trajectory/stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", trajectory_parameter.reverse_imu);
+  node->declare_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
+
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", trajectory_parameter.reverse_imu);
+  node->get_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<trajectory_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<trajectory_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "stop_judgment_yawrate_threshold "<<trajectory_parameter.stop_judgment_yawrate_threshold<<std::endl;
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", rclcpp::QoS(10), pitching_callback);  //ros::TransportHints().tcpNoDelay()
   pub1 = node->create_publisher<geometry_msgs::msg::Vector3Stamped>("eagleye/enu_vel", 1000);
   pub2 = node->create_publisher<eagleye_msgs::msg::Position>("eagleye/enu_relative_pos", 1000);
   pub3 = node->create_publisher<geometry_msgs::msg::TwistStamped>("eagleye/twist", 1000);

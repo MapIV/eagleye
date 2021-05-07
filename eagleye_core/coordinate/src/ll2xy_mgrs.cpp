@@ -31,7 +31,6 @@
 #include <iostream>
 
 
-
 int checkCrossBoader(std::string code_origin, std::string code_current, bool is_x)
 {
   std::map<std::string, int> mgrs_alphabet{ { "A", 0 },  { "B", 1 },  { "C", 2 },  { "D", 3 },  { "E", 4 },

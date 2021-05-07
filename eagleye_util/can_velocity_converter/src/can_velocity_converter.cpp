@@ -43,6 +43,7 @@ static double offset = 0.0;
 static std::string byte_order = "Motorola";
 static std::string value_type = "Unsigned";
 static double velocity = 0.0;
+static std::string node_name = "can_velocity_converter";
 
 void can_callback(const can_msgs::msg::Frame::ConstSharedPtr msg)
 {
@@ -69,8 +70,7 @@ void can_callback(const can_msgs::msg::Frame::ConstSharedPtr msg)
     }
 
     tmp_unsigned_data = (can_data >> (msg->dlc * 8 - start_bit - length)) & data_mask;
-    ROS_INFO("CAN DATA %04llx",can_data);
-    // RCLCPP_INFO(node->get_logger(), "CAN DATA '%d'",can_data.c_int());
+    RCLCPP_INFO(rclcpp::get_logger(node_name), "CAN DATA %04llx",can_data);
 
     if(value_type == "Signed")
     {
@@ -89,9 +89,9 @@ void can_callback(const can_msgs::msg::Frame::ConstSharedPtr msg)
 
     msg_velocity.twist.linear.x = velocity / 3.6;
 
-    ROS_INFO("RAW CAN DATA %02x%02x%02x%02x%02x%02x%02x%02x",msg->data[0],msg->data[1],msg->data[2],msg->data[3],msg->data[4],msg->data[5],msg->data[6],msg->data[7]);
-    ROS_INFO("DATA %04llx",tmp_unsigned_data);
-    ROS_INFO("%lf m/s", msg_velocity.twist.linear.x);
+    RCLCPP_INFO(rclcpp::get_logger(node_name), "RAW CAN DATA %02x%02x%02x%02x%02x%02x%02x%02x",msg->data[0],msg->data[1],msg->data[2],msg->data[3],msg->data[4],msg->data[5],msg->data[6],msg->data[7]);
+    RCLCPP_INFO(rclcpp::get_logger(node_name), "DATA %04llx",tmp_unsigned_data);
+    RCLCPP_INFO(rclcpp::get_logger(node_name), "%lf m/s", msg_velocity.twist.linear.x);
     pub->publish(msg_velocity);
 
     }
@@ -102,13 +102,21 @@ int main(int argc, char **argv){
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("can_velocity_converter");
 
-  n.getParam("/can_velocity_converter/can_id",can_id);
-  n.getParam("/can_velocity_converter/start_bit",start_bit);
-  n.getParam("/can_velocity_converter/length",length);
-  n.getParam("/can_velocity_converter/factor",factor);
-  n.getParam("/can_velocity_converter/offset",offset);
-  n.getParam("/can_velocity_converter/byte_order",byte_order);
-  n.getParam("/can_velocity_converter/value_type",value_type);
+  node->declare_parameter("/can_velocity_converter/can_id",can_id);
+  node->declare_parameter("/can_velocity_converter/start_bit",start_bit);
+  node->declare_parameter("/can_velocity_converter/length",length);
+  node->declare_parameter("/can_velocity_converter/factor",factor);
+  node->declare_parameter("/can_velocity_converter/offset",offset);
+  node->declare_parameter("/can_velocity_converter/byte_order",byte_order);
+  node->declare_parameter("/can_velocity_converter/value_type",value_type);
+
+  node->get_parameter("/can_velocity_converter/can_id",can_id);
+  node->get_parameter("/can_velocity_converter/start_bit",start_bit);
+  node->get_parameter("/can_velocity_converter/length",length);
+  node->get_parameter("/can_velocity_converter/factor",factor);
+  node->get_parameter("/can_velocity_converter/offset",offset);
+  node->get_parameter("/can_velocity_converter/byte_order",byte_order);
+  node->get_parameter("/can_velocity_converter/value_type",value_type);
 
   std::cout<< "can_id "<<can_id<<std::endl;
   std::cout<< "start_bit "<<start_bit<<std::endl;
@@ -119,8 +127,8 @@ int main(int argc, char **argv){
   std::cout<< "value_type "<<value_type<<std::endl;
 
 
-  auto sub1 = node->create_subscription<can_msgs::msg::Frame>("/vehicle/can_tx", 1000, can_callback);
-  pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("/can_twist", 1000);
+  auto sub1 = node->create_subscription<can_msgs::msg::Frame>("/vehicle/can_tx", rclcpp::QoS(10), can_callback);
+  pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("/can_twist", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 
