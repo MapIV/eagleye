@@ -100,3 +100,30 @@ add_dependencies(rtk_interpolate ${catkin_EXPORTED_TARGETS})
 add_executable(rtk_heading src/rtk_heading_node.cpp)
 target_link_libraries(rtk_heading ${catkin_LIBRARIES})
 add_dependencies(rtk_heading ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS
+  velocity_scale_factor
+  yawrate_offset_stop
+  yawrate_offset
+  heading
+  position
+  slip_angle
+  smoothing
+  trajectory
+  heading_interpolate
+  position_interpolate
+  distance
+  monitor
+  height
+  angular_velocity_offset_stop
+  correction_imu
+  rtk_interpolate
+  rtk_heading
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

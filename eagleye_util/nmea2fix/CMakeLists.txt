@@ -46,3 +46,14 @@ find_package(catkin REQUIRED COMPONENTS
 add_executable(nmea2fix_node src/nmea2fix_node.cpp)
 target_link_libraries(nmea2fix_node ${catkin_LIBRARIES} )
 add_dependencies(nmea2fix_node ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS
+  nmea2fix_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

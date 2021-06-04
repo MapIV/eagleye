@@ -16,3 +16,14 @@ include_directories(
 
 add_executable(can_velocity_converter src/can_velocity_converter.cpp)
 target_link_libraries(can_velocity_converter ${catkin_LIBRARIES})
+
+install(TARGETS
+  can_velocity_converter
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

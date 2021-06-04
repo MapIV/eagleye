@@ -27,3 +27,14 @@ include_directories(
 add_executable(fix2pose src/fix2pose.cpp)
 target_link_libraries(fix2pose ${catkin_LIBRARIES} )
 add_dependencies(fix2pose ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS
+  fix2pose
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
