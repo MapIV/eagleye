@@ -18,7 +18,6 @@ void nmea_callback(const nmea_msgs::Sentence::ConstPtr &msg)
   nmea2fix_converter(sentence, &fix, &gga);
   if (fix.header.stamp.toSec() != 0)
   {
-    gga.header.frame_id = fix.header.frame_id = "gnss";
     pub1.publish(fix);
     if(output_gga) pub2.publish(gga);
   }
