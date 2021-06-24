@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(nmea2fix)
+project(eagleye_nmea2fix)
 
 set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
 
@@ -40,7 +40,7 @@ install(TARGETS nmea2fix
 )
 
 find_package(catkin REQUIRED COMPONENTS
-  nmea2fix
+  eagleye_nmea2fix
 )
 
 add_executable(nmea2fix_node src/nmea2fix_node.cpp)

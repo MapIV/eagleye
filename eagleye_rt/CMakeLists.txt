@@ -8,8 +8,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rtklib_msgs
   eagleye_msgs
-  navigation
-  coordinate
+  eagleye_navigation
+  eagleye_coordinate
   geodesy
   geographic_msgs
 )
@@ -22,8 +22,8 @@ catkin_package(
    sensor_msgs
    rtklib_msgs
    eagleye_msgs
-   navigation
-   coordinate
+   eagleye_navigation
+   eagleye_coordinate
    geodesy
    geographic_msgs
 )
@@ -125,5 +125,6 @@ install(TARGETS
 install(
   DIRECTORY
     launch
+    config
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

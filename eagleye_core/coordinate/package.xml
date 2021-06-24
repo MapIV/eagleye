@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>coordinate</name>
+  <name>eagleye_coordinate</name>
   <version>1.0.0</version>
-  <description>The coordinate package</description>
+  <description>The eagleye_coordinate package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">Osamu Sekino</maintainer>
 

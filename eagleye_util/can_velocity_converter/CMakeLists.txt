@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(can_velocity_converter)
+project(eagleye_can_velocity_converter)
 
 find_package(catkin REQUIRED COMPONENTS
   can_msgs

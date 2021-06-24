@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>fix2kml</name>
+  <name>eagleye_fix2kml</name>
   <version>1.0.0</version>
-  <description>The fix2kml package</description>
+  <description>The eagleye_fix2kml package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
 
