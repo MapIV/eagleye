@@ -82,9 +82,9 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   height.header = msg->header;
-  height.header.frame_id = "llh";
+  height.header.frame_id = "base_link";
   pitching.header = msg->header;
-  pitching.header.frame_id = "enu";
+  pitching.header.frame_id = "base_link";
   acc_x_offset.header = msg->header;
   acc_x_scale_factor.header = msg->header;
   pitching_estimate(imu,fix,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
@@ -113,16 +113,16 @@ int main(int argc, char** argv)
   std::string subscribe_navsatfix_topic_name = "/f9p/fix";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/height/estimated_distance",height_parameter.estimated_distance);
-  n.getParam("eagleye/height/estimated_distance_max",height_parameter.estimated_distance_max);
-  n.getParam("eagleye/height/separation_distance",height_parameter.separation_distance);
-  n.getParam("eagleye/height/estimated_velocity_threshold",height_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/height/estimated_velocity_coefficient",height_parameter.estimated_velocity_coefficient);
-  n.getParam("eagleye/height/estimated_height_coefficient",height_parameter.estimated_height_coefficient);
-  n.getParam("eagleye/height/outlier_threshold",height_parameter.outlier_threshold);
-  n.getParam("eagleye/height/average_num",height_parameter.average_num);
+  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("height/estimated_distance",height_parameter.estimated_distance);
+  n.getParam("height/estimated_distance_max",height_parameter.estimated_distance_max);
+  n.getParam("height/separation_distance",height_parameter.separation_distance);
+  n.getParam("height/estimated_velocity_threshold",height_parameter.estimated_velocity_threshold);
+  n.getParam("height/estimated_velocity_coefficient",height_parameter.estimated_velocity_coefficient);
+  n.getParam("height/estimated_height_coefficient",height_parameter.estimated_height_coefficient);
+  n.getParam("height/outlier_threshold",height_parameter.outlier_threshold);
+  n.getParam("height/average_num",height_parameter.average_num);
 
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -137,13 +137,13 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 
-  pub1 = n.advertise<eagleye_msgs::Height>("eagleye/height", 1000);
-  pub2 = n.advertise<eagleye_msgs::Pitching>("eagleye/pitching", 1000);
-  pub3 = n.advertise<eagleye_msgs::AccXOffset>("eagleye/acc_x_offset", 1000);
-  pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("eagleye/acc_x_scale_factor", 1000);
+  pub1 = n.advertise<eagleye_msgs::Height>("height", 1000);
+  pub2 = n.advertise<eagleye_msgs::Pitching>("pitching", 1000);
+  pub3 = n.advertise<eagleye_msgs::AccXOffset>("acc_x_offset", 1000);
+  pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("acc_x_scale_factor", 1000);
   pub5 = n.advertise<sensor_msgs::NavSatFix>("f9p/reliability_fix", 1000);
 
   ros::spin();

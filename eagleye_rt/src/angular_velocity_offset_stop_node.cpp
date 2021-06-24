@@ -68,12 +68,12 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
-  n.getParam("eagleye/angular_velocity_offset_stop/stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  n.getParam("eagleye/angular_velocity_offset_stop/estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
-  n.getParam("eagleye/angular_velocity_offset_stop/outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
+  n.getParam("twist_topic",subscribe_twist_topic_name);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  n.getParam("angular_velocity_offset_stop/stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  n.getParam("angular_velocity_offset_stop/estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  n.getParam("angular_velocity_offset_stop/outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::AngularVelocityOffset>("eagleye/angular_velocity_offset_stop", 1000);
+  pub = n.advertise<eagleye_msgs::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
 
   ros::spin();
 

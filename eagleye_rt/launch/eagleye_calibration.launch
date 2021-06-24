@@ -1,27 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launch>
-  <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
-  <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
-  <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
-  <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
-  <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
-  <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st"/>
-  <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd"/>
-  <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd"/>
-  <node pkg="eagleye_rt" name="heading_interpolate_node_1st" type="heading_interpolate" args="1st"/>
-  <node pkg="eagleye_rt" name="heading_interpolate_node_2nd" type="heading_interpolate" args="2nd"/>
-  <node pkg="eagleye_rt" name="heading_interpolate_node_3rd" type="heading_interpolate" args="3rd"/>
-  <node pkg="eagleye_rt" name="slip_angle_node" type="slip_angle" />
-  <node pkg="eagleye_rt" name="distance_node" type="distance" />
-  <node pkg="eagleye_rt" name="trajectory_node" type="trajectory" />
-  <node pkg="eagleye_rt" name="position_node" type="position"/>
-  <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate"/>
-  <node pkg="eagleye_rt" name="smoothing_node" type="smoothing" />
-  <node pkg="eagleye_rt" name="height_node" type="height" />
-  <!-- <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" /> -->
 
-  <param name ="output_dir" value="$(find eagleye_rt)/config/slip_coefficient.txt"/>
-  <node pkg="eagleye_rt" name="slip_coefficient_node" type="slip_coefficient" output="screen" />
+  <group ns="eagleye">
+
+    <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
+    <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_topic.yaml"/>
+
+    <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
+    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
+    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
+    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
+    <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st"/>
+    <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd"/>
+    <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_1st" type="heading_interpolate" args="1st"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_2nd" type="heading_interpolate" args="2nd"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_3rd" type="heading_interpolate" args="3rd"/>
+    <node pkg="eagleye_rt" name="slip_angle_node" type="slip_angle" />
+    <node pkg="eagleye_rt" name="distance_node" type="distance" />
+    <node pkg="eagleye_rt" name="trajectory_node" type="trajectory" />
+    <node pkg="eagleye_rt" name="position_node" type="position" />
+    <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate"/>
+    <node pkg="eagleye_rt" name="smoothing_node" type="smoothing"/>
+    <node pkg="eagleye_rt" name="height_node" type="height"/>
+    <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
+    <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
+
+    <param name ="output_dir" value="$(find eagleye_rt)/config/slip_coefficient.txt"/>
+    <node pkg="eagleye_rt" name="slip_coefficient_node" type="slip_coefficient" output="screen" />
+
+  </group>
+
+  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>
 
 </launch>

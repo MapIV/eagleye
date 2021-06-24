@@ -1,5 +1,3 @@
-eagleye:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
-
 # Using Topic Name
  twist_topic: /can_twist
  imu_topic: /imu/data_raw
