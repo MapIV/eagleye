@@ -146,9 +146,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle n;
 
-  n.getParam("plane",plane);
-  n.getParam("tf_num",tf_num);
-  n.getParam("convert_height_num",convert_height_num);
+  n.getParam("fix2pose_node/plane",plane);
+  n.getParam("fix2pose_node/tf_num",tf_num);
+  n.getParam("fix2pose_node/convert_height_num",convert_height_num);
   n.getParam("gps_x",gps_x);
   n.getParam("gps_y",gps_y);
   n.getParam("gps_z",gps_z);
