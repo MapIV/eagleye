@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <include file="$(find fix2pose)/launch/sample_tf.launch">
+  </include>
+
+  <param name="plane" value="7"/>
+  <param name="tf_num" value="1"/>
+  <!-- 1 : plane  2 : mgrs  -->
+  <param name="altitude_estimate" value="true"/>
+  <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
+
+</launch>
