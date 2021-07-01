@@ -110,7 +110,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "height");
   ros::NodeHandle n;
 
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
   n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
@@ -144,7 +144,7 @@ int main(int argc, char** argv)
   pub2 = n.advertise<eagleye_msgs::Pitching>("pitching", 1000);
   pub3 = n.advertise<eagleye_msgs::AccXOffset>("acc_x_offset", 1000);
   pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("acc_x_scale_factor", 1000);
-  pub5 = n.advertise<sensor_msgs::NavSatFix>("f9p/reliability_fix", 1000);
+  pub5 = n.advertise<sensor_msgs::NavSatFix>("navsat/reliability_fix", 1000);
 
   ros::spin();
 

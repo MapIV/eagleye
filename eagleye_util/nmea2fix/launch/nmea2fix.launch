@@ -2,7 +2,7 @@
 
 <launch>
 
-  <arg name="sub_topic_name" default="/f9p/nmea_sentence"/>
+  <arg name="sub_topic_name" default="/nmea_sentence"/>
   <arg name="pub_fix_topic_name" default="/fix"/>
   <arg name="pub_gga_topic_name" default="/gga"/>
   <arg name="output_gga" default="false"/>

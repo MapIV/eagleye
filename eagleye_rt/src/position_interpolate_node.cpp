@@ -106,7 +106,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle n;
 
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
   n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
   n.getParam("position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);

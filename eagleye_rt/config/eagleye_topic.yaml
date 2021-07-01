@@ -2,5 +2,5 @@
  twist_topic: /can_twist
  imu_topic: /imu/data_raw
  rtklib_nav_topic: /rtklib_nav
- navsatfix_topic: /f9p/fix
- nmea_sentence_topic: /f9p/nmea_sentence
+ navsatfix_topic: /fix
+ nmea_sentence_topic: /nmea_sentence

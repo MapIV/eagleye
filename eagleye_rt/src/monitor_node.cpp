@@ -35,7 +35,7 @@
 static sensor_msgs::Imu imu;
 static rtklib_msgs::RtklibNav rtklib_nav;
 //static sensor_msgs::NavSatFix fix;
-static sensor_msgs::NavSatFix f9p_fix;
+static sensor_msgs::NavSatFix navsat_fix;
 static geometry_msgs::TwistStamped velocity;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 //static eagleye_msgs::Distance distance;
@@ -58,7 +58,7 @@ static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 //static geometry_msgs::TwistStamped eagleye_twist;
 
-static bool f9p_fix_sub_status;
+static bool navsat_fix_sub_status;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -82,16 +82,16 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 }
 */
 
-void f9p_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void navsatfix_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  f9p_fix.header = msg->header;
-  f9p_fix.status = msg->status;
-  f9p_fix.latitude = msg->latitude;
-  f9p_fix.longitude = msg->longitude;
-  f9p_fix.altitude = msg->altitude;
-  f9p_fix.position_covariance = msg->position_covariance;
-  f9p_fix.position_covariance_type = msg->position_covariance_type;
-  f9p_fix_sub_status = true;
+  navsat_fix.header = msg->header;
+  navsat_fix.status = msg->status;
+  navsat_fix.latitude = msg->latitude;
+  navsat_fix.longitude = msg->longitude;
+  navsat_fix.altitude = msg->altitude;
+  navsat_fix.position_covariance = msg->position_covariance;
+  navsat_fix.position_covariance_type = msg->position_covariance_type;
+  navsat_fix_sub_status = true;
 }
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
@@ -306,15 +306,15 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<rtklib_nav.status.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
 
-  std::cout << "--- \033[1;34m f9p(input)\033[m ------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m navsat(input)\033[m ------------------------------"<< std::endl;
 
-  if(f9p_fix_sub_status)
+  if(navsat_fix_sub_status)
   {
-    std::cout<< "\033[1m rtk status \033[m "<<int(f9p_fix.status.status)<<std::endl;
-    std::cout<< "\033[1m rtk status \033[m "<<(f9p_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
-    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<f9p_fix.latitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<f9p_fix.longitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<f9p_fix.altitude<<" [m]"<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<int(navsat_fix.status.status)<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<(navsat_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
+    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<navsat_fix.latitude<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<navsat_fix.longitude<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<navsat_fix.altitude<<" [m]"<<std::endl;
     std::cout << std::endl;
   }
   else
@@ -379,7 +379,7 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_navsatfix_topic_name = "/navsatfix/fix";
 
   n.getParam("twist_topic",subscribe_twist_topic_name);
   n.getParam("imu_topic",subscribe_imu_topic_name);
@@ -394,7 +394,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub3 = n.subscribe("fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, f9p_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   //ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());

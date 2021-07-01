@@ -129,7 +129,7 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
 
   n.getParam("imu_topic",subscribe_imu_topic_name);
