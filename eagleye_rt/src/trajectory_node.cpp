@@ -107,8 +107,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   {
     pub1.publish(enu_vel);
     pub2.publish(enu_relative_pos);
-    pub3.publish(eagleye_twist);
   }
+  pub3.publish(eagleye_twist);
 }
 
 int main(int argc, char** argv)
