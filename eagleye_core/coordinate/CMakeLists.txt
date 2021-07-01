@@ -10,6 +10,14 @@ find_package(catkin REQUIRED COMPONENTS
   geodesy
 )
 
+find_package(PkgConfig)
+find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
+  PAHT_SUFFIXES GeographicLib
+)
+set(GeographicLib_LIBRARIES
+  NAMES Geographic
+)
+
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES coordinate
@@ -19,6 +27,10 @@ include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
+  ${GeographicLib_INCLUDE_DIRS}
+)
+link_directories(
+  /usr/local/lib
 )
 
 add_library(coordinate
@@ -37,6 +49,7 @@ add_library(coordinate
 
 target_link_libraries(coordinate
   ${catkin_LIBRARIES}
+  Geographic
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/

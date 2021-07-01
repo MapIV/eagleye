@@ -28,7 +28,9 @@
 
 #include <geodesy/utm.h>
 #include "geographic_msgs/GeoPoint.h"
-
+#include <GeographicLib/Geoid.hpp>
+#include <GeographicLib/MGRS.hpp>
+#include <GeographicLib/UTMUPS.hpp>
 
 class ConvertHeight
 {
