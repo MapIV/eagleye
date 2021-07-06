@@ -2,14 +2,18 @@
 
 <launch>
 
-  <include file="$(find fix2pose)/launch/sample_tf.launch">
+  <include file="$(find eagleye_fix2pose)/launch/sample_tf.launch">
   </include>
 
-  <param name="plane" value="7"/>
-  <param name="tf_num" value="1"/>
-  <!-- 1 : plane  2 : mgrs  -->
-  <param name="convert_height_num" value="0"/>
-  <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
-  <node pkg="fix2pose" name="fix2pose" type="fix2pose" />
+  <node pkg="eagleye_fix2pose" name="fix2pose_node" type="fix2pose">
+    <!-- <include file="$(find eagleye_fix2pose)/launch/sample_tf.launch">
+    </include> -->
+
+    <param name="plane" value="7"/>
+    <param name="tf_num" value="1"/>
+    <!-- 1 : plane  2 : mgrs  -->
+    <param name="convert_height_num" value="0"/>
+    <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
+  </node>
 
 </launch>

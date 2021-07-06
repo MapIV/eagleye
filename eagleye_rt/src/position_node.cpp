@@ -79,7 +79,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
-  enu_absolute_pos.header.frame_id = "enu";
+  enu_absolute_pos.header.frame_id = "base_link";
   position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   if(enu_absolute_pos.status.estimate_status == true)
   {
@@ -95,16 +95,16 @@ int main(int argc, char** argv)
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/position/estimated_distance",position_parameter.estimated_distance);
-  n.getParam("eagleye/position/separation_distance",position_parameter.separation_distance);
-  n.getParam("eagleye/position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/position/outlier_threshold",position_parameter.outlier_threshold);
-  n.getParam("eagleye/position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
-  n.getParam("eagleye/position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  n.getParam("eagleye/position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
-  n.getParam("eagleye/position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
-  n.getParam("eagleye/position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
+  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("position/estimated_distance",position_parameter.estimated_distance);
+  n.getParam("position/separation_distance",position_parameter.separation_distance);
+  n.getParam("position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
+  n.getParam("position/outlier_threshold",position_parameter.outlier_threshold);
+  n.getParam("position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
+  n.getParam("position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
+  n.getParam("position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
+  n.getParam("position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
+  n.getParam("position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
@@ -114,13 +114,13 @@ int main(int argc, char** argv)
   std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
   std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
 
-  pub = n.advertise<eagleye_msgs::Position>("eagleye/enu_absolute_pos", 1000);
+  pub = n.advertise<eagleye_msgs::Position>("enu_absolute_pos", 1000);
   ros::spin();
 
   return 0;

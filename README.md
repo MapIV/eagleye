@@ -61,39 +61,29 @@ Eagleye uses vehicle speed acquired from CAN bus.
 		catkin_make -DCMAKE_BUILD_TYPE=Release
 
 
-4. Installing dependent packages  
-
-In the case of Ubuntu18.04 melodic.   
-
-		sudo apt-get install ros-melodic-geodesy 
-		sudo apt-get install ros-melodic-can-msgs
-In the case of Ubuntu16.04 kinetic.  
-
-		sudo apt-get install ros-kinetic-geodesy
-		sudo apt-get install ros-kinetic-can-msgs
-
-5. Clone and build [eagleye](https://github.com/MapIV/eagleye.git).
+4. Clone and build [eagleye](https://github.com/MapIV/eagleye.git).
 
 		cd $HOME/catkin_ws/src
 		git clone https://github.com/MapIV/eagleye.git
 		cd ..
+		rosdep install --from-paths src --ignore-src -r -y
 		catkin_make -DCMAKE_BUILD_TYPE=Release
 
-6. RTKLIB settings.
+5. RTKLIB settings.
 
 Change `inpstr1-path` of `$HOME/RTKLIB/app/rtkrcv/conf/rtklib_ros_bridge_single.conf` according to the serial device you use.
 
 ie)
 >inpstr1-path =/serial/by-id/usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00:230400:8:n:1:off  
 
-7. nmea_comms settings.
+6. nmea_comms settings.
 
 Change `arg name="port"` of `$HOME/catkin_ws/src/nmea_comms/launch/f9p_nmea_sentence.launch` according to the serial device you use.
 
 ie)
 >\<arg name="port" default="/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_AG0JNPDS-if00-port0" />
 
-8. GNSS receiver settings.
+7. GNSS receiver settings.
 Configure the receiver settings using [u-center](https://www.u-blox.com/product/u-center).
 
 * UART1(Connect to RTKLIB) Enable UBX message (output rate 5Hz, baudrate 230400) ※ Set to output only RAWX and SFRBX
@@ -105,11 +95,11 @@ Tools/Receiver Configuration.../Load configuration "Transfer file -> GNSS"
 
 To load the configuration, change the ublox FW version to 1.10.
 
-9. IMU settings.
+8. IMU settings.
 
 * Output rate 50Hz
 
-10. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
+9. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
 
 		 reverse_imu: true
 

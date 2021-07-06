@@ -1,4 +1,4 @@
-eagleye:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
+                                                       #GNSS cycle 5Hz, IMU cycle 50Hz.
  reverse_imu: false
 
  velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.

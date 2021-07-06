@@ -92,7 +92,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   heading_interpolate.header = msg->header;
-  heading_interpolate.header.frame_id = "enu";
+  heading_interpolate.header.frame_id = "base_link";
   heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_parameter,&heading_interpolate_status,&heading_interpolate);
   pub.publish(heading_interpolate);
 }
@@ -104,10 +104,10 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", heading_interpolate_parameter.reverse_imu);
-  n.getParam("eagleye/heading_interpolate/stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  n.getParam("eagleye/heading_interpolate/number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("reverse_imu", heading_interpolate_parameter.reverse_imu);
+  n.getParam("heading_interpolate/stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
+  n.getParam("heading_interpolate/number_buffer_max", heading_interpolate_parameter.number_buffer_max);
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_interpolate_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
@@ -121,21 +121,21 @@ int main(int argc, char** argv)
   {
     if (strcmp(argv[1], "1st") == 0)
     {
-      publish_topic_name = "eagleye/heading_interpolate_1st";
-      subscribe_topic_name_1 = "eagleye/yawrate_offset_stop";
-      subscribe_topic_name_2 = "eagleye/heading_1st";
+      publish_topic_name = "heading_interpolate_1st";
+      subscribe_topic_name_1 = "yawrate_offset_stop";
+      subscribe_topic_name_2 = "heading_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
-      publish_topic_name = "eagleye/heading_interpolate_2nd";
-      subscribe_topic_name_1 = "eagleye/yawrate_offset_1st";
-      subscribe_topic_name_2 = "eagleye/heading_2nd";
+      publish_topic_name = "heading_interpolate_2nd";
+      subscribe_topic_name_1 = "yawrate_offset_1st";
+      subscribe_topic_name_2 = "heading_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
-      publish_topic_name = "eagleye/heading_interpolate_3rd";
-      subscribe_topic_name_1 = "eagleye/yawrate_offset_2nd";
-      subscribe_topic_name_2 = "eagleye/heading_3rd";
+      publish_topic_name = "heading_interpolate_3rd";
+      subscribe_topic_name_1 = "yawrate_offset_2nd";
+      subscribe_topic_name_2 = "heading_3rd";
     }
     else
     {
@@ -150,11 +150,11 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe(subscribe_topic_name_1, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name_2, 1000, heading_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("eagleye/slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
   pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 
   ros::spin();

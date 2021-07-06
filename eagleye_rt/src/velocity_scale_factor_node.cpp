@@ -83,13 +83,13 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
-  n.getParam("eagleye/velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
-  n.getParam("eagleye/velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+  n.getParam("twist_topic",subscribe_twist_topic_name);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  n.getParam("velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  n.getParam("velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  n.getParam("velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::VelocityScaleFactor>("eagleye/velocity_scale_factor", 1000);
+  pub = n.advertise<eagleye_msgs::VelocityScaleFactor>("velocity_scale_factor", 1000);
 
   ros::spin();
 

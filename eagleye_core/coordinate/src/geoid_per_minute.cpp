@@ -42,7 +42,7 @@ double** read_geoid_map()
 
   double** data;
 
-  std::string path = ros::package::getPath("coordinate") + "/data/";
+  std::string path = ros::package::getPath("eagleye_coordinate") + "/data/";
   std::string file_name = "gsigeo2011_ver2.asc";
   std::ifstream ifs(path+file_name);
 

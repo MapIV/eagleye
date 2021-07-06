@@ -9,7 +9,7 @@
   <arg name="_gps_pitch" default="0.0"/>
   <arg name="_gps_roll" default="0.0"/>
   <arg name="_gps_child_frame_id" default="base_link"/>
-  <arg name="_gps_frame_id" default="gps"/>
+  <arg name="_gps_frame_id" default="gnss"/>
   <arg name="_gps_period_in_ms" default="10"/>
 
   <arg name="_imu_x" default="0.0"/>
