@@ -133,6 +133,7 @@ int main(int argc, char** argv)
 
 
   n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
+  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
   n.getParam("eagleye/reverse_imu", heading_parameter.reverse_imu);
   n.getParam("eagleye/rtk_heading/estimated_distance",heading_parameter.estimated_distance);
   n.getParam("eagleye/rtk_heading/estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
@@ -146,6 +147,7 @@ int main(int argc, char** argv)
   n.getParam("eagleye/rtk_heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
