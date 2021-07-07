@@ -25,14 +25,14 @@
 
 #include "nmea2fix/nmea2fix.hpp"
 
-double stringToGPSTime(std::string& input, double header_time)
+double stringToROSTime(std::string& input, double header_time)
 {
 
   time_t time;
   struct tm *tm_localtime;
   struct tm tm_GPSTime;
   double GPSTime, GPSTime_msec;
-  int Leaptime = 18;
+  int Leaptime = 37;
 
   time = header_time;
   tm_localtime = localtime(&time);
@@ -82,7 +82,7 @@ void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatF
         gga->header = sentence.header;
         gga->message_id = nmea_data[0];
         // gga->utc_seconds = stod(nmea_data[1]);
-        if(!nmea_data[1].empty()) gga->utc_seconds = stringToGPSTime(nmea_data[1], sentence.header.stamp.toSec());
+        if(!nmea_data[1].empty()) gga->utc_seconds = stringToROSTime(nmea_data[1], sentence.header.stamp.toSec());
         gga->lat = floor(stod(nmea_data[2])/100) + fmod(stod(nmea_data[2]),100)/60;
         gga->lat_dir = nmea_data[3];
         gga->lon = floor(stod(nmea_data[4])/100) + fmod(stod(nmea_data[4]),100)/60;
