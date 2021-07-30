@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <arg name="filename" default="$(find eagleye_fix2kml)/kml/eagleye_fix.kml"/>
+  <arg name="kmlname" default="Eagleye"/>
+
+  <node pkg="eagleye_fix2kml" name="fix2kml" type="fix2kml">
+    <param name="filename" value="$(arg filename)"/>
+    <param name="kmlname" value="$(arg kmlname)"/>
+  </node>
+
+
+</launch>
