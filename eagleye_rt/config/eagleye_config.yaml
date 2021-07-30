@@ -97,3 +97,6 @@
    estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
    outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
    average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
+
+ monitor:
+   print_status: true
