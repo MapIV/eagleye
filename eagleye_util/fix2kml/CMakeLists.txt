@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(eagleye_fix2kml)
 
+set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
+
 find_package(catkin REQUIRED COMPONENTS
   eagleye_msgs
   roscpp

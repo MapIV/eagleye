@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   eagleye_coordinate
   geodesy
   geographic_msgs
+  diagnostic_updater
 )
 
 catkin_package(
@@ -26,6 +27,7 @@ catkin_package(
    eagleye_coordinate
    geodesy
    geographic_msgs
+   diagnostic_updater
 )
 
 include_directories(
