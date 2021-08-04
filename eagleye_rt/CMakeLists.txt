@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   coordinate
   geodesy
   geographic_msgs
+  diagnostic_updater
 )
 
 catkin_package(
@@ -26,6 +27,7 @@ catkin_package(
    coordinate
    geodesy
    geographic_msgs
+  diagnostic_updater
 )
 
 include_directories(
