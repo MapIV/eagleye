@@ -66,8 +66,8 @@ int main(int argc, char** argv)
 
   KmlGenerator kmlfile(kmlname);
 
-  ros::Subscriber sub1 = n.subscribe<sensor_msgs::NavSatFix>("/eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
-  ros::Subscriber sub2 = n.subscribe<eagleye_msgs::Distance>("/eagleye/distance", 1000, distance_callback);
+  ros::Subscriber sub1 = n.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
+  ros::Subscriber sub2 = n.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
   ros::spin();
 
   return 0;
