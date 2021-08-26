@@ -250,6 +250,24 @@ struct SlipangleParameter
   double manual_coefficient;
 };
 
+struct SlipCoefficientParameter
+{
+  bool reverse_imu;
+  double estimated_number_min;
+  double estimated_number_max;
+  double estimated_velocity_threshold;
+  double estimated_yawrate_threshold;
+  double lever_arm;
+  double stop_judgment_velocity_threshold;
+};
+
+struct SlipCoefficientStatus
+{
+  double heading_estimate_status_count;
+  std::vector<double> doppler_slip_buffer;
+  std::vector<double> acceleration_y_buffer;
+};
+
 struct SmoothingParameter
 {
   double ecef_base_pos_x;
@@ -352,6 +370,7 @@ extern void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor, con
 extern void heading_estimate(const rtklib_msgs::RtklibNav, const sensor_msgs::Imu, const eagleye_msgs::VelocityScaleFactor, const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter, HeadingStatus*,eagleye_msgs::Heading*);
 extern void position_estimate(const rtklib_msgs::RtklibNav, const eagleye_msgs::VelocityScaleFactor, const eagleye_msgs::Distance, const eagleye_msgs::Heading, const geometry_msgs::Vector3Stamped, const PositionParameter, PositionStatus*, eagleye_msgs::Position*);
 extern void slip_angle_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const SlipangleParameter,eagleye_msgs::SlipAngle*);
+extern void slip_coefficient_estimate(const sensor_msgs::Imu,const rtklib_msgs::RtklibNav,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const SlipCoefficientParameter,SlipCoefficientStatus*,double*);
 extern void smoothing_estimate(const rtklib_msgs::RtklibNav,const eagleye_msgs::VelocityScaleFactor,const SmoothingParameter,SmoothingStatus*,eagleye_msgs::Position*);
 extern void trajectory_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
 extern void heading_interpolate_estimate(const sensor_msgs::Imu,const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,eagleye_msgs::Heading*);

@@ -94,11 +94,8 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
       }
 
       doppler_slip = (imu_heading - doppler_heading_angle);
-      // ROS_INFO("IMU = %lf  GNSS = %lf",imu_heading,doppler_heading_angle);
-      // ROS_INFO("doppler_slip = %lf",doppler_slip);
 
       rear_slip = doppler_slip + slip_coefficient_parameter.lever_arm*yawrate/velocity_scale_factor.correction_velocity.linear.x;
-      // ROS_WARN("rear_slip = %lf",rear_slip);
 
       if(fabs(rear_slip)<(2*M_PI/180))
       {
@@ -122,13 +119,10 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
           slip_coefficient_status->heading_estimate_status_count = slip_coefficient_parameter.estimated_number_max;
         }
 
-        // ROS_INFO("slip_coefficient_status->heading_estimate_status_count = %d",slip_coefficient_status->heading_estimate_status_count);
-
         if(slip_coefficient_status->heading_estimate_status_count > slip_coefficient_parameter.estimated_number_min)
           {
             double sum_xy_avg,sum_x_square = 0.0;
             acceleration_y_buffer_length = std::distance(slip_coefficient_status->acceleration_y_buffer.begin(), slip_coefficient_status->acceleration_y_buffer.end());
-            // ROS_INFO("slip_coefficient_status->acceleration_y_buffer_length = %lu",acceleration_y_buffer_length);
 
             // Least-square
             sum_xy = 0.0, sum_x = 0.0, sum_y = 0.0, sum_x2 = 0.0;
@@ -140,7 +134,6 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
               sum_x2 += pow(slip_coefficient_status->acceleration_y_buffer[i], 2);
             }
             *estimate_coefficient = (slip_coefficient_status->heading_estimate_status_count * sum_xy - sum_x * sum_y) / (slip_coefficient_status->heading_estimate_status_count * sum_x2 - pow(sum_x, 2));
-            // ROS_ERROR("estimate_coefficient = %lf",estimate_coefficient);
           }
         }
       }
