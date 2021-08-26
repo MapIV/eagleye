@@ -325,6 +325,7 @@ struct HeightStatus
   double distance_last;
   double correction_velocity_x_last;
   double fix_time_last;
+  double pitching_angle_last;
   bool height_estimate_start_status;
   bool estimate_start_status;
   bool acceleration_SF_estimate_status;
