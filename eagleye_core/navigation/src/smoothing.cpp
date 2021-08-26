@@ -40,6 +40,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   double enu_pos[3];
   double gnss_smooth_pos[3] = {0};
   double sum_gnss_pos[3] = {0};
+  bool gnss_update;
   std::size_t index_length;
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
@@ -70,6 +71,20 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
 
     xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
+    if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
+    {
+      enu_pos[0] = 0;
+      enu_pos[1] = 0;
+      enu_pos[2] = 0;
+      gnss_update = false;
+    }
+    else
+    {
+      gnss_update = true;
+    }
+  }
+
+  if(gnss_update == true){
     smoothing_status->time_buffer.push_back(rtklib_nav.header.stamp.toSec());
     smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
     smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
