@@ -30,6 +30,7 @@ add_library(navigation
   src/heading.cpp
   src/position.cpp
   src/slip_angle.cpp
+  src/slip_coefficient.cpp
   src/smoothing.cpp
   src/trajectory.cpp
   src/heading_interpolate.cpp
