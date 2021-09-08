@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(eagleye_rt)
 
-set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
-
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
@@ -14,7 +12,6 @@ find_package(catkin REQUIRED COMPONENTS
   coordinate
   geodesy
   geographic_msgs
-  diagnostic_updater
 )
 
 catkin_package(
@@ -29,7 +26,6 @@ catkin_package(
    coordinate
    geodesy
    geographic_msgs
-  diagnostic_updater
 )
 
 include_directories(
@@ -104,7 +100,3 @@ add_dependencies(rtk_interpolate ${catkin_EXPORTED_TARGETS})
 add_executable(rtk_heading src/rtk_heading_node.cpp)
 target_link_libraries(rtk_heading ${catkin_LIBRARIES})
 add_dependencies(rtk_heading ${catkin_EXPORTED_TARGETS})
-
-add_executable(slip_coefficient src/slip_coefficient_node.cpp)
-target_link_libraries(slip_coefficient ${catkin_LIBRARIES})
-add_dependencies(slip_coefficient ${catkin_EXPORTED_TARGETS})

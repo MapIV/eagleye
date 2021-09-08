@@ -31,25 +31,24 @@
 #include "ros/ros.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Distance.h"
-#include "fix2kml/KmlGenerator.hpp"
-#include <boost/bind.hpp>
+#include "fix2kml/GoogleEarthPath.hpp"
 
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
-static std::string filename, kmlname;
+
+GoogleEarthPath path("eagleye_fix.kml","eagleye_fix");  //contains the simultaneously recorded bagfile name
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
   driving_distance = msg->distance;
 }
 
-void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kmlfile)
+void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
   if( (driving_distance - driving_distance_last) > interval)
   {
-    kmlfile->addPoint(msg->longitude,msg->latitude,msg->altitude);
-    kmlfile->KmlGenerate(filename);
+    path.addPoint(msg->longitude,msg->latitude,msg->altitude);
     driving_distance_last = driving_distance;
   }
 }
@@ -58,16 +57,8 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "fix2kml");
   ros::NodeHandle n;
-
-  n.getParam("fix2kml/filename",filename);
-  n.getParam("fix2kml/kmlname",kmlname);
-  std::cout<< "filename "<<filename<<std::endl;
-  std::cout<< "kmlname "<<kmlname<<std::endl;
-
-  KmlGenerator kmlfile(kmlname);
-
-  ros::Subscriber sub1 = n.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
-  ros::Subscriber sub2 = n.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
+  ros::Subscriber sub1 = n.subscribe("/eagleye/fix", 1000, receive_data);
+  ros::Subscriber sub2 = n.subscribe("/eagleye/distance", 1000, distance_callback);
   ros::spin();
 
   return 0;

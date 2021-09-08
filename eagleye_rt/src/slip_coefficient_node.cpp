@@ -32,10 +32,6 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-
 static rtklib_msgs::RtklibNav rtklib_nav;
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -98,7 +94,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   slip_coefficient_estimate(imu,rtklib_nav,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,heading_interpolate_3rd,slip_coefficient_parameter,&slip_coefficient_status,&estimate_coefficient);
 
   std::cout << "--- \033[1;34m slip_coefficient \033[m ------------------------------"<< std::endl;
-  std::cout<<"\033[1m estimate_coefficient \033[m "<<estimate_coefficient<<std::endl;
+  std::cout<<"\033[1m estimate_coefficient \033[mx "<<estimate_coefficient<<std::endl;
   std::cout << std::endl;
 }
 
@@ -140,11 +136,12 @@ int main(int argc, char** argv)
 
   ros::spin();
 
+  FILE *fp;
   std::string str;
   n.getParam("output_dir", str);
-  std::ofstream ofs(str, std::ios_base::trunc | std::ios_base::out);
-  ofs << "slip_coefficient" << " : " << estimate_coefficient << std::endl;
-  ofs.close();
+  fp = fopen(str.c_str(),"w");
+  fprintf(fp,"slip_coefficient %lf",estimate_coefficient);
+  fclose(fp);
 
   return 0;
 }

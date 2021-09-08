@@ -41,7 +41,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   int i,index_max;
   double yawrate = 0.0 , doppler_heading_angle = 0.0;
   double avg = 0.0,tmp_heading_angle;
-  bool gnss_status,gnss_update;
+  bool gnss_status;
   std::size_t index_length;
   std::size_t time_buffer_length;
   std::size_t inversion_up_index_length;
@@ -56,18 +56,6 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   ecef_pos[2] = rtklib_nav.ecef_pos.z;
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
-
-  if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
-  {
-    enu_vel[0] = 0;
-    enu_vel[1] = 0;
-    enu_vel[2] = 0;
-    gnss_update = false;
-  }
-  else{
-    gnss_update = true;
-  }
-
   doppler_heading_angle = std::atan2(enu_vel[0], enu_vel[1]);
 
   if(doppler_heading_angle<0){
@@ -92,7 +80,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (heading_status->tow_last  == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
+  if (heading_status->tow_last  == rtklib_nav.tow || rtklib_nav.tow == 0)
   {
     gnss_status = false;
     doppler_heading_angle = 0;
