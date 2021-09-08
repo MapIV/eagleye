@@ -42,7 +42,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   double avg_x, avg_y, avg_z;
   double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
   double enu_pos[3];
-  bool data_status, gnss_status;
+  bool data_status, gnss_status, gnss_update;
   std::size_t index_length;
   std::size_t velocity_index_length;
   std::vector<double> base_enu_pos_x_buffer, base_enu_pos_y_buffer, base_enu_pos_z_buffer;
@@ -74,8 +74,19 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
 
   xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
+  if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
+  {
+    enu_pos[0] = 0;
+    enu_pos[1] = 0;
+    enu_pos[2] = 0;
+    gnss_update = false;
+  }
+  else
+  {
+    gnss_update = true;
+  }
 
-  if (position_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0)
+  if (position_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
   {
     gnss_status = false;
     enu_pos[0] = 0.0;

@@ -373,7 +373,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
     data_num_acc--;
   }
 
-  if (data_num_acc >= height_parameter.average_num && height_status->estimate_start_status == true)
+if (data_num_acc >= height_parameter.average_num && height_status->estimate_start_status == true)
   {
     sum_acc = 0;
     for (i = 0; i < data_num_acc; i++)
@@ -381,9 +381,20 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
       sum_acc += height_status->acc_buffer[i];
     }
     mean_acc = sum_acc / data_num_acc;
-    tmp_pitch = std::asin(mean_acc/g);
-    pitching->status.enabled_status = true;
-    pitching->status.estimate_status = true;
+
+    if (mean_acc/g < 1)
+    {
+      tmp_pitch = std::asin(mean_acc/g);
+      pitching->status.enabled_status = true;
+      pitching->status.estimate_status = true;
+    }
+    else
+    {
+      tmp_pitch = height_status->pitching_angle_last;
+      pitching->status.enabled_status = false;
+      pitching->status.estimate_status = true;
+    }
+
   }
   else
   {
@@ -399,4 +410,5 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
   height_status->time_last = imu.header.stamp.toSec();
   height_status->correction_velocity_x_last = velocity_scale_factor.correction_velocity.linear.x;
+  height_status->pitching_angle_last = tmp_pitch;
 }

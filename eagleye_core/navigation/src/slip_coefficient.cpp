@@ -54,12 +54,19 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
   ecef_pos[2] = rtklib_nav.ecef_pos.z;
 
   xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
+
+  if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
+  {
+    enu_vel[0] = 0;
+    enu_vel[1] = 0;
+    enu_vel[2] = 0;
+  }
+
   doppler_heading_angle = std::atan2(enu_vel[0], enu_vel[1]);
 
   if(doppler_heading_angle<0){
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
   }
-
 
   if (slip_coefficient_parameter.reverse_imu == false)
   {
