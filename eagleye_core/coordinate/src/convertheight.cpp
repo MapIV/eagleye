@@ -32,7 +32,6 @@
 
 ConvertHeight::ConvertHeight()
 {
-  geoid_map_data = read_geoid_map();
 }
 
 void ConvertHeight::setLLH(double latitude,double longitude,double height)
@@ -44,16 +43,32 @@ void ConvertHeight::setLLH(double latitude,double longitude,double height)
 
 double ConvertHeight::convert2altitude()
 {
-  geoid = ConvertHeight::getGeoidPerMinute();
-  converted_height = _height - geoid;
+  try
+  {
+    GeographicLib::Geoid egm2008("egm2008-1");
+    converted_height = egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::ELLIPSOIDTOGEOID);
+  }
+  catch (const GeographicLib::GeographicErr err)
+  {
+    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. " << err.what() << std::endl;
+    exit(4);
+  }
 
   return converted_height;
 }
 
 double ConvertHeight::convert2ellipsoid()
 {
-  geoid = ConvertHeight::getGeoidPerMinute();
-  converted_height = _height + geoid;
+  try
+  {
+    GeographicLib::Geoid egm2008("egm2008-1");
+    converted_height = egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::GEOIDTOELLIPSOID);
+  }
+  catch (const GeographicLib::GeographicErr err)
+  {
+    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. " << err.what() << std::endl;
+    exit(4);
+  }
 
   return converted_height;
 }
