@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(coordinate)
+project(eagleye_coordinate)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -39,9 +39,15 @@ target_link_libraries(coordinate
   ${catkin_LIBRARIES}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/coordinate/
+  DESTINATION include/coordinate
   FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(
+  DIRECTORY
+    data
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(TARGETS coordinate

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(fix2pose)
+project(eagleye_fix2pose)
 
 find_package(catkin REQUIRED COMPONENTS
   eagleye_msgs
@@ -7,7 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
-  coordinate
+  eagleye_coordinate
 )
 
 catkin_package(
@@ -16,7 +16,7 @@ catkin_package(
   roscpp
   rospy
   std_msgs
-  coordinate
+  eagleye_coordinate
 )
 
 include_directories(
@@ -27,3 +27,14 @@ include_directories(
 add_executable(fix2pose src/fix2pose.cpp)
 target_link_libraries(fix2pose ${catkin_LIBRARIES} )
 add_dependencies(fix2pose ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS
+  fix2pose
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

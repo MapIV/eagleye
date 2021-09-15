@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>nmea2fix</name>
+  <name>eagleye_nmea2fix</name>
   <version>1.0.0</version>
   <description>nmea2fix package</description>
 
