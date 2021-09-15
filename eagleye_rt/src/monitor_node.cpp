@@ -82,11 +82,9 @@ static double yawrate_offset_2nd_time_last;
 static double slip_angle_time_last;
 static double height_time_last;
 static double pitching_time_last;
-static double enu_relative_pos_time_last;
 static double enu_vel_time_last;
 static double enu_absolute_pos_time_last;
 static double enu_absolute_pos_interpolate_time_last;
-static double eagleye_fix_time_last;
 static double eagleye_twist_time_last;
 
 static double update_rate = 10;
@@ -832,11 +830,11 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_navsatfix_topic_name = "/navsatfix/fix";
 
-  n.getParam("eagleye/twist_topic",subscribe_twist_topic_name);
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("eagleye/monitor/print_status",print_status);
+  n.getParam("twist_topic",subscribe_twist_topic_name);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("monitor/print_status",print_status);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -873,29 +871,29 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("f9p/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = n.subscribe("eagleye/distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = n.subscribe("eagleye/heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub9 = n.subscribe("eagleye/heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub10 = n.subscribe("eagleye/heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub11 = n.subscribe("eagleye/heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub12 = n.subscribe("eagleye/heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub13 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub14 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub15 = n.subscribe("eagleye/yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub16 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub17 = n.subscribe("eagleye/slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub18 = n.subscribe("eagleye/enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub19 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub20 = n.subscribe("eagleye/height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub21 = n.subscribe("eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub22 = n.subscribe("eagleye/enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub23 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub24 = n.subscribe("eagleye/fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub25 = n.subscribe("eagleye/twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = n.subscribe("heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = n.subscribe("heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub10 = n.subscribe("heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub11 = n.subscribe("heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub12 = n.subscribe("heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub13 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub14 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub15 = n.subscribe("yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub16 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub17 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub18 = n.subscribe("enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub19 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub20 = n.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub21 = n.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub22 = n.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub23 = n.subscribe("enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub24 = n.subscribe("fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub25 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
 
   ros::Timer timer = n.createTimer(ros::Duration(1/update_rate), boost::bind(timer_callback,_1, &updater_));
 
