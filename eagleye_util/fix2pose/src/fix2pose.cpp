@@ -53,6 +53,7 @@ static double m_x,m_y,m_z;
 static int convert_height_num = 0;
 static int plane = 7;
 static int tf_num = 1;
+static std::string parent_frame_id, child_frame_id;
 
 static ConvertHeight convert_height;
 
@@ -137,8 +138,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   transform2.setOrigin(transform*tf::Vector3(-gps_x, -gps_y,-gps_z));
   q2.setRPY(gps_yaw, gps_pitch, gps_roll);
   transform2.setRotation(transform*q2);
-  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, "map", "base_link"));
-
+  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, parent_frame_id, child_frame_id));
 }
 
 int main(int argc, char** argv)
@@ -146,9 +146,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle n;
 
-  n.getParam("plane",plane);
-  n.getParam("tf_num",tf_num);
-  n.getParam("convert_height_num",convert_height_num);
+  n.getParam("fix2pose_node/plane",plane);
+  n.getParam("fix2pose_node/tf_num",tf_num);
+  n.getParam("fix2pose_node/convert_height_num",convert_height_num);
+  n.getParam("fix2pose_node/parent_frame_id",parent_frame_id);
+  n.getParam("fix2pose_node/child_frame_id",child_frame_id);
   n.getParam("gps_x",gps_x);
   n.getParam("gps_y",gps_y);
   n.getParam("gps_z",gps_z);
@@ -165,6 +167,8 @@ int main(int argc, char** argv)
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
   std::cout<< "convert_height_num "<<convert_height_num<<std::endl;
+  std::cout<< "parent_frame_id "<<parent_frame_id<<std::endl;
+  std::cout<< "child_frame_id "<<child_frame_id<<std::endl;
   std::cout<< "gps_x "<<gps_x<<std::endl;
   std::cout<< "gps_y "<<gps_y<<std::endl;
   std::cout<< "gps_z "<<gps_z<<std::endl;
@@ -179,9 +183,9 @@ int main(int argc, char** argv)
   std::cout<< "imu_roll "<<imu_roll<<std::endl;
 
 
-  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub1 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  ros::Subscriber sub2 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  ros::Subscriber sub3 = n.subscribe("eagleye/fix", 1000, fix_callback);
   pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 
