@@ -96,9 +96,9 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   enu_vel.header = msg->header;
-  enu_vel.header.frame_id = "gps";
+  enu_vel.header.frame_id = "gnss";
   enu_relative_pos.header = msg->header;
-  enu_relative_pos.header.frame_id = "enu";
+  enu_relative_pos.header.frame_id = "base_link";
   eagleye_twist.header = msg->header;
   eagleye_twist.header.frame_id = "base_link";
   trajectory3d_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
@@ -107,8 +107,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   {
     pub1.publish(enu_vel);
     pub2.publish(enu_relative_pos);
-    pub3.publish(eagleye_twist);
   }
+  pub3.publish(eagleye_twist);
 }
 
 int main(int argc, char** argv)
@@ -119,10 +119,10 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", trajectory_parameter.reverse_imu);
-  n.getParam("eagleye/trajectory/stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
-  n.getParam("eagleye/trajectory/stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("reverse_imu", trajectory_parameter.reverse_imu);
+  n.getParam("trajectory/stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  n.getParam("trajectory/stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<trajectory_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<trajectory_parameter.stop_judgment_velocity_threshold<<std::endl;
@@ -130,14 +130,14 @@ int main(int argc, char** argv)
 
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("eagleye/pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  pub1 = n.advertise<geometry_msgs::Vector3Stamped>("eagleye/enu_vel", 1000);
-  pub2 = n.advertise<eagleye_msgs::Position>("eagleye/enu_relative_pos", 1000);
-  pub3 = n.advertise<geometry_msgs::TwistStamped>("eagleye/twist", 1000);
+  ros::Subscriber sub2 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
+  pub1 = n.advertise<geometry_msgs::Vector3Stamped>("enu_vel", 1000);
+  pub2 = n.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);
+  pub3 = n.advertise<geometry_msgs::TwistStamped>("twist", 1000);
 
   ros::spin();
 

@@ -10,8 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rtklib_msgs
   eagleye_msgs
-  navigation
-  coordinate
+  eagleye_navigation
+  eagleye_coordinate
   geodesy
   geographic_msgs
   diagnostic_updater
@@ -25,8 +25,8 @@ catkin_package(
    sensor_msgs
    rtklib_msgs
    eagleye_msgs
-   navigation
-   coordinate
+   eagleye_navigation
+   eagleye_coordinate
    geodesy
    geographic_msgs
   diagnostic_updater
@@ -108,3 +108,32 @@ add_dependencies(rtk_heading ${catkin_EXPORTED_TARGETS})
 add_executable(slip_coefficient src/slip_coefficient_node.cpp)
 target_link_libraries(slip_coefficient ${catkin_LIBRARIES})
 add_dependencies(slip_coefficient ${catkin_EXPORTED_TARGETS})
+
+install(TARGETS
+  velocity_scale_factor
+  yawrate_offset_stop
+  yawrate_offset
+  heading
+  position
+  slip_angle
+  slip_coefficient
+  smoothing
+  trajectory
+  heading_interpolate
+  position_interpolate
+  distance
+  monitor
+  height
+  angular_velocity_offset_stop
+  correction_imu
+  rtk_interpolate
+  rtk_heading
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(
+  DIRECTORY
+    config
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

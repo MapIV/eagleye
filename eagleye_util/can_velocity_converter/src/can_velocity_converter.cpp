@@ -53,7 +53,7 @@ void can_callback(const can_msgs::Frame::ConstPtr& msg)
 
   if(msg->id == can_id){
     msg_velocity.header.stamp = msg->header.stamp;
-    msg_velocity.header.frame_id = "vehicle";
+    msg_velocity.header.frame_id = "base_link";
 
     for (int i = 0; i < msg->dlc; i++)
     {

@@ -59,9 +59,9 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
   enu_absolute_rtk_interpolate.header = msg->header;
-  enu_absolute_rtk_interpolate.header.frame_id = "enu";
+  enu_absolute_rtk_interpolate.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
-  eagleye_fix.header.frame_id = "gps";
+  eagleye_fix.header.frame_id = "gnss";
   rtk_interpolate_estimate(enu_vel,fix,rtk_interpolate_parameter,&rtk_interpolate_status,&enu_absolute_rtk_interpolate,&eagleye_fix);
   if(enu_absolute_rtk_interpolate.status.enabled_status == true)
   {
@@ -79,19 +79,19 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "rtk_interpolate");
   ros::NodeHandle n;
 
-  std::string subscribe_navsatfix_topic_name = "/f9p/fix";
+  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
-  n.getParam("eagleye/navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("eagleye/position_interpolate/number_buffer_max", rtk_interpolate_parameter.number_buffer_max);
-  n.getParam("eagleye/position_interpolate/stop_judgment_velocity_threshold", rtk_interpolate_parameter.stop_judgment_velocity_threshold);
+  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("position_interpolate/number_buffer_max", rtk_interpolate_parameter.number_buffer_max);
+  n.getParam("position_interpolate/stop_judgment_velocity_threshold", rtk_interpolate_parameter.stop_judgment_velocity_threshold);
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
   std::cout<< "number_buffer_max "<<rtk_interpolate_parameter.number_buffer_max<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<rtk_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("eagleye/enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  pub1 = n.advertise<eagleye_msgs::Position>("eagleye/enu_absolute_rtk_interpolate", 1000);
-  pub2 = n.advertise<sensor_msgs::NavSatFix>("eagleye/rtk_fix", 1000);
+  pub1 = n.advertise<eagleye_msgs::Position>("enu_absolute_rtk_interpolate", 1000);
+  pub2 = n.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
 
   ros::spin();
 

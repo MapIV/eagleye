@@ -25,3 +25,9 @@ install(TARGETS
   fix2kml
   DESTINATION lib/${PROJECT_NAME}
 )
+
+install(
+  DIRECTORY
+    launch
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
