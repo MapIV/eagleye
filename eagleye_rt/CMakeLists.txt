@@ -97,9 +97,9 @@ add_executable(correction_imu src/correction_imu.cpp)
 target_link_libraries(correction_imu ${catkin_LIBRARIES})
 add_dependencies(correction_imu ${catkin_EXPORTED_TARGETS})
 
-add_executable(rtk_interpolate src/rtk_interpolate_node.cpp)
-target_link_libraries(rtk_interpolate ${catkin_LIBRARIES})
-add_dependencies(rtk_interpolate ${catkin_EXPORTED_TARGETS})
+add_executable(rtk_deadreckoning src/rtk_deadreckoning_node.cpp)
+target_link_libraries(rtk_deadreckoning ${catkin_LIBRARIES})
+add_dependencies(rtk_deadreckoning ${catkin_EXPORTED_TARGETS})
 
 add_executable(rtk_heading src/rtk_heading_node.cpp)
 target_link_libraries(rtk_heading ${catkin_LIBRARIES})
@@ -126,7 +126,7 @@ install(TARGETS
   height
   angular_velocity_offset_stop
   correction_imu
-  rtk_interpolate
+  rtk_deadreckoning
   rtk_heading
   DESTINATION lib/${PROJECT_NAME}
 )

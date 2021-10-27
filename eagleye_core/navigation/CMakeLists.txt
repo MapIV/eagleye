@@ -37,7 +37,7 @@ add_library(navigation
   src/position_interpolate.cpp
   src/height.cpp
   src/angular_velocity_offset_stop.cpp
-  src/rtk_interpolate.cpp
+  src/rtk_deadreckoning.cpp
   src/rtk_heading.cpp
 
 )
