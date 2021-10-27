@@ -102,9 +102,9 @@ int main(int argc, char** argv)
   n.getParam("position/outlier_threshold",position_parameter.outlier_threshold);
   n.getParam("position/estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
   n.getParam("position/estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  n.getParam("position/ecef_base_pos_x",position_parameter.ecef_base_pos_x);
-  n.getParam("position/ecef_base_pos_y",position_parameter.ecef_base_pos_y);
-  n.getParam("position/ecef_base_pos_z",position_parameter.ecef_base_pos_z);
+  n.getParam("ecef_base_pos/x",position_parameter.ecef_base_pos_x);
+  n.getParam("ecef_base_pos/y",position_parameter.ecef_base_pos_y);
+  n.getParam("ecef_base_pos/z",position_parameter.ecef_base_pos_z);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
