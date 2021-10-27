@@ -4,18 +4,21 @@
 
   <group ns="eagleye">
 
+    <arg name="use_rtk_deadreckoning" default="false"/>
+    <arg name="use_rtk_heading" default="false"/>
+
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
     <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
     <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
     <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
-    <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st"/>
-    <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd"/>
-    <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd"/>
-    <node pkg="eagleye_rt" name="heading_interpolate_node_1st" type="heading_interpolate" args="1st"/>
-    <node pkg="eagleye_rt" name="heading_interpolate_node_2nd" type="heading_interpolate" args="2nd"/>
-    <node pkg="eagleye_rt" name="heading_interpolate_node_3rd" type="heading_interpolate" args="3rd"/>
+    <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_1st" type="heading_interpolate" args="1st" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_2nd" type="heading_interpolate" args="2nd" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_3rd" type="heading_interpolate" args="3rd" if="$(eval use_rtk_heading == false)"/>
     <node pkg="eagleye_rt" name="slip_angle_node" type="slip_angle" />
     <node pkg="eagleye_rt" name="distance_node" type="distance" />
     <node pkg="eagleye_rt" name="trajectory_node" type="trajectory" />
@@ -26,6 +29,12 @@
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
     <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
     <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" />
+
+    <!-- RTK Options -->
+    <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning" if="$(arg use_rtk_deadreckoning)"/>
+    <node pkg="eagleye_rt" name="rtk_heading_node_1st" type="rtk_heading" args="1st" if="$(arg use_rtk_heading)"/>
+    <node pkg="eagleye_rt" name="rtk_heading_node_2nd" type="rtk_heading" args="2nd" if="$(arg use_rtk_heading)"/>
+    <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
 
   </group>
 
