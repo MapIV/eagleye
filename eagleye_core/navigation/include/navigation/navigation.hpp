@@ -43,8 +43,6 @@
 #include <math.h>
 #include <numeric>
 
-
-
 #ifndef NAVIGATION_H
 #define NAVIGATION_H
 
@@ -369,7 +367,7 @@ struct RtkDeadreckoningParameter
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
-  bool ecef_base_pos_status;
+  bool use_ecef_base_position;
 };
 
 struct RtkDeadreckoningStatus

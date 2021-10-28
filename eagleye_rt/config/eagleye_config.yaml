@@ -7,11 +7,11 @@
 # navsatfix_topic: /navsat/fix
 # nmea_sentence_topic: /navsat/nmea_sentence
 
-twist_topic: /vehicle/status/twist
-imu_topic: /sensing/imu/data_raw
-rtklib_nav_topic: /sensing/gnss/rtklib/rtklib_nav
+twist_topic: /can_twist
+imu_topic: /imu/data_raw
+rtklib_nav_topic: /rtklib_nav
 navsatfix_topic: /navsat/fix
-nmea_sentence_topic: /sensing/gnss/nmea_sentence
+nmea_sentence_topic: /navsat/nmea_sentence
 
 #Parameter settings for Eagleye
 reverse_imu: false
@@ -20,7 +20,7 @@ ecef_base_pos:                                        #The position in the ecef 
   x : 0.0                               
   y : 0.0
   z : 0.0
-  status : false
+  use_ecef_base_position : false
 
 velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
   estimated_number_min: 1000                           #Minimum number of data used for estimation. (default:1000 = 20s)

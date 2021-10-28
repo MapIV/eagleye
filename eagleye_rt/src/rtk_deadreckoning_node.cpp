@@ -97,7 +97,7 @@ int main(int argc, char** argv)
   n.getParam("ecef_base_pos/x", rtk_deadreckoning_parameter.ecef_base_pos_x);
   n.getParam("ecef_base_pos/y", rtk_deadreckoning_parameter.ecef_base_pos_y);
   n.getParam("ecef_base_pos/z", rtk_deadreckoning_parameter.ecef_base_pos_z);
-  n.getParam("ecef_base_pos/status", rtk_deadreckoning_parameter.ecef_base_pos_status);
+  n.getParam("ecef_base_pos/use_ecef_base_position", rtk_deadreckoning_parameter.use_ecef_base_position);
   n.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
   std::cout<< "ecef_base_pos_x "<<rtk_deadreckoning_parameter.ecef_base_pos_x<<std::endl;
   std::cout<< "ecef_base_pos_y "<<rtk_deadreckoning_parameter.ecef_base_pos_y<<std::endl;
   std::cout<< "ecef_base_pos_z "<<rtk_deadreckoning_parameter.ecef_base_pos_z<<std::endl;
-  std::cout<< "ecef_base_pos_status "<<rtk_deadreckoning_parameter.ecef_base_pos_status<<std::endl;
+  std::cout<< "use_ecef_base_position "<<rtk_deadreckoning_parameter.use_ecef_base_position<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());

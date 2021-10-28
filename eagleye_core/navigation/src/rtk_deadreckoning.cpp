@@ -39,7 +39,7 @@ void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs:
   double ecef_rtk[3];
   double llh_pos[3],llh_rtk[3];
 
-  if(rtk_deadreckoning_parameter.ecef_base_pos_status)
+  if(rtk_deadreckoning_parameter.use_ecef_base_position)
   {
     enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtk_deadreckoning_parameter.ecef_base_pos_x;
     enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtk_deadreckoning_parameter.ecef_base_pos_y;
