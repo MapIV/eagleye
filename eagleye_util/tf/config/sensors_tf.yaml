@@ -1,0 +1,22 @@
+
+basic_parent_flame: "base_link"
+
+base_link2imu:
+  x: 0.3
+  y: 0.0
+  z: 0.5
+  roll: 0
+  pitch: 0
+  yaw: 0
+  patent: "base_link"
+  child: "imu"
+  
+base_link2gnss:
+  x: 1.5
+  y: 0.8
+  z: 1.5
+  roll: 0
+  pitch: 0
+  yaw: 0
+  patent: "base_link"
+  child: "gnss"
