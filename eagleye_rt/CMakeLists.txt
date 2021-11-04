@@ -15,21 +15,27 @@ find_package(catkin REQUIRED COMPONENTS
   geodesy
   geographic_msgs
   diagnostic_updater
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
 )
 
 catkin_package(
-   CATKIN_DEPENDS
-   roscpp
-   std_msgs
-   geometry_msgs
-   sensor_msgs
-   rtklib_msgs
-   eagleye_msgs
-   eagleye_navigation
-   eagleye_coordinate
-   geodesy
-   geographic_msgs
+  CATKIN_DEPENDS
+  roscpp
+  std_msgs
+  geometry_msgs
+  sensor_msgs
+  rtklib_msgs
+  eagleye_msgs
+  eagleye_navigation
+  eagleye_coordinate
+  geodesy
+  geographic_msgs
   diagnostic_updater
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
 )
 
 include_directories(
