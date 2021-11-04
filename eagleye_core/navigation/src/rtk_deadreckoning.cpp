@@ -84,7 +84,7 @@ void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs:
 
     tf::Transform transform2;
     tf::Quaternion q2(rtk_deadreckoning_parameter.tf_gnss_rotation_x,rtk_deadreckoning_parameter.tf_gnss_rotation_y,rtk_deadreckoning_parameter.tf_gnss_rotation_z,rtk_deadreckoning_parameter.tf_gnss_rotation_w);
-    transform2.setOrigin(transform*tf::Vector3(rtk_deadreckoning_parameter.tf_gnss_translation_x, rtk_deadreckoning_parameter.tf_gnss_translation_y,rtk_deadreckoning_parameter.tf_gnss_translation_z));
+    transform2.setOrigin(transform*tf::Vector3(-rtk_deadreckoning_parameter.tf_gnss_translation_x, -rtk_deadreckoning_parameter.tf_gnss_translation_y,-rtk_deadreckoning_parameter.tf_gnss_translation_z));
     transform2.setRotation(transform*q2);
 
     tf::Vector3 tmp_pos;
