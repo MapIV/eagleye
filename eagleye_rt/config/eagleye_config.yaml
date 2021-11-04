@@ -9,6 +9,10 @@ nmea_sentence_topic: /navsat/nmea_sentence
 #Parameter settings for Eagleye
 reverse_imu: false
 
+tf_gnss_flame:
+  parent: "base_link"
+  child: "gnss"
+
 ecef_base_pos:                                        #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
   x : 0.0                               
   y : 0.0

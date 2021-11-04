@@ -32,6 +32,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 static rtklib_msgs::RtklibNav rtklib_nav;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
@@ -74,6 +77,28 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
   heading_interpolate_3rd.status = msg->status;
 }
 
+void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfListener_, tf2_ros::Buffer* tfBuffer_)
+{
+  geometry_msgs::TransformStamped transformStamped;
+  try
+  {
+    transformStamped = tfBuffer_->lookupTransform(position_parameter.tf_gnss_parent_flame, position_parameter.tf_gnss_child_flame, ros::Time(0));
+
+    position_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
+    position_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
+    position_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
+    position_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
+    position_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
+    position_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
+    position_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
+  }
+  catch (tf2::TransformException& ex)
+  {
+    ROS_WARN("%s", ex.what());
+    return;
+  }
+}
+
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_vel.header = msg->header;
@@ -105,6 +130,8 @@ int main(int argc, char** argv)
   n.getParam("ecef_base_pos/x",position_parameter.ecef_base_pos_x);
   n.getParam("ecef_base_pos/y",position_parameter.ecef_base_pos_y);
   n.getParam("ecef_base_pos/z",position_parameter.ecef_base_pos_z);
+  n.getParam("tf_gnss_flame/parent", position_parameter.tf_gnss_parent_flame);
+  n.getParam("tf_gnss_flame/child", position_parameter.tf_gnss_child_flame);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
@@ -113,14 +140,21 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<position_parameter.outlier_threshold<<std::endl;
   std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
   std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
+  std::cout<< "tf_gnss_flame/parent "<<position_parameter.tf_gnss_parent_flame<<std::endl;
+  std::cout<< "tf_gnss_flame/child "<<position_parameter.tf_gnss_child_flame<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-
+  
   pub = n.advertise<eagleye_msgs::Position>("enu_absolute_pos", 1000);
+
+  tf2_ros::Buffer tfBuffer_;
+  tf2_ros::TransformListener tfListener_(tfBuffer_);
+  ros::Timer timer = n.createTimer(ros::Duration(0.5), boost::bind(timer_callback,_1, &tfListener_, &tfBuffer_));
+
   ros::spin();
 
   return 0;
