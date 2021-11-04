@@ -69,9 +69,9 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("position/ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
-  n.getParam("position/ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
-  n.getParam("position/ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
+  n.getParam("ecef_base_pos/x",smoothing_parameter.ecef_base_pos_x);
+  n.getParam("ecef_base_pos/y",smoothing_parameter.ecef_base_pos_y);
+  n.getParam("ecef_base_pos/z",smoothing_parameter.ecef_base_pos_z);
   n.getParam("smoothing/estimated_number_max",smoothing_parameter.estimated_number_max);
   n.getParam("smoothing/estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
   n.getParam("smoothing/estimated_threshold",smoothing_parameter.estimated_threshold);

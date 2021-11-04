@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * position_interpolate.cpp
+ * rtk_deadreckoning_node.cpp
  * Author MapIV Sekino
  */
 
@@ -32,16 +32,26 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static geometry_msgs::Vector3Stamped enu_vel;
+static rtklib_msgs::RtklibNav rtklib_nav;
 static sensor_msgs::NavSatFix fix;
+static geometry_msgs::Vector3Stamped enu_vel;
 
-static eagleye_msgs::Position enu_absolute_rtk_interpolate;
+static eagleye_msgs::Position enu_absolute_rtk_deadreckoning;
 static sensor_msgs::NavSatFix eagleye_fix;
 static ros::Publisher pub1;
 static ros::Publisher pub2;
 
-struct PositionInterpolateParameter rtk_interpolate_parameter;
-struct PositionInterpolateStatus rtk_interpolate_status;
+struct RtkDeadreckoningParameter rtk_deadreckoning_parameter;
+struct RtkDeadreckoningStatus rtk_deadreckoning_status;
+
+void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
+{
+  rtklib_nav.header = msg->header;
+  rtklib_nav.tow = msg->tow;
+  rtklib_nav.ecef_pos = msg->ecef_pos;
+  rtklib_nav.ecef_vel = msg->ecef_vel;
+  rtklib_nav.status = msg->status;
+}
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
@@ -58,14 +68,14 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
-  enu_absolute_rtk_interpolate.header = msg->header;
-  enu_absolute_rtk_interpolate.header.frame_id = "base_link";
+  enu_absolute_rtk_deadreckoning.header = msg->header;
+  enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
-  rtk_interpolate_estimate(enu_vel,fix,rtk_interpolate_parameter,&rtk_interpolate_status,&enu_absolute_rtk_interpolate,&eagleye_fix);
-  if(enu_absolute_rtk_interpolate.status.enabled_status == true)
+  rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+  if(enu_absolute_rtk_deadreckoning.status.enabled_status == true)
   {
-    pub1.publish(enu_absolute_rtk_interpolate);
+    pub1.publish(enu_absolute_rtk_deadreckoning);
     pub2.publish(eagleye_fix);
   }
   else if (fix.header.stamp.toSec() != 0)
@@ -76,21 +86,32 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "rtk_interpolate");
+  ros::init(argc, argv, "rtk_deadreckoning");
   ros::NodeHandle n;
 
+  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
+  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("position_interpolate/number_buffer_max", rtk_interpolate_parameter.number_buffer_max);
-  n.getParam("position_interpolate/stop_judgment_velocity_threshold", rtk_interpolate_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
-  std::cout<< "number_buffer_max "<<rtk_interpolate_parameter.number_buffer_max<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<rtk_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
+  n.getParam("ecef_base_pos/x", rtk_deadreckoning_parameter.ecef_base_pos_x);
+  n.getParam("ecef_base_pos/y", rtk_deadreckoning_parameter.ecef_base_pos_y);
+  n.getParam("ecef_base_pos/z", rtk_deadreckoning_parameter.ecef_base_pos_z);
+  n.getParam("ecef_base_pos/use_ecef_base_position", rtk_deadreckoning_parameter.use_ecef_base_position);
+  n.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
 
-  ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  pub1 = n.advertise<eagleye_msgs::Position>("enu_absolute_rtk_interpolate", 1000);
+  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "ecef_base_pos_x "<<rtk_deadreckoning_parameter.ecef_base_pos_x<<std::endl;
+  std::cout<< "ecef_base_pos_y "<<rtk_deadreckoning_parameter.ecef_base_pos_y<<std::endl;
+  std::cout<< "ecef_base_pos_z "<<rtk_deadreckoning_parameter.ecef_base_pos_z<<std::endl;
+  std::cout<< "use_ecef_base_position "<<rtk_deadreckoning_parameter.use_ecef_base_position<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
+
+  ros::Subscriber sub1 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  pub1 = n.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
   pub2 = n.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
 
   ros::spin();
