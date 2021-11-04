@@ -1,12 +1,5 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
-# #Topic setting for eagleye
-# twist_topic: /can_twist
-# imu_topic: /imu/data_raw
-# rtklib_nav_topic: /rtklib_nav
-# navsatfix_topic: /navsat/fix
-# nmea_sentence_topic: /navsat/nmea_sentence
-
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
