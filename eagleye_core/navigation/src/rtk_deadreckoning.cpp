@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::Vector3Stamped enu_vel, sensor_msgs::NavSatFix fix, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
+void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::Vector3Stamped enu_vel, sensor_msgs::NavSatFix fix,  eagleye_msgs::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   double enu_pos[3],enu_rtk[3];
@@ -68,6 +68,31 @@ void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs:
 
     llh2xyz(llh_rtk,ecef_rtk);
     xyz2enu(ecef_rtk,ecef_base_pos,enu_rtk);
+
+    geometry_msgs::PoseStamped pose;
+
+    pose.pose.position.x = enu_rtk[0];
+    pose.pose.position.y = enu_rtk[1];
+    pose.pose.position.z = enu_rtk[2];
+
+    heading.heading_angle = fmod(heading.heading_angle,2*M_PI);
+    tf::Transform transform;
+    tf::Quaternion q;
+    transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
+    q.setRPY(0, 0, (90* M_PI / 180)-heading.heading_angle);
+    transform.setRotation(q);
+
+    tf::Transform transform2;
+    tf::Quaternion q2(rtk_deadreckoning_parameter.tf_gnss_rotation_x,rtk_deadreckoning_parameter.tf_gnss_rotation_y,rtk_deadreckoning_parameter.tf_gnss_rotation_z,rtk_deadreckoning_parameter.tf_gnss_rotation_w);
+    transform2.setOrigin(transform*tf::Vector3(-rtk_deadreckoning_parameter.tf_gnss_translation_x, -rtk_deadreckoning_parameter.tf_gnss_translation_y,-rtk_deadreckoning_parameter.tf_gnss_translation_z));
+    transform2.setRotation(transform*q2);
+
+    tf::Vector3 tmp_pos;
+    tmp_pos = transform2.getOrigin();
+
+    enu_rtk[0] = tmp_pos.getX();
+    enu_rtk[1] = tmp_pos.getY();
+    enu_rtk[2] = tmp_pos.getZ();
 
     if (rtk_deadreckoning_status->position_stamp_last != fix.header.stamp.toSec() && fix.status.status == 0)
     {

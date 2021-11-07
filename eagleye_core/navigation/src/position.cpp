@@ -97,10 +97,32 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   else
   {
     gnss_status = true;
-    enu_pos[0] = enu_pos[0];
-    enu_pos[1] = enu_pos[1];
-    enu_pos[2] = enu_pos[2];
     position_status->tow_last = rtklib_nav.tow;
+
+    geometry_msgs::PoseStamped pose;
+
+    pose.pose.position.x = enu_pos[0];
+    pose.pose.position.y = enu_pos[1];
+    pose.pose.position.z = enu_pos[2];
+
+    heading_interpolate_3rd.heading_angle = fmod(heading_interpolate_3rd.heading_angle,2*M_PI);
+    tf::Transform transform;
+    tf::Quaternion q;
+    transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
+    q.setRPY(0, 0, (90* M_PI / 180)-heading_interpolate_3rd.heading_angle);
+    transform.setRotation(q);
+
+    tf::Transform transform2;
+    tf::Quaternion q2(position_parameter.tf_gnss_rotation_x,position_parameter.tf_gnss_rotation_y,position_parameter.tf_gnss_rotation_z,position_parameter.tf_gnss_rotation_w);
+    transform2.setOrigin(transform*tf::Vector3(-position_parameter.tf_gnss_translation_x, -position_parameter.tf_gnss_translation_y, -position_parameter.tf_gnss_translation_z));
+    transform2.setRotation(transform*q2);
+
+    tf::Vector3 tmp_pos;
+    tmp_pos = transform2.getOrigin();
+
+    enu_pos[0] = tmp_pos.getX();
+    enu_pos[1] = tmp_pos.getY();
+    enu_pos[2] = tmp_pos.getZ();
   }
 
   if (heading_interpolate_3rd.status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)

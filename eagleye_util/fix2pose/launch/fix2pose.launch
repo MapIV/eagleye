@@ -2,9 +2,6 @@
 
 <launch>
 
-  <include file="$(find eagleye_fix2pose)/launch/sample_tf.launch">
-  </include>
-
   <arg name="plane" default="7"/>
 
   <!-- 1 : plane  2 : mgrs  -->
