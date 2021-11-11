@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>can_velocity_converter</name>
+  <name>eagleye_can_velocity_converter</name>
   <version>1.0.0</version>
   <description>The can_velocity_converter package</description>
 

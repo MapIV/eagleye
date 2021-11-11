@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(coordinate)
+project(eagleye_coordinate)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,6 +8,14 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   roslib
   geodesy
+)
+
+find_package(PkgConfig)
+find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
+  PAHT_SUFFIXES GeographicLib
+)
+set(GeographicLib_LIBRARIES
+  NAMES Geographic
 )
 
 catkin_package(
@@ -19,6 +27,10 @@ include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
+  ${GeographicLib_INCLUDE_DIRS}
+)
+link_directories(
+  /usr/local/lib
 )
 
 add_library(coordinate
@@ -37,11 +49,18 @@ add_library(coordinate
 
 target_link_libraries(coordinate
   ${catkin_LIBRARIES}
+  Geographic
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/coordinate/
+  DESTINATION include/coordinate
   FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(
+  DIRECTORY
+    data
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(TARGETS coordinate

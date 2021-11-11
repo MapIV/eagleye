@@ -17,8 +17,12 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>rtklib_msgs</build_depend>
   <build_depend>eagleye_msgs</build_depend>
-  <build_depend>coordinate</build_depend>
-  <build_depend>navigation</build_depend>
+  <build_depend>eagleye_coordinate</build_depend>
+  <build_depend>eagleye_navigation</build_depend>
+  <build_depend>diagnostic_updater</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
@@ -27,8 +31,12 @@
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>rtklib_msgs</build_export_depend>
   <build_export_depend>eagleye_msgs</build_export_depend>
-  <build_export_depend>coordinate</build_export_depend>
-  <build_export_depend>navigation</build_export_depend>
+  <build_export_depend>eagleye_coordinate</build_export_depend>
+  <build_export_depend>eagleye_navigation</build_export_depend>
+  <build_export_depend>diagnostic_updater</build_export_depend>
+  <build_export_depend>tf2</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
+  <build_export_depend>tf2_geometry_msgs</build_export_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
@@ -37,9 +45,12 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>rtklib_msgs</exec_depend>
   <exec_depend>eagleye_msgs</exec_depend>
-  <exec_depend>coordinate</exec_depend>
-  <exec_depend>navigation</exec_depend>
-
+  <exec_depend>eagleye_coordinate</exec_depend>
+  <exec_depend>eagleye_navigation</exec_depend>
+  <exec_depend>diagnostic_updater</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
 
   <export>
   </export>

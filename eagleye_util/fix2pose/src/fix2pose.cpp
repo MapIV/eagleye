@@ -45,14 +45,12 @@ static geometry_msgs::Quaternion _quat;
 static ros::Publisher pub;
 static geometry_msgs::PoseStamped pose;
 
-static double gps_x,gps_y,gps_z,gps_yaw,gps_pitch,gps_roll;
-static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
-
 static double m_lat,m_lon,m_h;
 static double m_x,m_y,m_z;
 static int convert_height_num = 0;
 static int plane = 7;
 static int tf_num = 1;
+static std::string parent_frame_id, child_frame_id;
 
 static ConvertHeight convert_height;
 
@@ -130,15 +128,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
   q.setRPY(0, 0, (90* M_PI / 180)-eagleye_heading.heading_angle);
   transform.setRotation(q);
-
-  static tf::TransformBroadcaster br2;
-  tf::Transform transform2;
-  tf::Quaternion q2;
-  transform2.setOrigin(transform*tf::Vector3(-gps_x, -gps_y,-gps_z));
-  q2.setRPY(gps_yaw, gps_pitch, gps_roll);
-  transform2.setRotation(transform*q2);
-  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, "map", "base_link"));
-
+  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, parent_frame_id, child_frame_id));
 }
 
 int main(int argc, char** argv)
@@ -146,42 +136,21 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle n;
 
-  n.getParam("plane",plane);
-  n.getParam("tf_num",tf_num);
-  n.getParam("convert_height_num",convert_height_num);
-  n.getParam("gps_x",gps_x);
-  n.getParam("gps_y",gps_y);
-  n.getParam("gps_z",gps_z);
-  n.getParam("gps_yaw",gps_yaw);
-  n.getParam("gps_pitch",gps_pitch);
-  n.getParam("gps_roll",gps_roll);
-  n.getParam("imu_x",imu_x);
-  n.getParam("imu_y",imu_y);
-  n.getParam("imu_z",imu_z);
-  n.getParam("imu_yaw",imu_yaw);
-  n.getParam("imu_pitch",imu_pitch);
-  n.getParam("imu_roll",imu_roll);
+  n.getParam("fix2pose_node/plane",plane);
+  n.getParam("fix2pose_node/tf_num",tf_num);
+  n.getParam("fix2pose_node/convert_height_num",convert_height_num);
+  n.getParam("fix2pose_node/parent_frame_id",parent_frame_id);
+  n.getParam("fix2pose_node/child_frame_id",child_frame_id);
 
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
   std::cout<< "convert_height_num "<<convert_height_num<<std::endl;
-  std::cout<< "gps_x "<<gps_x<<std::endl;
-  std::cout<< "gps_y "<<gps_y<<std::endl;
-  std::cout<< "gps_z "<<gps_z<<std::endl;
-  std::cout<< "gps_yaw "<<gps_yaw<<std::endl;
-  std::cout<< "gps_pitch "<<gps_pitch<<std::endl;
-  std::cout<< "gps_roll "<<gps_roll<<std::endl;
-  std::cout<< "imu_x "<<imu_x<<std::endl;
-  std::cout<< "imu_y "<<imu_y<<std::endl;
-  std::cout<< "imu_z "<<imu_z<<std::endl;
-  std::cout<< "imu_yaw "<<imu_yaw<<std::endl;
-  std::cout<< "imu_pitch "<<imu_pitch<<std::endl;
-  std::cout<< "imu_roll "<<imu_roll<<std::endl;
+  std::cout<< "parent_frame_id "<<parent_frame_id<<std::endl;
+  std::cout<< "child_frame_id "<<child_frame_id<<std::endl;
 
-
-  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub1 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  ros::Subscriber sub2 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  ros::Subscriber sub3 = n.subscribe("eagleye/fix", 1000, fix_callback);
   pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 

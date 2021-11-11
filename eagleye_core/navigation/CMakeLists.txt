@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(navigation)
+project(eagleye_navigation)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -8,7 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   rtklib_msgs
   eagleye_msgs
-  coordinate
+  eagleye_coordinate
 )
 
 catkin_package(
@@ -30,13 +30,14 @@ add_library(navigation
   src/heading.cpp
   src/position.cpp
   src/slip_angle.cpp
+  src/slip_coefficient.cpp
   src/smoothing.cpp
   src/trajectory.cpp
   src/heading_interpolate.cpp
   src/position_interpolate.cpp
   src/height.cpp
   src/angular_velocity_offset_stop.cpp
-  src/rtk_interpolate.cpp
+  src/rtk_deadreckoning.cpp
   src/rtk_heading.cpp
 
 )
@@ -45,8 +46,8 @@ target_link_libraries(navigation
   ${catkin_LIBRARIES}
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/navigation/
+  DESTINATION include/navigation/
   FILES_MATCHING PATTERN "*.hpp"
 )
 

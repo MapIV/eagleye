@@ -32,6 +32,10 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+
 static rtklib_msgs::RtklibNav rtklib_nav;
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -94,7 +98,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   slip_coefficient_estimate(imu,rtklib_nav,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,heading_interpolate_3rd,slip_coefficient_parameter,&slip_coefficient_status,&estimate_coefficient);
 
   std::cout << "--- \033[1;34m slip_coefficient \033[m ------------------------------"<< std::endl;
-  std::cout<<"\033[1m estimate_coefficient \033[mx "<<estimate_coefficient<<std::endl;
+  std::cout<<"\033[1m estimate_coefficient \033[m "<<estimate_coefficient<<std::endl;
   std::cout << std::endl;
 }
 
@@ -107,15 +111,15 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("eagleye/reverse_imu", slip_coefficient_parameter.reverse_imu);
-  n.getParam("eagleye/slip_coefficient/estimated_number_min", slip_coefficient_parameter.estimated_number_min);
-  n.getParam("eagleye/slip_coefficient/estimated_number_max", slip_coefficient_parameter.estimated_number_max);
-  n.getParam("eagleye/slip_coefficient/estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/slip_coefficient/estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
-  n.getParam("eagleye/slip_coefficient/lever_arm", slip_coefficient_parameter.lever_arm);
-  n.getParam("eagleye/slip_coefficient/stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
+  n.getParam("imu_topic",subscribe_imu_topic_name);
+  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("reverse_imu", slip_coefficient_parameter.reverse_imu);
+  n.getParam("slip_coefficient/estimated_number_min", slip_coefficient_parameter.estimated_number_min);
+  n.getParam("slip_coefficient/estimated_number_max", slip_coefficient_parameter.estimated_number_max);
+  n.getParam("slip_coefficient/estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
+  n.getParam("slip_coefficient/estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
+  n.getParam("slip_coefficient/lever_arm", slip_coefficient_parameter.lever_arm);
+  n.getParam("slip_coefficient/stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
@@ -129,19 +133,18 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback);
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
-  ros::Subscriber sub3 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  ros::Subscriber sub4 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  ros::Subscriber sub5 = n.subscribe("eagleye/yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  ros::Subscriber sub6 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  ros::Subscriber sub4 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
+  ros::Subscriber sub5 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
+  ros::Subscriber sub6 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
 
   ros::spin();
 
-  FILE *fp;
   std::string str;
   n.getParam("output_dir", str);
-  fp = fopen(str.c_str(),"w");
-  fprintf(fp,"slip_coefficient %lf",estimate_coefficient);
-  fclose(fp);
+  std::ofstream ofs(str, std::ios_base::trunc | std::ios_base::out);
+  ofs << "slip_coefficient" << " : " << estimate_coefficient << std::endl;
+  ofs.close();
 
   return 0;
 }

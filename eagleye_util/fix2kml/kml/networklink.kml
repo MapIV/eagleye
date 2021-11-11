@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+<Document>
+<name>Eagleye positon updator</name>
+<open>1</open>
+  <Folder id="ID1">
+  <name>Screen Overlays</name>
+  <visibility>0</visibility>
+  <open>0</open>
+    <ScreenOverlay>
+      <name>Eagleye Logo</name>
+      <visibility>1</visibility>
+      <Icon>
+        <href>https://github.com/MapIV/eagleye/blob/master/docs/logo.png?raw=true</href>
+      </Icon>
+      <overlayXY x="-0.3" y="-1" xunits="fraction" yunits="fraction"/>
+      <screenXY x="0" y="0" xunits="fraction" yunits="fraction"/>
+      <size x="260.6" y="56.0" xunits="pixels" yunits="pixels"/>
+    </ScreenOverlay>
+  </Folder>
+  <Folder id="ID2">
+  <NetworkLink>
+    <name>Eagleye Networklink</name>
+    <flyToView>0</flyToView>
+    <Link>
+      <href>eagleye_fix.kml</href>
+      <refreshMode>onInterval</refreshMode>
+      <refreshInterval>0.02</refreshInterval>
+      <viewRefreshMode>onStop</viewRefreshMode>
+      <viewRefreshTime>7</viewRefreshTime>
+      <viewFormat>BBOX=[bboxWest],[bboxSouth],[bboxEast],[bboxNorth];CAMERA=\
+        [lookatLon],[lookatLat],[lookatRange],[lookatTilt],[lookatHeading];VIEW=\
+        [horizFov],[vertFov],[horizPixels],[vertPixels],[terrainEnabled]</viewFormat>
+    </Link>
+  </NetworkLink>
+  </Folder>
+</Document>
+</kml>

@@ -32,6 +32,11 @@ jobs:
             apt-get install ros-kinetic-geodesy
 
       - run:
+          name: Install GeographicLib
+          command: |
+            apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
+
+      - run:
           name: Build
           command: |
             source /opt/ros/kinetic/setup.bash
@@ -71,6 +76,11 @@ jobs:
           name: Install ros-melodic-geodesy
           command: |
             apt-get install ros-melodic-geodesy
+
+      - run:
+          name: Install GeographicLib
+          command: |
+            apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 
       - run:
           name: Build

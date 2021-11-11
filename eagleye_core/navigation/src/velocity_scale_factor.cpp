@@ -37,7 +37,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
     double ecef_pos[3];
     double enu_vel[3];
 
-    bool gnss_status;
+    bool gnss_status,gnss_update;
     int i;
     double initial_velocity_scale_factor = 1.0;
     double doppler_velocity = 0.0;
@@ -54,6 +54,18 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
 
     xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
 
+    if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
+    {
+      enu_vel[0] = 0;
+      enu_vel[1] = 0;
+      enu_vel[2] = 0;
+      gnss_update = false;
+    }
+    else
+    {
+      gnss_update = true;
+    }
+
     doppler_velocity = std::sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
 
   if (velocity_scale_factor_status->estimated_number < velocity_scale_factor_parameter.estimated_number_max)
@@ -65,7 +77,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
     velocity_scale_factor_status->estimated_number = velocity_scale_factor_parameter.estimated_number_max;
   }
 
-  if (velocity_scale_factor_status->tow_last == rtklib_nav.tow)
+  if (velocity_scale_factor_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
   {
     gnss_status = false;
     doppler_velocity = 0;

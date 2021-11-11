@@ -33,7 +33,7 @@
 #include <time.h>
 #include <memory>
 
-extern double stringToROSTime(std::string&, double);
+extern double stringToGPSTime(std::string&, double);
 extern void nmea2fix_converter(const nmea_msgs::Sentence,  sensor_msgs::NavSatFix*, nmea_msgs::Gpgga*);
 
 #endif /*NMEA2FIX_H */
