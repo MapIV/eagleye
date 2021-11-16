@@ -135,20 +135,20 @@ To load the configuration, change the ublox FW version to 1.10.
 
 5. Start rtklib_ros_bridge.
 
-		roslaunch rtklib_bridge rtklib_bridge.launch   
+		 ros2 run rtklib_bridge rtklib_bridge --ros-args --params-file $HOME/colcon_ws/src/rtklib_ros_bridge/rtklib_bridge/param/param.yaml    
 
 6. Start nmea_comms and [nmea2fix](eagleye_util/nmea2fix/README.md).
 
-		roslaunch nmea_comms f9p_nmea_sentence.launch
-		roslaunch nmea2fix nmea2fix.launch
+		ros2 launch nmea_comms f9p_nmea_sentence.launch
+		ros2 launch nmea2fix nmea2fix.launch
 
 7. Start eagleye.
 
-		roslaunch eagleye_rt eagleye_rt.launch
+		ros2 launch eagleye_rt eagleye_rt.launch
 
 To visualize the eagleye output location /eagleye/fix, for example, use the following command
 
-	rosrun fix2kml fix2kml
+		ros2 run fix2kml fix2kml
 
 ### When eagleye's GNSS input is RTK
 #### Prerequisites in the case of RTK
@@ -170,28 +170,22 @@ When inputting RTK results from the F9P into the Eagleye, two F9Ps are used as f
 2. Clone and build [rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge).
 
 		cd $HOME/catkin_ws/src
-		git clone https://github.com/MapIV/rtklib_ros_bridge.git
+		git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
 		cd ..
-		catkin_make -DCMAKE_BUILD_TYPE=Release
+		ccolcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 3. Clone and build [nmea_comms](https://github.com/MapIV/nmea_comms.git).
 
 		cd $HOME/catkin_ws/src
-		git clone https://github.com/MapIV/nmea_comms.git
+		git clone https://github.com/MapIV/nmea_comms.git -b ros2-v0.1.0
 		cd ..
-		catkin_make -DCMAKE_BUILD_TYPE=Release
+		ccolcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 
 
 4. Installing dependent packages  
 
-In the case of Ubuntu18.04 melodic.   
+		rosdep install -r -y --from-paths . --ignore-src --rosdistro $ROS_DISTRO
 
-		sudo apt-get install ros-melodic-geodesy
-		sudo apt-get install ros-melodic-can-msgs
-In the case of Ubuntu16.04 kinetic.  
-
-		sudo apt-get install ros-kinetic-geodesy
-		sudo apt-get install ros-kinetic-can-msgs
 
 5. Clone and build [eagleye](https://github.com/MapIV/eagleye.git).
 
@@ -266,12 +260,12 @@ To load the configuration, change the ublox FW version to 1.10.
 
 5. Start rtklib_ros_bridge.
 
-		roslaunch rtklib_bridge rtklib_bridge.launch
+		 ros2 run rtklib_bridge rtklib_bridge --ros-args --params-file $HOME/colcon_ws/src/rtklib_ros_bridge/rtklib_bridge/param/param.yaml   
 
-6. Start nmea_comms and [nmea2fix](eagleye_util/nmea2fix/README.md).
+6. Start [nmea_comms](https://github.com/MapIV/nmea2fix/tree/ros2-v0.1.0) and [nmea2fix](eagleye_util/nmea2fix/README.md).
 
-		roslaunch nmea_comms f9p_nmea_sentence.launch
-		roslaunch nmea2fix nmea2fix.launch
+		ros2 launch nmea_comms f9p_nmea_sentence.launch
+		ros2 launch nmea2fix nmea2fix.launch
 
 7. Start RTKLIB str2str to send the correction information to the receiver that outputs NMEA.
 
@@ -279,11 +273,11 @@ To load the configuration, change the ublox FW version to 1.10.
 
 8. Start eagleye.
 
-		roslaunch eagleye_rt eagleye_rt.launch
+		ros2 launch eagleye_rt eagleye_rt.launch
 
 To visualize the eagleye output location /eagleye/fix, for example, use the following command
 
-	rosrun fix2kml fix2kml
+		ros2 run fix2kml fix2kml
 
 ## Sample data
 ### ROSBAG
@@ -298,14 +292,15 @@ The 3D maps (point cloud and vector data) of the route is also available from [A
 
 ### How to try the sample data
 
+You need to use ros1_bridge.
+
 1. Play the sample data.  
 
-		rosparam set use_sim_time true
-		rosbag play --clock eagleye_sample.bag
+		ros2 bag play -s rosbag_v2 eagleye_sample.bag
 
 2. Launch eagleye.  
 
-		roslaunch eagleye_rt eagleye_rt.launch
+		ros2 launch eagleye_rt eagleye_rt.launch
 
 The estimated results will be output about 100 seconds after playing the rosbag. This is because we need to wait for the data to accumulate for estimation.
 
