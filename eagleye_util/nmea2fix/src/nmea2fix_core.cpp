@@ -50,7 +50,7 @@ double stringToROSTime(std::string& input, double header_time)
   return GPSTime;
 }
 
-void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatFix* fix, nmea_msgs::Gpgga* gga)
+void nmea2fix_converter(const nmea_msgs::msg::Sentence sentence, sensor_msgs::msg::NavSatFix* fix, nmea_msgs::msg::Gpgga* gga)
 {
 
   std::vector<std::string> linedata,nmea_data;
@@ -58,6 +58,8 @@ void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatF
   std::stringstream tmp_ss(sentence.sentence);
   int i;
   int index_length;
+
+  rclcpp::Time ros_clock(sentence.header.stamp);
 
   while (getline(tmp_ss, token1, '\n'))
   {
@@ -82,7 +84,7 @@ void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatF
         gga->header = sentence.header;
         gga->message_id = nmea_data[0];
         // gga->utc_seconds = stod(nmea_data[1]);
-        if(!nmea_data[1].empty()) gga->utc_seconds = stringToROSTime(nmea_data[1], sentence.header.stamp.toSec());
+        if(!nmea_data[1].empty()) gga->utc_seconds = stringToROSTime(nmea_data[1], ros_clock.seconds());
         gga->lat = floor(stod(nmea_data[2])/100) + fmod(stod(nmea_data[2]),100)/60;
         gga->lat_dir = nmea_data[3];
         gga->lon = floor(stod(nmea_data[4])/100) + fmod(stod(nmea_data[4]),100)/60;

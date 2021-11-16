@@ -31,8 +31,10 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
+void yawrate_offset_estimate(const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,const eagleye_msgs::msg::Heading heading_interpolate,const sensor_msgs::msg::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::msg::YawrateOffset* yawrate_offset)
 {
+  rclcpp::Time ros_clock(imu.header.stamp);
+
   int i;
   double yawrate = 0.0;
   double sum_xy, sum_x, sum_y, sum_x2;
@@ -62,7 +64,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   }
 
   // data buffer generate
-  yawrate_offset_status->time_buffer.push_back(imu.header.stamp.toSec());
+  yawrate_offset_status->time_buffer.push_back(ros_clock.seconds());
   yawrate_offset_status->yawrate_buffer.push_back(yawrate);
   yawrate_offset_status->heading_angle_buffer.push_back(heading_interpolate.heading_angle);
   yawrate_offset_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);

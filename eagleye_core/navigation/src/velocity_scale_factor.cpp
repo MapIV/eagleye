@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
+void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav, const geometry_msgs::msg::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
 {
     double ecef_vel[3];
     double ecef_pos[3];

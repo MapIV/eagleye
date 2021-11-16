@@ -28,22 +28,32 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "geometry_msgs/PointStamped.h"
-#include "geometry_msgs/PoseStamped.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "eagleye_msgs/Heading.h"
-#include "eagleye_msgs/Position.h"
-#include "tf/transform_broadcaster.h"
+#include "rclcpp/rclcpp.hpp"
+#include "geometry_msgs/msg/point_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "eagleye_msgs/msg/heading.hpp"
+#include "eagleye_msgs/msg/position.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "coordinate/coordinate.hpp"
 
+auto createQuaternionMsgFromYaw(double yaw)
+{
+  tf2::Quaternion q;
+  q.setRPY(0, 0, yaw);
+  return tf2::toMsg(q);
+}
 
-static eagleye_msgs::Heading eagleye_heading;
-static eagleye_msgs::Position eagleye_position;
-static geometry_msgs::Quaternion _quat;
 
-static ros::Publisher pub;
-static geometry_msgs::PoseStamped pose;
+static eagleye_msgs::msg::Heading eagleye_heading;
+static eagleye_msgs::msg::Position eagleye_position;
+static geometry_msgs::msg::Quaternion _quat;
+
+rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub;
+std::shared_ptr<tf2_ros::TransformBroadcaster> br;
+std::shared_ptr<tf2_ros::TransformBroadcaster> br2;
+static geometry_msgs::msg::PoseStamped pose;
 
 static double gps_x,gps_y,gps_z,gps_yaw,gps_pitch,gps_roll;
 static double imu_x,imu_y,imu_z,imu_yaw,imu_pitch,imu_roll;
@@ -54,14 +64,14 @@ static bool altitude_estimate;
 static int plane = 7;
 static int tf_num = 1;
 
-void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   eagleye_heading.header = msg->header;
   eagleye_heading.heading_angle = msg->heading_angle;
   eagleye_heading.status = msg->status;
 }
 
-void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void position_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   eagleye_position.header = msg->header;
   eagleye_position.enu_pos = msg->enu_pos;
@@ -69,9 +79,8 @@ void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
   eagleye_position.status = msg->status;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-
   double llh[3] = {0};
   double _llh[3] = {0};
   double xyz[3] = {0};
@@ -105,11 +114,11 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   if (eagleye_heading.status.enabled_status == true)
   {
     eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    _quat = tf::createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
+    _quat = createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
   }
   else
   {
-    _quat = tf::createQuaternionMsgFromYaw(0);
+    _quat = createQuaternionMsgFromYaw(0);
   }
 
   pose.header = msg->header;
@@ -118,45 +127,72 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   pose.pose.position.y = xyz[0];
   pose.pose.position.z = xyz[2];
   pose.pose.orientation = _quat;
-  pub.publish(pose);
-
-  static tf::TransformBroadcaster br;
-  tf::Transform transform;
-  tf::Quaternion q;
-  transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
+  pub->publish(pose);
+  
+  tf2::Transform transform;
+  tf2::Quaternion q;
+  transform.setOrigin(tf2::Vector3(pose.pose.position.x,pose.pose.position.y,pose.pose.position.z));
   q.setRPY(0, 0, (90* M_PI / 180)-eagleye_heading.heading_angle);
   transform.setRotation(q);
 
-  static tf::TransformBroadcaster br2;
-  tf::Transform transform2;
-  tf::Quaternion q2;
-  transform2.setOrigin(transform*tf::Vector3(-gps_x, -gps_y,-gps_z));
-  q2.setRPY(gps_yaw, gps_pitch, gps_roll);
-  transform2.setRotation(transform*q2);
-  br2.sendTransform(tf::StampedTransform(transform2, msg->header.stamp, "map", "base_link"));
+  // geometry_msgs::msg::TransformStamped trans_msg;
+  // trans_msg.header.stamp = msg->header.stamp;
+  // trans_msg.header.frame_id = "map";
+  // trans_msg.child_frame_id = "eagleye";
+  // trans_msg.transform = tf2::toMsg(transform);
+  // br->sendTransform(trans_msg);
 
+  tf2::Transform transform2;
+  tf2::Quaternion q2;
+  transform2.setOrigin(transform*tf2::Vector3(-gps_x, -gps_y,-gps_z));
+  q2.setRPY(gps_roll, gps_pitch, gps_yaw);
+  transform2.setRotation(transform*q2);
+
+  geometry_msgs::msg::TransformStamped trans_msg2;
+  trans_msg2.header.stamp = msg->header.stamp;
+  trans_msg2.header.frame_id = "map";
+  trans_msg2.child_frame_id = "base_link";
+  trans_msg2.transform = tf2::toMsg(transform2);
+  br2->sendTransform(trans_msg2);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "fix2pose");
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("fix2pose");
 
-  n.getParam("plane",plane);
-  n.getParam("tf_num",tf_num);
-  n.getParam("altitude_estimate",altitude_estimate);
-  n.getParam("gps_x",gps_x);
-  n.getParam("gps_y",gps_y);
-  n.getParam("gps_z",gps_z);
-  n.getParam("gps_yaw",gps_yaw);
-  n.getParam("gps_pitch",gps_pitch);
-  n.getParam("gps_roll",gps_roll);
-  n.getParam("imu_x",imu_x);
-  n.getParam("imu_y",imu_y);
-  n.getParam("imu_z",imu_z);
-  n.getParam("imu_yaw",imu_yaw);
-  n.getParam("imu_pitch",imu_pitch);
-  n.getParam("imu_roll",imu_roll);
+  node->declare_parameter("plane",plane);
+  node->declare_parameter("tf_num",tf_num);
+  node->declare_parameter("altitude_estimate",altitude_estimate);
+  node->declare_parameter("gps_x",gps_x);
+  node->declare_parameter("gps_y",gps_y);
+  node->declare_parameter("gps_z",gps_z);
+  node->declare_parameter("gps_yaw",gps_yaw);
+  node->declare_parameter("gps_pitch",gps_pitch);
+  node->declare_parameter("gps_roll",gps_roll);
+  node->declare_parameter("imu_x",imu_x);
+  node->declare_parameter("imu_y",imu_y);
+  node->declare_parameter("imu_z",imu_z);
+  node->declare_parameter("imu_yaw",imu_yaw);
+  node->declare_parameter("imu_pitch",imu_pitch);
+  node->declare_parameter("imu_roll",imu_roll);
+
+  node->get_parameter("plane",plane);
+  node->get_parameter("tf_num",tf_num);
+  node->get_parameter("altitude_estimate",altitude_estimate);
+  node->get_parameter("gps_x",gps_x);
+  node->get_parameter("gps_y",gps_y);
+  node->get_parameter("gps_z",gps_z);
+  node->get_parameter("gps_yaw",gps_yaw);
+  node->get_parameter("gps_pitch",gps_pitch);
+  node->get_parameter("gps_roll",gps_roll);
+  node->get_parameter("imu_x",imu_x);
+  node->get_parameter("imu_y",imu_y);
+  node->get_parameter("imu_z",imu_z);
+  node->get_parameter("imu_yaw",imu_yaw);
+  node->get_parameter("imu_pitch",imu_pitch);
+  node->get_parameter("imu_roll",imu_roll);
+
 
   std::cout<< "plane "<<plane<<std::endl;
   std::cout<< "tf_num "<<tf_num<<std::endl;
@@ -174,12 +210,13 @@ int main(int argc, char** argv)
   std::cout<< "imu_pitch "<<imu_pitch<<std::endl;
   std::cout<< "imu_roll "<<imu_roll<<std::endl;
 
-
-  ros::Subscriber sub1 = n.subscribe("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = n.subscribe("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = n.subscribe("/eagleye/fix", 1000, fix_callback);
-  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
-  ros::spin();
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, fix_callback);
+  pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
+  br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
+  br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
+  rclcpp::spin(node);
 
   return 0;
 }

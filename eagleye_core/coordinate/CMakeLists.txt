@@ -1,47 +1,66 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(coordinate)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  geodesy
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES coordinate
-)
+find_package(ament_cmake_auto REQUIRED)
 
-include_directories(
-  include
-  ${PROJECT_SOURCE_DIR}/include
-  ${catkin_INCLUDE_DIRS}
-)
+ament_auto_find_build_dependencies()
 
-add_library(coordinate
+include_directories(include)
+
+ament_auto_add_library(coordinate SHARED
   src/ecef2llh.cpp
   src/enu2llh.cpp
   src/hgeoid.cpp
+  src/ll2xy_mgrs.cpp
   src/ll2xy.cpp
   src/llh2xyz.cpp
-  src/xyz2enu.cpp
   src/xyz2enu_vel.cpp
-  src/ll2xy_mgrs.cpp
+  src/xyz2enu.cpp
+  include/coordinate/coordinate.hpp
 )
 
-target_link_libraries(coordinate
-  ${catkin_LIBRARIES}
+ament_export_include_directories(include)
+ament_target_dependencies(coordinate)
+
+install(
+  DIRECTORY include/${PROJECT_NAME}
+  DESTINATION include
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-  FILES_MATCHING PATTERN "*.hpp"
+
+target_include_directories(coordinate
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS coordinate
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+ament_export_libraries(coordinate)
+
+install(
+  TARGETS coordinate
+  EXPORT export_coordinate
+  LIBRARY DESTINATION lib
+  INCLUDES DESTINATION include
 )
+
+install(TARGETS
+  coordinate
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+)
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_auto_package()

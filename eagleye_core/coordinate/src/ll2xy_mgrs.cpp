@@ -31,7 +31,6 @@
 #include <iostream>
 
 
-
 int checkCrossBoader(std::string code_origin, std::string code_current, bool is_x)
 {
   std::map<std::string, int> mgrs_alphabet{ { "A", 0 },  { "B", 1 },  { "C", 2 },  { "D", 3 },  { "E", 4 },
@@ -98,7 +97,7 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
     exit(4);
   }
 
-  geographic_msgs::GeoPoint wgs_point;
+  geographic_msgs::msg::GeoPoint wgs_point;
   wgs_point.latitude = llh[0]*180/M_PI;
   wgs_point.longitude = llh[1]*180/M_PI;
   //wgs_point.latitude = llh[0];

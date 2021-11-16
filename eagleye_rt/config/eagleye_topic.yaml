@@ -1,8 +1,8 @@
-eagleye:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
-
+/**:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
+  ros__parameters:
 # Using Topic Name
- twist_topic: /can_twist
- imu_topic: /imu/data_raw
- rtklib_nav_topic: /rtklib_nav
- navsatfix_topic: /f9p/fix
- nmea_sentence_topic: /f9p/nmea_sentence
+    twist_topic: "can_twist"
+    imu_topic: "imu/data_raw"
+    rtklib_nav_topic: "rtklib_nav"
+    navsatfix_topic: "navsat/fix"
+    nmea_sentence_topic: "nmea_sentence"

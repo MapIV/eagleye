@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+ 
+  <!-- <include file="$(find-pkg-share fix2pose)/launch/sample_tf.xml"/> -->
+
+  <node pkg="fix2pose" name="fix2pose" exec="fix2pose" output="screen">
+    <param name="plane" value="7"/>
+    <param name="tf_num" value="1"/>
+    <!-- 1 : plane  2 : mgrs  -->
+    <param name="altitude_estimate" value="true"/>
+    <param name="gps_x" value="0.0"/>
+    <param name="gps_y" value="0.0"/>
+    <param name="gps_z" value="0.0"/>
+    <param name="gps_yaw" value="0.0"/>
+    <param name="gps_pitch" value="0.0"/>
+    <param name="gps_roll" value="0.0"/>
+    <param name="imu_x" value="0.0"/>
+    <param name="imu_y" value="0.0"/>
+    <param name="imu_z" value="0.0"/>
+    <param name="imu_yaw" value="0.0"/>
+    <param name="imu_pitch" value="0.0"/>
+    <param name="imu_roll" value="0.0"/>
+  </node>
+
+
+</launch>

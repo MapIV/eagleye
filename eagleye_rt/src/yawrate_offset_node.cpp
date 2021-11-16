@@ -28,21 +28,22 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
+#include "rclcpp/rclcpp.hpp"
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::Heading heading_interpolate;
-static sensor_msgs::Imu imu;
-static ros::Publisher pub;
-static eagleye_msgs::YawrateOffset yawrate_offset;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::msg::Heading heading_interpolate;
+static sensor_msgs::msg::Imu imu;
+
+rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr pub;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset;
 
 struct YawrateOffsetParameter yawrate_offset_parameter;
 struct YawrateOffsetStatus yawrate_offset_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.scale_factor = msg->scale_factor;
@@ -50,21 +51,21 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   velocity_scale_factor.status = msg->status;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_stop.status = msg->status;
 }
 
-void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate.header = msg->header;
   heading_interpolate.heading_angle = msg->heading_angle;
   heading_interpolate.status = msg->status;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -75,23 +76,30 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   yawrate_offset.header = msg->header;
   yawrate_offset_estimate(velocity_scale_factor,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_parameter, &yawrate_offset_status, &yawrate_offset);
-  pub.publish(yawrate_offset);
+  pub->publish(yawrate_offset);
   yawrate_offset.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "yawrate_offset");
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("yawrate_offset");
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("eagleye/imu_topic",subscribe_imu_topic_name);
-  n.getParam("eagleye/reverse_imu", yawrate_offset_parameter.reverse_imu);
-  n.getParam("eagleye/yawrate_offset/estimated_number_min",yawrate_offset_parameter.estimated_number_min);
-  n.getParam("eagleye/yawrate_offset/estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
-  n.getParam("eagleye/yawrate_offset/estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
-  n.getParam("eagleye/yawrate_offset/outlier_threshold",yawrate_offset_parameter.outlier_threshold);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", yawrate_offset_parameter.reverse_imu);
+  node->declare_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
+  node->declare_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
+  node->declare_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
+  node->declare_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
+
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", yawrate_offset_parameter.reverse_imu);
+  node->get_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
+  node->get_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
+  node->get_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
+  node->get_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<yawrate_offset_parameter.reverse_imu<<std::endl;
@@ -103,41 +111,44 @@ int main(int argc, char** argv)
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
 
-  if (argc == 2)
+  if (argc > 2)
   {
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "eagleye/yawrate_offset_1st";
       subscribe_topic_name = "eagleye/heading_interpolate_1st";
-      n.getParam("eagleye/yawrate_offset/1st/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      node->declare_parameter("yawrate_offset.1st.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      node->get_parameter("yawrate_offset.1st.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
       std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "eagleye/yawrate_offset_2nd";
       subscribe_topic_name = "eagleye/heading_interpolate_2nd";
-      n.getParam("eagleye/yawrate_offset/2nd/estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      node->declare_parameter("yawrate_offset.2nd.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
+      node->get_parameter("yawrate_offset.2nd.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
       std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else
     {
-      ROS_ERROR("Invalid argument");
-      ros::shutdown();
+      // ROS_ERROR("Invalid argument");
+      RCLCPP_ERROR(node->get_logger(), "No arguments");
+      rclcpp::shutdown();
     }
   }
   else
   {
-    ROS_ERROR("No arguments");
-    ros::shutdown();
+    RCLCPP_ERROR(node->get_logger(), "No arguments");
+    rclcpp::shutdown();
   }
 
-  ros::Subscriber sub1 = n.subscribe("eagleye/velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("eagleye/yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe(subscribe_topic_name, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::YawrateOffset>(publish_topic_name, 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("eagleye/velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("eagleye/yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>(publish_topic_name, rclcpp::QoS(10));
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

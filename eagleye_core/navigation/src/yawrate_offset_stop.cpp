@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParameter yawrate_offset_stop_parameter, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
+void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped velocity, const sensor_msgs::msg::Imu imu, const YawrateOffsetStopParameter yawrate_offset_stop_parameter, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::msg::YawrateOffset* yawrate_offset_stop)
 {
 
   int i;

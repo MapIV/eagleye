@@ -1,20 +1,24 @@
 <?xml version="1.0"?>
-<package format="2">
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
   <name>coordinate</name>
-  <version>1.0.0</version>
+  <version>0.0.0</version>
   <description>The coordinate package</description>
-
-  <maintainer email="osamu.sekino@tier4.jp">Osamu Sekino</maintainer>
-
+  <maintainer email="osamu.sekino@tier4.jp">osamu.sekino</maintainer>
   <license>BSD</license>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>geodesy</build_depend>
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>geodesy</build_export_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <build_depend>rclcpp</build_depend>
+  <build_depend>geodesy</build_depend>
+  <build_export_depend>rclcpp</build_export_depend>
+  <build_export_depend>geodesy</build_export_depend>
+  <depend>geographic_info</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>
