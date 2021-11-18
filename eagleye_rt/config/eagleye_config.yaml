@@ -1,6 +1,6 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
-twist_topic: /can_twist
+twist_topic: /sensing/can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 navsatfix_topic: /navsat/fix
@@ -85,6 +85,9 @@ slip_coefficient:
 
 trajectory:
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+  timer_updata_rate: 10                               #default:10 hz
+  th_deadlock_time: 1                                 #default:1s
 
 position:
   estimated_distance: 300                             #Vehicle trajectory length used for estimation. (default:300 m)
