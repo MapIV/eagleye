@@ -1,6 +1,6 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
-twist_topic: /sensing/can_twist
+twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 navsatfix_topic: /navsat/fix
