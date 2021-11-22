@@ -12,6 +12,6 @@
   />
 
   <!-- tf publisher -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher"/>
 
 </launch>

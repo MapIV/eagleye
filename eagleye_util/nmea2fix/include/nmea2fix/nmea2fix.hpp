@@ -26,14 +26,15 @@
 #ifndef NMEA2FIX_H
 #define NMEA2FIX_H
 
-#include "sensor_msgs/NavSatFix.h"
-#include "nmea_msgs/Sentence.h"
-#include "nmea_msgs/Gpgga.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "nmea_msgs/msg/sentence.hpp"
+#include "nmea_msgs/msg/gpgga.hpp"
 #include <string>
 #include <time.h>
 #include <memory>
 
 extern double stringToGPSTime(std::string&, double);
-extern void nmea2fix_converter(const nmea_msgs::Sentence,  sensor_msgs::NavSatFix*, nmea_msgs::Gpgga*);
+extern void nmea2fix_converter(const nmea_msgs::msg::Sentence,  sensor_msgs::msg::NavSatFix*, nmea_msgs::msg::Gpgga*);
 
 #endif /*NMEA2FIX_H */
