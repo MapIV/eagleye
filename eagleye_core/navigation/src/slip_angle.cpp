@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::SlipAngle* slip_angle)
+void slip_angle_estimate(sensor_msgs::msg::Imu imu, eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::msg::SlipAngle* slip_angle)
 {
 
   int i;

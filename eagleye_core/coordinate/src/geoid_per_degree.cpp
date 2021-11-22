@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "coordinate/coordinate.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
 
 static const double th_range[]={0.00,360.00,-90.00,90.00};
 

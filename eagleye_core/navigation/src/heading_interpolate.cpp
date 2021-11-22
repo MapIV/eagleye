@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
+void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,const eagleye_msgs::msg::YawrateOffset yawrate_offset,const eagleye_msgs::msg::Heading heading,const eagleye_msgs::msg::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::msg::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
@@ -39,6 +39,11 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
   double diff_estimate_heading_angle = 0.0;
   bool heading_estimate_status;
   std::size_t imu_stamp_buffer_length;
+
+  rclcpp::Time ros_clock(heading.header.stamp);
+  rclcpp::Time ros_clock2(imu.header.stamp);
+  auto heading_time = ros_clock.seconds();
+  auto imu_time = ros_clock2.seconds();
 
   if (heading_interpolate_parameter.reverse_imu == false)
   {
@@ -67,7 +72,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     heading_interpolate_status->number_buffer = heading_interpolate_parameter.number_buffer_max;
   }
 
-  if (heading_interpolate_status->heading_stamp_last != heading.header.stamp.toSec() && heading.status.estimate_status == true)
+  if (heading_interpolate_status->heading_stamp_last != heading_time && heading.status.estimate_status == true)
   {
     heading_estimate_status = true;
     heading_interpolate_status->heading_estimate_start_status = true;
@@ -80,12 +85,12 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
 
   if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
-    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu.header.stamp.toSec() - heading_interpolate_status->time_last));
+    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu_time - heading_interpolate_status->time_last));
   }
 
   // data buffer generate
   heading_interpolate_status->provisional_heading_angle_buffer.push_back(heading_interpolate_status->provisional_heading_angle);
-  heading_interpolate_status->imu_stamp_buffer.push_back(imu.header.stamp.toSec());
+  heading_interpolate_status->imu_stamp_buffer.push_back(imu_time);
   imu_stamp_buffer_length = std::distance(heading_interpolate_status->imu_stamp_buffer.begin(), heading_interpolate_status->imu_stamp_buffer.end());
 
   if (imu_stamp_buffer_length > heading_interpolate_parameter.number_buffer_max)
@@ -100,7 +105,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     {
       for (estimate_index = heading_interpolate_status->number_buffer; estimate_index > 0; estimate_index--)
       {
-        if (heading_interpolate_status->imu_stamp_buffer[estimate_index-1] == heading.header.stamp.toSec())
+        if (heading_interpolate_status->imu_stamp_buffer[estimate_index-1] == heading_time)
         {
           break;
         }
@@ -142,7 +147,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     heading_interpolate->status.estimate_status = false;
   }
 
-  heading_interpolate_status->time_last = imu.header.stamp.toSec();
-  heading_interpolate_status->heading_stamp_last = heading.header.stamp.toSec();
+  heading_interpolate_status->time_last = imu_time;
+  heading_interpolate_status->heading_stamp_last = heading_time;
 
 }

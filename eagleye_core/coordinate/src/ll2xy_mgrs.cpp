@@ -24,7 +24,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "coordinate/coordinate.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <math.h>
 #include <string>
 #include <map>
@@ -98,7 +98,7 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
     exit(4);
   }
 
-  geographic_msgs::GeoPoint wgs_point;
+  geographic_msgs::msg::GeoPoint wgs_point;
   wgs_point.latitude = llh[0]*180/M_PI;
   wgs_point.longitude = llh[1]*180/M_PI;
   //wgs_point.latitude = llh[0];
