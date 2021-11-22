@@ -28,23 +28,23 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static rtklib_msgs::RtklibNav rtklib_nav;
-static geometry_msgs::TwistStamped velocity;
-static sensor_msgs::Imu imu;
+static rtklib_msgs::msg::RtklibNav rtklib_nav;
+static geometry_msgs::msg::TwistStamped velocity;
+static sensor_msgs::msg::Imu imu;
 
 
-static ros::Publisher pub;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+rclcpp::Publisher<eagleye_msgs::msg::VelocityScaleFactor>::SharedPtr pub;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 
 struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
 struct VelocityScaleFactorStatus velocity_scale_factor_status;
 
 
-void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
+void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav.header = msg->header;
   rtklib_nav.tow = msg->tow;
@@ -53,13 +53,13 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.status = msg->status;
 }
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity.header = msg->header;
   velocity.twist = msg->twist;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -71,25 +71,33 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.header.frame_id = "base_link";
   velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
-  pub.publish(velocity_scale_factor);
+  pub->publish(velocity_scale_factor);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "velocity_scale_factor");
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("velocity_scale_factor");
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  n.getParam("twist_topic",subscribe_twist_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
-  n.getParam("velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
-  n.getParam("velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
-  n.getParam("velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->declare_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  node->declare_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  node->declare_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  node->declare_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+
+  node->get_parameter("twist_topic",subscribe_twist_topic_name);
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->get_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
+  node->get_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
+  node->get_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
+  node->get_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -99,12 +107,12 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "estimated_coefficient "<<velocity_scale_factor_parameter.estimated_coefficient<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::VelocityScaleFactor>("velocity_scale_factor", 1000);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
+  auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
+  pub = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10));
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

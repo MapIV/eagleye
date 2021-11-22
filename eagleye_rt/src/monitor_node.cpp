@@ -28,38 +28,38 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
 #include <boost/bind.hpp>
-#include <diagnostic_updater/diagnostic_updater.h>
+#include <diagnostic_updater/diagnostic_updater.hpp>
 
-static sensor_msgs::Imu imu;
-static rtklib_msgs::RtklibNav rtklib_nav;
-static sensor_msgs::NavSatFix fix;
-static sensor_msgs::NavSatFix navsat_fix;
-static geometry_msgs::TwistStamped velocity;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::Distance distance;
-static eagleye_msgs::Heading heading_1st;
-static eagleye_msgs::Heading heading_interpolate_1st;
-static eagleye_msgs::Heading heading_2nd;
-static eagleye_msgs::Heading heading_interpolate_2nd;
-static eagleye_msgs::Heading heading_3rd;
-static eagleye_msgs::Heading heading_interpolate_3rd;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset yawrate_offset_1st;
-static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
-static eagleye_msgs::SlipAngle slip_angle;
-static eagleye_msgs::Height height;
-static eagleye_msgs::Pitching pitching;
-static eagleye_msgs::Position enu_relative_pos;
-static geometry_msgs::Vector3Stamped enu_vel;
-static eagleye_msgs::Position enu_absolute_pos;
-static eagleye_msgs::Position enu_absolute_pos_interpolate;
-static sensor_msgs::NavSatFix eagleye_fix;
-static geometry_msgs::TwistStamped eagleye_twist;
+static sensor_msgs::msg::Imu imu;
+static rtklib_msgs::msg::RtklibNav rtklib_nav;
+static sensor_msgs::msg::NavSatFix fix;
+static sensor_msgs::msg::NavSatFix navsat_fix;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::Distance distance;
+static eagleye_msgs::msg::Heading heading_1st;
+static eagleye_msgs::msg::Heading heading_interpolate_1st;
+static eagleye_msgs::msg::Heading heading_2nd;
+static eagleye_msgs::msg::Heading heading_interpolate_2nd;
+static eagleye_msgs::msg::Heading heading_3rd;
+static eagleye_msgs::msg::Heading heading_interpolate_3rd;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_1st;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::msg::SlipAngle slip_angle;
+static eagleye_msgs::msg::Height height;
+static eagleye_msgs::msg::Pitching pitching;
+static eagleye_msgs::msg::Position enu_relative_pos;
+static geometry_msgs::msg::Vector3Stamped enu_vel;
+static eagleye_msgs::msg::Position enu_absolute_pos;
+static eagleye_msgs::msg::Position enu_absolute_pos_interpolate;
+static sensor_msgs::msg::NavSatFix eagleye_fix;
+static geometry_msgs::msg::TwistStamped eagleye_twist;
 
 static bool navsat_fix_sub_status;
 static bool print_status;
@@ -90,7 +90,7 @@ static double eagleye_twist_time_last;
 static double update_rate = 10;
 static double th_gnss_deadrock_time = 10;
 
-void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
+void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav.header = msg->header;
   rtklib_nav.tow = msg->tow;
@@ -99,7 +99,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.status = msg->status;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   fix.header = msg->header;
   fix.status = msg->status;
@@ -110,7 +110,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   fix.position_covariance_type = msg->position_covariance_type;
 }
 
-void navsatfix_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void navsatfix_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   navsat_fix.header = msg->header;
   navsat_fix.status = msg->status;
@@ -122,13 +122,13 @@ void navsatfix_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   navsat_fix_sub_status = true;
 }
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity.header = msg->header;
   velocity.twist = msg->twist;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.scale_factor = msg->scale_factor;
@@ -136,77 +136,77 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   velocity_scale_factor.status = msg->status;
 }
 
-void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   distance.header = msg->header;
   distance.distance = msg->distance;
   distance.status = msg->status;
 }
 
-void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_1st.header = msg->header;
   heading_1st.heading_angle = msg->heading_angle;
   heading_1st.status = msg->status;
 }
 
-void heading_interpolate_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_1st.header = msg->header;
   heading_interpolate_1st.heading_angle = msg->heading_angle;
   heading_interpolate_1st.status = msg->status;
 }
 
-void heading_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_2nd.header = msg->header;
   heading_2nd.heading_angle = msg->heading_angle;
   heading_2nd.status = msg->status;
 }
 
-void heading_interpolate_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_2nd.header = msg->header;
   heading_interpolate_2nd.heading_angle = msg->heading_angle;
   heading_interpolate_2nd.status = msg->status;
 }
 
-void heading_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_3rd.header = msg->header;
   heading_3rd.heading_angle = msg->heading_angle;
   heading_3rd.status = msg->status;
 }
 
-void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
   heading_interpolate_3rd.header = msg->header;
   heading_interpolate_3rd.heading_angle = msg->heading_angle;
   heading_interpolate_3rd.status = msg->status;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_stop.status = msg->status;
 }
 
-void yawrate_offset_1st_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_1st_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_1st.header = msg->header;
   yawrate_offset_1st.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_1st.status = msg->status;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_2nd.header = msg->header;
   yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_2nd.status = msg->status;
 }
 
-void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
 {
   slip_angle.header = msg->header;
   slip_angle.coefficient = msg->coefficient;
@@ -214,7 +214,7 @@ void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
   slip_angle.status = msg->status;
 }
 
-void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_relative_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_relative_pos.header = msg->header;
   enu_relative_pos.enu_pos = msg->enu_pos;
@@ -222,13 +222,13 @@ void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
   enu_relative_pos.status = msg->status;
 }
 
-void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
+void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
 }
 
-void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_absolute_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_absolute_pos.header = msg->header;
   enu_absolute_pos.enu_pos = msg->enu_pos;
@@ -236,14 +236,14 @@ void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
   enu_absolute_pos.status = msg->status;
 }
 
-void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
+void height_callback(const eagleye_msgs::msg::Height::ConstSharedPtr msg)
 {
   height.header = msg->header;
   height.height = msg->height;
   height.status = msg->status;
 }
 
-void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
   pitching.header = msg->header;
   pitching.pitching_angle = msg->pitching_angle;
@@ -251,7 +251,7 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 }
 
 
-void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPtr& msg)
+void enu_absolute_pos_interpolate_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
   enu_absolute_pos_interpolate.header = msg->header;
   enu_absolute_pos_interpolate.enu_pos = msg->enu_pos;
@@ -259,7 +259,7 @@ void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPt
   enu_absolute_pos_interpolate.status = msg->status;
 }
 
-void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void eagleye_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   eagleye_fix.header = msg->header;
   eagleye_fix.status = msg->status;
@@ -270,7 +270,7 @@ void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   eagleye_fix.position_covariance_type = msg->position_covariance_type;
 }
 
-void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   eagleye_twist.header = msg->header;
   eagleye_twist.twist = msg->twist;
@@ -278,429 +278,495 @@ void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(imu.header.stamp);
+  auto imu_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (imu_time_last == imu.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::STALE;
+  if (imu_time_last == imu_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::STALE;
     msg = "not subscribed to topic";
   }
 
-  imu_time_last = imu.header.stamp.toSec();
+  imu_time_last = imu_time;
   stat.summary(level, msg);
 }
 void rtklib_nav_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(rtklib_nav.header.stamp);
+  auto rtklib_nav_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (rtklib_nav_time_last - rtklib_nav.header.stamp.toSec() > th_gnss_deadrock_time) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (rtklib_nav_time_last - rtklib_nav_time > th_gnss_deadrock_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
 
-  rtklib_nav_time_last = rtklib_nav.header.stamp.toSec();
+  rtklib_nav_time_last = rtklib_nav_time;
   stat.summary(level, msg);
 }
 void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(navsat_fix.header.stamp);
+  auto navsat_fix_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (navsat_fix_time_last - navsat_fix.header.stamp.toSec() > th_gnss_deadrock_time || !navsat_fix_sub_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (navsat_fix_time_last - navsat_fix_time > th_gnss_deadrock_time || !navsat_fix_sub_status) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
 
-  navsat_fix_time_last = navsat_fix.header.stamp.toSec();
+  navsat_fix_time_last = navsat_fix_time;
   stat.summary(level, msg);
 }
 void velocity_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(velocity.header.stamp);
+  auto velocity_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (velocity_time_last == velocity.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::STALE;
+  if (velocity_time_last == velocity_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::STALE;
     msg = "not subscribed to topic";
   }
 
-  velocity_time_last = velocity.header.stamp.toSec();
+  velocity_time_last = velocity_time;
   stat.summary(level, msg);
 }
 void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(velocity_scale_factor.header.stamp);
+  auto velocity_scale_factor_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (velocity_scale_factor_time_last == velocity_scale_factor.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (velocity_scale_factor_time_last == velocity_scale_factor_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!velocity_scale_factor.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  velocity_scale_factor_time_last = velocity_scale_factor.header.stamp.toSec();
+  velocity_scale_factor_time_last = velocity_scale_factor_time;
   stat.summary(level, msg);
 }
 void distance_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(distance.header.stamp);
+  auto distance_time = ros_clock.seconds();
+  
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (distance_time_last == distance.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (distance_time_last == distance_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(distance.distance)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!distance.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  distance_time_last = distance.header.stamp.toSec();
+  distance_time_last = distance_time;
   stat.summary(level, msg);
 }
 void heading_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_1st.header.stamp);
+  auto heading_1st_time = ros_clock.seconds();
+  
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
   if (!std::isfinite(heading_1st.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (heading_1st_time_last - heading_1st.header.stamp.toSec() > th_gnss_deadrock_time) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else if (heading_1st_time_last - heading_1st_time > th_gnss_deadrock_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!heading_1st.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_1st_time_last = heading_1st.header.stamp.toSec();
+  heading_1st_time_last = heading_1st_time;
   stat.summary(level, msg);
 }
 void heading_interpolate_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_interpolate_1st.header.stamp);
+  auto heading_interpolate_1st_time = ros_clock.seconds();
+  
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (heading_interpolate_1st_time_last == heading_interpolate_1st.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (heading_interpolate_1st_time_last == heading_interpolate_1st_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(heading_interpolate_1st.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!heading_interpolate_1st.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_interpolate_1st_time_last = heading_interpolate_1st.header.stamp.toSec();
+  heading_interpolate_1st_time_last = heading_interpolate_1st_time;
   stat.summary(level, msg);
 }
 void heading_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_2nd.header.stamp);
+  auto heading_2nd_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
   if (!std::isfinite(heading_2nd.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (heading_2nd_time_last - heading_2nd.header.stamp.toSec() > th_gnss_deadrock_time) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else if (heading_2nd_time_last - heading_2nd_time > th_gnss_deadrock_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!heading_2nd.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_2nd_time_last = heading_2nd.header.stamp.toSec();
+  heading_2nd_time_last = heading_2nd_time;
   stat.summary(level, msg);
 }
 void heading_interpolate_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_interpolate_2nd.header.stamp);
+  auto heading_interpolate_2nd_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (heading_interpolate_2nd_time_last == heading_interpolate_2nd.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (heading_interpolate_2nd_time_last == heading_interpolate_2nd_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(heading_interpolate_2nd.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!heading_interpolate_2nd.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_interpolate_2nd_time_last = heading_interpolate_2nd.header.stamp.toSec();
+  heading_interpolate_2nd_time_last = heading_interpolate_2nd_time;
   stat.summary(level, msg);
 }
 void heading_3rd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_3rd.header.stamp);
+  auto heading_3rd_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
   if (!std::isfinite(heading_3rd.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (heading_3rd_time_last - heading_3rd.header.stamp.toSec() > th_gnss_deadrock_time) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else if (heading_3rd_time_last - heading_3rd_time > th_gnss_deadrock_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!heading_3rd.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_3rd_time_last = heading_3rd.header.stamp.toSec();
+  heading_3rd_time_last = heading_3rd_time;
   stat.summary(level, msg);
 }
 void heading_interpolate_3rd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(heading_interpolate_3rd.header.stamp);
+  auto heading_interpolate_3rd_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (heading_interpolate_3rd_time_last == heading_interpolate_3rd.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (heading_interpolate_3rd_time_last == heading_interpolate_3rd_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(heading_interpolate_3rd.heading_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!heading_interpolate_3rd.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  heading_interpolate_3rd_time_last = heading_interpolate_3rd.header.stamp.toSec();
+  heading_interpolate_3rd_time_last = heading_interpolate_3rd_time;
   stat.summary(level, msg);
 }
 void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(yawrate_offset_stop.header.stamp);
+  auto yawrate_offset_stop_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (yawrate_offset_stop_time_last == yawrate_offset_stop.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (yawrate_offset_stop_time_last == yawrate_offset_stop_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(yawrate_offset_stop.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!yawrate_offset_stop.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  yawrate_offset_stop_time_last = yawrate_offset_stop.header.stamp.toSec();
+  yawrate_offset_stop_time_last = yawrate_offset_stop_time;
   stat.summary(level, msg);
 }
 void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(yawrate_offset_1st.header.stamp);
+  auto yawrate_offset_1st_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (yawrate_offset_1st_time_last == yawrate_offset_1st.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (yawrate_offset_1st_time_last == yawrate_offset_1st_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(yawrate_offset_1st.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!yawrate_offset_1st.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  yawrate_offset_1st_time_last = yawrate_offset_1st.header.stamp.toSec();
+  yawrate_offset_1st_time_last = yawrate_offset_1st_time;
   stat.summary(level, msg);
 }
 void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(yawrate_offset_2nd.header.stamp);
+  auto yawrate_offset_2nd_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (yawrate_offset_2nd_time_last == yawrate_offset_2nd.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (yawrate_offset_2nd_time_last == yawrate_offset_2nd_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(yawrate_offset_2nd.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!yawrate_offset_2nd.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  yawrate_offset_2nd_time_last = yawrate_offset_2nd.header.stamp.toSec();
+  yawrate_offset_2nd_time_last = yawrate_offset_2nd_time;
   stat.summary(level, msg);
 }
 void slip_angle_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(slip_angle.header.stamp);
+  auto slip_angle_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (slip_angle_time_last == slip_angle.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (slip_angle_time_last == slip_angle_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(slip_angle.slip_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (slip_angle.coefficient == 0) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "/slip_angle/manual_coefficient is not set";
   }
   else if (!slip_angle.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  slip_angle_time_last = slip_angle.header.stamp.toSec();
+  slip_angle_time_last = slip_angle_time;
   stat.summary(level, msg);
 }
 void enu_vel_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(enu_vel.header.stamp);
+  auto enu_vel_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
  if (!std::isfinite(enu_vel.vector.x)||!std::isfinite(enu_vel.vector.y)||!std::isfinite(enu_vel.vector.z)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else  if (enu_vel_time_last == enu_vel.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else  if (enu_vel_time_last == enu_vel_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
 
-  enu_vel_time_last = enu_vel.header.stamp.toSec();
+  enu_vel_time_last = enu_vel_time;
   stat.summary(level, msg);
 }
 void height_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(height.header.stamp);
+  auto height_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (height_time_last == height.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (height_time_last == height_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(height.height)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!height.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  height_time_last = height.header.stamp.toSec();
+  height_time_last = height_time;
   stat.summary(level, msg);
 }
 void pitching_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(pitching.header.stamp);
+  auto pitching_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (pitching_time_last == pitching.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  if (pitching_time_last == pitching_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
   else if (!std::isfinite(pitching.pitching_angle)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
   else if (!pitching.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  pitching_time_last = pitching.header.stamp.toSec();
+  pitching_time_last = pitching_time;
   stat.summary(level, msg);
 }
 void enu_absolute_pos_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(enu_absolute_pos.header.stamp);
+  auto enu_absolute_pos_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
   if (!std::isfinite(enu_absolute_pos.enu_pos.x)||!std::isfinite(enu_absolute_pos.enu_pos.y)||!std::isfinite(enu_absolute_pos.enu_pos.z)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (enu_absolute_pos_time_last - enu_absolute_pos.header.stamp.toSec() > th_gnss_deadrock_time) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else if (enu_absolute_pos_time_last - enu_absolute_pos_time > th_gnss_deadrock_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!enu_absolute_pos.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  enu_absolute_pos_time_last = enu_absolute_pos.header.stamp.toSec();
+  enu_absolute_pos_time_last = enu_absolute_pos_time;
   stat.summary(level, msg);
 }
 void enu_absolute_pos_interpolate_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(enu_absolute_pos_interpolate.header.stamp);
+  auto enu_absolute_pos_interpolate_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
   if (!std::isfinite(enu_absolute_pos_interpolate.enu_pos.x)||!std::isfinite(enu_absolute_pos_interpolate.enu_pos.y)||!std::isfinite(enu_absolute_pos_interpolate.enu_pos.z)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (enu_absolute_pos_interpolate_time_last == enu_absolute_pos_interpolate.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+  else if (enu_absolute_pos_interpolate_time_last == enu_absolute_pos_interpolate_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!enu_absolute_pos_interpolate.status.enabled_status) {
-    level = diagnostic_msgs::DiagnosticStatus::WARN;
+    level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  enu_absolute_pos_interpolate_time_last = enu_absolute_pos_interpolate.header.stamp.toSec();
+  enu_absolute_pos_interpolate_time_last = enu_absolute_pos_interpolate_time;
   stat.summary(level, msg);
 }
 void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  rclcpp::Time ros_clock(eagleye_twist.header.stamp);
+  auto eagleye_twist_time = ros_clock.seconds();
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (eagleye_twist_time_last == eagleye_twist.header.stamp.toSec()) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+  if (eagleye_twist_time_last == eagleye_twist_time) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "not subscribed or deadlock of more than 10 seconds";
   }
   else if (!std::isfinite(eagleye_twist.twist.linear.x)||!std::isfinite(eagleye_twist.twist.linear.y)||!std::isfinite(eagleye_twist.twist.linear.z)
       ||!std::isfinite(eagleye_twist.twist.angular.x)||!std::isfinite(eagleye_twist.twist.angular.y)||!std::isfinite(eagleye_twist.twist.angular.z)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
 
-  eagleye_twist_time_last = eagleye_twist.header.stamp.toSec();
+  eagleye_twist_time_last = eagleye_twist_time;
   stat.summary(level, msg);
 }
 
@@ -795,14 +861,14 @@ void printStatus(void)
   std::cout << std::endl;
 }
 
-void timer_callback(const ros::TimerEvent& e, diagnostic_updater::Updater * updater_)
+void on_timer(diagnostic_updater::Updater * updater)
 {
   // Diagnostic Updater
-  updater_->force_update();
+  updater->force_update();
 
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -821,20 +887,26 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "monitor");
-
-  ros::NodeHandle n;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("monitor");
+  diagnostic_updater::Updater updater_(node);
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_navsatfix_topic_name = "/navsatfix/fix";
 
-  n.getParam("twist_topic",subscribe_twist_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("monitor/print_status",print_status);
+  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->declare_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("monitor.print_status",print_status);
+
+  node->get_parameter("twist_topic",subscribe_twist_topic_name);
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  node->get_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->get_parameter("monitor.print_status",print_status);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -843,7 +915,6 @@ int main(int argc, char** argv)
   std::cout<< "print_status "<<print_status<<std::endl;
 
   // // Diagnostic Updater
-  diagnostic_updater::Updater updater_;
   updater_.setHardwareID("topic_checker");
   updater_.add("eagleye_input_imu", imu_topic_checker);
   updater_.add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
@@ -868,35 +939,43 @@ int main(int argc, char** argv)
   updater_.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_.add("eagleye_twist", twist_topic_checker);
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = n.subscribe("heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub9 = n.subscribe("heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub10 = n.subscribe("heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub11 = n.subscribe("heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub12 = n.subscribe("heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub13 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub14 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub15 = n.subscribe("yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub16 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub17 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub18 = n.subscribe("enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub19 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub20 = n.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub21 = n.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub22 = n.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub23 = n.subscribe("enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub24 = n.subscribe("fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub25 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_1st", rclcpp::QoS(10), heading_1st_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub9 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_1st", rclcpp::QoS(10), heading_interpolate_1st_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub10 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_2nd", rclcpp::QoS(10), heading_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub11 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_2nd", rclcpp::QoS(10), heading_interpolate_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub12 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_3rd", rclcpp::QoS(10), heading_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub13 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_1st", rclcpp::QoS(10), yawrate_offset_1st_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub17 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub18 = node->create_subscription<eagleye_msgs::msg::Position>("enu_relative_pos", rclcpp::QoS(10), enu_relative_pos_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub19 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", rclcpp::QoS(10), enu_vel_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub20 = node->create_subscription<eagleye_msgs::msg::Height>("height", rclcpp::QoS(10), height_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub21 = node->create_subscription<eagleye_msgs::msg::Pitching>("pitching", rclcpp::QoS(10), pitching_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub22 = node->create_subscription<eagleye_msgs::msg::Position>("enu_absolute_pos", rclcpp::QoS(10), enu_absolute_pos_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub23 = node->create_subscription<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", rclcpp::QoS(10), enu_absolute_pos_interpolate_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback); //ros::TransportHints().tcpNoDelay()
 
-  ros::Timer timer = n.createTimer(ros::Duration(1/update_rate), boost::bind(timer_callback,_1, &updater_));
 
-  ros::spin();
+  //ros::Timer timer = n.createTimer(ros::Duration(1/update_rate), std::bind(timer_callback,std::placeholders::_1, &updater_));
+  double delta_time = 1.0 / static_cast<double>(update_rate);
+  auto timer_callback = std::bind(on_timer, &updater_);
+  const auto period_ns =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));
+  // auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
+  //   node->get_clock(), period_ns, std::move(timer_callback),
+  //   node->get_node_base_interface()->get_context());
+  // node->get_node_timers_interface()->add_timer(timer, nullptr);
+  rclcpp::spin(node);
 
   return 0;
 }
