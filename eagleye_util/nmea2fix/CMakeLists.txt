@@ -35,13 +35,11 @@ ament_auto_add_executable(nmea2fix
   src/nmea2fix_node.cpp
 )
 
-install(
-  DIRECTORY include/
-  DESTINATION include
+install(TARGETS
+  DESTINATION lib/$(PROJECT_NAME)
 )
 
-install(
-  DIRECTORY launch
+install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -102,21 +102,21 @@ int main(int argc, char **argv){
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("can_velocity_converter");
 
-  node->declare_parameter("/can_velocity_converter/can_id",can_id);
-  node->declare_parameter("/can_velocity_converter/start_bit",start_bit);
-  node->declare_parameter("/can_velocity_converter/length",length);
-  node->declare_parameter("/can_velocity_converter/factor",factor);
-  node->declare_parameter("/can_velocity_converter/offset",offset);
-  node->declare_parameter("/can_velocity_converter/byte_order",byte_order);
-  node->declare_parameter("/can_velocity_converter/value_type",value_type);
+  node->declare_parameter("can_id",can_id);
+  node->declare_parameter("start_bit",start_bit);
+  node->declare_parameter("length",length);
+  node->declare_parameter("factor",factor);
+  node->declare_parameter("offset",offset);
+  node->declare_parameter("byte_order",byte_order);
+  node->declare_parameter("value_type",value_type);
 
-  node->get_parameter("/can_velocity_converter/can_id",can_id);
-  node->get_parameter("/can_velocity_converter/start_bit",start_bit);
-  node->get_parameter("/can_velocity_converter/length",length);
-  node->get_parameter("/can_velocity_converter/factor",factor);
-  node->get_parameter("/can_velocity_converter/offset",offset);
-  node->get_parameter("/can_velocity_converter/byte_order",byte_order);
-  node->get_parameter("/can_velocity_converter/value_type",value_type);
+  node->get_parameter("can_id",can_id);
+  node->get_parameter("start_bit",start_bit);
+  node->get_parameter("length",length);
+  node->get_parameter("factor",factor);
+  node->get_parameter("offset",offset);
+  node->get_parameter("byte_order",byte_order);
+  node->get_parameter("value_type",value_type);
 
   std::cout<< "can_id "<<can_id<<std::endl;
   std::cout<< "start_bit "<<start_bit<<std::endl;

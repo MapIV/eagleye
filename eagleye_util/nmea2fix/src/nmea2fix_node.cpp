@@ -32,15 +32,15 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("nmea2fix_node");
 
-  node->declare_parameter("nmea2fix_node/sub_topic_name",sub_topic_name);
-  node->declare_parameter("nmea2fix_node/pub_fix_topic_name",pub_fix_topic_name);
-  node->declare_parameter("nmea2fix_node/pub_gga_topic_name",pub_gga_topic_name);
-  node->declare_parameter("nmea2fix_node/output_gga",output_gga);
+  node->declare_parameter("sub_topic_name",sub_topic_name);
+  node->declare_parameter("pub_fix_topic_name",pub_fix_topic_name);
+  node->declare_parameter("pub_gga_topic_name",pub_gga_topic_name);
+  node->declare_parameter("output_gga",output_gga);
 
-  node->get_parameter("nmea2fix_node/sub_topic_name",sub_topic_name);
-  node->get_parameter("nmea2fix_node/pub_fix_topic_name",pub_fix_topic_name);
-  node->get_parameter("nmea2fix_node/ub_gga_topic_name",pub_gga_topic_name);
-  node->get_parameter("nmea2fix_node/output_gga",output_gga);
+  node->get_parameter("sub_topic_name",sub_topic_name);
+  node->get_parameter("pub_fix_topic_name",pub_fix_topic_name);
+  node->get_parameter("ub_gga_topic_name",pub_gga_topic_name);
+  node->get_parameter("output_gga",output_gga);
   std::cout<< "sub_topic_name "<<sub_topic_name<<std::endl;
   std::cout<< "pub_fix_topic_name "<<pub_fix_topic_name<<std::endl;
   std::cout<< "pub_gga_topic_name "<<pub_gga_topic_name<<std::endl;

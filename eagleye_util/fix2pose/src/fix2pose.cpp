@@ -150,23 +150,23 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("fix2pose");
 
-  node->declare_parameter("fix2pose_node/plane",plane);
-  node->declare_parameter("fix2pose_node/tf_num",tf_num);
-  node->declare_parameter("fix2pose_node/convert_height_num",convert_height_num);
-  node->declare_parameter("fix2pose_node/parent_frame_id",parent_frame_id);
-  node->declare_parameter("fix2pose_node/child_frame_id",child_frame_id);
+  node->declare_parameter("plane",plane);
+  node->declare_parameter("tf_num",tf_num);
+  node->declare_parameter("convert_height_num",convert_height_num);
+  node->declare_parameter("parent_frame_id",parent_frame_id);
+  node->declare_parameter("child_frame_id",child_frame_id);
 
-  node->get_parameter("fix2pose_node/plane",plane);
-  node->get_parameter("fix2pose_node/tf_num",tf_num);
-  node->get_parameter("fix2pose_node/convert_height_num",convert_height_num);
-  node->get_parameter("fix2pose_node/parent_frame_id",parent_frame_id);
-  node->get_parameter("fix2pose_node/child_frame_id",child_frame_id);
+  node->get_parameter("plane",plane);
+  node->get_parameter("tf_num",tf_num);
+  node->get_parameter("convert_height_num",convert_height_num);
+  node->get_parameter("parent_frame_id",parent_frame_id);
+  node->get_parameter("child_frame_id",child_frame_id);
 
-  std::cout<< "fix2pose_node/plane"<<plane<<std::endl;
-  std::cout<< "fix2pose_node/tf_num"<<tf_num<<std::endl;
-  std::cout<< "fix2pose_node/convert_height_num"<<convert_height_num<<std::endl;
-  std::cout<< "fix2pose_node/parent_frame_id"<<parent_frame_id<<std::endl;
-  std::cout<< "fix2pose_node/child_frame_id"<<child_frame_id<<std::endl;
+  std::cout<< "plane"<<plane<<std::endl;
+  std::cout<< "tf_num"<<tf_num<<std::endl;
+  std::cout<< "convert_height_num"<<convert_height_num<<std::endl;
+  std::cout<< "parent_frame_id"<<parent_frame_id<<std::endl;
+  std::cout<< "child_frame_id"<<child_frame_id<<std::endl;
 
   auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
