@@ -144,7 +144,7 @@ struct RtkHeadingParameter
 {
   bool reverse_imu;
   double estimated_distance;
-  double estimated_heading_buffer_min;
+  int estimated_heading_buffer_min;
   double estimated_number_min;
   double estimated_number_max;
   double estimated_gnss_coefficient;

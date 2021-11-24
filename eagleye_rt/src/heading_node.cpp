@@ -182,14 +182,12 @@ int main(int argc, char** argv)
     }
     else
     {
-      // RCLCPP_ERROR(node->get_logger(),"Invalid argument");
       RCLCPP_ERROR(node->get_logger(),"Invalid argument");
       rclcpp::shutdown();
     }
   }
   else
   {
-    // RCLCPP_ERROR(node->get_logger(),"No arguments");
     RCLCPP_ERROR(node->get_logger(),"No arguments");
     rclcpp::shutdown();
   }

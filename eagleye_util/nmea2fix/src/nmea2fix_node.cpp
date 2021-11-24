@@ -39,7 +39,7 @@ int main(int argc, char** argv)
 
   node->get_parameter("sub_topic_name",sub_topic_name);
   node->get_parameter("pub_fix_topic_name",pub_fix_topic_name);
-  node->get_parameter("ub_gga_topic_name",pub_gga_topic_name);
+  node->get_parameter("pub_gga_topic_name",pub_gga_topic_name);
   node->get_parameter("output_gga",output_gga);
   std::cout<< "sub_topic_name "<<sub_topic_name<<std::endl;
   std::cout<< "pub_fix_topic_name "<<pub_fix_topic_name<<std::endl;

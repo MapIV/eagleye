@@ -4,9 +4,8 @@
   <arg name="use_tf" default="true" />
   <arg name="config_yaml" default="eagleye_config.yaml"/>
  
-  <!-- <include file="$(find-pkg-share nmea2fix)/launch/nmea2fix.launch"/> -->
-  <!-- <group>
-    <push-ros-namespace namespace="eagleye"/> -->
+  <group>
+    <push-ros-namespace namespace="eagleye"/>
 
     <arg name="use_rtk_deadreckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
@@ -23,25 +22,15 @@
     <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" exec="yawrate_offset" args="2nd">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="heading_node_1st" exec="heading" args="1st">
+    <node pkg="eagleye_rt" name="heading_node_1st" exec="heading" args="1st" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="heading_node_2nd" exec="heading" args="2nd">
+    <node pkg="eagleye_rt" name="heading_node_2nd" exec="heading" args="2nd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="heading_node_3rd" exec="heading" args="3rd">
+    <node pkg="eagleye_rt" name="heading_node_3rd" exec="heading" args="3rd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <!-- </node>
-    <node pkg="eagleye_rt" name="heading_node_1st" exec="heading" args="1st" if="$(eval use_rtk_heading == false)">
-            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
-    </node>
-    <node pkg="eagleye_rt" name="heading_node_2nd" exec="heading" args="2nd" if="$(eval use_rtk_heading == false)">
-            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
-    </node>
-    <node pkg="eagleye_rt" name="heading_node_3rd" exec="heading" args="3rd" if="$(eval use_rtk_heading == false)">
-            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
-    </node> -->
     <node pkg="eagleye_rt" name="heading_interpolate_node_1st" exec="heading_interpolate" args="1st">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
@@ -83,18 +72,25 @@
     </node>
 
     <!-- RTK Options -->
-    <!-- <node pkg="eagleye_rt" name="rtk_deadreckoning" exec="rtk_deadreckoning" if="$(arg use_rtk_deadreckoning)">
+    <node pkg="eagleye_rt" name="rtk_deadreckoning" exec="rtk_deadreckoning" if="$(var use_rtk_deadreckoning)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="rtk_heading_node_1st" exec="rtk_heading" args="1st" if="$(arg use_rtk_heading)">
+    <node pkg="eagleye_rt" name="rtk_heading_node_1st" exec="rtk_heading" args="1st" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="rtk_heading_node_2nd" exec="rtk_heading" args="2nd" if="$(arg use_rtk_heading)">
+    <node pkg="eagleye_rt" name="rtk_heading_node_2nd" exec="rtk_heading" args="2nd" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="rtk_heading_node_3rd" exec="rtk_heading" args="3rd" if="$(arg use_rtk_heading)">
+    <node pkg="eagleye_rt" name="rtk_heading_node_3rd" exec="rtk_heading" args="3rd" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
-    </node> -->
+    </node>
+  </group>
 
-  <!-- </group> -->
+  <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
+        <arg name="sub_topic_name" value="nmea_sentence"/>
+        <arg name="pub_fix_topic_name" value="navsat/fix"/>
+  </include>
+
+  <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
+
 </launch>

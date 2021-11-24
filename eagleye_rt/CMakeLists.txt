@@ -81,6 +81,14 @@ ament_auto_add_executable(angular_velocity_offset_stop
   src/angular_velocity_offset_stop_node.cpp
 )
 
+ament_auto_add_executable(rtk_deadreckoning
+  src/rtk_deadreckoning_node.cpp
+)
+
+ament_auto_add_executable(rtk_heading
+  src/rtk_heading_node.cpp
+)
+
 install(TARGETS 
   correction_imu
   distance

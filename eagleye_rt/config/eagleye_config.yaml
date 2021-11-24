@@ -78,7 +78,7 @@
     slip_coefficient:
       estimated_number_min: 100.0                           #Minimum number of data used for estimation. (default:100)
       estimated_number_max: 5000.0                          #Maximum number of data used for estimation. (default:5000)
-      estimated_velocity_threshold: 3                     #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+      estimated_velocity_threshold: 3.0                     #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
       estimated_yawrate_threshold: 0.017453               #Yaw rate threshold for curve judgment. (default:0.017453 rad/s = 1 degree/s)
       lever_arm: 0.26                                     #Distance from center of rear wheel axle to GNSS antenna. (m)
       stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)

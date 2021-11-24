@@ -127,9 +127,9 @@ int main(int argc, char** argv)
   auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("enu_absolute_pos", rclcpp::QoS(10), enu_absolute_pos_callback); //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::Position>("gnss_smooth_pos_enu", rclcpp::QoS(10), gnss_smooth_pos_enu_callback); //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Height>("height", rclcpp::QoS(10), height_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, fix_callback); //ros::TransportHints().tcpNoDelay()
-  pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", 1000);
-  pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", 1000);
+  auto sub5 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, rclcpp::QoS(10), fix_callback); //ros::TransportHints().tcpNoDelay()
+  pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", rclcpp::QoS(10));
+  pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10));
 
   rclcpp::spin(node);
 

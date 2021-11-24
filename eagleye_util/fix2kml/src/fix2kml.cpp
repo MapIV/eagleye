@@ -59,14 +59,14 @@ int main(int argc, char** argv)
 rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("fix2kml");
 
-  node->declare_parameter("fix2kml/filename",filename);
-  node->declare_parameter("fix2kml/kmlname",kmlname);
+  node->declare_parameter("filename",filename);
+  node->declare_parameter("kmlname",kmlname);
 
-  node->get_parameter("fix2kml/filename",filename);
-  node->get_parameter("fix2kml/kmlname",kmlname);
+  node->get_parameter("filename",filename);
+  node->get_parameter("kmlname",kmlname);
 
-  std::cout<< "filename "<<filename<<std::endl;
-  std::cout<< "kmlname "<<kmlname<<std::endl;
+  std::cout<< "filename: "<<filename<<std::endl;
+  std::cout<< "kmlname: "<<kmlname<<std::endl;
 
   KmlGenerator kmlfile(kmlname);
 
