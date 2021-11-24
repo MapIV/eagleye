@@ -1,40 +1,40 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(eagleye_fix2pose)
 
-find_package(catkin REQUIRED COMPONENTS
-  eagleye_msgs
-  roscpp
-  rospy
-  std_msgs
-  tf
-  eagleye_coordinate
-)
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-catkin_package(
-  CATKIN_DEPENDS
-  eagleye_msgs
-  roscpp
-  rospy
-  std_msgs
-  eagleye_coordinate
-)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
 
-add_executable(fix2pose src/fix2pose.cpp)
-target_link_libraries(fix2pose ${catkin_LIBRARIES} )
-add_dependencies(fix2pose ${catkin_EXPORTED_TARGETS})
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
+
+include_directories(include)
+
+ament_auto_add_executable(fix2pose
+  src/fix2pose.cpp
+)
 
 install(TARGETS
-  fix2pose
-  DESTINATION lib/${PROJECT_NAME}
+  DESTINATION lib/$(PROJECT_NAME)
 )
 
-install(
-  DIRECTORY
-    launch
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
 )
+
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+ament_auto_package()
