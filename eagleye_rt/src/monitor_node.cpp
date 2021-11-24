@@ -90,6 +90,8 @@ static double eagleye_twist_time_last;
 static double update_rate = 10;
 static double th_gnss_deadrock_time = 10;
 
+std::shared_ptr<diagnostic_updater::Updater> updater_;
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav.header = msg->header;
@@ -861,10 +863,10 @@ void printStatus(void)
   std::cout << std::endl;
 }
 
-void on_timer(diagnostic_updater::Updater * updater)
+void on_timer()
 {
   // Diagnostic Updater
-  updater->force_update();
+  updater_->force_update();
 
 }
 
@@ -889,7 +891,7 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("monitor");
-  diagnostic_updater::Updater updater_(node);
+  updater_ = std::make_shared<diagnostic_updater::Updater>(node);
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
@@ -915,29 +917,29 @@ int main(int argc, char** argv)
   std::cout<< "print_status "<<print_status<<std::endl;
 
   // // Diagnostic Updater
-  updater_.setHardwareID("topic_checker");
-  updater_.add("eagleye_input_imu", imu_topic_checker);
-  updater_.add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
-  updater_.add("eagleye_input_navsat_fix", navsat_fix_topic_checker);
-  updater_.add("eagleye_input_velocity", velocity_topic_checker);
-  updater_.add("eagleye_velocity_scale_factor", velocity_scale_factor_topic_checker);
-  updater_.add("eagleye_distance", distance_topic_checker);
-  updater_.add("eagleye_heading_1st", heading_1st_topic_checker);
-  updater_.add("eagleye_heading_interpolate_1st", heading_interpolate_1st_topic_checker);
-  updater_.add("eagleye_heading_2nd", heading_2nd_topic_checker);
-  updater_.add("eagleye_heading_interpolate_2nd", heading_interpolate_2nd_topic_checker);
-  updater_.add("eagleye_heading_3rd", heading_3rd_topic_checker);
-  updater_.add("eagleye_heading_interpolate_3rd", heading_interpolate_3rd_topic_checker);
-  updater_.add("eagleye_yawrate_offset_stop", yawrate_offset_stop_topic_checker);
-  updater_.add("eagleye_yawrate_offset_1st", yawrate_offset_1st_topic_checker);
-  updater_.add("eagleye_yawrate_offset_2nd", yawrate_offset_2nd_topic_checker);
-  updater_.add("eagleye_slip_angle", slip_angle_topic_checker);
-  updater_.add("eagleye_enu_vel", enu_vel_topic_checker);
-  updater_.add("eagleye_height", height_topic_checker);
-  updater_.add("eagleye_pitching", pitching_topic_checker);
-  updater_.add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
-  updater_.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
-  updater_.add("eagleye_twist", twist_topic_checker);
+  updater_->setHardwareID("topic_checker");
+  updater_->add("eagleye_input_imu", imu_topic_checker);
+  updater_->add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
+  updater_->add("eagleye_input_navsat_fix", navsat_fix_topic_checker);
+  updater_->add("eagleye_input_velocity", velocity_topic_checker);
+  updater_->add("eagleye_velocity_scale_factor", velocity_scale_factor_topic_checker);
+  updater_->add("eagleye_distance", distance_topic_checker);
+  updater_->add("eagleye_heading_1st", heading_1st_topic_checker);
+  updater_->add("eagleye_heading_interpolate_1st", heading_interpolate_1st_topic_checker);
+  updater_->add("eagleye_heading_2nd", heading_2nd_topic_checker);
+  updater_->add("eagleye_heading_interpolate_2nd", heading_interpolate_2nd_topic_checker);
+  updater_->add("eagleye_heading_3rd", heading_3rd_topic_checker);
+  updater_->add("eagleye_heading_interpolate_3rd", heading_interpolate_3rd_topic_checker);
+  updater_->add("eagleye_yawrate_offset_stop", yawrate_offset_stop_topic_checker);
+  updater_->add("eagleye_yawrate_offset_1st", yawrate_offset_1st_topic_checker);
+  updater_->add("eagleye_yawrate_offset_2nd", yawrate_offset_2nd_topic_checker);
+  updater_->add("eagleye_slip_angle", slip_angle_topic_checker);
+  updater_->add("eagleye_enu_vel", enu_vel_topic_checker);
+  updater_->add("eagleye_height", height_topic_checker);
+  updater_->add("eagleye_pitching", pitching_topic_checker);
+  updater_->add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
+  updater_->add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
+  updater_->add("eagleye_twist", twist_topic_checker);
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
@@ -965,16 +967,14 @@ int main(int argc, char** argv)
   auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback); //ros::TransportHints().tcpNoDelay()
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback); //ros::TransportHints().tcpNoDelay()
 
-
-  //ros::Timer timer = n.createTimer(ros::Duration(1/update_rate), std::bind(timer_callback,std::placeholders::_1, &updater_));
   double delta_time = 1.0 / static_cast<double>(update_rate);
-  auto timer_callback = std::bind(on_timer, &updater_);
+  auto timer_callback = std::bind(on_timer);
   const auto period_ns =
     std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));
-  // auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
-  //   node->get_clock(), period_ns, std::move(timer_callback),
-  //   node->get_node_base_interface()->get_context());
-  // node->get_node_timers_interface()->add_timer(timer, nullptr);
+  auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
+    node->get_clock(), period_ns, std::move(timer_callback),
+    node->get_node_base_interface()->get_context());
+  node->get_node_timers_interface()->add_timer(timer, nullptr);
   rclcpp::spin(node);
 
   return 0;
