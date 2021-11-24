@@ -109,6 +109,7 @@ void timer_callback(const ros::TimerEvent& e)
   else
   {
     input_status = false;
+    ROS_WARN("Twist is missing the required input topics.");
   }
   
   if (imu.header.stamp.toSec() != imu_time_last) imu_time_last = imu.header.stamp.toSec();
