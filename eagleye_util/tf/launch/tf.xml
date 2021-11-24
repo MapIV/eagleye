@@ -2,16 +2,13 @@
 
 <launch>
 
-  <arg name="model" value="$(find eagleye_tf)/urdf/sensors.xacro"/>
-  <arg name="sensor_model" value="a"/>
-  <arg name="vehicle_model" value="b"/>
-
-  <param name="robot_description" 
-         command="$(find xacro)/xacro --inorder $(arg model) 
-                  config_dir:=$(find eagleye_tf)/config"
-  />
+  <arg name="model" default="$(find-pkg-share eagleye_tf)/urdf/sensors.xacro"/>
+  <arg name="sensor_model" default="a"/>
+  <arg name="vehicle_model" default="b"/>
 
   <!-- tf publisher -->
-  <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher"/>
+  <node name="robot_state_publisher" pkg="robot_state_publisher" exec="robot_state_publisher">
+    <param name="robot_description" value="$(command 'xacro $(var model)')"/>
+  </node>
 
 </launch>
