@@ -46,6 +46,7 @@ static geometry_msgs::msg::TwistStamped eagleye_twist;
 rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr pub1;
 rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub2;
 rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub3;
+rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr pub4;
 
 struct TrajectoryParameter trajectory_parameter;
 struct TrajectoryStatus trajectory_status;
@@ -88,13 +89,7 @@ void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   enu_vel.header = msg->header;
   enu_vel.header.frame_id = "gnss";
   enu_relative_pos.header = msg->header;
@@ -109,6 +104,21 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     pub2->publish(enu_relative_pos);
   }
   pub3->publish(eagleye_twist);
+
+  geometry_msgs::msg::TwistWithCovarianceStamped eagleye_twist_with_covariance;
+  eagleye_twist_with_covariance.header = msg->header;
+  eagleye_twist_with_covariance.header.frame_id = "base_link";
+  eagleye_twist_with_covariance.twist.twist = eagleye_twist.twist;
+  // TODO(Map IV): temporary value
+  // linear.y, linear.z, angular.x, and angular.y are not calculated values.
+  eagleye_twist_with_covariance.twist.covariance[0] = 0.2 * 0.2;
+  eagleye_twist_with_covariance.twist.covariance[7] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[35] = 0.1 * 0.1;
+
+  pub4->publish(eagleye_twist_with_covariance);
 }
 
 int main(int argc, char** argv)
@@ -141,6 +151,7 @@ int main(int argc, char** argv)
   pub1 = node->create_publisher<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000);
   pub2 = node->create_publisher<eagleye_msgs::msg::Position>("enu_relative_pos", 1000);
   pub3 = node->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 1000);
+  pub4 = node->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("twist_with_covariance", 1000);
 
   rclcpp::spin(node);
 
