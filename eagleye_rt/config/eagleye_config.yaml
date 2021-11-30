@@ -5,6 +5,7 @@ imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 navsatfix_topic: /navsat/fix
 nmea_sentence_topic: /navsat/nmea_sentence
+localization_pose_topic: /localization/pose_estimator/pose
 
 #Parameter settings for Eagleye
 reverse_imu: false
@@ -118,6 +119,14 @@ height:
   estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
+
+rollangle:
+  matching_update_distance: 0.3                      #Distance to re-estimate from previous estimate. (default:0.3 m)
+  stop_judgment_velocity_threshold: 0.01             #Speed threshold for judgment at stop. (default:0.01 m/s)
+  data_bufferNUM: 10                                 #Number of IMU data to be stored for time correction. (default:10)
+  rollrad_bufferNUM: 30                              #Number of data to compensate for time delay in roll angle (default:30)
+  rolling_bufferNUM: 50                              #Number of data to take a moving average of roll angle (default:50)
+  link_Time_stamp_parameter: 0.01                    #Time considered to be in sync for time synchronization. (default:0.01 s)
 
 monitor:
   print_status: true

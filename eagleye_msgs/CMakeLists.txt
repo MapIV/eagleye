@@ -23,6 +23,8 @@ find_package(catkin REQUIRED COMPONENTS
    Height.msg
    Pitching.msg
    AngularVelocityOffset.msg
+   AccYOffset.msg
+   Rolling.msg
  )
 
  generate_messages(
