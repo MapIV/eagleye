@@ -11,6 +11,10 @@ jobs:
       ros:
         image: ros
 
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - name: checkout
         uses: actions/checkout@v2
