@@ -1,0 +1,55 @@
+
+name: build
+on: push
+
+jobs:
+  build:
+    runs-on:  ubuntu-18.04
+    
+    container: ros:melodic
+    services:
+      ros:
+        image: ros
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - run:
+          name: Install rtklib_msgs
+          command: |
+            git clone https://github.com/MapIV/rtklib_ros_bridge.git
+
+      - run:
+          name: Install catkin
+          command: |
+            apt-get update -qq && apt-get install -y python-catkin-tools
+            source /opt/ros/melodic/setup.bash
+            rosdep install --from-paths . --ignore-src -y --rosdistro melodic
+
+      - run:
+          name: Install ros-melodic-can-msgs
+          command: |
+            apt-get install ros-melodic-can-msgs
+
+      - run:
+          name: Install ros-melodic-geodesy
+          command: |
+            apt-get install ros-melodic-geodesy
+
+      - run:
+          name: Install GeographicLib
+          command: |
+            apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
+
+            
+      - run:
+          name: Build
+          command: |
+            source /opt/ros/melodic/setup.bash
+            mkdir -p /tmp/ws/src
+            ln -s `pwd` /tmp/ws/src/package
+            cd /tmp/ws/src
+            catkin_init_workspace
+            cd ../
+            catkin_make -DCMAKE_BUILD_TYPE=Release -j1
