@@ -27,6 +27,7 @@ jobs:
         run: |
             apt-get update -qq && apt-get install -y python-catkin-tools
             source /opt/ros/melodic/setup.bash
+            rosdep update
             rosdep install --from-paths . --ignore-src -y --rosdistro melodic
 
       - name: Install ros-melodic-can-msgs
