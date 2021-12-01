@@ -15,37 +15,31 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - run:
-          name: Install rtklib_msgs
-          command: |
+      - name: Install rtklib_msgs
+        run: |
             git clone https://github.com/MapIV/rtklib_ros_bridge.git
 
-      - run:
-          name: Install catkin
-          command: |
+      - name: Install catkin
+        run: |
             apt-get update -qq && apt-get install -y python-catkin-tools
             source /opt/ros/melodic/setup.bash
             rosdep install --from-paths . --ignore-src -y --rosdistro melodic
 
-      - run:
-          name: Install ros-melodic-can-msgs
-          command: |
+      - name: Install ros-melodic-can-msgs
+        run: |
             apt-get install ros-melodic-can-msgs
 
-      - run:
-          name: Install ros-melodic-geodesy
-          command: |
+      - name: Install ros-melodic-geodesy
+        run: |
             apt-get install ros-melodic-geodesy
 
-      - run:
-          name: Install GeographicLib
-          command: |
+      - name: Install GeographicLib
+        run: |
             apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 
-            
-      - run:
-          name: Build
-          command: |
+
+      - name: Build
+        run: |
             source /opt/ros/melodic/setup.bash
             mkdir -p /tmp/ws/src
             ln -s `pwd` /tmp/ws/src/package
