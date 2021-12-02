@@ -26,21 +26,17 @@ jobs:
 
       - name: Create Workspace
         run: |
-          mkdir -p ~/eagleye/src
-          cp -r `pwd` ~/eagleye/src
-          ls
-          ls ~/
-          ls ~/eagleye/
-          ls ~ /eagleye/src
+          mkdir -p ~/eagleye/src/
+          cp -r `pwd` ~/eagleye/src/
 
       - name: Clone rtklib_msgs
         run: |
           git clone https://github.com/MapIV/rtklib_ros_bridge.git
-        working-directory: ~/eagleye/src
+        working-directory: ~/eagleye/src/
 
       - name: Build
         run: |
           source /opt/ros/melodic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
           catkin_make -DCMAKE_BUILD_TYPE=Release -j1
-        working-directory: ~/eagleye
+        working-directory: ~/eagleye/
