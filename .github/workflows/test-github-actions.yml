@@ -19,36 +19,24 @@ jobs:
       - name: checkout
         uses: actions/checkout@v2
 
-      - name: Install rtklib_msgs
+      - name: rosdep update
         run: |
-            git clone https://github.com/MapIV/rtklib_ros_bridge.git
+          apt-get update
+          rosdep update
 
-      - name: Install catkin
+      - name: Create Workspace
         run: |
-            apt-get update -qq && apt-get install -y python-catkin-tools
-            source /opt/ros/melodic/setup.bash
-            rosdep update
-            rosdep install --from-paths . --ignore-src -y --rosdistro melodic
+          mkdir -p ~/eagleye/src
+          cp -r `pwd` ~/eagleye/src
 
-      - name: Install ros-melodic-can-msgs
+      - name: Clone rtklib_msgs
         run: |
-            apt-get install ros-melodic-can-msgs
-
-      - name: Install ros-melodic-geodesy
-        run: |
-            apt-get install ros-melodic-geodesy
-
-      - name: Install GeographicLib
-        run: |
-            apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
-
+          git clone https://github.com/MapIV/rtklib_ros_bridge.git
+        working-directory: ~/eagleye/src
 
       - name: Build
         run: |
-            source /opt/ros/melodic/setup.bash
-            mkdir -p /tmp/ws/src
-            ln -s `pwd` /tmp/ws/src/package
-            cd /tmp/ws/src
-            catkin_init_workspace
-            cd ../
-            catkin_make -DCMAKE_BUILD_TYPE=Release -j1
+          source /opt/ros/melodic/setup.bash
+          rosdep install --from-paths src --ignore-src -r -y
+          catkin_make -DCMAKE_BUILD_TYPE=Release -j1
+        working-directory: ~/eagleye
