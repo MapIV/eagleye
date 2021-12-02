@@ -28,6 +28,7 @@ jobs:
         run: |
           mkdir -p ~/eagleye/src/
           cp -r `pwd` ~/eagleye/src/
+          ls ~/eagleye/src/
 
       - name: Clone rtklib_msgs
         run: |
