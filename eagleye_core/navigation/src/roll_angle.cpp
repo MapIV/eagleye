@@ -6,9 +6,9 @@
 #define g 9.80665
 
 
-bool buffer1 = true;
-bool buffer2 = true;
-bool buffer3 = true;
+bool is_first_imu = true;
+bool is_first_rollrate = true;
+bool is_first_rollangle = true;
 int count = 1;
 
 void rolling_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,const sensor_msgs::Imu imu,const geometry_msgs::PoseStamped localization_pose,const RollangleParameter rollangle_parameter,RollangleStatus* rollangle_status,eagleye_msgs::Rolling* rolling_angle,eagleye_msgs::AccYOffset* imu_lateral_accoffset)
@@ -43,7 +43,7 @@ double rolling_time_offset = 0.0;
 
 
 // data buffer 
-if(rollangle_status->imu_time_buffer.empty() && buffer1 == true  && velocity_scale_factor.status.enabled_status == true)
+if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocity_scale_factor.status.enabled_status == true)
   {
     rollangle_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
     rollangle_status->yawrate_buffer.push_back(rollangle_status->yawrate);
@@ -51,7 +51,7 @@ if(rollangle_status->imu_time_buffer.empty() && buffer1 == true  && velocity_sca
     rollangle_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
     rollangle_status->acceleration_y_buffer.push_back(imu.linear_acceleration.y);
     rollangle_status->distance_buffer.push_back(distance.distance);
-    buffer1 = false;
+    is_first_imu = false;
   }
   else if (rollangle_status->imu_time_buffer.size() < rollangle_parameter.data_bufferNUM && velocity_scale_factor.status.enabled_status == true)
   {
@@ -147,10 +147,10 @@ if(rollangle_status->imu_time_buffer.empty() && buffer1 == true  && velocity_sca
 
 
 ///rollrad ///rolling_time_offset buffering///
-  if(rollangle_status->rollrad_buffer.empty() && buffer2 == true )
+  if(rollangle_status->rollrad_buffer.empty() && is_first_rollrate == true )
   {
     rollangle_status->rollrad_buffer.push_back(rollrad);
-    buffer2 = false;
+    is_first_rollrate = false;
   }
   else if (rollangle_status->rollrad_buffer.size() <rollangle_parameter.rollrad_bufferNUM)
   {
@@ -165,10 +165,10 @@ if(rollangle_status->imu_time_buffer.empty() && buffer1 == true  && velocity_sca
 
 
 // roll_angle_estimation buffering
-  if(rollangle_status->rolling_est_buffer.empty() && buffer3 == true &&  velocity_scale_factor.status.enabled_status == true && imu_lateral_accoffset->status.estimate_status == true)
+  if(rollangle_status->rolling_est_buffer.empty() && is_first_rollangle == true &&  velocity_scale_factor.status.enabled_status == true && imu_lateral_accoffset->status.estimate_status == true)
   {
     rollangle_status->rolling_est_buffer.push_back(rolling_est);
-    buffer3 = false;
+    is_first_rollangle = false;
   }
   else if (rollangle_status->rolling_est_buffer.size() < rollangle_parameter.rolling_bufferNUM && velocity_scale_factor.status.enabled_status == true && imu_lateral_accoffset->status.estimate_status == true)
   {

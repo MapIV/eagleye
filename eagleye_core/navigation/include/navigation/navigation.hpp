@@ -25,7 +25,6 @@
 
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/NavSatFix.h"
-#include "sensor_msgs/PointCloud2.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "rtklib_msgs/RtklibNav.h"
