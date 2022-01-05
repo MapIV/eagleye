@@ -1,6 +1,8 @@
 
 <img src="docs/logo.png" height="45"> (Alpha version)
 
+![example workflow](https://github.com/MapIV/eagleye/actions/workflows/build.yml/badge.svg)
+
 [Demo Video](https://youtu.be/u8Nan38BkDw)
 
 [![](http://img.youtube.com/vi/u8Nan38BkDw/0.jpg)](http://www.youtube.com/watch?v=u8Nan38BkDw "Eagleye")
