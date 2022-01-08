@@ -51,6 +51,7 @@ target_link_libraries(coordinate
   ${catkin_LIBRARIES}
   Geographic
 )
+add_dependencies(coordinate ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY include/coordinate/
   DESTINATION include/coordinate
