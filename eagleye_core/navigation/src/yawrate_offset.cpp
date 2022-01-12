@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
+void yawrate_offset_estimate(const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,const eagleye_msgs::msg::Heading heading_interpolate,const sensor_msgs::msg::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::msg::YawrateOffset* yawrate_offset)
 {
   int i;
   double yawrate = 0.0;
@@ -42,6 +42,9 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   std::size_t time_buffer_length;
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
+
+  rclcpp::Time ros_clock(imu.header.stamp);
+  auto imu_time = ros_clock.seconds();
 
   if (yawrate_offset_status->estimated_number < yawrate_offset_parameter.estimated_number_max)
   {
@@ -62,7 +65,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   }
 
   // data buffer generate
-  yawrate_offset_status->time_buffer.push_back(imu.header.stamp.toSec());
+  yawrate_offset_status->time_buffer.push_back(imu_time);
   yawrate_offset_status->yawrate_buffer.push_back(yawrate);
   yawrate_offset_status->heading_angle_buffer.push_back(heading_interpolate.heading_angle);
   yawrate_offset_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);

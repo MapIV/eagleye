@@ -28,23 +28,22 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "sensor_msgs/NavSatFix.h"
-#include "eagleye_msgs/Distance.h"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "eagleye_msgs/msg/distance.hpp"
 #include "fix2kml/KmlGenerator.hpp"
-#include <boost/bind.hpp>
 
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
 static std::string filename, kmlname;
 
-void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   driving_distance = msg->distance;
 }
 
-void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kmlfile)
+void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGenerator *kmlfile)
 {
   if( (driving_distance - driving_distance_last) > interval)
   {
@@ -56,19 +55,24 @@ void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kml
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "fix2kml");
-  ros::NodeHandle n;
+rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("fix2kml");
 
-  n.getParam("fix2kml/filename",filename);
-  n.getParam("fix2kml/kmlname",kmlname);
-  std::cout<< "filename "<<filename<<std::endl;
-  std::cout<< "kmlname "<<kmlname<<std::endl;
+  node->declare_parameter("filename",filename);
+  node->declare_parameter("kmlname",kmlname);
+
+  node->get_parameter("filename",filename);
+  node->get_parameter("kmlname",kmlname);
+
+  std::cout<< "filename: "<<filename<<std::endl;
+  std::cout<< "kmlname: "<<kmlname<<std::endl;
 
   KmlGenerator kmlfile(kmlname);
 
-  ros::Subscriber sub1 = n.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
-  ros::Subscriber sub2 = n.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
-  ros::spin();
+  std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc = std::bind(&receive_data, std::placeholders::_1, &kmlfile);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", rclcpp::QoS(10), sub1_fnc);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback);
+  rclcpp::spin(node);
 
   return 0;
 }

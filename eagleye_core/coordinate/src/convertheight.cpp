@@ -28,7 +28,7 @@
  * Author MapIV Takanose
  */
 
-#include "coordinate/coordinate.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
 
 ConvertHeight::ConvertHeight()
 {

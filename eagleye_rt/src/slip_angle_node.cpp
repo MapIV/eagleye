@@ -28,22 +28,22 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static sensor_msgs::Imu imu;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset yawrate_offset_2nd;
+static sensor_msgs::msg::Imu imu;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
 
-static ros::Publisher pub;
-static eagleye_msgs::SlipAngle slip_angle;
+rclcpp::Publisher<eagleye_msgs::msg::SlipAngle>::SharedPtr pub;
+static eagleye_msgs::msg::SlipAngle slip_angle;
 
 struct SlipangleParameter slip_angle_parameter;
 
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.scale_factor = msg->scale_factor;
@@ -51,21 +51,21 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   velocity_scale_factor.status = msg->status;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_stop.status = msg->status;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   yawrate_offset_2nd.header = msg->header;
   yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
   yawrate_offset_2nd.status = msg->status;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu.header = msg->header;
   imu.orientation = msg->orientation;
@@ -77,34 +77,39 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   slip_angle.header = msg->header;
   slip_angle.header.frame_id = "base_link";
   slip_angle_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
-  pub.publish(slip_angle);
+  pub->publish(slip_angle);
   slip_angle.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "slip_angle");
-
-  ros::NodeHandle n;
-
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("slip_angle");
+  
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("reverse_imu", slip_angle_parameter.reverse_imu);
-  n.getParam("slip_angle/manual_coefficient", slip_angle_parameter.manual_coefficient);
-  n.getParam("slip_angle/stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", slip_angle_parameter.reverse_imu);
+  node->declare_parameter("slip_angle.manual_coefficient", slip_angle_parameter.manual_coefficient);
+  node->declare_parameter("slip_angle.stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
+
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", slip_angle_parameter.reverse_imu);
+  node->get_parameter("slip_angle.manual_coefficient", slip_angle_parameter.manual_coefficient);
+  node->get_parameter("slip_angle.stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<slip_angle_parameter.reverse_imu<<std::endl;
   std::cout<< "manual_coefficient "<<slip_angle_parameter.manual_coefficient<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<slip_angle_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::SlipAngle>("slip_angle", 1000);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, rclcpp::QoS(10), imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10));
 
-  ros::spin();
+  rclcpp::spin(node);
+
 
   return 0;
 }

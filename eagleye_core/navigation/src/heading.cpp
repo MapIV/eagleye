@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void heading_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,sensor_msgs::msg::Imu imu,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset,eagleye_msgs::msg::SlipAngle slip_angle,eagleye_msgs::msg::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::msg::Heading* heading)
 {
 
   double ecef_vel[3];
@@ -47,6 +47,9 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
+
+  rclcpp::Time ros_clock(imu.header.stamp);
+  auto imu_time = ros_clock.seconds();
 
   ecef_vel[0] = rtklib_nav.ecef_vel.x;
   ecef_vel[1] = rtklib_nav.ecef_vel.y;
@@ -106,7 +109,7 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   }
 
   // data buffer generate
-  heading_status->time_buffer .push_back(imu.header.stamp.toSec());
+  heading_status->time_buffer .push_back(imu_time);
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
   heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);

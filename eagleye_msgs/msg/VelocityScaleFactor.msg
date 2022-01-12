@@ -1,4 +1,4 @@
-Header header
+std_msgs/Header header
 
 float64 scale_factor
 geometry_msgs/Twist correction_velocity
