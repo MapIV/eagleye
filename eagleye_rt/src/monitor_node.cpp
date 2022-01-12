@@ -32,7 +32,6 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-#include <boost/bind.hpp>
 #include <diagnostic_updater/diagnostic_updater.hpp>
 
 static sensor_msgs::msg::Imu imu;

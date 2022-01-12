@@ -32,7 +32,6 @@
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "eagleye_msgs/msg/distance.hpp"
 #include "fix2kml/KmlGenerator.hpp"
-#include "boost/bind.hpp"
 
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
