@@ -41,7 +41,6 @@
 #include "eagleye_msgs/msg/height.hpp"
 #include "eagleye_msgs/msg/pitching.hpp"
 #include "eagleye_msgs/msg/angular_velocity_offset.hpp"
-#include <boost/circular_buffer.hpp>
 #include <math.h>
 #include <numeric>
 
