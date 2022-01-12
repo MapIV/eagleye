@@ -30,6 +30,9 @@ jobs:
         run: |
           cd ~/eagleye/src/
           git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
+      - name: Install GeographicLib
+        run: |
+          apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
       - name: Build
         run: |
           cd ~/eagleye/
