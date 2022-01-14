@@ -45,6 +45,7 @@ add_library(navigation
 target_link_libraries(navigation
   ${catkin_LIBRARIES}
 )
+add_dependencies(navigation ${catkin_EXPORTED_TARGETS})
 
 install(DIRECTORY include/navigation/
   DESTINATION include/navigation/

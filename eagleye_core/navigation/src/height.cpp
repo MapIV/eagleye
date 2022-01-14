@@ -382,7 +382,7 @@ if (data_num_acc >= height_parameter.average_num && height_status->estimate_star
     }
     mean_acc = sum_acc / data_num_acc;
 
-    if (mean_acc/g < 1)
+    if (std::abs(mean_acc/g) < 1)
     {
       tmp_pitch = std::asin(mean_acc/g);
       pitching->status.enabled_status = true;
