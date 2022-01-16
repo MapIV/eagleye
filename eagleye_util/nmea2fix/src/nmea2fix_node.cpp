@@ -14,11 +14,12 @@ void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
   nmea_msgs::msg::Gpgga gga;
   sensor_msgs::msg::NavSatFix fix;
 
-  rclcpp::Time ros_clock(msg->header.stamp);
-
   sentence.header = msg->header;
   sentence.sentence = msg->sentence;
   nmea2fix_converter(sentence, &fix, &gga);
+
+  rclcpp::Time ros_clock(fix.header.stamp);
+
   if (ros_clock.seconds() != 0)
   {
     gga.header.frame_id = fix.header.frame_id = "gps";
