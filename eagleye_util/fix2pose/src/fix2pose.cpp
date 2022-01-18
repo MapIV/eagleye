@@ -86,31 +86,28 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   double xyz[3] = {0};
   double geoid_height = 0;
 
-  if (eagleye_position.status.enabled_status == true)
+  llh[0] = msg->latitude * M_PI / 180;
+  llh[1] = msg->longitude* M_PI / 180;
+  llh[2] = msg->altitude;
+
+  if (convert_height_num == 1)
   {
-    llh[0] = msg->latitude * M_PI / 180;
-    llh[1] = msg->longitude* M_PI / 180;
-    llh[2] = msg->altitude;
+    convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
+    llh[2] = convert_height.convert2altitude();
+  }
+  else if(convert_height_num == 2)
+  {
+    convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
+    llh[2] = convert_height.convert2ellipsoid();
+  }
 
-    if (convert_height_num == 1)
-    {
-      convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-      llh[2] = convert_height.convert2altitude();
-    }
-    else if(convert_height_num == 2)
-    {
-      convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-      llh[2] = convert_height.convert2ellipsoid();
-    }
-
-    if (tf_num == 1)
-    {
-      ll2xy(plane,llh,xyz);
-    }
-    else if (tf_num == 2)
-    {
-      ll2xy_mgrs(llh,xyz);
-    }
+  if (tf_num == 1)
+  {
+    ll2xy(plane,llh,xyz);
+  }
+  else if (tf_num == 2)
+  {
+    ll2xy_mgrs(llh,xyz);
   }
 
   if (eagleye_heading.status.enabled_status == true)
