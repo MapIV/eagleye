@@ -113,12 +113,19 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
          count += 1;
          accoffset_status = false;
          imu_lateral_accoffset->status.estimate_status=true;
-         imu_lateral_accoffset->status.enabled_status=true;
+        }
+        else
+        {
+          imu_lateral_accoffset->status.estimate_status=false;
         }
       }
 
     }
     
+  }
+  else
+  {
+    imu_lateral_accoffset->status.enabled_status=false;
   }
 
 
@@ -201,11 +208,12 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
     
   rolling_est_av = rolling_est_sum/rollangle_parameter.rolling_bufferNUM;
   rolling_angle->rolling_angle = rolling_est_av + rolling_time_offset;
-  rolling_angle->status.estimate_status=true;
   rolling_angle->status.enabled_status=true;
+  rolling_angle->status.estimate_status=true;
   }
-
-
+  else
+  {
+    rolling_angle->status.estimate_status=false;
+  }
   
-
 }

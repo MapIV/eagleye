@@ -74,7 +74,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "roll_angle");
   ros::NodeHandle n;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+  std::string subscribe_imu_topic_name = "/sensing/imu/imu_data";
   std::string subscribe_localization_pose_topic_name = "/localization/pose_estimator/pose";
 
   n.getParam("localization_pose_topic",subscribe_localization_pose_topic_name);
@@ -103,8 +103,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub5 = n.subscribe(subscribe_localization_pose_topic_name, 1000, localization_pose_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback , ros::TransportHints().tcpNoDelay());
 
-  pub1 = n.advertise<eagleye_msgs::AccYOffset>("eagleye/imu_lateral_accoffset", 1000);
-  pub2 = n.advertise<eagleye_msgs::Rolling>("eagleye/rolling_angle", 1000);
+  pub1 = n.advertise<eagleye_msgs::AccYOffset>("imu_lateral_accoffset", 1000);
+  pub2 = n.advertise<eagleye_msgs::Rolling>("rolling_angle", 1000);
  
   ros::spin();
 
