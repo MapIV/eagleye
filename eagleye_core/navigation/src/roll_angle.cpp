@@ -33,12 +33,10 @@ double rolling_time_offset = 0.0;
   if (rollangle_parameter.reverse_imu == true)
   {
     rollangle_status->yawrate = imu.angular_velocity.z;
-    rollangle_status->rollrate = imu.angular_velocity.x;
   }
   else if (rollangle_parameter.reverse_imu == false)
   {
     rollangle_status->yawrate = -1 * imu.angular_velocity.z;
-    rollangle_status->rollrate = -1* imu.angular_velocity.x;
   }
 
   //　reverse_imu rollrate
