@@ -35,16 +35,27 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "nmea2fix_node");
   ros::NodeHandle n;
 
+  std::string use_gnss_mode;
+
   n.getParam("nmea2fix_node/sub_topic_name",sub_topic_name);
   n.getParam("nmea2fix_node/pub_fix_topic_name",pub_fix_topic_name);
   n.getParam("nmea2fix_node/pub_gga_topic_name",pub_gga_topic_name);
   n.getParam("nmea2fix_node/pub_rmc_topic_name",pub_rmc_topic_name);
   n.getParam("nmea2fix_node/output_gga",output_gga);
   n.getParam("nmea2fix_node/output_rmc",output_rmc);
+  n.getParam("eagleye/use_gnss_mode",use_gnss_mode);
+
+  if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+  {
+    output_gga = true;
+    output_rmc = true;
+  }
+
   std::cout<< "sub_topic_name "<<sub_topic_name<<std::endl;
   std::cout<< "pub_fix_topic_name "<<pub_fix_topic_name<<std::endl;
   std::cout<< "pub_gga_topic_name "<<pub_gga_topic_name<<std::endl;
   std::cout<< "pub_rmc_topic_name "<<pub_rmc_topic_name<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
   std::cout<< "output_gga "<<output_gga<<std::endl;
   std::cout<< "output_rmc "<<output_rmc<<std::endl;
 
