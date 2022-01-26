@@ -33,6 +33,7 @@
 #include "navigation/navigation.hpp"
 
 static rtklib_msgs::RtklibNav rtklib_nav;
+static nmea_msgs::Gprmc nmea_rmc;
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::YawrateOffset yawrate_offset_stop;
@@ -46,6 +47,8 @@ static eagleye_msgs::Heading heading;
 struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
+static std::string use_gnss_mode;
+
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -53,6 +56,11 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   rtklib_nav.ecef_pos = msg->ecef_pos;
   rtklib_nav.ecef_vel = msg->ecef_vel;
   rtklib_nav.status = msg->status;
+}
+
+void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
+{
+  nmea_rmc = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -103,7 +111,11 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
-  heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+    heading_estimate(nmea_rmc,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)
   {
@@ -119,9 +131,11 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rmc_topic_name = "/mosaic/rmc";
 
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("rmc_topic",subscribe_rmc_topic_name);
   n.getParam("reverse_imu", heading_parameter.reverse_imu);
   n.getParam("heading/estimated_number_min",heading_parameter.estimated_number_min);
   n.getParam("heading/estimated_number_max",heading_parameter.estimated_number_max);
@@ -131,9 +145,11 @@ int main(int argc, char** argv)
   n.getParam("heading/estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
   n.getParam("heading/stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   n.getParam("heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  n.getParam("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+  std::cout<< "subscribe_rmc_topic_name "<<subscribe_rmc_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_number_max "<<heading_parameter.estimated_number_max<<std::endl;
@@ -143,6 +159,7 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<heading_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<heading_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_yawrate_threshold "<<heading_parameter.estimated_yawrate_threshold<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -182,11 +199,12 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = n.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = n.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
 
   pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 

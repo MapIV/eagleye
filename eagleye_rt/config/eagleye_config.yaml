@@ -1,5 +1,9 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
+#Estimate mode
+use_gnss_mode: RTKLIB
+# RTKLIB (rtklib) or NMEA (nmea)
+
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav

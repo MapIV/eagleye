@@ -49,6 +49,8 @@ static ros::Publisher pub2;
 struct RtkDeadreckoningParameter rtk_deadreckoning_parameter;
 struct RtkDeadreckoningStatus rtk_deadreckoning_status;
 
+static std::string use_gnss_mode;
+
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -107,7 +109,12 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
-  rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+    rtk_deadreckoning_estimate(enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);    
+  
   if(enu_absolute_rtk_deadreckoning.status.enabled_status == true)
   {
     pub1.publish(enu_absolute_rtk_deadreckoning);
@@ -136,6 +143,7 @@ int main(int argc, char** argv)
   n.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
   n.getParam("tf_gnss_flame/parent", rtk_deadreckoning_parameter.tf_gnss_parent_flame);
   n.getParam("tf_gnss_flame/child", rtk_deadreckoning_parameter.tf_gnss_child_flame);
+  n.getParam("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
@@ -146,6 +154,7 @@ int main(int argc, char** argv)
   std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "tf_gnss_flame/parent "<<rtk_deadreckoning_parameter.tf_gnss_parent_flame<<std::endl;
   std::cout<< "tf_gnss_flame/child "<<rtk_deadreckoning_parameter.tf_gnss_child_flame<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());

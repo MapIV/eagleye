@@ -31,18 +31,15 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate_(eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
-
   int i;
   int estimated_number_max = position_parameter.estimated_distance/position_parameter.separation_distance;
   int max_x_index, max_y_index;
-  double ecef_pos[3];
-  double ecef_base_pos[3];
+  double enu_pos[3];
   double avg_x, avg_y, avg_z;
   double tmp_enu_pos_x, tmp_enu_pos_y, tmp_enu_pos_z;
-  double enu_pos[3];
-  bool data_status, gnss_status, gnss_update;
+  bool data_status, gnss_status;
   std::size_t index_length;
   std::size_t velocity_index_length;
   std::vector<double> base_enu_pos_x_buffer, base_enu_pos_y_buffer, base_enu_pos_z_buffer;
@@ -51,53 +48,13 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
   std::vector<double>::iterator max_x, max_y;
 
-  if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
-  {
-    enu_absolute_pos->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
-    enu_absolute_pos->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
-    enu_absolute_pos->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
+  enu_pos[0] = position_status->enu_pos[0];
+  enu_pos[1] = position_status->enu_pos[1];
+  enu_pos[2] = position_status->enu_pos[2];
 
-    if(position_parameter.ecef_base_pos_x != 0 && position_parameter.ecef_base_pos_y != 0 && position_parameter.ecef_base_pos_z != 0){
-      enu_absolute_pos->ecef_base_pos.x = position_parameter.ecef_base_pos_x;
-      enu_absolute_pos->ecef_base_pos.y = position_parameter.ecef_base_pos_y;
-      enu_absolute_pos->ecef_base_pos.z = position_parameter.ecef_base_pos_z;
-    }
-  }
-
-
-  ecef_pos[0] = rtklib_nav.ecef_pos.x;
-  ecef_pos[1] = rtklib_nav.ecef_pos.y;
-  ecef_pos[2] = rtklib_nav.ecef_pos.z;
-  ecef_base_pos[0] = enu_absolute_pos->ecef_base_pos.x;
-  ecef_base_pos[1] = enu_absolute_pos->ecef_base_pos.y;
-  ecef_base_pos[2] = enu_absolute_pos->ecef_base_pos.z;
-
-  xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
-
-  if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
-  {
-    enu_pos[0] = 0;
-    enu_pos[1] = 0;
-    enu_pos[2] = 0;
-    gnss_update = false;
-  }
-  else
-  {
-    gnss_update = true;
-  }
-
-  if (position_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
-  {
-    gnss_status = false;
-    enu_pos[0] = 0.0;
-    enu_pos[1] = 0.0;
-    enu_pos[2] = 0.0;
-    position_status->tow_last = rtklib_nav.tow;
-  }
-  else
+  if(!position_status->gnss_update_failure)
   {
     gnss_status = true;
-    position_status->tow_last = rtklib_nav.tow;
 
     geometry_msgs::PoseStamped pose;
 
@@ -123,6 +80,10 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
     enu_pos[0] = tmp_pos.getX();
     enu_pos[1] = tmp_pos.getY();
     enu_pos[2] = tmp_pos.getZ();
+  }
+  else
+  {
+    gnss_status = false;
   }
 
   if (heading_interpolate_3rd.status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)
@@ -162,7 +123,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
     position_status->enu_relative_pos_z_buffer.push_back(0);
     position_status->distance_buffer.push_back(distance.distance);
 
-  data_status = true; //judgment that refreshed data
+    data_status = true; //judgment that refreshed data
 
     if (position_status->distance_buffer.end() - position_status->distance_buffer.begin() > estimated_number_max)
     {
@@ -327,4 +288,150 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   }
   position_status->time_last = enu_vel.header.stamp.toSec();
   data_status = false;
+}
+
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+{
+  double enu_pos[3];
+  double ecef_pos[3];
+  double ecef_base_pos[3];
+  bool gnss_update_failure;
+
+  if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
+  {
+    if (rtklib_nav.tow != 0)
+    {
+      enu_absolute_pos->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
+      enu_absolute_pos->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
+      enu_absolute_pos->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
+
+      if(position_parameter.ecef_base_pos_x != 0 && position_parameter.ecef_base_pos_y != 0 && position_parameter.ecef_base_pos_z != 0)
+      {
+        enu_absolute_pos->ecef_base_pos.x = position_parameter.ecef_base_pos_x;
+        enu_absolute_pos->ecef_base_pos.y = position_parameter.ecef_base_pos_y;
+        enu_absolute_pos->ecef_base_pos.z = position_parameter.ecef_base_pos_z;
+      }
+    }
+    else
+    {
+      return;
+    }
+
+  }
+
+  ecef_pos[0] = rtklib_nav.ecef_pos.x;
+  ecef_pos[1] = rtklib_nav.ecef_pos.y;
+  ecef_pos[2] = rtklib_nav.ecef_pos.z;
+  ecef_base_pos[0] = enu_absolute_pos->ecef_base_pos.x;
+  ecef_base_pos[1] = enu_absolute_pos->ecef_base_pos.y;
+  ecef_base_pos[2] = enu_absolute_pos->ecef_base_pos.z;
+
+  xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
+
+  if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
+  {
+    enu_pos[0] = 0.0;
+    enu_pos[1] = 0.0;
+    enu_pos[2] = 0.0;
+    gnss_update_failure = true;
+  }
+  else
+  {
+    gnss_update_failure = false;
+  }
+
+  if (position_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0)
+  {
+    enu_pos[0] = 0.0;
+    enu_pos[1] = 0.0;
+    enu_pos[2] = 0.0;
+    gnss_update_failure = true;
+  }
+  else
+  {
+    gnss_update_failure = false;
+  }
+
+  position_status->enu_pos[0] = enu_pos[0];
+  position_status->enu_pos[1] = enu_pos[1];
+  position_status->enu_pos[2] = enu_pos[2];
+  position_status->gnss_update_failure = gnss_update_failure;
+  position_status->tow_last = rtklib_nav.tow;
+
+  position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
+}
+
+void position_estimate(sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+{
+  double llh_pos[3];
+  double enu_pos[3];
+  double ecef_pos[3];
+  double ecef_base_pos[3];
+  bool gnss_update_failure;
+
+  llh_pos[0] = fix.latitude *M_PI/180;
+  llh_pos[1] = fix.longitude *M_PI/180;
+  llh_pos[2] = fix.altitude;
+  
+  llh2xyz(llh_pos,ecef_pos);
+
+  if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
+  {
+    if (fix.header.stamp.toSec() != 0)
+    {
+      enu_absolute_pos->ecef_base_pos.x = ecef_pos[0];
+      enu_absolute_pos->ecef_base_pos.y = ecef_pos[1];
+      enu_absolute_pos->ecef_base_pos.z = ecef_pos[2];
+
+      if(position_parameter.ecef_base_pos_x != 0 && position_parameter.ecef_base_pos_y != 0 && position_parameter.ecef_base_pos_z != 0)
+      {
+        enu_absolute_pos->ecef_base_pos.x = position_parameter.ecef_base_pos_x;
+        enu_absolute_pos->ecef_base_pos.y = position_parameter.ecef_base_pos_y;
+        enu_absolute_pos->ecef_base_pos.z = position_parameter.ecef_base_pos_z;
+      }
+    }
+    else
+    {
+      return;
+    }
+
+  }
+
+  ecef_base_pos[0] = enu_absolute_pos->ecef_base_pos.x;
+  ecef_base_pos[1] = enu_absolute_pos->ecef_base_pos.y;
+  ecef_base_pos[2] = enu_absolute_pos->ecef_base_pos.z;
+
+  xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
+
+  if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
+  {
+    enu_pos[0] = 0.0;
+    enu_pos[1] = 0.0;
+    enu_pos[2] = 0.0;
+    gnss_update_failure = true;
+  }
+  else
+  {
+    gnss_update_failure = false;
+  }
+
+  if (position_status->nmea_time_last == fix.header.stamp.toSec() || enu_vel.header.stamp.toSec() == 0)
+  {
+    enu_pos[0] = 0.0;
+    enu_pos[1] = 0.0;
+    enu_pos[2] = 0.0;
+    gnss_update_failure = true;
+  }
+  else
+  {
+    gnss_update_failure = false;
+  }
+
+  position_status->enu_pos[0] = enu_pos[0];
+  position_status->enu_pos[1] = enu_pos[1];
+  position_status->enu_pos[2] = enu_pos[2];
+  position_status->gnss_update_failure = gnss_update_failure;
+  position_status->nmea_time_last = fix.header.stamp.toSec();
+
+  position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }
