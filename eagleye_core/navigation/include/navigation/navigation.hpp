@@ -410,6 +410,8 @@ struct RtkDeadreckoningStatus
 struct RollangleParameter
 {
   bool reverse_imu;
+  bool reverse_imu_angular_velocity_x;
+  bool reverse_imu_linear_acceleration_y;
   double matching_update_distance;
   double stop_judgment_velocity_threshold;
   double rollrad_bufferNUM;
@@ -424,6 +426,7 @@ struct RollangleStatus
   double acc_offset_sum;
   double yawrate;
   double rollrate;
+  double imu_acceleration_y;
   double rollrate_offset;
   double IMU_time_before;
   std::vector<double> rollrad_buffer;

@@ -8,7 +8,9 @@ nmea_sentence_topic: /navsat/nmea_sentence
 localization_pose_topic: /localization/pose_estimator/pose
 
 #Parameter settings for Eagleye
-reverse_imu: false
+reverse_imu: false                                    # reverse imu angular_velocity.z
+reverse_imu_angular_velocity_x: true                  # reverse imu angular_velocity.x
+reverse_imu_linear_acceleration_y: false              # reverse imu linear_acceleration.y
 
 tf_gnss_flame:
   parent: "base_link"
@@ -124,8 +126,8 @@ rollangle:
   matching_update_distance: 0.3                      #Distance to re-estimate from previous estimate. (default:0.3 m)
   stop_judgment_velocity_threshold: 0.01             #Speed threshold for judgment at stop. (default:0.01 m/s)
   data_bufferNUM: 10                                 #Number of IMU data to be stored for time correction. (default:10)
-  rollrad_bufferNUM: 30                              #Number of data to compensate for time delay in roll angle (default:30)
-  rolling_bufferNUM: 50                              #Number of data to take a moving average of roll angle (default:50)
+  rollrad_bufferNUM: 20                              #Number of data to compensate for time delay in roll angle (default:20)
+  rolling_bufferNUM: 40                              #Number of data to take a moving average of roll angle (default:40)
   link_Time_stamp_parameter: 0.01                    #Time considered to be in sync for time synchronization. (default:0.01 s)
 
 monitor:

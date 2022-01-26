@@ -80,6 +80,8 @@ int main(int argc, char** argv)
   n.getParam("localization_pose_topic",subscribe_localization_pose_topic_name);
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("reverse_imu",rollangle_parameter.reverse_imu);
+  n.getParam("reverse_imu_angular_velocity_x",rollangle_parameter.reverse_imu_angular_velocity_x);
+  n.getParam("reverse_imu_linear_acceleration_y",rollangle_parameter.reverse_imu_linear_acceleration_y);
   n.getParam("rollangle/link_Time_stamp_parameter",rollangle_parameter.link_Time_stamp_parameter);
   n.getParam("rollangle/matching_update_distance",rollangle_parameter.matching_update_distance);
   n.getParam("rollangle/data_bufferNUM",rollangle_parameter.data_bufferNUM);

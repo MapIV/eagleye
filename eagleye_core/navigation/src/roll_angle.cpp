@@ -30,15 +30,35 @@ double IMU_time_dt = 0.0;
 double rolling_time_offset = 0.0;
 
 // reverse_imu
-  if (rollangle_parameter.reverse_imu == false)
+  if (rollangle_parameter.reverse_imu == true)
   {
     rollangle_status->yawrate = imu.angular_velocity.z;
     rollangle_status->rollrate = imu.angular_velocity.x;
   }
-  else if (rollangle_parameter.reverse_imu == true)
+  else if (rollangle_parameter.reverse_imu == false)
   {
     rollangle_status->yawrate = -1 * imu.angular_velocity.z;
     rollangle_status->rollrate = -1* imu.angular_velocity.x;
+  }
+
+  //　reverse_imu rollrate
+  if (rollangle_parameter.reverse_imu_angular_velocity_x == false)
+  {
+    rollangle_status->rollrate = imu.angular_velocity.x;
+  }
+  else if (rollangle_parameter.reverse_imu_angular_velocity_x == true)
+  {
+    rollangle_status->rollrate = -1* imu.angular_velocity.x;
+  }
+
+  //　reverse_imu yACC
+  if (rollangle_parameter.reverse_imu_linear_acceleration_y == false)
+  {
+    rollangle_status->imu_acceleration_y = imu.linear_acceleration.y;
+  }
+  else if (rollangle_parameter.reverse_imu_linear_acceleration_y == true)
+  {
+    rollangle_status->imu_acceleration_y = -1* imu.linear_acceleration.y;
   }
 
 
@@ -49,7 +69,7 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
     rollangle_status->yawrate_buffer.push_back(rollangle_status->yawrate);
     rollangle_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     rollangle_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
-    rollangle_status->acceleration_y_buffer.push_back(imu.linear_acceleration.y);
+    rollangle_status->acceleration_y_buffer.push_back(rollangle_status->imu_acceleration_y);
     rollangle_status->distance_buffer.push_back(distance.distance);
     is_first_imu = false;
   }
@@ -59,7 +79,7 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
     rollangle_status->yawrate_buffer.push_back(rollangle_status->yawrate);
     rollangle_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     rollangle_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
-    rollangle_status->acceleration_y_buffer.push_back(imu.linear_acceleration.y);
+    rollangle_status->acceleration_y_buffer.push_back(rollangle_status->imu_acceleration_y);
     rollangle_status->distance_buffer.push_back(distance.distance);
   }
   else if (velocity_scale_factor.status.enabled_status == true)
@@ -75,7 +95,7 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
     rollangle_status->yawrate_buffer.push_back(rollangle_status->yawrate);
     rollangle_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     rollangle_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
-    rollangle_status->acceleration_y_buffer.push_back(imu.linear_acceleration.y);
+    rollangle_status->acceleration_y_buffer.push_back(rollangle_status->imu_acceleration_y);
     rollangle_status->distance_buffer.push_back(distance.distance);
     data_buffer_status = true;
   }
@@ -112,6 +132,7 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
          imu_lateral_accoffset->imu_lateral_accoffset = rollangle_status->acc_offset_sum/count; 
          count += 1;
          accoffset_status = false;
+         imu_lateral_accoffset->status.enabled_status=true;
          imu_lateral_accoffset->status.estimate_status=true;
         }
         else
@@ -134,11 +155,11 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
   {
     if (velocity_scale_factor.correction_velocity.linear.x > rollangle_parameter.stop_judgment_velocity_threshold)
     {
-      rolling_est = asin((velocity_scale_factor.correction_velocity.linear.x*(rollangle_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-(imu.linear_acceleration.y-imu_lateral_accoffset->imu_lateral_accoffset)/g);
+      rolling_est = asin((velocity_scale_factor.correction_velocity.linear.x*(rollangle_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-(rollangle_status->imu_acceleration_y-imu_lateral_accoffset->imu_lateral_accoffset)/g);
     }
     else
     {
-      rolling_est = asin((velocity_scale_factor.correction_velocity.linear.x*(rollangle_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-(imu.linear_acceleration.y-imu_lateral_accoffset->imu_lateral_accoffset)/g);
+      rolling_est = asin((velocity_scale_factor.correction_velocity.linear.x*(rollangle_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-(rollangle_status->imu_acceleration_y-imu_lateral_accoffset->imu_lateral_accoffset)/g);
     }
   }
 
@@ -186,6 +207,8 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
     rollangle_status->rolling_est_buffer.erase(rollangle_status->rolling_est_buffer.begin());
     rollangle_status->rolling_est_buffer.push_back(rolling_est);
     rolling_est_buffer_status = true;
+  }else{
+    rolling_est_buffer_status = false;
   }
 
 /// rollrad ///
@@ -215,5 +238,5 @@ if(rollangle_status->imu_time_buffer.empty() && is_first_imu == true  && velocit
   {
     rolling_angle->status.estimate_status=false;
   }
-  
+
 }
