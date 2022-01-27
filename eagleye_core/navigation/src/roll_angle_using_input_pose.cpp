@@ -128,11 +128,12 @@ if(roll_angle_status->imu_time_buffer.empty() && is_first_imu == true  && veloci
          acc_offset_status = false;
          imu_lateral_acc_offset->status.enabled_status=true;
          imu_lateral_acc_offset->status.estimate_status=true;
+         break;
         }
-        else
-        {
-          imu_lateral_acc_offset->status.estimate_status=false;
-        }
+      }
+      else
+      {
+        imu_lateral_acc_offset->status.estimate_status=false;
       }
 
     }
@@ -145,7 +146,7 @@ if(roll_angle_status->imu_time_buffer.empty() && is_first_imu == true  && veloci
 
 
 /// estimated rolling angle ///
-  if(imu_lateral_acc_offset->status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)
+  if(imu_lateral_acc_offset->status.enabled_status == true && velocity_scale_factor.status.enabled_status == true)
   {
     if (velocity_scale_factor.correction_velocity.linear.x > rollangle_parameter_using_input_pose.stop_judgment_velocity_threshold)
     {
@@ -187,16 +188,16 @@ if(roll_angle_status->imu_time_buffer.empty() && is_first_imu == true  && veloci
 
 
 /// buffering estimated roll angle ///
-  if(roll_angle_status->rolling_estimated_buffer.empty() && is_first_rollangle == true &&  velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.estimate_status == true)
+  if(roll_angle_status->rolling_estimated_buffer.empty() && is_first_rollangle == true &&  velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.enabled_status == true)
   {
     roll_angle_status->rolling_estimated_buffer.push_back(rolling_estimated);
     is_first_rollangle = false;
   }
-  else if (roll_angle_status->rolling_estimated_buffer.size() < rollangle_parameter_using_input_pose.rolling_buffer_num && velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.estimate_status == true)
+  else if (roll_angle_status->rolling_estimated_buffer.size() < rollangle_parameter_using_input_pose.rolling_buffer_num && velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.enabled_status == true)
   {
     roll_angle_status->rolling_estimated_buffer.push_back(rolling_estimated);
   }
-  else if (velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.estimate_status == true)
+  else if (velocity_scale_factor.status.enabled_status == true && imu_lateral_acc_offset->status.enabled_status == true)
   {
     roll_angle_status->rolling_estimated_buffer.erase(roll_angle_status->rolling_estimated_buffer.begin());
     roll_angle_status->rolling_estimated_buffer.push_back(rolling_estimated);
