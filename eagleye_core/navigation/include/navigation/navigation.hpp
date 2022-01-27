@@ -414,7 +414,6 @@ struct RollangleParameterUsingInputPose
   bool reverse_imu_linear_acceleration_y;
   double matching_update_distance;
   double stop_judgment_velocity_threshold;
-  double rolling_offset_buffer_num;
   double rolling_buffer_num;
   double link_Time_stamp_parameter;
   double imu_buffer_num;

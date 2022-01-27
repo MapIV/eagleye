@@ -86,7 +86,6 @@ int main(int argc, char** argv)
   n.getParam("rollangle/matching_update_distance",rollangle_parameter_using_input_pose.matching_update_distance);
   n.getParam("rollangle/imu_buffer_num",rollangle_parameter_using_input_pose.imu_buffer_num);
   n.getParam("rollangle/rolling_buffer_num",rollangle_parameter_using_input_pose.rolling_buffer_num);
-  n.getParam("rollangle/rolling_offset_buffer_num",rollangle_parameter_using_input_pose.rolling_offset_buffer_num);
   n.getParam("rollangle/stop_judgment_velocity_threshold",rollangle_parameter_using_input_pose.stop_judgment_velocity_threshold);
 
   std::cout<< "subscribe_localization_pose_topic_name "<<subscribe_localization_pose_topic_name<<std::endl;
@@ -95,7 +94,6 @@ int main(int argc, char** argv)
   std::cout<< "matching_update_distance" <<rollangle_parameter_using_input_pose.matching_update_distance<<std::endl;
   std::cout<< "imu_buffer_num" <<rollangle_parameter_using_input_pose.imu_buffer_num<<std::endl;
   std::cout<< "rolling_buffer_num" <<rollangle_parameter_using_input_pose.rolling_buffer_num<<std::endl;
-  std::cout<< "rolling_offset_buffer_num" <<rollangle_parameter_using_input_pose.rolling_offset_buffer_num<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold" <<rollangle_parameter_using_input_pose.stop_judgment_velocity_threshold<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback , ros::TransportHints().tcpNoDelay());

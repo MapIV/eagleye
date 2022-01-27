@@ -25,17 +25,16 @@ double rolling_estimated_sum = 0.0;
 double rolling_estimated_average = 0.0;
 double diff_imu_time = 0.0;
 double rolling_offset_buffer = 0.0;
+double rolling_offset_buffer_num = rollangle_parameter_using_input_pose.rolling_buffer_num / 2;
 
 /// reverse_imu ///
   if (rollangle_parameter_using_input_pose.reverse_imu == false)
   {
     roll_angle_status->yawrate = imu.angular_velocity.z;
-    roll_angle_status->rollrate = imu.angular_velocity.x;
   }
   else if (rollangle_parameter_using_input_pose.reverse_imu == true)
   {
     roll_angle_status->yawrate = -1 * imu.angular_velocity.z;
-    roll_angle_status->rollrate = -1* imu.angular_velocity.x;
   }
 
   /// reverse_imu rollrate ///
@@ -175,7 +174,7 @@ if(roll_angle_status->imu_time_buffer.empty() && is_first_imu == true  && veloci
     roll_angle_status->correction_roll_rate_buffer.push_back(correction_roll_rate);
     is_first_rollrate = false;
   }
-  else if (roll_angle_status->correction_roll_rate_buffer.size() <rollangle_parameter_using_input_pose.rolling_offset_buffer_num)
+  else if (roll_angle_status->correction_roll_rate_buffer.size() <rolling_offset_buffer_num)
   {
     roll_angle_status->correction_roll_rate_buffer.push_back(correction_roll_rate);
   }
@@ -211,7 +210,7 @@ if(roll_angle_status->imu_time_buffer.empty() && is_first_imu == true  && veloci
 /// buffering rolling offset ///
   if (rollrad_buffer_status == true)
   {
-    for( j=0; j <rollangle_parameter_using_input_pose.rolling_offset_buffer_num-1; j++)
+    for( j=0; j <rolling_offset_buffer_num-1; j++)
     {
       rolling_offset_buffer += roll_angle_status->correction_roll_rate_buffer[j];
     }
