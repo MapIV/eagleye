@@ -122,7 +122,7 @@ height:
   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
 
-rollangle:
+roll_angle_using_input_pose:
   matching_update_distance: 0.3                      #Distance to re-estimate from previous estimate. (default:0.3 m)
   stop_judgment_velocity_threshold: 0.01             #Speed threshold for judgment at stop. (default:0.01 m/s)
   imu_buffer_num: 10                                #Number of IMU data to be stored for time correction. (default:10)

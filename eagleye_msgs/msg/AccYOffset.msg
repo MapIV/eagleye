@@ -1,4 +1,4 @@
 Header header
 
-float64 imu_lateral_acc_offset
+float64 acc_y_offset
 eagleye_msgs/Status status

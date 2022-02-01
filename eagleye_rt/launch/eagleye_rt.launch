@@ -38,7 +38,7 @@
     <node pkg="eagleye_rt" name="rtk_heading_node_1st" type="rtk_heading" args="1st" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_2nd" type="rtk_heading" args="2nd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
-    <node pkg="eagleye_rt" name="roll_angle_node" type="roll_angle_using_input_pose" if="$(arg use_input_pose)"/>
+    <node pkg="eagleye_rt" name="roll_angle_using_input_pose_node" type="roll_angle_using_input_pose" if="$(arg use_input_pose)"/>
 
   </group>
 

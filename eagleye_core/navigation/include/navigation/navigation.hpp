@@ -427,7 +427,7 @@ struct RollangleStatusUsingInputPose
   double rollrate;
   double imu_acceleration_y;
   double rollrate_offset;
-  double IMU_time_before;
+  double imu_time_before;
   std::vector<double> correction_roll_rate_buffer;
   std::vector<double> rolling_estimated_buffer;
   std::vector<double> imu_time_buffer;
