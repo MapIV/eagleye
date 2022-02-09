@@ -132,5 +132,10 @@ enable_additional_rolling:
   link_Time_stamp_parameter: 0.01                     #Time considered to be in sync for time synchronization. (default:0.01 s)
   imu_buffer_num: 10                                  #Number of IMU data to be stored for time correction. (default:10)
 
+rolling:
+  stop_judgment_velocity_threshold: 0.01
+  filter_process_noise: 0.01
+  filter_observation_noise: 1
+
 monitor:
   print_status: true
