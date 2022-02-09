@@ -43,10 +43,7 @@
 #include "eagleye_msgs/Pitching.h"
 #include "eagleye_msgs/AngularVelocityOffset.h"
 #include "eagleye_msgs/Rolling.h"
-<<<<<<< HEAD
 #include "eagleye_msgs/AccYOffset.h"
-=======
->>>>>>> Added rolling estimation
 #include <boost/circular_buffer.hpp>
 #include <math.h>
 #include <numeric>
@@ -449,7 +446,6 @@ struct EnableAdditionalRollingStatus
   std::vector<double> yawrate_offset_buffer;
   std::vector<double> acceleration_y_buffer;
   std::vector<double> distance_buffer;
-  
 struct RollingParameter
 {
   bool reverse_imu;
