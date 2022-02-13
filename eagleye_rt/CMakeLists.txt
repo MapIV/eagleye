@@ -115,9 +115,9 @@ add_executable(slip_coefficient src/slip_coefficient_node.cpp)
 target_link_libraries(slip_coefficient ${catkin_LIBRARIES})
 add_dependencies(slip_coefficient ${catkin_EXPORTED_TARGETS})
 
-add_executable(roll_angle_using_input_pose src/roll_angle_using_input_pose_node.cpp)
-target_link_libraries(roll_angle_using_input_pose ${catkin_LIBRARIES} )
-add_dependencies(roll_angle_using_input_pose ${catkin_EXPORTED_TARGETS})
+add_executable(enable_additional_rolling src/enable_additional_rolling_node.cpp)
+target_link_libraries(enable_additional_rolling ${catkin_LIBRARIES} )
+add_dependencies(enable_additional_rolling ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS
   velocity_scale_factor
@@ -138,7 +138,7 @@ install(TARGETS
   correction_imu
   rtk_deadreckoning
   rtk_heading
-  roll_angle_using_input_pose
+  enable_additional_rolling
   DESTINATION lib/${PROJECT_NAME}
 )
 

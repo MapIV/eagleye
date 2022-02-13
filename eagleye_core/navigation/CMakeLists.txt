@@ -39,7 +39,7 @@ add_library(navigation
   src/angular_velocity_offset_stop.cpp
   src/rtk_deadreckoning.cpp
   src/rtk_heading.cpp
-  src/roll_angle_using_input_pose.cpp
+  src/enable_additional_rolling.cpp
 )
 
 target_link_libraries(navigation

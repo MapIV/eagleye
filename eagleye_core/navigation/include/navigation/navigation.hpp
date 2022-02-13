@@ -407,7 +407,7 @@ struct RtkDeadreckoningStatus
   std::vector<double> imu_stamp_buffer;
 };
 
-struct RollangleParameterUsingInputPose
+struct EnableAdditionalRollingParameter
 {
   bool reverse_imu;
   bool reverse_imu_angular_velocity_x;
@@ -419,16 +419,18 @@ struct RollangleParameterUsingInputPose
   double imu_buffer_num;
 };
 
-struct RollangleStatusUsingInputPose
+struct EnableAdditionalRollingStatus
 {
-  double distance_save;
+  double distance_last;
   double acc_offset_sum;
   double yawrate;
   double rollrate;
   double imu_acceleration_y;
-  double rollrate_offset;
-  double imu_time_before;
-  std::vector<double> correction_roll_rate_buffer;
+  double rollrate_offset_stop;
+  double imu_time_last;
+  double localization_time_last;
+  int acc_offset_data_count;
+  std::vector<double> roll_rate_interpolate_buffer;
   std::vector<double> rolling_estimated_buffer;
   std::vector<double> imu_time_buffer;
   std::vector<double> yawrate_buffer;
@@ -455,6 +457,6 @@ extern void trajectory3d_estimate(const sensor_msgs::Imu,const eagleye_msgs::Vel
 extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter, AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
 extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const sensor_msgs::NavSatFix, const eagleye_msgs::Heading,const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void rtk_heading_estimate(const sensor_msgs::NavSatFix, const sensor_msgs::Imu, const eagleye_msgs::VelocityScaleFactor, const eagleye_msgs::Distance,const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const RtkHeadingParameter, RtkHeadingStatus*,eagleye_msgs::Heading*);
-extern void rolling_estimate_using_input_pose(const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset ,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Distance,const sensor_msgs::Imu,const geometry_msgs::PoseStamped,const RollangleParameterUsingInputPose,RollangleStatusUsingInputPose*,eagleye_msgs::Rolling*,eagleye_msgs::AccYOffset*);
+extern void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor,const eagleye_msgs::YawrateOffset ,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Distance,const sensor_msgs::Imu,const geometry_msgs::PoseStamped,const eagleye_msgs::AngularVelocityOffset,const EnableAdditionalRollingParameter,EnableAdditionalRollingStatus*,eagleye_msgs::Rolling*,eagleye_msgs::AccYOffset*);
 
 #endif /*NAVIGATION_H */
