@@ -31,15 +31,10 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
-
-  double ecef_vel[3];
-  double ecef_pos[3];
-  double enu_vel[3];
-
   int i,index_max;
-  double yawrate = 0.0 , doppler_heading_angle = 0.0;
+  double yawrate = 0.0; 
   double avg = 0.0,tmp_heading_angle;
   bool gnss_status,gnss_update;
   std::size_t index_length;
@@ -47,32 +42,6 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
-
-  ecef_vel[0] = rtklib_nav.ecef_vel.x;
-  ecef_vel[1] = rtklib_nav.ecef_vel.y;
-  ecef_vel[2] = rtklib_nav.ecef_vel.z;
-  ecef_pos[0] = rtklib_nav.ecef_pos.x;
-  ecef_pos[1] = rtklib_nav.ecef_pos.y;
-  ecef_pos[2] = rtklib_nav.ecef_pos.z;
-
-  xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
-
-  if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
-  {
-    enu_vel[0] = 0;
-    enu_vel[1] = 0;
-    enu_vel[2] = 0;
-    gnss_update = false;
-  }
-  else{
-    gnss_update = true;
-  }
-
-  doppler_heading_angle = std::atan2(enu_vel[0], enu_vel[1]);
-
-  if(doppler_heading_angle<0){
-    doppler_heading_angle = doppler_heading_angle + 2*M_PI;
-  }
 
   if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
   {
@@ -92,28 +61,13 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
     yawrate = -1 * imu.angular_velocity.z;
   }
 
-  if (heading_status->tow_last  == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
-  {
-    gnss_status = false;
-    doppler_heading_angle = 0;
-    heading_status->tow_last  = rtklib_nav.tow;
-  }
-  else
-  {
-    gnss_status = true;
-    doppler_heading_angle = doppler_heading_angle;
-    heading_status->tow_last  = rtklib_nav.tow;
-  }
-
   // data buffer generate
   heading_status->time_buffer .push_back(imu.header.stamp.toSec());
-  heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
   heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
   heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
   heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);
-  heading_status->gnss_status_buffer .push_back(gnss_status);
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
 
@@ -274,3 +228,82 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
     }
   }
 }
+
+void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+{
+  double ecef_vel[3];
+  double ecef_pos[3];
+  double enu_vel[3];
+
+  double doppler_heading_angle = 0.0;
+  bool gnss_status,gnss_update;
+
+  ecef_vel[0] = rtklib_nav.ecef_vel.x;
+  ecef_vel[1] = rtklib_nav.ecef_vel.y;
+  ecef_vel[2] = rtklib_nav.ecef_vel.z;
+  ecef_pos[0] = rtklib_nav.ecef_pos.x;
+  ecef_pos[1] = rtklib_nav.ecef_pos.y;
+  ecef_pos[2] = rtklib_nav.ecef_pos.z;
+  
+  xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
+
+  if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
+  {
+    enu_vel[0] = 0;
+    enu_vel[1] = 0;
+    enu_vel[2] = 0;
+    gnss_update = false;
+  }
+  else{
+    gnss_update = true;
+  }
+
+  doppler_heading_angle = std::atan2(enu_vel[0], enu_vel[1]);
+
+  if(doppler_heading_angle<0){
+    doppler_heading_angle = doppler_heading_angle + 2*M_PI;
+  }
+
+  if (heading_status->tow_last  == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
+  {
+    gnss_status = false;
+    doppler_heading_angle = 0;
+    heading_status->tow_last  = rtklib_nav.tow;
+  }
+  else
+  {
+    gnss_status = true;
+    doppler_heading_angle = doppler_heading_angle;
+    heading_status->tow_last  = rtklib_nav.tow;
+  }
+
+  heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
+  heading_status->gnss_status_buffer .push_back(gnss_status);
+
+  heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+}
+
+void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+{
+  bool gnss_status;
+  double doppler_heading_angle = 0.0;
+
+  if (heading_status->rmc_time_last == nmea_rmc.utc_seconds || nmea_rmc.utc_seconds == 0 || nmea_rmc.track == 0)
+  {
+    gnss_status = false;
+    doppler_heading_angle = 0;
+    heading_status->rmc_time_last = nmea_rmc.utc_seconds;
+  }
+  else
+  {
+    gnss_status = true;
+    doppler_heading_angle = nmea_rmc.track * M_PI/180;
+    heading_status->rmc_time_last = nmea_rmc.utc_seconds;
+  }
+
+  heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
+  heading_status->gnss_status_buffer .push_back(gnss_status);
+
+  heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+}
+

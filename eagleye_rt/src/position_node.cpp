@@ -41,10 +41,13 @@ static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_vel;
+static sensor_msgs::NavSatFix fix;
 static ros::Publisher pub;
 
 struct PositionParameter position_parameter;
 struct PositionStatus position_status;
+
+static std::string use_gnss_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -77,6 +80,17 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
   heading_interpolate_3rd.status = msg->status;
 }
 
+void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+{
+  fix.header = msg->header;
+  fix.status = msg->status;
+  fix.latitude = msg->latitude;
+  fix.longitude = msg->longitude;
+  fix.altitude = msg->altitude;
+  fix.position_covariance = msg->position_covariance;
+  fix.position_covariance_type = msg->position_covariance_type;
+}
+
 void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfListener_, tf2_ros::Buffer* tfBuffer_)
 {
   geometry_msgs::TransformStamped transformStamped;
@@ -105,12 +119,19 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   enu_vel.vector = msg->vector;
   enu_absolute_pos.header = msg->header;
   enu_absolute_pos.header.frame_id = "base_link";
-  position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+    position_estimate(fix, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+  
   if(enu_absolute_pos.status.estimate_status == true)
   {
     pub.publish(enu_absolute_pos);
   }
   enu_absolute_pos.status.estimate_status = false;
+
+
 }
 
 int main(int argc, char** argv)
@@ -119,8 +140,10 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
   n.getParam("position/estimated_distance",position_parameter.estimated_distance);
   n.getParam("position/separation_distance",position_parameter.separation_distance);
   n.getParam("position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
@@ -132,8 +155,10 @@ int main(int argc, char** argv)
   n.getParam("ecef_base_pos/z",position_parameter.ecef_base_pos_z);
   n.getParam("tf_gnss_flame/parent", position_parameter.tf_gnss_parent_flame);
   n.getParam("tf_gnss_flame/child", position_parameter.tf_gnss_child_flame);
+  n.getParam("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<position_parameter.estimated_velocity_threshold<<std::endl;
@@ -142,12 +167,14 @@ int main(int argc, char** argv)
   std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
   std::cout<< "tf_gnss_flame/parent "<<position_parameter.tf_gnss_parent_flame<<std::endl;
   std::cout<< "tf_gnss_flame/child "<<position_parameter.tf_gnss_child_flame<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
   ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
   
   pub = n.advertise<eagleye_msgs::Position>("enu_absolute_pos", 1000);
 

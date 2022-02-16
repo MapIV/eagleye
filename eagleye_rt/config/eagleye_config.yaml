@@ -1,5 +1,9 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
+#Estimate mode
+use_gnss_mode: RTKLIB
+# RTKLIB (rtklib) or NMEA (nmea)
+
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
@@ -84,7 +88,6 @@ slip_coefficient:
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
 
 trajectory:
-  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
   timer_updata_rate: 10                               #default:10 hz
   th_deadlock_time: 1                                 #default:1s

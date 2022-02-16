@@ -50,7 +50,7 @@ double stringToGPSTime(std::string& input, double header_time)
   return GPSTime;
 }
 
-void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatFix* fix, nmea_msgs::Gpgga* gga)
+void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatFix* fix, nmea_msgs::Gpgga* gga, nmea_msgs::Gprmc* rmc)
 {
 
   std::vector<std::string> linedata,nmea_data;
@@ -112,6 +112,39 @@ void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatF
           fix->status.status = -1;
         }
       }
+
+      nmea_data.clear();
+
+    }
+    else if (linedata[i].compare(3, 3, "RMC") ==0)
+    {
+      std::stringstream tmp_ss1(linedata[i]);
+
+      while (getline(tmp_ss1, token2, ','))
+      {
+        nmea_data.push_back(token2);
+      }
+
+      if(!nmea_data[3].empty() || !nmea_data[5].empty())
+      {
+        rmc->header = sentence.header;
+        rmc->message_id = nmea_data[0];
+        if(!nmea_data[1].empty()) rmc->utc_seconds = stringToGPSTime(nmea_data[1], sentence.header.stamp.toSec());
+        rmc->position_status = nmea_data[2];
+        rmc->lat = floor(stod(nmea_data[3])/100) + fmod(stod(nmea_data[3]),100)/60;
+        rmc->lat_dir = nmea_data[4];
+        rmc->lon = floor(stod(nmea_data[5])/100) + fmod(stod(nmea_data[5]),100)/60;
+        rmc->lon_dir = nmea_data[6];
+        if(!nmea_data[7].empty()) rmc->speed = stod(nmea_data[7]);
+        if(!nmea_data[8].empty()) rmc->track = stod(nmea_data[8]);
+        if(!nmea_data[9].empty()) rmc->date = nmea_data[9];
+        if(!nmea_data[10].empty()) rmc->mag_var = stod(nmea_data[10]);
+        if(!nmea_data[11].empty()) rmc->mag_var_direction = nmea_data[11];
+        rmc->mode_indicator = nmea_data[12].substr(0, nmea_data[12].find("*"));
+      }
+
+      nmea_data.clear();
+
     }
   }
 }
