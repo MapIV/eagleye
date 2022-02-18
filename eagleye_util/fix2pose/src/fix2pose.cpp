@@ -55,8 +55,6 @@ std::shared_ptr<tf2_ros::TransformBroadcaster> br;
 std::shared_ptr<tf2_ros::TransformBroadcaster> br2;
 static geometry_msgs::msg::PoseStamped pose;
 
-static double m_lat,m_lon,m_h;
-static double m_x,m_y,m_z;
 static int convert_height_num = 0;
 static int plane = 7;
 static int tf_num = 1;
@@ -82,9 +80,7 @@ void position_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   double llh[3] = {0};
-  double _llh[3] = {0};
   double xyz[3] = {0};
-  double geoid_height = 0;
 
   llh[0] = msg->latitude * M_PI / 180;
   llh[1] = msg->longitude* M_PI / 180;

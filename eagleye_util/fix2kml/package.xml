@@ -11,15 +11,15 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <build_depend>rclcpp</build_depend>
-  <build_depend>rospy</build_depend>
+  <build_depend>rclpy</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>eagleye_msgs</build_depend>
   <build_export_depend>rclcpp</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
+  <build_export_depend>rclpy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
   <build_export_depend>eagleye_msgs</build_export_depend>
   <exec_depend>rclcpp</exec_depend>
-  <exec_depend>rospy</exec_depend>
+  <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>eagleye_msgs</exec_depend>
 

@@ -40,7 +40,7 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, eagleye_msgs::ms
   double enu_pos[3];
   double gnss_smooth_pos[3] = {0};
   double sum_gnss_pos[3] = {0};
-  bool gnss_update;
+  bool gnss_update = false;
   std::size_t index_length;
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
