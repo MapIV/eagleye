@@ -166,6 +166,11 @@ void ll2xy(int num, double llh[3], double xyz[3])
     lat_deg = 154;
     lat_min = 0;
   }
+  else
+  {
+    std::cerr << "\033[31;1mError: Plane numver is invalid. " << std::endl;
+    exit(4);
+  }
 
   // swap longitude and latitude
   m_PLo = M_PI * ((double)lat_deg + (double)lat_min / 60.0) / 180.0;

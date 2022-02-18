@@ -164,8 +164,8 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
   std::string m_mgrs_zone;
   std::string origin_x_zone;
   std::string origin_y_zone;
-  bool use_origin_zone;
-  bool is_first;
+  bool use_origin_zone = false;
+  bool is_first = true;
 
 
 
