@@ -45,6 +45,8 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
     std::size_t index_length;
     std::size_t gnss_status_buffer_length;
 
+    double estimated_number_cur;
+
     ecef_vel[0] = rtklib_nav.ecef_vel.x;
     ecef_vel[1] = rtklib_nav.ecef_vel.y;
     ecef_vel[2] = rtklib_nav.ecef_vel.z;
@@ -68,13 +70,22 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
 
     doppler_velocity = std::sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
 
-  if (velocity_scale_factor_status->estimated_number < velocity_scale_factor_parameter.estimated_number_max)
+  if(velocity_scale_factor->status.enabled_status == true)
+  {
+    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_max;
+  }
+  else
+  {
+    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_min;
+  }
+
+  if (velocity_scale_factor_status->estimated_number < estimated_number_cur)
   {
     ++velocity_scale_factor_status->estimated_number;
   }
   else
   {
-    velocity_scale_factor_status->estimated_number = velocity_scale_factor_parameter.estimated_number_max;
+    velocity_scale_factor_status->estimated_number = estimated_number_cur;
   }
 
   if (velocity_scale_factor_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
@@ -96,7 +107,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
 
   gnss_status_buffer_length = std::distance(velocity_scale_factor_status->gnss_status_buffer.begin(), velocity_scale_factor_status->gnss_status_buffer.end());
 
-  if (gnss_status_buffer_length > velocity_scale_factor_parameter.estimated_number_max)
+  if (gnss_status_buffer_length > estimated_number_cur)
   {
     velocity_scale_factor_status->gnss_status_buffer.erase(velocity_scale_factor_status->gnss_status_buffer.begin());
     velocity_scale_factor_status->doppler_velocity_buffer.erase(velocity_scale_factor_status->doppler_velocity_buffer.begin());
@@ -108,7 +119,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
   std::vector<int> index;
   std::vector<double> velocity_scale_factor_buffer;
 
-  if (velocity_scale_factor_status->estimated_number > velocity_scale_factor_parameter.estimated_number_min && velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true && velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] > velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (velocity_scale_factor_status->estimated_number >= velocity_scale_factor_parameter.estimated_number_min && velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true && velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] > velocity_scale_factor_parameter.estimated_velocity_threshold)
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
     {
