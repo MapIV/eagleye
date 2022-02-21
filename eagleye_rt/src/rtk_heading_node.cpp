@@ -49,68 +49,42 @@ struct RtkHeadingStatus heading_status;
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void heading_interpolate_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate.header = msg->header;
-  heading_interpolate.heading_angle = msg->heading_angle;
-  heading_interpolate.status = msg->status;
+  heading_interpolate = *msg;
 }
 
 void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
   rtk_heading_estimate(fix,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);

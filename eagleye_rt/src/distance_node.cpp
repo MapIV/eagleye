@@ -40,12 +40,9 @@ struct DistanceStatus distance_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
+  velocity_scale_factor = *msg;
   distance.header = msg->header;
   distance.header.frame_id = "base_link";
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
   distance_estimate(velocity_scale_factor,&distance_status,&distance);
 
   if(distance_status.time_last != 0)

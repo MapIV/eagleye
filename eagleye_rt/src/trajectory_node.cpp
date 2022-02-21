@@ -53,38 +53,27 @@ struct TrajectoryStatus trajectory_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_2nd.header = msg->header;
-  yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_2nd.status = msg->status;
+  yawrate_offset_2nd = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
-  pitching.header = msg->header;
-  pitching.pitching_angle = msg->pitching_angle;
-  pitching.status = msg->status;
+  pitching = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)

@@ -42,8 +42,7 @@ struct AngularVelocityOffsetStopStatus angular_velocity_offset_stop_status;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  velocity = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)

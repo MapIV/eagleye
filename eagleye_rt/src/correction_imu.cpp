@@ -46,41 +46,27 @@ static sensor_msgs::msg::Imu correction_imu;
 
 void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset = *msg;
 }
 
 void angular_velocity_offset_stop_callback(const eagleye_msgs::msg::AngularVelocityOffset::ConstSharedPtr msg)
 {
-  angular_velocity_offset_stop.header = msg->header;
-  angular_velocity_offset_stop.angular_velocity_offset = msg->angular_velocity_offset;
-  angular_velocity_offset_stop.status = msg->status;
+  angular_velocity_offset_stop = *msg;
 }
 
 void acc_x_offset_callback(const eagleye_msgs::msg::AccXOffset::ConstSharedPtr msg)
 {
-  acc_x_offset.header = msg->header;
-  acc_x_offset.acc_x_offset = msg->acc_x_offset;
-  acc_x_offset.status = msg->status;
+  acc_x_offset = *msg;
 }
 
 void acc_x_scale_factor_callback(const eagleye_msgs::msg::AccXScaleFactor::ConstSharedPtr msg)
 {
-  acc_x_scale_factor.header = msg->header;
-  acc_x_scale_factor.acc_x_scale_factor = msg->acc_x_scale_factor;
-  acc_x_scale_factor.status = msg->status;
+  acc_x_scale_factor = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
 
   correction_imu.header = imu.header;
   correction_imu.orientation = imu.orientation;
