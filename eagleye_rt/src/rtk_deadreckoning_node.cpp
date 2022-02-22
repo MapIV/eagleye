@@ -103,7 +103,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
   rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
-  if(enu_absolute_rtk_deadreckoning.status.enabled_status == true)
+  if (enu_absolute_rtk_deadreckoning.status.enabled_status == true)
   {
     pub1->publish(enu_absolute_rtk_deadreckoning);
     pub2->publish(eagleye_fix);

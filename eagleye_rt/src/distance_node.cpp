@@ -45,7 +45,7 @@ void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor
   distance.header.frame_id = "base_link";
   distance_estimate(velocity_scale_factor,&distance_status,&distance);
 
-  if(distance_status.time_last != 0)
+  if (distance_status.time_last != 0)
   {
     pub->publish(distance);
   }

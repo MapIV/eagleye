@@ -87,7 +87,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   eagleye_twist.header.frame_id = "base_link";
   trajectory3d_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
 
-  if(heading_interpolate_3rd.status.enabled_status == true)
+  if (heading_interpolate_3rd.status.enabled_status == true)
   {
     pub1->publish(enu_vel);
     pub2->publish(enu_relative_pos);

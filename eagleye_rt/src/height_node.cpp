@@ -80,7 +80,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   pub3->publish(acc_x_offset);
   pub4->publish(acc_x_scale_factor);
 
-  if(height_status.flag_reliability == true)
+  if (height_status.flag_reliability == true)
   {
     pub5->publish(fix);
   }

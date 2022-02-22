@@ -736,7 +736,7 @@ void printStatus(void)
 
   std::cout << "--- \033[1;34m navsat(input)\033[m ------------------------------"<< std::endl;
 
-  if(navsat_fix_sub_status)
+  if (navsat_fix_sub_status)
   {
     std::cout<< "\033[1m rtk status \033[m "<<int(navsat_fix.status.status)<<std::endl;
     std::cout<< "\033[1m rtk status \033[m "<<(navsat_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
@@ -815,7 +815,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
 
-  if(print_status)
+  if (print_status)
   {
     printStatus();
   }

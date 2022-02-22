@@ -46,6 +46,8 @@ static eagleye_msgs::msg::Heading heading;
 struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
+bool is_first_correction_velocity = false;
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
@@ -54,6 +56,10 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   velocity_scale_factor = *msg;
+  if (is_first_correction_velocity == false && msg->correction_velocity.linear.x > heading_parameter.estimated_velocity_threshold)
+  {
+    is_first_correction_velocity = true;
+  }
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
@@ -78,6 +84,10 @@ void heading_interpolate_callback(const eagleye_msgs::msg::Heading::ConstSharedP
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  if (is_first_correction_velocity == false)
+  {
+    return;
+  }
   imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";

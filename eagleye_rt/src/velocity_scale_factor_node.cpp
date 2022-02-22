@@ -54,7 +54,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 {
   velocity = *msg;
 
-  if(is_first_move == false && msg->twist.linear.x > velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (is_first_move == false && msg->twist.linear.x > velocity_scale_factor_parameter.estimated_velocity_threshold)
   {
     is_first_move = true;
   }
@@ -62,11 +62,10 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if(is_first_move == false)
+  if (is_first_move == false)
   {
     return;
   }
-
   imu = *msg;
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.header.frame_id = "base_link";
