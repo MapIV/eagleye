@@ -105,7 +105,7 @@ void rolling_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor ve
   }
   else if (rolling->status.estimate_status)
   {
-    rolling->rolling_angle = std::asin(in_sin);
+    rolling->rolling_angle = rolling_status->rolling_last;
     rolling->status.enabled_status = false;
   }
   else
