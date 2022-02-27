@@ -166,7 +166,7 @@ void rtk_heading_estimate(sensor_msgs::msg::NavSatFix fix,sensor_msgs::msg::Imu 
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
+  if (heading_status->estimated_number  >= heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
   {
     heading->status.enabled_status = true;
   }

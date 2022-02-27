@@ -44,7 +44,6 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
     double raw_velocity_scale_factor = 0.0;
     std::size_t index_length;
     std::size_t gnss_status_buffer_length;
-
     double estimated_number_cur;
 
     ecef_vel[0] = rtklib_nav.ecef_vel.x;
