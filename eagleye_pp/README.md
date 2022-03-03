@@ -1,7 +1,4 @@
 # eagleye_pp
-Updated (2021/09/21)
-
-[![pipeline status](https://gitlab.com/MapIV/eagleye_pp/badges/master/pipeline.svg)](https://gitlab.com/MapIV/eagleye_pp/commits/master)
 
 ## How to use
 
