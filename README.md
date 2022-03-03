@@ -202,6 +202,9 @@ To visualize the eagleye output location /eagleye/fix, for example, use the foll
 
 	rosrun fix2kml fix2kml
 
+## eagleye_pp
+
+- [eagleye_pp](eagleye_pp):post-processing version
 
 ## Sample data
 ### ROSBAG
