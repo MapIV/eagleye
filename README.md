@@ -201,7 +201,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 To visualize the eagleye output location /eagleye/fix, for example, use the following command  
 
-	rosrun fix2kml fix2kml
+	roslaunch eagleye_fix2kml fix2kml.launch
 
 ## eagleye_pp
 
