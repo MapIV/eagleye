@@ -43,7 +43,7 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/rtklib_ros_bri
 Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge/tree/ros2-v0.1.0), [nmea_ros_bridge](https://github.com/MapIV/nmea_ros_bridge/tree/ros2-v0.1.0))
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git -b ros2-galactic-v1.1.5
+	git clone https://github.com/MapIV/eagleye.git -b ros2-master
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
 	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
@@ -135,7 +135,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 To visualize the eagleye output location /eagleye/fix, for example, use the following command  
 
-	ros2 run eagleye_fix2kml fix2kml
+	ros2 launch eagleye_fix2kml fix2kml.xml
 
 
 ## Sample data
