@@ -446,6 +446,8 @@ struct EnableAdditionalRollingStatus
   std::vector<double> yawrate_offset_buffer;
   std::vector<double> acceleration_y_buffer;
   std::vector<double> distance_buffer;
+};
+
 struct RollingParameter
 {
   bool reverse_imu;

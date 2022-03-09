@@ -26,7 +26,7 @@ output_kml_eagleye_pp_line: true
 
 #Estimate mode
 gnss:
-  use_gnss_mode: NMEA  #Estimate mode
+  use_gnss_mode: RTKLIB  #Estimate mode
   # RTKLIB (rtklib) or NMEA (nmea)
   use_nmea_downsample: true
   nmea_downsample_freq: 5
@@ -137,3 +137,8 @@ height:
   estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
+
+rolling:
+  stop_judgment_velocity_threshold: 0.01
+  filter_process_noise: 0.01
+  filter_observation_noise: 1

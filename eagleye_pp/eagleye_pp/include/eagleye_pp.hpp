@@ -54,6 +54,7 @@ class eagleye_pp
   std::vector<eagleye_msgs::Position> enu_absolute_pos_,b_enu_absolute_pos_;
   std::vector<eagleye_msgs::Position> enu_absolute_pos_interpolate_,b_enu_absolute_pos_interpolate_; 
   std::vector<eagleye_msgs::Position> gnss_smooth_pos_enu_,b_gnss_smooth_pos_enu_;
+  std::vector<eagleye_msgs::Rolling> rolling_,b_rolling_;
   std::vector<sensor_msgs::NavSatFix> eagleye_fix_,b_eagleye_fix_;
   std::vector<geometry_msgs::TwistStamped> eagleye_twist_,b_eagleye_twist_;
 
@@ -91,6 +92,7 @@ class eagleye_pp
   struct PositionInterpolateParameter position_interpolate_parameter_;
   struct SmoothingParameter smoothing_parameter_;
   struct HeightParameter height_parameter_;
+  struct RollingParameter rolling_parameter_;
 
   // Function declaration
   eagleye_pp();//Constructor

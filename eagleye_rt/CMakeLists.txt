@@ -115,13 +115,10 @@ add_executable(slip_coefficient src/slip_coefficient_node.cpp)
 target_link_libraries(slip_coefficient ${catkin_LIBRARIES})
 add_dependencies(slip_coefficient ${catkin_EXPORTED_TARGETS})
 
-<<<<<<< HEAD
 add_executable(enable_additional_rolling src/enable_additional_rolling_node.cpp)
 target_link_libraries(enable_additional_rolling ${catkin_LIBRARIES} )
 add_dependencies(enable_additional_rolling ${catkin_EXPORTED_TARGETS})
 
-=======
->>>>>>> Added rolling estimation
 add_executable(rolling src/rolling_node.cpp)
 target_link_libraries(rolling ${catkin_LIBRARIES})
 add_dependencies(rolling ${catkin_EXPORTED_TARGETS})

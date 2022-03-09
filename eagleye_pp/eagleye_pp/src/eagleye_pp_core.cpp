@@ -124,7 +124,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
 
     trajectory_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     trajectory_parameter_.stop_judgment_velocity_threshold = arg_conf["trajectory"]["stop_judgment_velocity_threshold"].as<double>();
-    // trajectory_parameter.stop_judgment_yawrate_threshold = arg_conf["trajectory"]["stop_judgment_yawrate_threshold"].as<double>();
 
     velocity_scale_factor_parameter_.estimated_number_min = arg_conf["velocity_scale_factor"]["estimated_number_min"].as<int>();
     velocity_scale_factor_parameter_.estimated_number_max = arg_conf["velocity_scale_factor"]["estimated_number_max"].as<int>();
@@ -158,6 +157,11 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     height_parameter_.estimated_height_coefficient = arg_conf["height"]["estimated_height_coefficient"].as<double>();
     height_parameter_.outlier_threshold = arg_conf["height"]["outlier_threshold"].as<double>();
     height_parameter_.average_num = arg_conf["height"]["average_num"].as<int>();
+
+    rolling_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
+    rolling_parameter_.stop_judgment_velocity_threshold = arg_conf["rolling"]["stop_judgment_velocity_threshold"].as<double>();
+    rolling_parameter_.filter_process_noise = arg_conf["rolling"]["filter_process_noise"].as<double>();
+    rolling_parameter_.filter_observation_noise = arg_conf["rolling"]["filter_observation_noise"].as<double>();
   }
   catch (YAML::Exception& e)
   {
@@ -454,6 +458,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   struct YawrateOffsetStatus yawrate_offset_1st_status{};
   struct YawrateOffsetStatus yawrate_offset_2nd_status{};
   struct HeightStatus height_status{},b_height_status{};
+  struct RollingStatus rolling_status{},b_rolling_status{};
   struct TrajectoryStatus trajectory_status{};
   struct VelocityScaleFactorStatus velocity_scale_factor_status{};
   struct PositionStatus position_status{};
@@ -476,6 +481,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   eagleye_msgs::Pitching _pitching;
   eagleye_msgs::AccXOffset _acc_x_offset;
   eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
+  eagleye_msgs::Rolling _rolling;
   eagleye_msgs::Position _enu_relative_pos;
   geometry_msgs::Vector3Stamped _enu_vel;
   eagleye_msgs::Position _enu_absolute_pos;
@@ -567,6 +573,8 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     _acc_x_scale_factor.header = imu_[i].header;
     pitching_estimate(imu_[i], fix_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
 
+    rolling_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, rolling_parameter_, &rolling_status, &_rolling);
+
     _enu_vel.header = imu_[i].header;
     _enu_relative_pos.header = imu_[i].header;
     _eagleye_twist.header = imu_[i].header;
@@ -598,6 +606,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     	slip_angle_.push_back(_slip_angle);
     	height_.push_back(_height);
     	pitching_.push_back(_pitching);
+    	rolling_.push_back(_rolling);
     	acc_x_offset_.push_back(_acc_x_offset);
     	acc_x_scale_factor_.push_back(_acc_x_scale_factor);
     	enu_relative_pos_.push_back(_enu_relative_pos);
@@ -625,6 +634,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     	b_slip_angle_.push_back(_slip_angle);
     	b_height_.push_back(_height);
     	b_pitching_.push_back(_pitching);
+    	b_rolling_.push_back(_rolling);
     	b_acc_x_offset_.push_back(_acc_x_offset);
     	b_acc_x_scale_factor_.push_back(_acc_x_scale_factor);
     	b_enu_relative_pos_.push_back(_enu_relative_pos);
@@ -2087,6 +2097,7 @@ void eagleye_pp::writeDetailCSV(void)
 ,pitching.pitching_angle,pitching.status.enabled_status,pitching.status.estimate_status\
 ,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
 ,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
+,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
 ,navsat_timestamp\
 ,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
 ,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
@@ -2206,6 +2217,9 @@ void eagleye_pp::writeDetailCSV(void)
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << acc_x_scale_factor_[i].acc_x_scale_factor << ",";
       output_log_csv_file << (acc_x_scale_factor_[i].status.enabled_status ? "1" : "0") << ",";
       output_log_csv_file << (acc_x_scale_factor_[i].status.estimate_status ? "1" : "0") << ",";
+      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rolling_[i].rolling_angle << ",";
+      output_log_csv_file << (rolling_[i].status.enabled_status ? "1" : "0") << ",";
+      output_log_csv_file << (rolling_[i].status.estimate_status ? "1" : "0") << ",";
       output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.stamp.toNSec() << ","; //timestamp
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ","; //navsat_llh.latitude
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ","; //navsat_llh.longitude
@@ -2266,6 +2280,7 @@ void eagleye_pp::writeDetailCSV(void)
 ,pitching.pitching_angle,pitching.status.enabled_status,pitching.status.estimate_status\
 ,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
 ,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
+,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
 ,navsat_timestamp\
 ,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
 ,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
@@ -2384,6 +2399,9 @@ void eagleye_pp::writeDetailCSV(void)
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << b_acc_x_scale_factor_[i].acc_x_scale_factor << ",";
       output_log_back_csv_file << (b_acc_x_scale_factor_[i].status.enabled_status ? "1" : "0") << ",";
       output_log_back_csv_file << (b_acc_x_scale_factor_[i].status.estimate_status ? "1" : "0") << ",";
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << b_rolling_[i].rolling_angle << ",";
+      output_log_back_csv_file << (b_rolling_[i].status.enabled_status ? "1" : "0") << ",";
+      output_log_back_csv_file << (b_rolling_[i].status.estimate_status ? "1" : "0") << ",";
       output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.stamp.toNSec() << ","; //timestamp
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ","; //navsat_llh.latitude
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ","; //navsat_llh.longitude
