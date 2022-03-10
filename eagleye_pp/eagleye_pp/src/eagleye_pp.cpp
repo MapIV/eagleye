@@ -127,6 +127,52 @@ int main(int argc, char *argv[])
   eagleye_pp.estimatingEagleye(forward_flag);
   std::cout << std::endl << "backward estimation finish"<< std::endl;
   
+  // Calculate initial azimuth
+  double *GNSSTime = (double*)malloc(sizeof(double) * egl_pp.data_length_);
+  std::vector<int>  index_gnsstime;
+  double GPSTime[egl_pp.data_length_] = {0};
+  for(int i =0; i < egl_pp.data_length_; i++){
+    GNSSTime[i] = (double)egl_pp.rtklib_nav_[i].tow / 1000;
+  }
+  for(int i =1; i < egl_pp.data_length_; i++){
+    if(GNSSTime[i] != GNSSTime[i-1]){
+	index_gnsstime.push_back(i);
+	GPSTime[i] = GNSSTime[i];
+    }
+  }
+  for(int i =1; i < index_gnsstime.size(); i++){
+    double diff_time = GNSSTime[index_gnsstime[i]] - GNSSTime[index_gnsstime[i-1]];
+    int diff_cnt = index_gnsstime[i] - index_gnsstime[i-1];
+    double time = diff_time/diff_cnt;
+    for(int j =0; j < diff_cnt; j++){
+      GPSTime[index_gnsstime[i-1]+j+1] = GPSTime[index_gnsstime[i-1]+j] + time;
+    }
+  }
+  for(int i =0; i < index_gnsstime[0]; i++){
+    GPSTime[i] = GPSTime[index_gnsstime[0]];
+  }
+  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < egl_pp.data_length_; i++){
+    GPSTime[i] = GPSTime[index_gnsstime[index_gnsstime.size()-1]];
+  }
+  free(GNSSTime);
+
+  std::vector<int> index_DRs;
+  std::vector<int> index_DRe;
+  std::cout << std::endl << "Start MissPositiveFIX"<< std::endl;
+  bool flag_SMRaw_2D[egl_pp.data_length_] = {0};
+  double TH_POSMAX;
+ //if(loop_count == 1){
+//TH_POSMAX = 1.5;
+ //}else{
+  TH_POSMAX = 0.3;
+//}
+  egl_pp.calcMissPositiveFIX(TH_POSMAX, GPSTime);
+  std::cout << std::endl << "Start PickDR"<< std::endl;
+  egl_pp.calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);  
+  std::cout << std::endl << "Start initial azimuth calculation"<< std::endl;
+  egl_pp.calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
+
+
   // forward/backward combination
   std::cout << "start eagleye forward/backward combination processing!" << std::endl;
   eagleye_pp.smoothingTrajectory();

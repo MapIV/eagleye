@@ -679,6 +679,456 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   }
 }
 
+/***********************************************
+calcMissPositiveFIX
+Function to remove missFix 
+double arg_TH_POSMAX : Threshold
+double arg_GPSTime   : Corrected time based on the time obtained from GNSS
+***********************************************/
+void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]){
+
+  double TH_VEL_EST = 10/3.6;
+  int ESTDIST = 50;
+  double TH_CALC_MINNUM = 0.01;
+  std::size_t datanum = data_length_;
+  bool flag_Elim[data_length_] = {0};
+
+  flag_GNSS_.resize(datanum);
+  for(int i = 0; i < datanum; i++){ //高さによる判定が不明なためfix判定のみで実装
+    if(rtklib_nav_[i].status.status.status == 0){
+	  flag_GNSS_[i] = 1;
+    }
+  }
+  std::vector<int> index_Raw;
+  int a = 0;
+  index_Raw.resize(datanum);
+  for(int i = 0; i < datanum; i++){
+    if(distance_[i].status.estimate_status == true){
+      index_Raw[a] = i;
+      a++;
+    }
+  }
+  double _distance[datanum] = {0.0};
+  for(int i = 1; i < datanum; i++){
+    _distance[i] = _distance[i-1] + velocity_scale_factor_[i].correction_velocity.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
+  }
+  for(int i = 0; i < datanum; i++){
+    int index_Dist = -1;
+    for(int k = 0; k < datanum; k++){
+      if(_distance[k] > _distance[i] - ESTDIST){
+        index_Dist = k;
+        break;
+      }
+    }
+
+    if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && velocity_scale_factor_[i].correction_velocity.linear.x > TH_VEL_EST && index_Dist > index_Raw[0]){  
+      int ESTNUM = i - index_Dist + 1;
+      int i_start = i-ESTNUM + 1;
+      int local_length = ESTNUM;//(i - i_start)+1;
+      double pUsrPos_enu[local_length][3] = {0};
+      double pUsrVel_enu[local_length][3] = {0};
+      double pGPSTime[local_length] = {0};
+      for(int k = 0; k < local_length; k++){
+	  pUsrPos_enu[k][0] = enu_absolute_pos_interpolate_[i_start + k].enu_pos.x;
+	  pUsrPos_enu[k][1] = enu_absolute_pos_interpolate_[i_start + k].enu_pos.y;
+	  pUsrPos_enu[k][2] = enu_absolute_pos_interpolate_[i_start + k].enu_pos.z;
+	  pUsrVel_enu[k][0] = enu_vel_[i_start + k].vector.x;
+	  pUsrVel_enu[k][1] = enu_vel_[i_start + k].vector.y;
+	  pUsrVel_enu[k][2] = enu_vel_[i_start + k].vector.z;
+	  pGPSTime[k] = arg_GPSTime[i_start + k];
+      }
+      std::vector<int> pindex_GNSS;
+      for(int j = 0; j < local_length; j++){
+	if(flag_GNSS_[i_start + j] == 1 ){
+	    pindex_GNSS.push_back(j);
+	}
+      }
+      std::vector<int> index_Elim;
+      for(int j = 0; j< local_length; j++){
+	index_Elim.push_back(i_start + j);
+      }        
+      std::vector<int> pindex_vel;
+      for(int j = 0; j < local_length; j++){ 
+	if(velocity_scale_factor_[i_start + j].correction_velocity.linear.x > TH_VEL_EST ){
+	    pindex_vel.push_back(j);
+	}
+      }
+
+      size_t pindex_vel_length = pindex_vel.size();
+      std::vector<int> index;
+      std::set_intersection(pindex_GNSS.begin(), pindex_GNSS.end(), pindex_vel.begin(), pindex_vel.end(), std::inserter(index, index.end()));
+      if (index.size() > pindex_vel_length*TH_CALC_MINNUM){
+	double tTrajectory[ESTNUM][3]={0};
+        for(int j = 1; j < ESTNUM; j++){
+          tTrajectory[j][0] = tTrajectory[j-1][0] + pUsrVel_enu[j][0]*(pGPSTime[j] - pGPSTime[j-1]);
+	  tTrajectory[j][1] = tTrajectory[j-1][1] + pUsrVel_enu[j][1]*(pGPSTime[j] - pGPSTime[j-1]);
+	  tTrajectory[j][2] = tTrajectory[j-1][2] + pUsrVel_enu[j][2]*(pGPSTime[j] - pGPSTime[j-1]);
+	}
+
+        while (1){
+          double basepos[ESTNUM][2] = {0};
+	  for(int k = 0; k < ESTNUM; k++){		
+	    basepos[k][0] = pUsrPos_enu[index[index.size()-1]][0] + tTrajectory[k][0]-tTrajectory[index[index.size()-1]][0] ;
+	    basepos[k][1] = pUsrPos_enu[index[index.size()-1]][1] + tTrajectory[k][1]-tTrajectory[index[index.size()-1]][1] ;
+	  }
+          double pdiff2[index.size()][2] = {0};
+	  for(int k = 0; k < index.size(); k++){
+	    pdiff2[k][0] = basepos[index[k]][0] - pUsrPos_enu[index[k]][0];
+	    pdiff2[k][1] = basepos[index[k]][1] - pUsrPos_enu[index[k]][1];
+	  }
+          double tUsrPos_enu[2]={0};
+	  double avg_pdiff2[2] = {0};
+	  for(int k = 0; k < index.size(); k++){
+	    avg_pdiff2[0] += pdiff2[k][0];
+	    avg_pdiff2[1] += pdiff2[k][1];
+	  }
+	  avg_pdiff2[0] /= index.size();
+	  avg_pdiff2[1] /= index.size();
+	  tUsrPos_enu[0] = pUsrPos_enu[index[index.size()-1]][0] - avg_pdiff2[0];
+	  tUsrPos_enu[1] = pUsrPos_enu[index[index.size()-1]][1] - avg_pdiff2[1];
+	        
+          double basepos2[ESTNUM][2]={0};
+	  double pdiff[index.size()][2]={0};
+	  for(int k = 0; k < ESTNUM; k++){
+	    basepos2[k][0] = tUsrPos_enu[0] + tTrajectory[k][0]-tTrajectory[index[index.size()-1]][0];                      
+	    basepos2[k][1] = tUsrPos_enu[1] + tTrajectory[k][1]-tTrajectory[index[index.size()-1]][1];      
+          }
+	  for(int k = 0; k < index.size(); k++){
+	    pdiff[k][0] = basepos2[index[k]][0] - pUsrPos_enu[index[k]][0];
+	    pdiff[k][1] = basepos2[index[k]][1] - pUsrPos_enu[index[k]][1];
+	  }
+
+	  double Y[2] = {abs(pdiff[0][0]), abs(pdiff[0][1])};
+	  int I[2] = {0, 0};
+	  double Y_large = 0;
+	  int I_large = 0;
+	  for(int k = 1; k < index.size(); k++){ //max(abs(pdiff))     
+	    if(Y[0] < abs(pdiff[k][0])){
+	      Y[0] = abs(pdiff[k][0]);
+	      I[0] = k;
+	    }
+	    if(Y[1] < abs(pdiff[k][1])){
+	      Y[1] = abs(pdiff[k][1]);
+	      I[1] = k;
+	    }
+	  }
+	  if (Y[0] < Y[1]){
+	    Y_large = Y[1];
+	    I_large = I[1];
+	  }else if(Y[0] > Y[1]){
+	    Y_large = Y[0];
+	    I_large = I[0];
+          }    
+          if (Y_large > arg_TH_POSMAX){
+            flag_Elim[index_Elim[index[I_large]]] = 1;
+            index.erase(index.begin() + I_large);
+	    if(index.size() < 1){break;}
+          }else{
+            break;
+          }       
+        } // while(1)  
+      } // if (index.size() > pindex_vel_length*TH_CALC_MINNUM)
+    } // if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && velocity_scale_factor_[i].correction_velocity.linear.x > TH_VEL_EST && index_Dist > index_Raw[0])
+  } // for(int i = 0; i < datanum; i++){
+  
+  int kk = 0;
+  while(kk < data_length_){
+    if(flag_Elim[kk] == 1){ 
+	flag_GNSS_[kk] = 0;
+    }
+    kk++;
+  }
+
+}
+
+/*********************************************************************
+calcPickDR
+function to get the DRs and DRe flags
+double arg_GPSTime		: Corrected time based on the time obtained from GNSS
+bool arg_flag_SMRaw		: output, flag of smoothingRaw
+std::vector<int> &arg_index_DRs : output, Start of DR index 
+std::vector<int> &arg_index_DRe : output, End of DR index
+**********************************************************************/
+void eagleye_pp::calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe){
+
+  const int ESTNUM_MIN = 10;
+  const int ESTNUM_MAX = 25;
+  const double ESTNUM_GNSF = 0.04;
+  const double DRdis = 200;
+
+  int estnum = 0;
+  std::size_t datanum = data_length_;
+
+  bool flag_DRs[datanum] = {0};
+  bool flag_DRe[datanum] = {0};
+
+  for(int i = 0; i < datanum; i++){ 
+     if (i > ESTNUM_MIN && flag_GNSS_[i] == 1){
+        if (i > ESTNUM_MIN){
+            estnum = ESTNUM_MIN;
+        }else{
+            estnum = i;
+        }
+	std::vector<int> index;
+	for(int k = (i-estnum+1); k <= i; k++){
+	  if(flag_GNSS_[k] == 1){
+	    index.push_back(k);
+	  }
+	}
+    	std::size_t index_length = std::distance(index.begin(), index.end());
+    	if (index_length > estnum * ESTNUM_GNSF){
+           arg_flag_SMRaw[i] = 1;
+       	}
+     }
+  }
+
+  // Pick up Long DR
+  double _distance[datanum] = {0.0};
+  for(int i = 1; i < datanum; i++){
+    _distance[i] = _distance[i-1] + velocity_scale_factor_[i].correction_velocity.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
+  }
+  for(int i = 0; i < datanum; i++){
+    if (arg_flag_SMRaw[i] == 1){
+      for (int ii = 1; ii < datanum; ii++){
+        if (i + ii <= datanum){
+          if (arg_flag_SMRaw[i + ii] == 1){
+            if (_distance[i] - _distance[i + ii] < -DRdis){
+              flag_DRs[i] = 1;
+              flag_DRe[i + ii] = 1;
+            }
+            break;
+          }
+        }
+      } // for (int ii = 1; ii < datanum; ii++)
+    }
+  }
+
+  for(int i = 0; i <= datanum; i++){
+    if(flag_DRs[i] == 1){
+      arg_index_DRs.push_back(i);
+    } 	
+  }
+  for(int i = 0; i <= datanum; i++){
+    if(flag_DRe[i] == 1){
+      arg_index_DRe.push_back(i);
+    } 	
+  }
+}
+
+
+/**********************************************************************
+calcInitialHeading
+Function to calculate the initial azimuth
+double arg_GPSTime	       : Corrected time based on the time obtained from GNSS
+bool arg_flag_SMRaw            : flag of 2DSmoothingrRaw
+std::vector<int> arg_index_DRs : Start of DR index
+std::vector<int> arg_index_DRe : End of DR index
+***********************************************************************/
+void eagleye_pp::calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe){
+
+  const double deltaHead_start = -5.0; //deltaHead= -5: 0.05 :5;
+  const double deltaHead_range = 0.05; //
+  const double deltaHead_end   = 5.0;  //
+  const bool Tramodelswitch = 0;
+  const double TH_Yaw = 1 * M_PI/180;
+
+  int deltaHead_length = static_cast<int>((deltaHead_end - deltaHead_start) / deltaHead_range)+1;
+  double deltaHead[deltaHead_length] = {0.0};
+  int aa = 1;
+  deltaHead[0] = deltaHead_start;
+  while(aa < deltaHead_length){
+    deltaHead[aa] = deltaHead[aa-1] + deltaHead_range;
+    aa++;
+  }
+  std::size_t datanum = data_length_;
+  double UsrPos_TaGRTK_enu[datanum][3] = {0.0};
+  for(int i = 0; i < datanum; i++){
+    UsrPos_TaGRTK_enu[i][0] = enu_absolute_pos_interpolate_[i].enu_pos.x;
+    UsrPos_TaGRTK_enu[i][1] = enu_absolute_pos_interpolate_[i].enu_pos.y;
+    UsrPos_TaGRTK_enu[i][2] = enu_absolute_pos_interpolate_[i].enu_pos.z;
+  }
+
+  double Heading[datanum] = {0.0};
+  std::vector<bool> index_Heading;
+  for(int i = 0; i < datanum; i++){
+    Heading[i] = heading_interpolate_3rd_[i].heading_angle;
+    if(heading_interpolate_3rd_[i].status.enabled_status == true){
+    	index_Heading.push_back(i);
+    }
+  }
+  double Yawrate_Est[datanum] = {0.0};
+  double slip[datanum] = {0.0};
+  for(int i = 0; i < datanum; i++){
+    Yawrate_Est[i] = eagleye_twist_[i].twist.angular.z;
+    slip[i] = velocity_scale_factor_[i].correction_velocity.linear.x * Yawrate_Est[i] * slip_angle_parameter_.manual_coefficient;
+  }
+
+  std::size_t DRerr_length = arg_index_DRs.size() * 6 + 6;
+  double **DRerr, *DRerr_row;
+  DRerr = (double**)malloc(sizeof(double *) * deltaHead_length);
+  DRerr_row = (double*)malloc(sizeof(double) * deltaHead_length * DRerr_length);
+  for (int i=0;i<deltaHead_length;i++) {
+    DRerr[i] = DRerr_row + i * DRerr_length;
+  }
+
+  double InitHeadingOffset[arg_index_DRs.size()][2] = {0.0};
+  double Heading2[datanum] = {0.0};
+  for(int i = 0; i < datanum; i++){
+    Heading2[i] = Heading[i];
+  }
+  bool flag_DRs[datanum] = {0};
+  for(int i = 0; i < arg_index_DRs.size(); i++){
+    flag_DRs[arg_index_DRs[i]] = 1;
+  }
+  double Heading_IMU_slip[datanum] = {0};
+
+  for(int I = 0; I < deltaHead_length; I++){
+    for(int p = 0; p < arg_index_DRs.size(); p++){
+      Heading[arg_index_DRs[p]] = Heading2[arg_index_DRs[p]] + (deltaHead[I]*M_PI/180);
+    }
+    double Heading_IMU[datanum] = {0};
+
+    for(int i = 0; i < datanum; i++){
+      if (i == index_Heading[0] || flag_DRs[i] == 1){
+        Heading_IMU_slip[i]  = Heading[i];
+      }
+      else if (i > 0){
+        Heading_IMU_slip[i] = Heading_IMU_slip[i-1] + (Yawrate_Est[i]) * ( arg_GPSTime[i] - arg_GPSTime[i-1] ); 
+      }
+    }
+
+    for(int i = 0; i < datanum; i++){
+      if (arg_flag_SMRaw[i] == 0){
+        Heading_IMU_slip[i] = Heading_IMU_slip[i] - slip[i];
+      }
+    }
+
+    double pUsrPos_FixSlip[datanum][2] = {0.0};
+    int a = 0;
+    int switch_tmp = 0;
+
+    for(int i = 0; i < datanum; i++){
+      if( arg_index_DRs.size() > 1){
+        if(flag_DRs[i] == 1 && i > arg_index_DRs[1]){
+          a = a + 1;   
+        }      
+      }
+
+      if (i == 0){
+        pUsrPos_FixSlip[i][0] = UsrPos_TaGRTK_enu[i][0];
+	pUsrPos_FixSlip[i][1] = UsrPos_TaGRTK_enu[i][1]; 
+      }else if( flag_DRs[i] == 1 && i != arg_index_DRe[a]){ 
+        switch_tmp = 0;    
+        pUsrPos_FixSlip[i][0] = UsrPos_TaGRTK_enu[i][0];
+	pUsrPos_FixSlip[i][1] = UsrPos_TaGRTK_enu[i][1];
+      }else if(flag_DRs[i] == 1 && i == arg_index_DRe[a] ){
+        switch_tmp = 1;
+        if (Tramodelswitch == 0){  
+          pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+          pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+        }else if( Tramodelswitch == 1){    
+          if(abs(Yawrate_Est[i]) > TH_Yaw){
+             pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+             pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));     
+          }else{
+            pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);   
+          }
+        } // else if( Tramodelswitch == 1)
+      }else if( i > 0){
+        if(Tramodelswitch == 0){  
+          if(switch_tmp == 0){
+            pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+          }else if(switch_tmp == 1){
+            if(flag_DRs[i-1] == 1){
+              pUsrPos_FixSlip[i][0] = UsrPos_TaGRTK_enu[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i][1] = UsrPos_TaGRTK_enu[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            }else{
+              pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[I] - arg_GPSTime[i-1]); 
+            }
+          } // else if(switch_tmp == 1)
+        }else if(Tramodelswitch == 1){     
+          if(switch_tmp == 0){
+            if(abs(Yawrate_Est[i]) > TH_Yaw){
+              pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+              pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));     
+            }else{
+              pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);   
+            }
+          }else if(switch_tmp == 1){
+            if (flag_DRs[i-1] == 1){
+              if (abs(Yawrate_Est[i]) > TH_Yaw){
+                pUsrPos_FixSlip[i][0] = UsrPos_TaGRTK_enu[i-1][0] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i][1] = UsrPos_TaGRTK_enu[i-1][1] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));     
+              }else{
+                pUsrPos_FixSlip[i][0] = UsrPos_TaGRTK_enu[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i][1] = UsrPos_TaGRTK_enu[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]); 
+              }
+	    }else{ 
+              if(abs(Yawrate_Est[i]) > TH_Yaw){
+                pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + ((velocity_scale_factor_[i].correction_velocity.linear.x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));     
+              }else{
+                pUsrPos_FixSlip[i][0] = pUsrPos_FixSlip[i-1][0] + sin(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i][1] = pUsrPos_FixSlip[i-1][1] + cos(Heading_IMU_slip[i])*velocity_scale_factor_[i].correction_velocity.linear.x*(arg_GPSTime[i] - arg_GPSTime[i-1]); 
+              } 
+            }
+          } // else if(switch_tmp == 1)
+        } // else if(Tramodelswitch == 1)
+      } // else if( i > 0)
+    } // for(int i = 0; i < datanum; i++)
+
+    double pPosdiffslip_e[arg_index_DRe.size()] = {0};
+    double pPosdiffslip_n[arg_index_DRe.size()] = {0};
+    double pPosdiffslip_2D[arg_index_DRe.size()] = {0};
+    for(int i = 0; i < arg_index_DRe.size(); i++){
+      pPosdiffslip_e[i] = pUsrPos_FixSlip[arg_index_DRe[i]][0] -UsrPos_TaGRTK_enu[arg_index_DRe[i]][0];
+      pPosdiffslip_n[i] = pUsrPos_FixSlip[arg_index_DRe[i]][1] -UsrPos_TaGRTK_enu[arg_index_DRe[i]][1];
+      pPosdiffslip_2D[i] = sqrt(std::pow(pPosdiffslip_e[i],2) + std::pow(pPosdiffslip_n[i],2));
+      
+    }
+    for (int i = 0; i < arg_index_DRe.size(); i++){
+	DRerr[I][i*6] = i;
+	DRerr[I][i*6+1] = I;
+	DRerr[I][i*6+2] = deltaHead[I];
+	DRerr[I][i*6+3] = pPosdiffslip_e[i]; 
+	DRerr[I][i*6+4] = pPosdiffslip_n[i]; 
+	DRerr[I][i*6+5] = pPosdiffslip_2D[i];
+    }
+  }// for(int I = 0; I < deltaHead_length; I++)
+
+  for(int i = 0; i < arg_index_DRe.size(); i++){
+    int min = 0;
+    for(int k = 1; k < deltaHead_length; k++){
+	if(DRerr[min][(i*6)+5] > DRerr[k][(i*6)+5]){	
+	  min = k;
+	}
+    }
+    InitHeadingOffset[i][0] = i;
+    InitHeadingOffset[i][1] = DRerr[min][(i*6)+2];      
+  }
+
+  double Heading3[datanum];
+  for(int i = 0; i < datanum; i++){
+    Heading3[i] = Heading2[i];
+  }
+  for(int i = 0; i < arg_index_DRs.size(); i++){
+    Heading2[arg_index_DRs[i]] = Heading3[arg_index_DRs[i]] + InitHeadingOffset[i][1]*M_PI/180;
+  }
+  for(int i = 0; i < datanum; i++){
+    heading_interpolate_3rd_[i].heading_angle = Heading2[i]; //output
+  }
+
+free(DRerr);	  //Freeing the area allocated by malloc
+free(DRerr_row);  //
+
+}
+
+
+
 
 /*******************************
 smoothingTrajectory

@@ -100,6 +100,12 @@ class eagleye_pp
 
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);
+
+  // Function to calculate the initial azimuth
+  void calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
+  void calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw_2D, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe);
+  void calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw_2D[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe);
+
   void smoothingTrajectory();
   void convertHeight();
   void writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
