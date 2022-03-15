@@ -62,13 +62,22 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if (is_first_move == false)
-  {
-    return;
-  }
+  double initial_velocity_scale_factor = 1.0;
+
   imu = *msg;
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.header.frame_id = "base_link";
+
+  if (is_first_move == false)
+  {
+    velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
+    velocity_scale_factor.correction_velocity = velocity.twist;
+    velocity_scale_factor.status.enabled_status = false;
+    velocity_scale_factor.status.estimate_status = false;
+    pub->publish(velocity_scale_factor);
+    return;
+  }
+
   velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
   pub->publish(velocity_scale_factor);
 }
