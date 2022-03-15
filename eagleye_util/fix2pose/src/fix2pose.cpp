@@ -32,12 +32,15 @@
 #include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "sensor_msgs/NavSatFix.h"
+#include "eagleye_msgs/Rolling.h"
+#include "eagleye_msgs/Pitching.h"
 #include "eagleye_msgs/Heading.h"
 #include "eagleye_msgs/Position.h"
 #include "tf/transform_broadcaster.h"
 #include "coordinate/coordinate.hpp"
 
-
+static eagleye_msgs::Rolling eagleye_rolling;
+static eagleye_msgs::Pitching eagleye_pitching;
 static eagleye_msgs::Heading eagleye_heading;
 static eagleye_msgs::Position eagleye_position;
 static geometry_msgs::Quaternion _quat;
@@ -59,6 +62,16 @@ void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
   eagleye_heading.header = msg->header;
   eagleye_heading.heading_angle = msg->heading_angle;
   eagleye_heading.status = msg->status;
+}
+
+void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
+{
+  eagleye_rolling = *msg;
+}
+
+void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+{
+  eagleye_pitching = *msg;
 }
 
 void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
@@ -104,7 +117,8 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   if (eagleye_heading.status.enabled_status == true)
   {
     eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    _quat = tf::createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
+    tf::Quaternion tf_quat = tf::createQuaternionFromRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
+    quaternionTFToMsg(tf_quat, _quat);
   }
   else
   {
@@ -148,6 +162,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
   ros::Subscriber sub2 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
   ros::Subscriber sub3 = n.subscribe("eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub4 = n.subscribe("eagleye/rolling", 1000, rolling_callback);
+  ros::Subscriber sub5 = n.subscribe("eagleye/pitching", 1000, pitching_callback);
   pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 
