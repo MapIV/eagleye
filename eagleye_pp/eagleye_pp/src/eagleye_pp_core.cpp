@@ -2015,7 +2015,7 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.roll
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rolling_[i].rolling_angle << ","; //eagleye_posture.roll
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << pitching_[i].pitching_angle << ","; //eagleye_posture.pitch
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << heading_interpolate_3rd_[i].heading_angle << ","; //eagleye_posture.yaw
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[0]
