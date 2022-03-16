@@ -49,36 +49,22 @@ struct PositionInterpolateStatus position_interpolate_status;
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void enu_absolute_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  enu_absolute_pos.header = msg->header;
-  enu_absolute_pos.enu_pos = msg->enu_pos;
-  enu_absolute_pos.ecef_base_pos = msg->ecef_base_pos;
-  enu_absolute_pos.status = msg->status;
+  enu_absolute_pos = *msg;
 }
 
 void gnss_smooth_pos_enu_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  gnss_smooth_pos.header = msg->header;
-  gnss_smooth_pos.enu_pos = msg->enu_pos;
-  gnss_smooth_pos.ecef_base_pos = msg->ecef_base_pos;
-  gnss_smooth_pos.status = msg->status;
+  gnss_smooth_pos = *msg;
 }
 
 void height_callback(const eagleye_msgs::msg::Height::ConstSharedPtr msg)
 {
-  height.header = msg->header;
-  height.height = msg->height;
-  height.status = msg->status;
+  height = *msg;
 }
 
 void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
@@ -86,14 +72,13 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   rclcpp::Time ros_clock(fix.header.stamp);
   auto fix_time = ros_clock.seconds();
 
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
+  enu_vel = *msg;
   enu_absolute_pos_interpolate.header = msg->header;
   enu_absolute_pos_interpolate.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
   position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
-  if(enu_absolute_pos.status.enabled_status == true)
+  if (enu_absolute_pos.status.enabled_status == true)
   {
     pub1->publish(enu_absolute_pos_interpolate);
     pub2->publish(eagleye_fix);

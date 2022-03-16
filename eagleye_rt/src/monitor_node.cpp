@@ -93,188 +93,124 @@ std::shared_ptr<diagnostic_updater::Updater> updater_;
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void navsatfix_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  navsat_fix.header = msg->header;
-  navsat_fix.status = msg->status;
-  navsat_fix.latitude = msg->latitude;
-  navsat_fix.longitude = msg->longitude;
-  navsat_fix.altitude = msg->altitude;
-  navsat_fix.position_covariance = msg->position_covariance;
-  navsat_fix.position_covariance_type = msg->position_covariance_type;
+  navsat_fix = *msg;
   navsat_fix_sub_status = true;
 }
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  velocity = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void heading_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_1st.header = msg->header;
-  heading_1st.heading_angle = msg->heading_angle;
-  heading_1st.status = msg->status;
+  heading_1st = *msg;
 }
 
 void heading_interpolate_1st_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate_1st.header = msg->header;
-  heading_interpolate_1st.heading_angle = msg->heading_angle;
-  heading_interpolate_1st.status = msg->status;
+  heading_interpolate_1st = *msg;
 }
 
 void heading_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_2nd.header = msg->header;
-  heading_2nd.heading_angle = msg->heading_angle;
-  heading_2nd.status = msg->status;
+  heading_2nd = *msg;
 }
 
 void heading_interpolate_2nd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate_2nd.header = msg->header;
-  heading_interpolate_2nd.heading_angle = msg->heading_angle;
-  heading_interpolate_2nd.status = msg->status;
+  heading_interpolate_2nd = *msg;
 }
 
 void heading_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_3rd.header = msg->header;
-  heading_3rd.heading_angle = msg->heading_angle;
-  heading_3rd.status = msg->status;
+  heading_3rd = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_1st_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_1st.header = msg->header;
-  yawrate_offset_1st.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_1st.status = msg->status;
+  yawrate_offset_1st = *msg;
 }
 
 void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_2nd.header = msg->header;
-  yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_2nd.status = msg->status;
+  yawrate_offset_2nd = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void enu_relative_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  enu_relative_pos.header = msg->header;
-  enu_relative_pos.enu_pos = msg->enu_pos;
-  enu_relative_pos.ecef_base_pos = msg->ecef_base_pos;
-  enu_relative_pos.status = msg->status;
+  enu_relative_pos = *msg;
 }
 
 void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
+  enu_vel = *msg;
 }
 
 void enu_absolute_pos_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  enu_absolute_pos.header = msg->header;
-  enu_absolute_pos.enu_pos = msg->enu_pos;
-  enu_absolute_pos.ecef_base_pos = msg->ecef_base_pos;
-  enu_absolute_pos.status = msg->status;
+  enu_absolute_pos = *msg;
 }
 
 void height_callback(const eagleye_msgs::msg::Height::ConstSharedPtr msg)
 {
-  height.header = msg->header;
-  height.height = msg->height;
-  height.status = msg->status;
+  height = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
-  pitching.header = msg->header;
-  pitching.pitching_angle = msg->pitching_angle;
-  pitching.status = msg->status;
+  pitching = *msg;
 }
 
 
 void enu_absolute_pos_interpolate_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  enu_absolute_pos_interpolate.header = msg->header;
-  enu_absolute_pos_interpolate.enu_pos = msg->enu_pos;
-  enu_absolute_pos_interpolate.ecef_base_pos = msg->ecef_base_pos;
-  enu_absolute_pos_interpolate.status = msg->status;
+  enu_absolute_pos_interpolate = *msg;
 }
 
 void eagleye_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  eagleye_fix.header = msg->header;
-  eagleye_fix.status = msg->status;
-  eagleye_fix.latitude = msg->latitude;
-  eagleye_fix.longitude = msg->longitude;
-  eagleye_fix.altitude = msg->altitude;
-  eagleye_fix.position_covariance = msg->position_covariance;
-  eagleye_fix.position_covariance_type = msg->position_covariance_type;
+  eagleye_fix = *msg;
 }
 
 void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  eagleye_twist.header = msg->header;
-  eagleye_twist.twist = msg->twist;
+  eagleye_twist = *msg;
 }
 
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -800,7 +736,7 @@ void printStatus(void)
 
   std::cout << "--- \033[1;34m navsat(input)\033[m ------------------------------"<< std::endl;
 
-  if(navsat_fix_sub_status)
+  if (navsat_fix_sub_status)
   {
     std::cout<< "\033[1m rtk status \033[m "<<int(navsat_fix.status.status)<<std::endl;
     std::cout<< "\033[1m rtk status \033[m "<<(navsat_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
@@ -879,7 +815,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   imu.linear_acceleration = msg->linear_acceleration;
   imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
 
-  if(print_status)
+  if (print_status)
   {
     printStatus();
   }
