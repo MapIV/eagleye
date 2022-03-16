@@ -852,7 +852,7 @@ int main(int argc, char** argv)
   std::cout<< "print_status "<<print_status<<std::endl;
 
   // // Diagnostic Updater
-  updater_->setHardwareID("topic_checker");
+  updater_->setHardwareID("eagleye_topic_checker");
   updater_->add("eagleye_input_imu", imu_topic_checker);
   updater_->add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
   updater_->add("eagleye_input_navsat_fix", navsat_fix_topic_checker);
