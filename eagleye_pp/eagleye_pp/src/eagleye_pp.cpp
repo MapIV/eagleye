@@ -4,14 +4,8 @@
 #include "eagleye_pp.hpp"
 #include <multi_rosbag_controller/multi_rosbag_controller.hpp>
 
-//How to use
-//roslaunch eagleye_pp eagleye_pp.launch bagfile:="/home/user_name/rosbag/eagleye/eagleye_sample_0.bag /home/user_name/rosbag/eagleye/eagleye_sample_1.bag"
-
-
 int main(int argc, char *argv[])
 {
-  // ros::init(argc, argv, "eagleye_pp");
-  // ros::NodeHandle n("~");
   eagleye_pp eagleye_pp;
   int n_bag;
   std::vector<std::string> rosbags;
@@ -128,14 +122,14 @@ int main(int argc, char *argv[])
   std::cout << std::endl << "backward estimation finish"<< std::endl;
   
   // Calculate initial azimuth
-  double GPSTime[egl_pp.data_length_] = {0};
+  double GPSTime[eagleye_pp.data_length_] = {0};
 
-  double *GNSSTime = (double*)malloc(sizeof(double) * egl_pp.data_length_);
+  double *GNSSTime = (double*)malloc(sizeof(double) * eagleye_pp.data_length_);
   std::vector<int>  index_gnsstime;
-  for(int i =0; i < egl_pp.data_length_; i++){
-    GNSSTime[i] = (double)egl_pp.rtklib_nav_[i].tow / 1000;
+  for(int i =0; i < eagleye_pp.data_length_; i++){
+    GNSSTime[i] = (double)eagleye_pp.rtklib_nav_[i].tow / 1000;
   }
-  for(int i =1; i < egl_pp.data_length_; i++){
+  for(int i =1; i < eagleye_pp.data_length_; i++){
     if(GNSSTime[i] != GNSSTime[i-1]){
 	index_gnsstime.push_back(i);
 	GPSTime[i] = GNSSTime[i];
@@ -152,7 +146,7 @@ int main(int argc, char *argv[])
   for(int i =0; i < index_gnsstime[0]; i++){
     GPSTime[i] = GPSTime[index_gnsstime[0]];
   }
-  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < egl_pp.data_length_; i++){
+  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < eagleye_pp.data_length_; i++){
     GPSTime[i] = GPSTime[index_gnsstime[index_gnsstime.size()-1]];
   }
   free(GNSSTime);
@@ -160,18 +154,18 @@ int main(int argc, char *argv[])
   std::vector<int> index_DRs;
   std::vector<int> index_DRe;
   std::cout << std::endl << "Start MissPositiveFIX"<< std::endl;
-  bool flag_SMRaw_2D[egl_pp.data_length_] = {0};
+  bool flag_SMRaw_2D[eagleye_pp.data_length_] = {0};
   double TH_POSMAX;
  //if(loop_count == 1){
 //TH_POSMAX = 1.5;
  //}else{
   TH_POSMAX = 0.3;
 //}
-  egl_pp.calcMissPositiveFIX(TH_POSMAX, GPSTime);
+  eagleye_pp.calcMissPositiveFIX(TH_POSMAX, GPSTime);
   std::cout << std::endl << "Start PickDR"<< std::endl;
-  egl_pp.calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);  
+  eagleye_pp.calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
   std::cout << std::endl << "Start initial azimuth calculation"<< std::endl;
-  egl_pp.calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
+  eagleye_pp.calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
 
 
   // forward/backward combination
