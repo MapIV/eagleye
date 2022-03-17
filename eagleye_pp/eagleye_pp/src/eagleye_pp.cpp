@@ -50,7 +50,9 @@ int main(int argc, char *argv[])
     
   eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &navsatfix_topic, &nmea_sentence_topic);
 
-  std::cout << "Estimate mode (GNSS) " << eagleye_pp.use_gnss_mode_ << std::endl; 
+  std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
+
+  std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl; 
     
   if (rosbag_controller.setTopic(std::string(twist_topic)))
   {
@@ -68,7 +70,7 @@ int main(int argc, char *argv[])
     nmea_data_flag = true;
     use_rtk_navsatfix_topic = true;
   }
-  else if (!rosbag_controller.setTopic(std::string(nmea_sentence_topic)) && eagleye_pp.use_gnss_mode_ != "rtklib" && eagleye_pp.use_gnss_mode_ != "RTKLIB")
+  else if (!rosbag_controller.setTopic(std::string(nmea_sentence_topic)) && use_gnss_mode != "rtklib" && use_gnss_mode != "RTKLIB")
   {
     std::cerr << "\033[1;31mError: Cannot find the topic (Please change the Estimation mode): " << nmea_sentence_topic << "\033[0m" << std::endl;
     exit(1);
@@ -121,15 +123,17 @@ int main(int argc, char *argv[])
   eagleye_pp.estimatingEagleye(forward_flag);
   std::cout << std::endl << "backward estimation finish"<< std::endl;
   
+  std::size_t data_length = eagleye_pp.getDataLength();
   // Calculate initial azimuth
-  double GPSTime[eagleye_pp.data_length_] = {0};
+  double GPSTime[data_length] = {0};
 
-  double *GNSSTime = (double*)malloc(sizeof(double) * eagleye_pp.data_length_);
+  double *GNSSTime = (double*)malloc(sizeof(double) * data_length);
   std::vector<int>  index_gnsstime;
-  for(int i =0; i < eagleye_pp.data_length_; i++){
-    GNSSTime[i] = (double)eagleye_pp.rtklib_nav_[i].tow / 1000;
+  std::vector<rtklib_msgs::RtklibNav> rtklib_nav_vector = eagleye_pp.getRtklibNavVector();
+  for(int i =0; i < data_length; i++){
+    GNSSTime[i] = (double)rtklib_nav_vector[i].tow / 1000;
   }
-  for(int i =1; i < eagleye_pp.data_length_; i++){
+  for(int i =1; i < data_length; i++){
     if(GNSSTime[i] != GNSSTime[i-1]){
 	index_gnsstime.push_back(i);
 	GPSTime[i] = GNSSTime[i];
@@ -146,7 +150,7 @@ int main(int argc, char *argv[])
   for(int i =0; i < index_gnsstime[0]; i++){
     GPSTime[i] = GPSTime[index_gnsstime[0]];
   }
-  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < eagleye_pp.data_length_; i++){
+  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < data_length; i++){
     GPSTime[i] = GPSTime[index_gnsstime[index_gnsstime.size()-1]];
   }
   free(GNSSTime);
@@ -154,19 +158,20 @@ int main(int argc, char *argv[])
   std::vector<int> index_DRs;
   std::vector<int> index_DRe;
   std::cout << std::endl << "Start MissPositiveFIX"<< std::endl;
-  bool flag_SMRaw_2D[eagleye_pp.data_length_] = {0};
+  bool flag_SMRaw_2D[data_length] = {0};
   double TH_POSMAX;
- //if(loop_count == 1){
-//TH_POSMAX = 1.5;
- //}else{
-  TH_POSMAX = 0.3;
-//}
+  // if(loop_count == 1)
+  // {
+  //   TH_POSMAX = 1.5;
+  // }else
+  // {
+    TH_POSMAX = 0.3;
+  // }
   eagleye_pp.calcMissPositiveFIX(TH_POSMAX, GPSTime);
   std::cout << std::endl << "Start PickDR"<< std::endl;
   eagleye_pp.calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
   std::cout << std::endl << "Start initial azimuth calculation"<< std::endl;
   eagleye_pp.calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
-
 
   // forward/backward combination
   std::cout << "start eagleye forward/backward combination processing!" << std::endl;

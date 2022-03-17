@@ -177,6 +177,23 @@ void eagleye_pp::setDataLength(void)
 }
 
 
+std::size_t eagleye_pp::getDataLength(void)
+{
+ return data_length_;
+}
+
+
+std::string eagleye_pp::getUseGNSSMode(void)
+{
+ return use_gnss_mode_;
+}
+
+
+std::vector<rtklib_msgs::RtklibNav> eagleye_pp::getRtklibNavVector(void)
+{
+ return rtklib_nav_;
+}
+
 /****************************************************************
 syncTimestamp
 Function to synchronize time
