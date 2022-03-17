@@ -679,6 +679,40 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   }
 }
 
+/***********************
+setGPSTime
+A function that sets the time used for azimuth calculation
+arg_GPSTime　: output,time used for azimuth calculation
+***********************/
+void eagleye_pp::setGPSTime(double arg_GPSTime[]){
+double *GNSSTime = (double*)malloc(sizeof(double) * data_length_);
+  std::vector<int>  index_gnsstime;
+  for(int i =0; i < data_length_; i++){
+    GNSSTime[i] = (double)rtklib_nav_[i].tow / 1000;
+  }
+  for(int i =1; i < data_length_; i++){
+    if(GNSSTime[i] != GNSSTime[i-1]){
+	index_gnsstime.push_back(i);
+	arg_GPSTime[i] = GNSSTime[i];
+    }
+  }
+  for(int i =1; i < index_gnsstime.size(); i++){
+    double diff_time = GNSSTime[index_gnsstime[i]] - GNSSTime[index_gnsstime[i-1]];
+    int diff_cnt = index_gnsstime[i] - index_gnsstime[i-1];
+    double time = diff_time/diff_cnt;
+    for(int j =0; j < diff_cnt; j++){
+      arg_GPSTime[index_gnsstime[i-1]+j+1] = arg_GPSTime[index_gnsstime[i-1]+j] + time;
+    }
+  }
+//Setting a value outside the range of index_gnsstime
+  for(int i =0; i < index_gnsstime[0]; i++){
+    arg_GPSTime[i] = arg_GPSTime[index_gnsstime[0]];
+  }
+  for(int i = index_gnsstime[index_gnsstime.size()-1]; i < data_length_; i++){
+    arg_GPSTime[i] = arg_GPSTime[index_gnsstime[index_gnsstime.size()-1]];
+  }
+}
+
 /***********************************************
 calcMissPositiveFIX
 Function to remove missFix 
@@ -1159,6 +1193,12 @@ void eagleye_pp::smoothingTrajectory(void)
   std::size_t flag_reliability_buffer_length;
   std::size_t index_fix_length;
   std::size_t enu_smoothing_trajectory_length;
+
+  struct TrajectoryStatus trajectory_status{};
+  for(int i = 0; i < data_length_; i++){ // Added to use the corrected initial azimuth
+    trajectory_estimate(imu_[i], velocity_scale_factor_[i], heading_interpolate_3rd_[i], yawrate_offset_stop_[i], yawrate_offset_2nd_[i], trajectory_parameter_, &trajectory_status, &enu_vel_[i], &enu_relative_pos_[i], &eagleye_twist_[i]);
+  }
+
 
   fix_length = std::distance(fix_.begin(), fix_.end());
   enu_relative_pos_length = std::distance(enu_relative_pos_.begin(), enu_relative_pos_.end());
@@ -2548,8 +2588,7 @@ void eagleye_pp::writeDetailCSV(void)
 ,enu_relative_pos.enu_pos.x,enu_relative_pos.enu_pos.y,enu_relative_pos.enu_pos.z\
 ,enu_relative_pos.status.enabled_status\
 " << std::endl;
-    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status\
-
+    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status
     for(int i=0; i<data_length_; i++)
     {
       output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_[i].header.stamp.toNSec() << ","; //timestamp
@@ -2726,8 +2765,7 @@ void eagleye_pp::writeDetailCSV(void)
 ,enu_relative_pos.enu_pos.x,enu_relative_pos.enu_pos.y,enu_relative_pos.enu_pos.z\
 ,enu_relative_pos.status.enabled_status\
 " << std::endl;
-    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status\
-
+    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status
     for(int i=0; i<data_length_; i++)
     {
       output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_[i].header.stamp.toNSec() << ","; //timestamp

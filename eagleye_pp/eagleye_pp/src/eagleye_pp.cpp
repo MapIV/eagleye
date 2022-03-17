@@ -128,9 +128,10 @@ int main(int argc, char *argv[])
   std::cout << std::endl << "backward estimation finish"<< std::endl;
   
   // Calculate initial azimuth
+  double GPSTime[egl_pp.data_length_] = {0};
+
   double *GNSSTime = (double*)malloc(sizeof(double) * egl_pp.data_length_);
   std::vector<int>  index_gnsstime;
-  double GPSTime[egl_pp.data_length_] = {0};
   for(int i =0; i < egl_pp.data_length_; i++){
     GNSSTime[i] = (double)egl_pp.rtklib_nav_[i].tow / 1000;
   }
