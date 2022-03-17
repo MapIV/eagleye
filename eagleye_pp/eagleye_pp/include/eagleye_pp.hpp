@@ -20,6 +20,9 @@ class eagleye_pp
   std::string outputpath_;
   std::size_t data_length_;
 
+  // For inital azimuth calculation
+  std::vector<bool>flag_GNSS_;
+  
   // Data estimated by eagleye
   std::vector<rtklib_msgs::RtklibNav> rtklib_nav_;
   std::vector<sensor_msgs::NavSatFix> fix_;
