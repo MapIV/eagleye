@@ -48,6 +48,8 @@ struct SlipCoefficientStatus slip_coefficient_status;
 
 static double estimate_coefficient;
 
+bool is_first_correction_velocity = false;
+
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
   rtklib_nav.header = msg->header;
@@ -63,6 +65,10 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   velocity_scale_factor.scale_factor = msg->scale_factor;
   velocity_scale_factor.correction_velocity = msg->correction_velocity;
   velocity_scale_factor.status = msg->status;
+  if (is_first_correction_velocity == false && msg->correction_velocity.linear.x > slip_coefficient_parameter.estimated_velocity_threshold)
+  {
+    is_first_correction_velocity = true;
+  }
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -88,6 +94,11 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  if (is_first_correction_velocity == false)
+  {
+    return;
+  }
+
   imu.header = msg->header;
   imu.orientation = msg->orientation;
   imu.orientation_covariance = msg->orientation_covariance;
