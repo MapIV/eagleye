@@ -39,12 +39,15 @@
 
 class eagleye_pp
 {
-  public:
+  private:
  
   // Frequently used variables
   std::string outputpath_;
   std::size_t data_length_;
 
+  // For inital azimuth calculation
+  std::vector<bool>flag_GNSS_;
+  
   // Data estimated by eagleye
   std::vector<rtklib_msgs::RtklibNav> rtklib_nav_;
   std::vector<sensor_msgs::NavSatFix> fix_;
@@ -120,13 +123,27 @@ class eagleye_pp
   struct RollingParameter rolling_parameter_;
 
   // Function declaration
+  public:
+
   eagleye_pp();//Constructor
+
   void setOutputPath(std::string arg_output_path);
   void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic, std::string *arg_navsatfix_topic, std::string *arg_nmea_sentence_topic);
   void setDataLength();
+  std::size_t getDataLength();
+  std::string getUseGNSSMode();
+  std::vector<rtklib_msgs::RtklibNav> getRtklibNavVector();
 
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);
+
+  // Function to calculate the initial azimuth
+  void setGPSTime(double arg_GPSTime[]);
+  void calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
+  void calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw_2D, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe);
+  void calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw_2D[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe);
+  void smoothingDeadReckoning();
+
   void smoothingTrajectory();
   void convertHeight();
   void writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);

@@ -70,12 +70,15 @@ int main(int argc, char *argv[])
   std::string nmea_sentence_topic = "/navsat/nmea_sentence";
   bool nmea_data_flag = false;
   bool use_rtk_navsatfix_topic = false;
+  bool use_rtklib_topic = false;
 
   YAML::Node conf = YAML::LoadFile(config_file);
     
   eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &navsatfix_topic, &nmea_sentence_topic);
 
-  std::cout << "Estimate mode (GNSS) " << eagleye_pp.use_gnss_mode_ << std::endl; 
+  std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
+
+  std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl; 
     
   if (rosbag_controller.setTopic(std::string(twist_topic)))
   {
@@ -93,7 +96,7 @@ int main(int argc, char *argv[])
     nmea_data_flag = true;
     use_rtk_navsatfix_topic = true;
   }
-  else if (!rosbag_controller.setTopic(std::string(nmea_sentence_topic)) && eagleye_pp.use_gnss_mode_ != "rtklib" && eagleye_pp.use_gnss_mode_ != "RTKLIB")
+  else if (!rosbag_controller.setTopic(std::string(nmea_sentence_topic)) && use_gnss_mode != "rtklib" && use_gnss_mode != "RTKLIB")
   {
     std::cerr << "\033[1;31mError: Cannot find the topic (Please change the Estimation mode): " << nmea_sentence_topic << "\033[0m" << std::endl;
     exit(1);
@@ -122,6 +125,7 @@ int main(int argc, char *argv[])
   if (rosbag_controller.setTopic(std::string(rtklib_nav_topic)))
   {
     std::cout << "RtklibNav topic: " << rtklib_nav_topic << std::endl;
+    use_rtklib_topic = true;
   }
   else
   {
@@ -146,6 +150,12 @@ int main(int argc, char *argv[])
   eagleye_pp.estimatingEagleye(forward_flag);
   std::cout << std::endl << "backward estimation finish"<< std::endl;
   
+  if(use_rtklib_topic)
+  {
+    eagleye_pp.smoothingDeadReckoning();
+    std::cout << std::endl << "smotthing dead reckoning finish"<< std::endl;
+  }
+
   // forward/backward combination
   std::cout << "start eagleye forward/backward combination processing!" << std::endl;
   eagleye_pp.smoothingTrajectory();
