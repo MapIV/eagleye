@@ -27,8 +27,7 @@ output_kml_eagleye_pp_line: true
 #Estimate mode
 gnss:
   use_gnss_mode: RTKLIB  #Estimate mode
-  ## RTKLIB (rtklib) or NMEA (nmea)
-  ## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
+  # RTKLIB (rtklib) or NMEA (nmea)
   use_nmea_downsample: true
   nmea_downsample_freq: 5
 
@@ -36,8 +35,6 @@ gnss:
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
-## Either one of navsatfix and nmea_sentence should be specified.
-## If RTK positioning is not used, the following topic settings are not necessary.
 navsatfix_topic: /fix
 nmea_sentence_topic: /nmea_sentence
 
