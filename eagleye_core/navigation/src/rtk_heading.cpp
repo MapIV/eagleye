@@ -43,6 +43,7 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
+  double estimated_number_cur;
 
   if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
   {
@@ -51,6 +52,15 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
   else
   {
     heading_status->estimated_number  = heading_parameter.estimated_number_max;
+  }
+
+  if (heading_status->estimated_number  < estimated_number_cur)
+  {
+    ++heading_status->estimated_number ;
+  }
+  else
+  {
+    heading_status->estimated_number  = estimated_number_cur;
   }
 
   if (heading_parameter.reverse_imu == false)
@@ -145,7 +155,7 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
 
-  if (time_buffer_length > heading_parameter.estimated_number_max)
+  if (time_buffer_length > estimated_number_cur)
   {
     heading_status->time_buffer .erase(heading_status->time_buffer .begin());
     heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
