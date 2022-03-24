@@ -306,4 +306,3 @@ void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,eagle
 
   heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }
-

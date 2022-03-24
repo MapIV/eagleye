@@ -42,6 +42,8 @@ static eagleye_msgs::YawrateOffset yawrate_offset;
 struct YawrateOffsetParameter yawrate_offset_parameter;
 struct YawrateOffsetStatus yawrate_offset_status;
 
+bool is_first_heading= false;
+
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
   velocity_scale_factor.header = msg->header;
@@ -62,10 +64,20 @@ void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
   heading_interpolate.header = msg->header;
   heading_interpolate.heading_angle = msg->heading_angle;
   heading_interpolate.status = msg->status;
+
+  if (is_first_heading == false && heading_interpolate.status.enabled_status == true)
+  {
+    is_first_heading = true;
+  }
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  if (is_first_heading == false)
+  {
+    return;
+  }
+
   imu.header = msg->header;
   imu.orientation = msg->orientation;
   imu.orientation_covariance = msg->orientation_covariance;

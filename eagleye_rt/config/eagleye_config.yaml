@@ -2,14 +2,17 @@
 
 #Estimate mode
 use_gnss_mode: RTKLIB
-# RTKLIB (rtklib) or NMEA (nmea)
+## RTKLIB (rtklib) or NMEA (nmea)
+## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
 
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
+## Either one of navsatfix and nmea_sentence should be specified.
+## If RTK positioning is not used, the following topic settings are not necessary.
 navsatfix_topic: /navsat/fix
 nmea_sentence_topic: /navsat/nmea_sentence
-localization_pose_topic: /localization/pose
+localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
 reverse_imu: false                                    # reverse imu angular_velocity.z
