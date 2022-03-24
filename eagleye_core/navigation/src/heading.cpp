@@ -42,24 +42,14 @@ void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor ve
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
-  double estimated_number_cur;
 
-  if(heading->status.enabled_status == true)
-  {
-    estimated_number_cur = heading_parameter.estimated_number_max;
-  }
-  else
-  {
-    estimated_number_cur = heading_parameter.estimated_number_min;
-  }
-
-  if (heading_status->estimated_number  < estimated_number_cur)
+  if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
   {
     ++heading_status->estimated_number ;
   }
   else
   {
-    heading_status->estimated_number  = estimated_number_cur;
+    heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
   if (heading_parameter.reverse_imu == false)
@@ -81,7 +71,7 @@ void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor ve
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
 
-  if (time_buffer_length > estimated_number_cur)
+  if (time_buffer_length > heading_parameter.estimated_number_max)
   {
     heading_status->time_buffer .erase(heading_status->time_buffer .begin());
     heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
@@ -97,7 +87,7 @@ void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor ve
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  >= heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
+  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -316,4 +306,3 @@ void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,eagle
 
   heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }
-
