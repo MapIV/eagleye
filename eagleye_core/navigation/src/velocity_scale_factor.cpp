@@ -43,6 +43,11 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
   std::size_t gnss_status_buffer_length;
   double estimated_number_cur;
 
+  if(velocity_scale_factor_parameter.save_velocity_scale_factor)
+  {
+    initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
+  }
+
   if(velocity_scale_factor->status.enabled_status == true)
   {
     estimated_number_cur = velocity_scale_factor_parameter.estimated_number_max;

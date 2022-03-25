@@ -34,6 +34,8 @@ velocity_scale_factor:                                #Parameters for estimating
   estimated_number_max: 20000                          #Maximum number of data used for estimation. (default:20000 = 400s)
   estimated_velocity_threshold: 2.78                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
   estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
+  save_velocity_scale_factor: true                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
+  velocity_scale_factor_save_duration: 100.0           #[sec]
 
 yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)

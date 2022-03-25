@@ -10,6 +10,8 @@
     <arg name="use_rtk_heading" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
 
+    <param name ="velocity_scale_factor_save_str" value="$(find eagleye_rt)/config/velocity_scale_factor.txt"/>
+
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
@@ -31,7 +33,7 @@
     <node pkg="eagleye_rt" name="height_node" type="height"/>
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
     <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
-    <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" />
+    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen" />
     <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- RTK Options -->
