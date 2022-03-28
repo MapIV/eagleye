@@ -27,6 +27,7 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
+#include "nmea_msgs/Gpgga.h"
 #include "nmea_msgs/Gprmc.h"
 
 #include "rtklib_msgs/RtklibNav.h"

@@ -44,8 +44,9 @@
   </group>
 
   <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch">
-    <arg name="sub_topic_name" default="navsat/nmea_sentence"/>
-    <arg name="pub_fix_topic_name" default="navsat/fix"/>
+    <arg name="sub_topic_name" default="nmea_sentence"/>
+    <arg name="pub_fix_topic_name" default="navsat/fix_UNUSED"/>
+    <arg name="pub_gga_topic_name" default="navsat/gga"/>
     <arg name="pub_rmc_topic_name" default="navsat/rmc"/>
   </include>
 

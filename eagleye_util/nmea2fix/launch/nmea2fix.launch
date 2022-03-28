@@ -6,7 +6,7 @@
   <arg name="pub_fix_topic_name" default="fix"/>
   <arg name="pub_gga_topic_name" default="gga"/>
   <arg name="pub_rmc_topic_name" default="rmc"/>
-  <arg name="output_gga" default="false"/>
+  <arg name="output_gga" default="true"/>
   <arg name="output_rmc" default="false"/>
 
   <node pkg="eagleye_nmea2fix" name="nmea2fix_node" type="nmea2fix_node" output="screen">
