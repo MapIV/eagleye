@@ -87,10 +87,10 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("imu_topic: ", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu: ", _heading_interpolate_parameter.reverse_imu);
-  nh.getParam("heading_interpolate/stop_judgment_velocity_threshold: ", _heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("heading_interpolate/number_buffer_max: ", _heading_interpolate_parameter.number_buffer_max);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _heading_interpolate_parameter.reverse_imu);
+  nh.getParam("heading_interpolate/stop_judgment_velocity_threshold", _heading_interpolate_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("heading_interpolate/number_buffer_max", _heading_interpolate_parameter.number_buffer_max);
   std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
   std::cout<< "reverse_imu: " << _heading_interpolate_parameter.reverse_imu << std::endl;
   std::cout<< "stop_judgment_velocity_threshold: " << _heading_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;

@@ -75,7 +75,7 @@ int main(int argc, char** argv)
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("reverse_imu", _slip_angle_parameter.reverse_imu);
   nh.getParam("slip_angle/manual_coefficient", _slip_angle_parameter.manual_coefficient);
   nh.getParam("slip_angle/stop_judgment_velocity_threshold", _slip_angle_parameter.stop_judgment_velocity_threshold);

@@ -62,12 +62,12 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("twist_topic: ", subscribe_twist_topic_name);
-  nh.getParam("imu_topic: ", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu: ", _angular_velocity_offset_stop_parameter.reverse_imu);
-  nh.getParam("angular_velocity_offset_stop/stop_judgment_velocity_threshold: ", _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("angular_velocity_offset_stop/estimated_number: ", _angular_velocity_offset_stop_parameter.estimated_number);
-  nh.getParam("angular_velocity_offset_stop/outlier_threshold: ", _angular_velocity_offset_stop_parameter.outlier_threshold);
+  nh.getParam("twist_topic", subscribe_twist_topic_name);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _angular_velocity_offset_stop_parameter.reverse_imu);
+  nh.getParam("angular_velocity_offset_stop/stop_judgment_velocity_threshold", _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("angular_velocity_offset_stop/estimated_number", _angular_velocity_offset_stop_parameter.estimated_number);
+  nh.getParam("angular_velocity_offset_stop/outlier_threshold", _angular_velocity_offset_stop_parameter.outlier_threshold);
 
   std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
   std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;

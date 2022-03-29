@@ -124,7 +124,7 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/mosaic/rmc";
 
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   nh.getParam("rmc_topic",subscribe_rmc_topic_name);
   nh.getParam("reverse_imu", _heading_parameter.reverse_imu);

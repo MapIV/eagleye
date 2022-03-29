@@ -108,8 +108,8 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("imu_topic: ", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu: ", _reverse_imu);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _reverse_imu);
   std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
   std::cout<< "reverse_imu: " << _reverse_imu << std::endl;
 

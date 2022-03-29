@@ -157,7 +157,7 @@ int main(int argc, char** argv)
   double velocity_scale_factor_save_duration; // [sec]
 
   nh.getParam("twist_topic",subscribe_twist_topic_name);
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   nh.getParam("rmc_topic",subscribe_rmc_topic_name);
   nh.getParam("velocity_scale_factor/estimated_number_min",_velocity_scale_factor_parameter.estimated_number_min);

@@ -136,7 +136,7 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("twist_topic",subscribe_twist_topic_name);
   nh.getParam("reverse_imu", _trajectory_parameter.reverse_imu);
   nh.getParam("trajectory/stop_judgment_velocity_threshold",_trajectory_parameter.stop_judgment_velocity_threshold);
