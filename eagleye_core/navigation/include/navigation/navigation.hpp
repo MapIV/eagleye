@@ -57,6 +57,7 @@ struct VelocityScaleFactorParameter
   double estimated_number_max;
   double estimated_velocity_threshold;
   double estimated_coefficient;
+  bool save_velocity_scale_factor{false};
 };
 
 struct VelocityScaleFactorStatus
