@@ -106,7 +106,7 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
   nh.getParam("reverse_imu", _heading_parameter.reverse_imu);
   nh.getParam("rtk_heading/estimated_distance",_heading_parameter.estimated_distance);

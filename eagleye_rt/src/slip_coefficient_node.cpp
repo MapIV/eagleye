@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  nh.getParam("imu_topic: " , subscribe_imu_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("rtklib_nav_topic", subscribe_rtklib_nav_topic_name);
   nh.getParam("reverse_imu", _slip_coefficient_parameter.reverse_imu);
   nh.getParam("slip_coefficient/estimated_number_min", _slip_coefficient_parameter.estimated_number_min);

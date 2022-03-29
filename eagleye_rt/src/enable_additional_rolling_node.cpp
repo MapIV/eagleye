@@ -97,16 +97,16 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name;
   std::string subscribe_localization_pose_topic_name;
 
-  nh.getParam("localization_pose_topic: ", subscribe_localization_pose_topic_name);
-  nh.getParam("imu_topic: ", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu: ", _rolling_parameter.reverse_imu);
-  nh.getParam("reverse_imu_angular_velocity_x: ", _rolling_parameter.reverse_imu_angular_velocity_x);
-  nh.getParam("reverse_imu_linear_acceleration_y: ", _rolling_parameter.reverse_imu_linear_acceleration_y);
-  nh.getParam("enable_additional_rolling/matching_update_distance: ", _rolling_parameter.matching_update_distance);
-  nh.getParam("enable_additional_rolling/stop_judgment_velocity_threshold: ", _rolling_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("enable_additional_rolling/rolling_buffer_num: ", _rolling_parameter.rolling_buffer_num);
-  nh.getParam("enable_additional_rolling/link_Time_stamp_parameter: ", _rolling_parameter.link_Time_stamp_parameter);
-  nh.getParam("enable_additional_rolling/imu_buffer_num: ", _rolling_parameter.imu_buffer_num);
+  nh.getParam("localization_pose_topic", subscribe_localization_pose_topic_name);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _rolling_parameter.reverse_imu);
+  nh.getParam("reverse_imu_angular_velocity_x", _rolling_parameter.reverse_imu_angular_velocity_x);
+  nh.getParam("reverse_imu_linear_acceleration_y", _rolling_parameter.reverse_imu_linear_acceleration_y);
+  nh.getParam("enable_additional_rolling/matching_update_distance", _rolling_parameter.matching_update_distance);
+  nh.getParam("enable_additional_rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("enable_additional_rolling/rolling_buffer_num", _rolling_parameter.rolling_buffer_num);
+  nh.getParam("enable_additional_rolling/link_Time_stamp_parameter", _rolling_parameter.link_Time_stamp_parameter);
+  nh.getParam("enable_additional_rolling/imu_buffer_num", _rolling_parameter.imu_buffer_num);
 
   std::cout<< "subscribe_localization_pose_topic_name: " << subscribe_localization_pose_topic_name << std::endl;
   std::cout<< "subscribe_imu_topic_name: " <<  subscribe_imu_topic_name << std::endl;
