@@ -42,19 +42,12 @@ struct YawrateOffsetStopStatus yawrate_offset_stop_status;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  velocity = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop_estimate(velocity, imu, yawrate_offset_stop_parameter, &yawrate_offset_stop_status, &yawrate_offset_stop);
   pub.publish(yawrate_offset_stop);

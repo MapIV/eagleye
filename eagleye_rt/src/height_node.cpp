@@ -48,39 +48,22 @@
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   height.header = msg->header;
   height.header.frame_id = "base_link";
   pitching.header = msg->header;

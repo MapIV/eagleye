@@ -51,44 +51,27 @@ static std::string use_gnss_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfListener_, tf2_ros::Buffer* tfBuffer_)

@@ -47,50 +47,32 @@ struct HeadingInterpolateStatus heading_interpolate_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset = *msg;
 }
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading.header = msg->header;
-  heading.heading_angle = msg->heading_angle;
-  heading.status = msg->status;
+  heading = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   heading_interpolate.header = msg->header;
   heading_interpolate.header.frame_id = "base_link";
   heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_parameter,&heading_interpolate_status,&heading_interpolate);

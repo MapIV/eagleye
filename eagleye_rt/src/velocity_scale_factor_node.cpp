@@ -53,11 +53,7 @@ double saved_vsf_estimater_number;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
@@ -67,8 +63,7 @@ void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  velocity = *msg;
 
   if (is_first_move == false && msg->twist.linear.x > velocity_scale_factor_parameter.estimated_velocity_threshold)
   {
@@ -80,13 +75,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   double initial_velocity_scale_factor = 1.0;
 
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   velocity_scale_factor.header = msg->header;
   velocity_scale_factor.header.frame_id = "base_link";
 

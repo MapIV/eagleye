@@ -53,11 +53,7 @@ bool is_first_correction_velocity = false;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
@@ -67,10 +63,7 @@ void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
   if (is_first_correction_velocity == false && msg->correction_velocity.linear.x > heading_parameter.estimated_velocity_threshold)
   {
     is_first_correction_velocity = true;
@@ -79,31 +72,22 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate.header = msg->header;
-  heading_interpolate.heading_angle = msg->heading_angle;
-  heading_interpolate.status = msg->status;
+  heading_interpolate = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
@@ -113,13 +97,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     return;
   }
 
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
 

@@ -53,29 +53,17 @@ static std::string use_gnss_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  fix = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
 
@@ -103,8 +91,7 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfList
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
+  enu_vel = *msg;
   enu_absolute_rtk_deadreckoning.header = msg->header;
   enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
