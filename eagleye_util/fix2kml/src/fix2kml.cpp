@@ -57,17 +57,17 @@ void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kml
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "fix2kml");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
-  n.getParam("fix2kml/filename",filename);
-  n.getParam("fix2kml/kmlname",kmlname);
-  std::cout<< "filename "<<filename<<std::endl;
-  std::cout<< "kmlname "<<kmlname<<std::endl;
+  nh.getParam("fix2kml/filename",filename);
+  nh.getParam("fix2kml/kmlname",kmlname);
+  std::cout<< "filename " << filename << std::endl;
+  std::cout<< "kmlname " << kmlname << std::endl;
 
   KmlGenerator kmlfile(kmlname);
 
-  ros::Subscriber sub1 = n.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
-  ros::Subscriber sub2 = n.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
+  ros::Subscriber sub1 = nh.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
+  ros::Subscriber sub2 = nh.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
   ros::spin();
 
   return 0;

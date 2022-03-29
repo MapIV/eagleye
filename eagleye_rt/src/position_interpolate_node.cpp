@@ -32,81 +32,81 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static eagleye_msgs::Position enu_absolute_pos;
-static geometry_msgs::Vector3Stamped enu_vel;
-static eagleye_msgs::Height height;
-static eagleye_msgs::Position gnss_smooth_pos;
-static sensor_msgs::NavSatFix fix;
+static eagleye_msgs::Position _enu_absolute_pos;
+static geometry_msgs::Vector3Stamped _enu_vel;
+static eagleye_msgs::Height _height;
+static eagleye_msgs::Position _gnss_smooth_pos;
+static sensor_msgs::NavSatFix _fix;
 
 
-static eagleye_msgs::Position enu_absolute_pos_interpolate;
-static sensor_msgs::NavSatFix eagleye_fix;
-static ros::Publisher pub1;
-static ros::Publisher pub2;
+static eagleye_msgs::Position _enu_absolute_pos_interpolate;
+static sensor_msgs::NavSatFix _eagleye_fix;
+static ros::Publisher _pub1;
+static ros::Publisher _pub2;
 
-struct PositionInterpolateParameter position_interpolate_parameter;
-struct PositionInterpolateStatus position_interpolate_status;
+struct PositionInterpolateParameter _position_interpolate_parameter;
+struct PositionInterpolateStatus _position_interpolate_status;
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix = *msg;
+  _fix = *msg;
 }
 
 void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  enu_absolute_pos = *msg;
+  _enu_absolute_pos = *msg;
 }
 
 void gnss_smooth_pos_enu_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  gnss_smooth_pos = *msg;
+  _gnss_smooth_pos = *msg;
 }
 
 void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
 {
-  height = *msg;
+  _height = *msg;
 }
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_vel = *msg;
-  enu_absolute_pos_interpolate.header = msg->header;
-  enu_absolute_pos_interpolate.header.frame_id = "base_link";
-  eagleye_fix.header = msg->header;
-  eagleye_fix.header.frame_id = "gnss";
-  position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
-  if(enu_absolute_pos.status.enabled_status == true)
+  _enu_vel = *msg;
+  _enu_absolute_pos_interpolate.header = msg->header;
+  _enu_absolute_pos_interpolate.header.frame_id = "base_link";
+  _eagleye_fix.header = msg->header;
+  _eagleye_fix.header.frame_id = "gnss";
+  position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos, _height, _position_interpolate_parameter, &_position_interpolate_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
+  if(_enu_absolute_pos.status.enabled_status)
   {
-    pub1.publish(enu_absolute_pos_interpolate);
-    pub2.publish(eagleye_fix);
+    _pub1.publish(_enu_absolute_pos_interpolate);
+    _pub2.publish(_eagleye_fix);
   }
-  else if (fix.header.stamp.toSec() != 0)
+  else if (_fix.header.stamp.toSec() != 0)
   {
-    pub2.publish(fix);
+    _pub2.publish(_fix);
   }
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "position_interpolate");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
   std::string subscribe_navsatfix_topic_name = "/navsat/fix";
 
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("position_interpolate/number_buffer_max", position_interpolate_parameter.number_buffer_max);
-  n.getParam("position_interpolate/stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
-  std::cout<< "number_buffer_max "<<position_interpolate_parameter.number_buffer_max<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<position_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
+  nh.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  nh.getParam("position_interpolate/number_buffer_max", _position_interpolate_parameter.number_buffer_max);
+  nh.getParam("position_interpolate/stop_judgment_velocity_threshold", _position_interpolate_parameter.stop_judgment_velocity_threshold);
+  std::cout<< "subscribe_navsatfix_topic_name " << subscribe_navsatfix_topic_name << std::endl;
+  std::cout<< "number_buffer_max " << _position_interpolate_parameter.number_buffer_max << std::endl;
+  std::cout<< "stop_judgment_velocity_threshold " << _position_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  pub1 = n.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
-  pub2 = n.advertise<sensor_msgs::NavSatFix>("fix", 1000);
+  ros::Subscriber sub1 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
+  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 
   ros::spin();
 
