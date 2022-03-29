@@ -53,8 +53,8 @@ struct TrajectoryStatus _trajectory_status;
 static double _update_rate = 10;
 static double _th_deadlock_time = 1;
 
-static double imu_time_last,velocity_time_last;
-static bool input_status;
+static double _imu_time_last, _velocity_time_last;
+static bool _input_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -88,26 +88,26 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void timer_callback(const ros::TimerEvent& e)
 {
-  if (std::abs(_imu.header.stamp.toSec() - imu_time_last) < _th_deadlock_time &&
-      std::abs(_velocity.header.stamp.toSec() - velocity_time_last) < _th_deadlock_time &&
+  if (std::abs(_imu.header.stamp.toSec() - _imu_time_last) < _th_deadlock_time &&
+      std::abs(_velocity.header.stamp.toSec() - _velocity_time_last) < _th_deadlock_time &&
       std::abs(_velocity.header.stamp.toSec() - _imu.header.stamp.toSec()) < _th_deadlock_time)
   {
-    input_status = true;
+    _input_status = true;
   }
   else
   {
-    input_status = false;
+    _input_status = false;
     ROS_WARN("Twist is missing the required input topics.");
   }
   
-  if (_imu.header.stamp.toSec() != imu_time_last) imu_time_last = _imu.header.stamp.toSec();
-  if (_velocity.header.stamp.toSec() != velocity_time_last) velocity_time_last = _velocity.header.stamp.toSec();
+  if (_imu.header.stamp.toSec() != _imu_time_last) _imu_time_last = _imu.header.stamp.toSec();
+  if (_velocity.header.stamp.toSec() != _velocity_time_last) _velocity_time_last = _velocity.header.stamp.toSec();
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   _imu = *msg;
-  if(input_status)
+  if(_input_status)
   {
     _enu_vel.header = msg->header;
     _enu_vel.header.frame_id = "gnss";
