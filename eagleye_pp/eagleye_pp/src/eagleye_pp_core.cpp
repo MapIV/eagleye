@@ -1242,7 +1242,7 @@ void eagleye_pp::smoothingDeadReckoning()
 
   std::vector<int> index_DRs;
   std::vector<int> index_DRe;
-  std::cout << std::endl << "Start MissPositiveFIX"<< std::endl;
+  std::cout << std::endl << "Start MissPositiveFIX" <<  std::endl;
   bool flag_SMRaw_2D[data_length] = {0};
   double TH_POSMAX;
   // if(loop_count == 1)
@@ -1253,9 +1253,9 @@ void eagleye_pp::smoothingDeadReckoning()
     TH_POSMAX = 0.3;
   // }
   calcMissPositiveFIX(TH_POSMAX, GPSTime);
-  std::cout << std::endl << "Start PickDR"<< std::endl;
+  std::cout << std::endl << "Start PickDR" <<  std::endl;
   calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
-  std::cout << std::endl << "Start initial azimuth calculation"<< std::endl;
+  std::cout << std::endl << "Start initial azimuth calculation" <<  std::endl;
   calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
 }
 

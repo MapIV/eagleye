@@ -100,26 +100,26 @@ int main(int argc, char **argv){
 
   ros::init(argc, argv, "can_velocity_converter");
 
-  ros::NodeHandle n;
-  n.getParam("/can_velocity_converter/can_id",can_id);
-  n.getParam("/can_velocity_converter/start_bit",start_bit);
-  n.getParam("/can_velocity_converter/length",length);
-  n.getParam("/can_velocity_converter/factor",factor);
-  n.getParam("/can_velocity_converter/offset",offset);
-  n.getParam("/can_velocity_converter/byte_order",byte_order);
-  n.getParam("/can_velocity_converter/value_type",value_type);
+  ros::NodeHandle nh;
+  nh.getParam("/can_velocity_converter/can_id",can_id);
+  nh.getParam("/can_velocity_converter/start_bit",start_bit);
+  nh.getParam("/can_velocity_converter/length",length);
+  nh.getParam("/can_velocity_converter/factor",factor);
+  nh.getParam("/can_velocity_converter/offset",offset);
+  nh.getParam("/can_velocity_converter/byte_order",byte_order);
+  nh.getParam("/can_velocity_converter/value_type",value_type);
 
-  std::cout<< "can_id "<<can_id<<std::endl;
-  std::cout<< "start_bit "<<start_bit<<std::endl;
-  std::cout<< "length "<<length<<std::endl;
-  std::cout<< "factor "<<factor<<std::endl;
-  std::cout<< "offset "<<offset<<std::endl;
-  std::cout<< "byte_order "<<byte_order<<std::endl;
-  std::cout<< "value_type "<<value_type<<std::endl;
+  std::cout<< "can_id " << can_id << std::endl;
+  std::cout<< "start_bit " << start_bit << std::endl;
+  std::cout<< "length " << length << std::endl;
+  std::cout<< "factor " << factor << std::endl;
+  std::cout<< "offset " << offset << std::endl;
+  std::cout<< "byte_order " << byte_order << std::endl;
+  std::cout<< "value_type " << value_type << std::endl;
 
-  ros::Subscriber sub = n.subscribe("/vehicle/can_tx", 1000, can_callback);
+  ros::Subscriber sub = nh.subscribe("/vehicle/can_tx", 1000, can_callback);
 
-  pub = n.advertise<geometry_msgs::TwistStamped>("/can_twist", 1000);
+  pub = nh.advertise<geometry_msgs::TwistStamped>("/can_twist", 1000);
 
   ros::spin();
 

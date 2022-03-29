@@ -145,26 +145,26 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "fix2pose");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
-  n.getParam("fix2pose_node/plane",plane);
-  n.getParam("fix2pose_node/tf_num",tf_num);
-  n.getParam("fix2pose_node/convert_height_num",convert_height_num);
-  n.getParam("fix2pose_node/parent_frame_id",parent_frame_id);
-  n.getParam("fix2pose_node/child_frame_id",child_frame_id);
+  nh.getParam("fix2pose_node/plane",plane);
+  nh.getParam("fix2pose_node/tf_num",tf_num);
+  nh.getParam("fix2pose_node/convert_height_num",convert_height_num);
+  nh.getParam("fix2pose_node/parent_frame_id",parent_frame_id);
+  nh.getParam("fix2pose_node/child_frame_id",child_frame_id);
 
-  std::cout<< "plane "<<plane<<std::endl;
-  std::cout<< "tf_num "<<tf_num<<std::endl;
-  std::cout<< "convert_height_num "<<convert_height_num<<std::endl;
-  std::cout<< "parent_frame_id "<<parent_frame_id<<std::endl;
-  std::cout<< "child_frame_id "<<child_frame_id<<std::endl;
+  std::cout<< "plane " << plane << std::endl;
+  std::cout<< "tf_num " << tf_num << std::endl;
+  std::cout<< "convert_height_num " << convert_height_num << std::endl;
+  std::cout<< "parent_frame_id " << parent_frame_id << std::endl;
+  std::cout<< "child_frame_id " << child_frame_id << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = n.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = n.subscribe("eagleye/fix", 1000, fix_callback);
-  ros::Subscriber sub4 = n.subscribe("eagleye/rolling", 1000, rolling_callback);
-  ros::Subscriber sub5 = n.subscribe("eagleye/pitching", 1000, pitching_callback);
-  pub = n.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
+  ros::Subscriber sub1 = nh.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  ros::Subscriber sub2 = nh.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  ros::Subscriber sub3 = nh.subscribe("eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub4 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
+  ros::Subscriber sub5 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
+  pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 
   return 0;

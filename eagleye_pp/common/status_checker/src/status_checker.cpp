@@ -109,8 +109,8 @@ int main(int argc, char** argv)
   }
 
   std::cout << std::endl;
-  std::cout<<" Time: " << (time - time_start)/(pow(10,9))<< " [s] " <<std::endl;
-  std::cout<<" Distance: " << distance<<  " [m] " <<std::endl;
+  std::cout<<" Time: " << (time - time_start)/(pow(10,9))<< " [s] "  << std::endl;
+  std::cout<<" Distance: " << distance<<  " [m] "  << std::endl;
   std::cout<<" Fix rate: " << num_fix/num_epoch*100<< " [%] " << std::endl;
   std::cout << std::endl;
 

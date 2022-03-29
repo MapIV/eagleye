@@ -32,59 +32,52 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static geometry_msgs::TwistStamped velocity;
-static ros::Publisher pub;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static sensor_msgs::Imu imu;
+static geometry_msgs::TwistStamped _velocity;
+static ros::Publisher _pub;
+static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
+static sensor_msgs::Imu _imu;
 
-struct YawrateOffsetStopParameter yawrate_offset_stop_parameter;
-struct YawrateOffsetStopStatus yawrate_offset_stop_status;
+struct YawrateOffsetStopParameter _yawrate_offset_stop_parameter;
+struct YawrateOffsetStopStatus _yawrate_offset_stop_status;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  _velocity = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop_estimate(velocity, imu, yawrate_offset_stop_parameter, &yawrate_offset_stop_status, &yawrate_offset_stop);
-  pub.publish(yawrate_offset_stop);
+  _imu = *msg;
+  _yawrate_offset_stop.header = msg->header;
+  yawrate_offset_stop_estimate(_velocity, _imu, _yawrate_offset_stop_parameter, &_yawrate_offset_stop_status, &_yawrate_offset_stop);
+  _pub.publish(_yawrate_offset_stop);
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "yawrate_offset_stop");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("twist_topic",subscribe_twist_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("reverse_imu", yawrate_offset_stop_parameter.reverse_imu);
-  n.getParam("yawrate_offset_stop/stop_judgment_velocity_threshold",yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
-  n.getParam("yawrate_offset_stop/estimated_number",yawrate_offset_stop_parameter.estimated_number);
-  n.getParam("yawrate_offset_stop/outlier_threshold",yawrate_offset_stop_parameter.outlier_threshold);
+  nh.getParam("twist_topic", subscribe_twist_topic_name);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu" , _yawrate_offset_stop_parameter.reverse_imu);
+  nh.getParam("yawrate_offset_stop/stop_judgment_velocity_threshold",  _yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("yawrate_offset_stop/estimated_number" , _yawrate_offset_stop_parameter.estimated_number);
+  nh.getParam("yawrate_offset_stop/outlier_threshold" , _yawrate_offset_stop_parameter.outlier_threshold);
 
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<yawrate_offset_stop_parameter.reverse_imu<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<yawrate_offset_stop_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "estimated_number "<<yawrate_offset_stop_parameter.estimated_number<<std::endl;
-  std::cout<< "outlier_threshold "<<yawrate_offset_stop_parameter.outlier_threshold<<std::endl;
+  std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
+  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "reverse_imu: " << _yawrate_offset_stop_parameter.reverse_imu << std::endl;
+  std::cout<< "stop_judgment_velocity_threshold: " << _yawrate_offset_stop_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::cout<< "estimated_number: " << _yawrate_offset_stop_parameter.estimated_number << std::endl;
+  std::cout<< "outlier_threshold: " << _yawrate_offset_stop_parameter.outlier_threshold << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::YawrateOffset>("yawrate_offset_stop", 1000);
+  ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  _pub = nh.advertise<eagleye_msgs::YawrateOffset>("yawrate_offset_stop", 1000);
 
   ros::spin();
 

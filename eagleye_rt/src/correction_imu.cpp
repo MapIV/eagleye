@@ -32,109 +32,93 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static bool reverse_imu;
+static bool _reverse_imu;
 
-static ros::Publisher pub;
-static eagleye_msgs::YawrateOffset yawrate_offset;
-static eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop;
-static eagleye_msgs::AccXOffset acc_x_offset;
-static eagleye_msgs::AccXScaleFactor acc_x_scale_factor;
-static sensor_msgs::Imu imu;
+static ros::Publisher _pub;
+static eagleye_msgs::YawrateOffset _yawrate_offset;
+static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
+static eagleye_msgs::AccXOffset _acc_x_offset;
+static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
+static sensor_msgs::Imu _imu;
 
-static sensor_msgs::Imu correction_imu;
+static sensor_msgs::Imu _correction_imu;
 
 
 void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  _yawrate_offset = *msg;
 }
 
 void angular_velocity_offset_stop_callback(const eagleye_msgs::AngularVelocityOffset::ConstPtr& msg)
 {
-  angular_velocity_offset_stop.header = msg->header;
-  angular_velocity_offset_stop.angular_velocity_offset = msg->angular_velocity_offset;
-  angular_velocity_offset_stop.status = msg->status;
+  _angular_velocity_offset_stop = *msg;
 }
 
 void acc_x_offset_callback(const eagleye_msgs::AccXOffset::ConstPtr& msg)
 {
-  acc_x_offset.header = msg->header;
-  acc_x_offset.acc_x_offset = msg->acc_x_offset;
-  acc_x_offset.status = msg->status;
+  _acc_x_offset = *msg;
 }
 
 void acc_x_scale_factor_callback(const eagleye_msgs::AccXScaleFactor::ConstPtr& msg)
 {
-  acc_x_scale_factor.header = msg->header;
-  acc_x_scale_factor.acc_x_scale_factor = msg->acc_x_scale_factor;
-  acc_x_scale_factor.status = msg->status;
+  _acc_x_scale_factor = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  _imu = *msg;
+  _correction_imu.header = _imu.header;
+  _correction_imu.orientation = _imu.orientation;
+  _correction_imu.orientation_covariance = _imu.orientation_covariance;
+  _correction_imu.angular_velocity_covariance = _imu.angular_velocity_covariance;
+  _correction_imu.linear_acceleration_covariance = _imu.linear_acceleration_covariance;
 
-  correction_imu.header = imu.header;
-  correction_imu.orientation = imu.orientation;
-  correction_imu.orientation_covariance = imu.orientation_covariance;
-  correction_imu.angular_velocity_covariance = imu.angular_velocity_covariance;
-  correction_imu.linear_acceleration_covariance = imu.linear_acceleration_covariance;
-
-  if (acc_x_offset.status.enabled_status == true && acc_x_scale_factor.status.enabled_status)
+  if (_acc_x_offset.status.enabled_status && _acc_x_scale_factor.status.enabled_status)
   {
-    correction_imu.linear_acceleration.x = imu.linear_acceleration.x * acc_x_scale_factor.acc_x_scale_factor + acc_x_offset.acc_x_offset;
-    correction_imu.linear_acceleration.y = imu.linear_acceleration.y;
-    correction_imu.linear_acceleration.z = imu.linear_acceleration.z;
+    _correction_imu.linear_acceleration.x = _imu.linear_acceleration.x * _acc_x_scale_factor.acc_x_scale_factor + _acc_x_offset.acc_x_offset;
+    _correction_imu.linear_acceleration.y = _imu.linear_acceleration.y;
+    _correction_imu.linear_acceleration.z = _imu.linear_acceleration.z;
   }
   else
   {
-    correction_imu.linear_acceleration.x = imu.linear_acceleration.x;
-    correction_imu.linear_acceleration.y = imu.linear_acceleration.y;
-    correction_imu.linear_acceleration.z = imu.linear_acceleration.z;
+    _correction_imu.linear_acceleration.x = _imu.linear_acceleration.x;
+    _correction_imu.linear_acceleration.y = _imu.linear_acceleration.y;
+    _correction_imu.linear_acceleration.z = _imu.linear_acceleration.z;
   }
 
-  if (reverse_imu == false)
+  if (!_reverse_imu)
   {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
-    correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z);
+    _correction_imu.angular_velocity.x = _imu.angular_velocity.x + _angular_velocity_offset_stop.angular_velocity_offset.x;
+    _correction_imu.angular_velocity.y = _imu.angular_velocity.y + _angular_velocity_offset_stop.angular_velocity_offset.y;
+    _correction_imu.angular_velocity.z = -1 * (_imu.angular_velocity.z + _angular_velocity_offset_stop.angular_velocity_offset.z);
   }
-  else if (reverse_imu == true)
+  else
   {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
-    correction_imu.angular_velocity.z = -1 * (-1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z));
+    _correction_imu.angular_velocity.x = _imu.angular_velocity.x + _angular_velocity_offset_stop.angular_velocity_offset.x;
+    _correction_imu.angular_velocity.y = _imu.angular_velocity.y + _angular_velocity_offset_stop.angular_velocity_offset.y;
+    _correction_imu.angular_velocity.z = -1 * (-1 * (_imu.angular_velocity.z + _angular_velocity_offset_stop.angular_velocity_offset.z));
   }
 
-  pub.publish(correction_imu);
+  _pub.publish(_correction_imu);
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "correction_imu");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("reverse_imu", reverse_imu);
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _reverse_imu);
+  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "reverse_imu: " << _reverse_imu << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<sensor_msgs::Imu>("imu/data_corrected", 1000);
-
+  ros::Subscriber sub1 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  _pub = nh.advertise<sensor_msgs::Imu>("imu/data_corrected", 1000);
 
   ros::spin();
 
