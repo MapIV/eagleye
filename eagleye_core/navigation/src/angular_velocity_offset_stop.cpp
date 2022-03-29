@@ -28,10 +28,10 @@
  * Author MapIV Sekino
  */
 
- #include "coordinate/coordinate.hpp"
- #include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status, eagleye_msgs::AngularVelocityOffset* angular_velocity_offset_stop)
+void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStamped velocity, const sensor_msgs::msg::Imu imu, const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status, eagleye_msgs::msg::AngularVelocityOffset* angular_velocity_offset_stop)
 {
 
   int i;

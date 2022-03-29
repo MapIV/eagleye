@@ -26,8 +26,10 @@
 #ifndef COORDINATE_H
 #define COORDINATE_H
 
+#include <cmath>
 #include <geodesy/utm.h>
-#include "geographic_msgs/GeoPoint.h"
+//#include "geographic_msgs/GeoPoint.h"
+#include "geographic_msgs/msg/geo_point.hpp"
 #include <GeographicLib/Geoid.hpp>
 #include <GeographicLib/MGRS.hpp>
 #include <GeographicLib/UTMUPS.hpp>

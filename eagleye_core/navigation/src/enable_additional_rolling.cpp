@@ -28,12 +28,16 @@
  * Author MapIV Hoda
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
 #define g 9.80665
 
-void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,const sensor_msgs::Imu imu,const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,eagleye_msgs::Rolling* rolling_angle,eagleye_msgs::AccYOffset* acc_y_offset)
+void enable_additional_rolling_estimate(const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,
+  const eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,
+  const eagleye_msgs::msg::Distance distance,const sensor_msgs::msg::Imu imu,const geometry_msgs::msg::PoseStamped localization_pose,
+  const eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop,const EnableAdditionalRollingParameter rolling_parameter,
+  EnableAdditionalRollingStatus* rolling_status,eagleye_msgs::msg::Rolling* rolling_angle,eagleye_msgs::msg::AccYOffset* acc_y_offset)
 {
   bool acc_offset_status = false;
   bool rolling_buffer_status = false;
@@ -46,6 +50,11 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   double rolling_estimated_average = 0.0;
   double rolling_interpolate = 0.0;
   double rolling_offset_buffer_num = rolling_parameter.rolling_buffer_num / 2; // Parameter to correct for time delay caused by moving average.
+
+  rclcpp::Time imu_clock(imu.header.stamp);
+  double imu_time = imu_clock.seconds();
+  rclcpp::Time localization_pose_clock(localization_pose.header.stamp);
+  double localization_pose_time = localization_pose_clock.seconds();
 
   /// reverse_imu ///
   if (!rolling_parameter.reverse_imu)
@@ -83,7 +92,7 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   // data buffer 
   if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_scale_factor.status.enabled_status)
   {
-    rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
+    rolling_status->imu_time_buffer.push_back(imu_time);
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
     rolling_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
@@ -99,7 +108,7 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
     rolling_status->acceleration_y_buffer.erase(rolling_status->acceleration_y_buffer.begin());
     rolling_status->distance_buffer.erase(rolling_status->distance_buffer.begin());
     
-    rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
+    rolling_status->imu_time_buffer.push_back(imu_time);
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
     rolling_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
     rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
@@ -109,11 +118,11 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   }
 
   /// acc_y_offset ///
-  if (data_buffer_status && localization_pose.header.stamp.toSec() != rolling_status->localization_time_last)
+  if (data_buffer_status && localization_pose_time != rolling_status->localization_time_last)
   {
     for ( int i = 0; i < rolling_parameter.imu_buffer_num - 1; i++ )
     {
-      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose.header.stamp.toSec()) < rolling_parameter.link_Time_stamp_parameter)
+      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose_time) < rolling_parameter.link_Time_stamp_parameter)
       {
         if (std::abs(rolling_status->distance_last - rolling_status->distance_buffer[i]) >= rolling_parameter.matching_update_distance )
         {
@@ -126,9 +135,9 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
       {
         if (rolling_status->velocity_buffer[i] > rolling_parameter.stop_judgment_velocity_threshold)
         {
-          tf::Quaternion localization_quat;
-          quaternionMsgToTF(localization_pose.pose.orientation, localization_quat);
-          tf::Matrix3x3(localization_quat).getRPY(additional_angle[0], additional_angle[1], additional_angle[2]);
+          tf2::Quaternion localization_quat;
+          tf2::fromMsg(localization_pose.pose.orientation, localization_quat);
+          tf2::Matrix3x3(localization_quat).getRPY(additional_angle[0], additional_angle[1], additional_angle[2]);
 
           acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
           rolling_status->acc_offset_sum = rolling_status->acc_offset_sum + acc_y_offset_tmp;
@@ -164,7 +173,7 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
     }
   }
 
-  double diff_imu_time = imu.header.stamp.toSec() - rolling_status->imu_time_last;
+  double diff_imu_time = imu_time - rolling_status->imu_time_last;
   double rolling_interpolate_tmp = (rolling_status->rollrate - rolling_status->rollrate_offset_stop)*diff_imu_time;
 
   /// buffering estimated rolling angle offset ///
@@ -222,6 +231,6 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
     rolling_angle->status.estimate_status=false;
   }
 
-  rolling_status->imu_time_last = imu.header.stamp.toSec();
-  rolling_status->localization_time_last = localization_pose.header.stamp.toSec();
+  rolling_status->imu_time_last = imu_time;
+  rolling_status->localization_time_last = localization_pose_time;
 }

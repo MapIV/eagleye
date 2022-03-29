@@ -28,10 +28,10 @@
  * Author MapIV Takanose
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
+void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::msg::Position* gnss_smooth_pos_enu)
 {
 
   int i;
@@ -40,13 +40,15 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   double enu_pos[3];
   double gnss_smooth_pos[3] = {0};
   double sum_gnss_pos[3] = {0};
-  bool gnss_update;
+  bool gnss_update = false;
   std::size_t index_length;
   std::size_t time_buffer_length;
   std::size_t velocity_index_length;
   std::vector<int> velocity_index;
   std::vector<int> index;
 
+  rclcpp::Time ros_clock(rtklib_nav.header.stamp);
+  auto rtklib_nav_time = ros_clock.seconds();
 
   if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
   {
@@ -85,7 +87,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
   }
 
   if(gnss_update == true){
-    smoothing_status->time_buffer.push_back(rtklib_nav.header.stamp.toSec());
+    smoothing_status->time_buffer.push_back(rtklib_nav_time);
     smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
     smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
     smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);

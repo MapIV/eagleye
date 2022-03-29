@@ -24,7 +24,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "coordinate/coordinate.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <math.h>
 
 
@@ -165,6 +165,11 @@ void ll2xy(int num, double llh[3], double xyz[3])
     lon_min = 0;
     lat_deg = 154;
     lat_min = 0;
+  }
+  else
+  {
+    std::cerr << "\033[31;1mError: Plane numver is invalid. " << std::endl;
+    exit(4);
   }
 
   // swap longitude and latitude

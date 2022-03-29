@@ -28,14 +28,14 @@
  * Author MapIV Takanose
  */
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
 #define g 9.80665
 
-void rolling_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
-                      eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,
-                      RollingParameter rolling_parameter, RollingStatus* rolling_status, eagleye_msgs::Rolling* rolling)
+void rolling_estimate(sensor_msgs::msg::Imu imu, eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,
+                      eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, eagleye_msgs::msg::YawrateOffset yawrate_offset,
+                      RollingParameter rolling_parameter, RollingStatus* rolling_status, eagleye_msgs::msg::Rolling* rolling)
 {
   double acceleration_y;
   double velocity;
