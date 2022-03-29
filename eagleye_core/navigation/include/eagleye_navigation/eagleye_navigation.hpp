@@ -29,6 +29,8 @@
 #include "geometry_msgs/msg/twist_with_covariance_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/vector3_stamped.hpp"
+#include "nmea_msgs/msg/gprmc.hpp"
+
 #include "rtklib_msgs/msg/rtklib_nav.hpp"
 #include "eagleye_msgs/msg/distance.hpp"
 #include "eagleye_msgs/msg/yawrate_offset.hpp"
@@ -60,6 +62,7 @@ struct VelocityScaleFactorParameter
   double estimated_number_max;
   double estimated_velocity_threshold;
   double estimated_coefficient;
+  bool save_velocity_scale_factor{false};
 };
 
 struct VelocityScaleFactorStatus
@@ -68,6 +71,7 @@ struct VelocityScaleFactorStatus
   std::vector<double> doppler_velocity_buffer;
   std::vector<double> velocity_buffer;
   int tow_last, estimated_number;
+  double rmc_time_last;
   double velocity_scale_factor_last;
   bool estimate_start_status;
 };
@@ -134,6 +138,7 @@ struct HeadingParameter
 struct HeadingStatus
 {
   int tow_last;
+  double rmc_time_last;
   int estimated_number;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
@@ -227,9 +232,12 @@ struct PositionStatus
   int estimated_number;
   int tow_last;
   int heading_estimate_status_count;
+  double nmea_time_last;
   double time_last;
   double enu_relative_pos_x, enu_relative_pos_y, enu_relative_pos_z;
   double distance_last;
+  double enu_pos[3];
+  bool gnss_update_failure;
   std::vector<double> enu_pos_x_buffer, enu_pos_y_buffer,  enu_pos_z_buffer;
   std::vector<double> enu_relative_pos_x_buffer, enu_relative_pos_y_buffer, enu_relative_pos_z_buffer;
   std::vector<double> correction_velocity_buffer;

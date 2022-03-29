@@ -13,6 +13,7 @@
   <build_depend>geodesy</build_depend>
   <build_depend>eagleye_coordinate</build_depend>
   <build_depend>sensor_msgs</build_depend>
+  <build_depend>nmea_msgs</build_depend>
   <build_depend>rtklib_msgs</build_depend>
   <build_depend>eagleye_msgs</build_depend>
   <build_depend>tf2_ros</build_depend>
