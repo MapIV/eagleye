@@ -3,6 +3,7 @@
 <launch>
   <arg name="use_tf" default="false" />
   <arg name="config_yaml" default="eagleye_config.yaml"/>
+  <arg name="enable_additional_rolling" default="false"/>
  
   <group>
     <push-ros-namespace namespace="eagleye"/>
@@ -12,6 +13,7 @@
 
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" exec="velocity_scale_factor">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name ="velocity_scale_factor_save_str" value="$(find-pkg-share eagleye_rt)/config/velocity_scale_factor.txt"/>
     </node>
     <node pkg="eagleye_rt" name="yawrate_offset_stop_node" exec="yawrate_offset_stop">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
@@ -65,6 +67,12 @@
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="correction_imu" exec="correction_imu">
+            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+    </node>
+    <node pkg="eagleye_rt" name="rolling" exec="rolling">
+            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+    </node>
+    <node pkg="eagleye_rt" name="enable_additional_rolling" exec="enable_additional_rolling" if="$(eval &quot;'$(var enable_additional_rolling)'=='true'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="monitor" exec="monitor" output="screen">
