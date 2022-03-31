@@ -58,34 +58,34 @@ private:
 KmlGenerator::KmlGenerator(const std::string kmlname)
 {
   header_ 
-    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" <<  "\n"
-    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">" <<  "\n"
-    << "<Document>" <<  "\n"
-    << "<name>" <<  kmlname <<"</name>" <<  "\n"
+    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<< "\n"
+    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">"<< "\n"
+    << "<Document>"<< "\n"
+    << "<name>"<< kmlname <<"</name>"<< "\n"
     << "\n";
 
   config_header_
-    << "\t<Placemark>" <<  "\n"
-    << "\t\t<name>" <<  kmlname <<"</name>" <<  "\n"
-    << "\t\t<Style>" <<  "\n"
-    << "\t\t\t<LineStyle>" <<  "\n"
-    << "\t\t\t\t<color>ff0000ff</color>" <<  "\n"
-    << "\t\t\t\t<width>5.00</width>" <<  "\n"
-    << "\t\t\t</LineStyle>" <<  "\n"
+    << "\t<Placemark>"<< "\n"
+    << "\t\t<name>"<< kmlname <<"</name>"<< "\n"
+    << "\t\t<Style>"<< "\n"
+    << "\t\t\t<LineStyle>"<< "\n"
+    << "\t\t\t\t<color>ff0000ff</color>"<< "\n"
+    << "\t\t\t\t<width>5.00</width>"<< "\n"
+    << "\t\t\t</LineStyle>"<< "\n"
     << "\t\t</Style>"	<< "\n"
-    << "\t\t<LineString>" <<  "\n"
-    << "\t\t\t<tessellate>1</tessellate>" <<  "\n"
-    << "\t\t\t<coordinates>" <<  "\n";
+    << "\t\t<LineString>"<< "\n"
+    << "\t\t\t<tessellate>1</tessellate>"<< "\n"
+    << "\t\t\t<coordinates>"<< "\n";
 
   config_footer_
-    << "\t\t\t</coordinates>" <<  "\n"
-    << "\t\t</LineString>" <<  "\n"
-    << "\t</Placemark>" <<  "\n"
+    << "\t\t\t</coordinates>"<< "\n"
+    << "\t\t</LineString>"<< "\n"
+    << "\t</Placemark>"<< "\n"
     << "\n";
 
   footer_ 
-    << "</Document>" <<  "\n"
-    << "</kml>" <<  "\n";
+    << "</Document>"<< "\n"
+    << "</kml>"<< "\n";
 }
 
 KmlGenerator::KmlGenerator(const std::string kmlname,const std::string filename,const std::string body)
@@ -95,15 +95,15 @@ KmlGenerator::KmlGenerator(const std::string kmlname,const std::string filename,
   std::cout << "KmlGenerator::KmlGenerate\topen file file! " << filename << std::endl;
 
   header_ 
-    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" <<  "\n"
-    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">" <<  "\n"
-    << "<Document>" <<  "\n"
-    << "<name>" <<  kmlname <<"</name>" <<  "\n"
+    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<< "\n"
+    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">"<< "\n"
+    << "<Document>"<< "\n"
+    << "<name>"<< kmlname <<"</name>"<< "\n"
     << "\n";
 
   footer_ 
-    << "</Document>" <<  "\n"
-    << "</kml>" <<  "\n";
+    << "</Document>"<< "\n"
+    << "</kml>"<< "\n";
 
   std::string s_header = header_.str();
   std::string s_footer = footer_.str();
