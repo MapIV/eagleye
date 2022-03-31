@@ -28,38 +28,38 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static ros::Publisher _pub;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
-static eagleye_msgs::Distance _distance;
+rclcpp::Publisher<eagleye_msgs::msg::Distance>::SharedPtr pub;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::Distance distance;
 
-struct DistanceStatus _distance_status;
+struct DistanceStatus distance_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  _distance.header = msg->header;
-  _distance.header.frame_id = "base_link";
-  _velocity_scale_factor = *msg;
-  distance_estimate(_velocity_scale_factor, &_distance_status, &_distance);
+  velocity_scale_factor = *msg;
+  distance.header = msg->header;
+  distance.header.frame_id = "base_link";
+  distance_estimate(velocity_scale_factor,&distance_status,&distance);
 
-  if(_distance_status.time_last != 0)
+  if (distance_status.time_last != 0)
   {
-    _pub.publish(_distance);
+    pub->publish(distance);
   }
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "distance");
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("distance");
 
-  ros::NodeHandle nh;
-  ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  _pub = nh.advertise<eagleye_msgs::Distance>("distance", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);
+  pub = node->create_publisher<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10));
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

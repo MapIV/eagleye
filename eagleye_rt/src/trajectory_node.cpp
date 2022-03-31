@@ -28,144 +28,121 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static sensor_msgs::Imu _imu;
-static geometry_msgs::TwistStamped _velocity;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
-static eagleye_msgs::Heading _heading_interpolate_3rd;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
-static eagleye_msgs::Pitching _pitching;
+static sensor_msgs::msg::Imu imu;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::Heading heading_interpolate_3rd;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::msg::Pitching pitching;
 
-static geometry_msgs::Vector3Stamped _enu_vel;
-static eagleye_msgs::Position _enu_relative_pos;
-static geometry_msgs::TwistStamped _eagleye_twist;
-static ros::Publisher _pub1;
-static ros::Publisher _pub2;
-static ros::Publisher _pub3;
 
-struct TrajectoryParameter _trajectory_parameter;
-struct TrajectoryStatus _trajectory_status;
+static geometry_msgs::msg::Vector3Stamped enu_vel;
+static eagleye_msgs::msg::Position enu_relative_pos;
+static geometry_msgs::msg::TwistStamped eagleye_twist;
+rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr pub1;
+rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub2;
+rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub3;
+rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr pub4;
 
-static double _update_rate = 10;
-static double _th_deadlock_time = 1;
+struct TrajectoryParameter trajectory_parameter;
+struct TrajectoryStatus trajectory_status;
 
-static double _imu_time_last, _velocity_time_last;
-static bool _input_status;
-
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  _velocity_scale_factor = *msg;
+  velocity_scale_factor = *msg;
 }
 
-void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  _heading_interpolate_3rd = *msg;
+  heading_interpolate_3rd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_stop = *msg;
+  yawrate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_2nd = *msg;
+  yawrate_offset_2nd = *msg;
 }
 
-void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
-  _pitching = *msg;
+  pitching = *msg;
 }
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  _velocity = *msg;
-}
+  imu = *msg;
+  enu_vel.header = msg->header;
+  enu_vel.header.frame_id = "gnss";
+  enu_relative_pos.header = msg->header;
+  enu_relative_pos.header.frame_id = "base_link";
+  eagleye_twist.header = msg->header;
+  eagleye_twist.header.frame_id = "base_link";
+  trajectory3d_estimate(imu,velocity_scale_factor,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
 
-void timer_callback(const ros::TimerEvent& e)
-{
-  if (std::abs(_imu.header.stamp.toSec() - _imu_time_last) < _th_deadlock_time &&
-      std::abs(_velocity.header.stamp.toSec() - _velocity_time_last) < _th_deadlock_time &&
-      std::abs(_velocity.header.stamp.toSec() - _imu.header.stamp.toSec()) < _th_deadlock_time)
+  if (heading_interpolate_3rd.status.enabled_status == true)
   {
-    _input_status = true;
+    pub1->publish(enu_vel);
+    pub2->publish(enu_relative_pos);
   }
-  else
-  {
-    _input_status = false;
-    ROS_WARN("Twist is missing the required input topics.");
-  }
-  
-  if (_imu.header.stamp.toSec() != _imu_time_last) _imu_time_last = _imu.header.stamp.toSec();
-  if (_velocity.header.stamp.toSec() != _velocity_time_last) _velocity_time_last = _velocity.header.stamp.toSec();
-}
+  pub3->publish(eagleye_twist);
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
-{
-  _imu = *msg;
-  if(_input_status)
-  {
-    _enu_vel.header = msg->header;
-    _enu_vel.header.frame_id = "gnss";
-    _enu_relative_pos.header = msg->header;
-    _enu_relative_pos.header.frame_id = "base_link";
-    _eagleye_twist.header = msg->header;
-    _eagleye_twist.header.frame_id = "base_link";
-    trajectory3d_estimate(_imu, _velocity_scale_factor, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd,
-      _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+  geometry_msgs::msg::TwistWithCovarianceStamped eagleye_twist_with_covariance;
+  eagleye_twist_with_covariance.header = msg->header;
+  eagleye_twist_with_covariance.header.frame_id = "base_link";
+  eagleye_twist_with_covariance.twist.twist = eagleye_twist.twist;
+  // TODO(Map IV): temporary value
+  // linear.y, linear.z, angular.x, and angular.y are not calculated values.
+  eagleye_twist_with_covariance.twist.covariance[0] = 0.2 * 0.2;
+  eagleye_twist_with_covariance.twist.covariance[7] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
+  eagleye_twist_with_covariance.twist.covariance[35] = 0.1 * 0.1;
 
-    if(_heading_interpolate_3rd.status.enabled_status)
-    {
-      _pub1.publish(_enu_vel);
-      _pub2.publish(_enu_relative_pos);
-    }
-    _pub3.publish(_eagleye_twist);
-  }
+  pub4->publish(eagleye_twist_with_covariance);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "trajectory");
-
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("trajectory");
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
-  nh.getParam("twist_topic",subscribe_twist_topic_name);
-  nh.getParam("reverse_imu", _trajectory_parameter.reverse_imu);
-  nh.getParam("trajectory/stop_judgment_velocity_threshold",_trajectory_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("trajectory/stop_judgment_yawrate_threshold",_trajectory_parameter.stop_judgment_yawrate_threshold);
-  nh.getParam("trajectory/timer_updata_rate",_update_rate);
-  nh.getParam("trajectory/th_deadlock_time",_th_deadlock_time);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", trajectory_parameter.reverse_imu);
+  node->declare_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _trajectory_parameter.reverse_imu << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _trajectory_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "stop_judgment_yawrate_threshold " << _trajectory_parameter.stop_judgment_yawrate_threshold << std::endl;
-  std::cout<< "timer_updata_rate " << _update_rate << std::endl;
-  std::cout<< "th_deadlock_time " << _th_deadlock_time << std::endl;
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", trajectory_parameter.reverse_imu);
+  node->get_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "reverse_imu "<<trajectory_parameter.reverse_imu<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<trajectory_parameter.stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "stop_judgment_yawrate_threshold "<<trajectory_parameter.stop_judgment_yawrate_threshold<<std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  _pub1 = nh.advertise<geometry_msgs::Vector3Stamped>("enu_vel", 1000);
-  _pub2 = nh.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);
-  _pub3 = nh.advertise<geometry_msgs::TwistStamped>("twist", 1000);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::Pitching>("pitching", rclcpp::QoS(10), pitching_callback);  //ros::TransportHints().tcpNoDelay()
+  pub1 = node->create_publisher<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000);
+  pub2 = node->create_publisher<eagleye_msgs::msg::Position>("enu_relative_pos", 1000);
+  pub3 = node->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 1000);
+  pub4 = node->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("twist_with_covariance", 1000);
 
-  ros::Timer timer = nh.createTimer(ros::Duration(1/_update_rate), timer_callback);
-
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

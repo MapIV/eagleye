@@ -28,79 +28,83 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static sensor_msgs::Imu _imu;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset;
-static eagleye_msgs::Heading _heading;
-static eagleye_msgs::SlipAngle _slip_angle;
+static sensor_msgs::msg::Imu imu;
+static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yawrate_offset;
+static eagleye_msgs::msg::Heading heading;
+static eagleye_msgs::msg::SlipAngle slip_angle;
 
-static ros::Publisher _pub;
-static eagleye_msgs::Heading _heading_interpolate;
+rclcpp::Publisher<eagleye_msgs::msg::Heading>::SharedPtr pub;
+static eagleye_msgs::msg::Heading heading_interpolate;
 
-struct HeadingInterpolateParameter _heading_interpolate_parameter;
-struct HeadingInterpolateStatus _heading_interpolate_status;
+struct HeadingInterpolateParameter heading_interpolate_parameter;
+struct HeadingInterpolateStatus heading_interpolate_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
-  _velocity_scale_factor = *msg;
+  velocity_scale_factor = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_stop = *msg;
+  yawrate_offset_stop = *msg;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset = *msg;
+  yawrate_offset = *msg;
 }
 
-void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  _heading = *msg;
+  heading = *msg;
 }
 
-void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
+void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
 {
-  _slip_angle = *msg;
+  slip_angle = *msg;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  _imu = *msg;
-  _heading_interpolate.header = msg->header;
-  _heading_interpolate.header.frame_id = "base_link";
-  heading_interpolate_estimate(_imu, _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset, _heading, _slip_angle,
-    _heading_interpolate_parameter, &_heading_interpolate_status, &_heading_interpolate);
-  _pub.publish(_heading_interpolate);
+  imu = *msg;
+  heading_interpolate.header = msg->header;
+  heading_interpolate.header.frame_id = "base_link";
+  heading_interpolate_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,heading,slip_angle,heading_interpolate_parameter,&heading_interpolate_status,&heading_interpolate);
+  pub->publish(heading_interpolate);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "heading_interpolate");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("heading_interpolate");
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _heading_interpolate_parameter.reverse_imu);
-  nh.getParam("heading_interpolate/stop_judgment_velocity_threshold", _heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("heading_interpolate/number_buffer_max", _heading_interpolate_parameter.number_buffer_max);
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " << _heading_interpolate_parameter.reverse_imu << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _heading_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "number_buffer_max: " << _heading_interpolate_parameter.number_buffer_max << std::endl;
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", heading_interpolate_parameter.reverse_imu);
+  node->declare_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", heading_interpolate_parameter.reverse_imu);
+  node->get_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "reverse_imu "<<heading_interpolate_parameter.reverse_imu<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "number_buffer_max "<<heading_interpolate_parameter.number_buffer_max<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";
   std::string subscribe_topic_name_2 = "/subscribe_topic_name/invalid_2";
 
-  if (argc == 2)
+  if (argc > 2)
   {
     if (strcmp(argv[1], "1st") == 0)
     {
@@ -122,25 +126,25 @@ int main(int argc, char** argv)
     }
     else
     {
-      ROS_ERROR("Invalid argument");
-      ros::shutdown();
+      RCLCPP_ERROR(node->get_logger(),"Invalid argument");
+      rclcpp::shutdown();
     }
   }
   else
   {
-    ROS_ERROR("No arguments");
-    ros::shutdown();
+    RCLCPP_ERROR(node->get_logger(),"No arguments");
+    rclcpp::shutdown();
   }
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe(subscribe_topic_name_1, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name_2, 1000, heading_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name_1, 1000, yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name_2, 1000, heading_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);  //ros::TransportHints().tcpNoDelay()
+  pub = node->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, rclcpp::QoS(10));
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }

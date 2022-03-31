@@ -28,59 +28,71 @@
  * Author MapIV Sekino
  */
 
-#include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
-static geometry_msgs::TwistStamped _velocity;
-static ros::Publisher _pub;
-static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
-static sensor_msgs::Imu _imu;
+static geometry_msgs::msg::TwistStamped velocity;
+rclcpp::Publisher<eagleye_msgs::msg::AngularVelocityOffset>::SharedPtr pub;
+static eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop;
+static sensor_msgs::msg::Imu imu;
 
-struct AngularVelocityOffsetStopParameter _angular_velocity_offset_stop_parameter;
-struct AngularVelocityOffsetStopStatus _angular_velocity_offset_stop_status;
+struct AngularVelocityOffsetStopParameter angular_velocity_offset_stop_parameter;
+struct AngularVelocityOffsetStopStatus angular_velocity_offset_stop_status;
 
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  _velocity = *msg;
+  velocity = *msg;
 }
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  _imu = *msg;
-  _angular_velocity_offset_stop.header = msg->header;
-  angular_velocity_offset_stop_estimate(_velocity, _imu, _angular_velocity_offset_stop_parameter,
-    &_angular_velocity_offset_stop_status, &_angular_velocity_offset_stop);
-  _pub.publish(_angular_velocity_offset_stop);
+  imu.header = msg->header;
+  imu.orientation = msg->orientation;
+  imu.orientation_covariance = msg->orientation_covariance;
+  imu.angular_velocity = msg->angular_velocity;
+  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
+  imu.linear_acceleration = msg->linear_acceleration;
+  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  angular_velocity_offset_stop.header = msg->header;
+  angular_velocity_offset_stop_estimate(velocity, imu, angular_velocity_offset_stop_parameter, &angular_velocity_offset_stop_status, &angular_velocity_offset_stop);
+  pub->publish(angular_velocity_offset_stop);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "angular_velocity_offset_stop");
-  ros::NodeHandle nh;
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared("angular_velocity_offset_stop");
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("twist_topic", subscribe_twist_topic_name);
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _angular_velocity_offset_stop_parameter.reverse_imu);
-  nh.getParam("angular_velocity_offset_stop/stop_judgment_velocity_threshold", _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("angular_velocity_offset_stop/estimated_number", _angular_velocity_offset_stop_parameter.estimated_number);
-  nh.getParam("angular_velocity_offset_stop/outlier_threshold", _angular_velocity_offset_stop_parameter.outlier_threshold);
+  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+  node->declare_parameter("reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  node->declare_parameter("angular_velocity_offset_stop.stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("angular_velocity_offset_stop.estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  node->declare_parameter("angular_velocity_offset_stop.outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
+  
+  node->get_parameter("twist_topic",subscribe_twist_topic_name);
+  node->get_parameter("imu_topic",subscribe_imu_topic_name);
+  node->get_parameter("reverse_imu", angular_velocity_offset_stop_parameter.reverse_imu);
+  node->get_parameter("angular_velocity_offset_stop.stop_judgment_velocity_threshold",angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("angular_velocity_offset_stop.estimated_number",angular_velocity_offset_stop_parameter.estimated_number);
+  node->get_parameter("angular_velocity_offset_stop.outlier_threshold",angular_velocity_offset_stop_parameter.outlier_threshold);
 
-  std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " << _angular_velocity_offset_stop_parameter.reverse_imu << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "estimated_number: " << _angular_velocity_offset_stop_parameter.estimated_number << std::endl;
-  std::cout<< "outlier_threshold: " << _angular_velocity_offset_stop_parameter.outlier_threshold << std::endl;
+  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
+  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+  std::cout<< "reverse_imu "<<angular_velocity_offset_stop_parameter.reverse_imu<<std::endl;
+  std::cout<< "stop_judgment_velocity_threshold "<<angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold<<std::endl;
+  std::cout<< "estimated_number "<<angular_velocity_offset_stop_parameter.estimated_number<<std::endl;
+  std::cout<< "outlier_threshold "<<angular_velocity_offset_stop_parameter.outlier_threshold<<std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  _pub = nh.advertise<eagleye_msgs::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
+  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  pub = node->create_publisher<eagleye_msgs::msg::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
 
-  ros::spin();
+  rclcpp::spin(node);
 
   return 0;
 }
