@@ -75,6 +75,6 @@ jobs:
       - name: Build
         run: |
           cd ~/eagleye/
-          source /opt/ros/melodic/setup.bash
+          source /opt/ros/noetic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
           catkin_make -DCMAKE_BUILD_TYPE=Release -j1
