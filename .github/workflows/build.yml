@@ -69,7 +69,7 @@ jobs:
       - name: Clone rtklib_msgs
         run: |
           cd ~/eagleye/src/
-          apt-get install git
+          apt-get install git -y
           git clone https://github.com/MapIV/rtklib_ros_bridge.git
 
       - name: Build
