@@ -5,13 +5,19 @@
   <arg name="sub_topic_name" default="nmea_sentence"/>
   <arg name="pub_fix_topic_name" default="fix"/>
   <arg name="pub_gga_topic_name" default="gga"/>
+  <arg name="pub_rmc_topic_name" default="rmc"/>
   <arg name="output_gga" default="true"/>
+  <arg name="output_rmc" default="false"/>
+  <arg name="config_yaml" default="eagleye_config.yaml"/>
 
   <node pkg="eagleye_nmea2fix" name="nmea2fix_node" exec="nmea2fix" output="screen">
         <param name="sub_topic_name" value="$(var sub_topic_name)"/>
         <param name="pub_fix_topic_name" value="$(var pub_fix_topic_name)"/>
         <param name="pub_gga_topic_name" value="$(var pub_gga_topic_name)"/>
+        <param name="pub_rmc_topic_name" value="$(var pub_rmc_topic_name)"/>
         <param name="output_gga" value="$(var output_gga)"/>
+        <param name="output_rmc" value="$(var output_rmc)"/>
+        <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>      
   </node>
 
 </launch>

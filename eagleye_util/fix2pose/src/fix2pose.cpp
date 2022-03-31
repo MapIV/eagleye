@@ -32,20 +32,16 @@
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
+#include "eagleye_msgs/msg/rolling.hpp"
+#include "eagleye_msgs/msg/pitching.hpp"
 #include "eagleye_msgs/msg/heading.hpp"
 #include "eagleye_msgs/msg/position.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 
-auto createQuaternionMsgFromYaw(double yaw)
-{
-  tf2::Quaternion q;
-  q.setRPY(0, 0, yaw);
-  return tf2::toMsg(q);
-}
-
-
+static eagleye_msgs::msg::Rolling eagleye_rolling;
+static eagleye_msgs::msg::Pitching eagleye_pitching;
 static eagleye_msgs::msg::Heading eagleye_heading;
 static eagleye_msgs::msg::Position eagleye_position;
 static geometry_msgs::msg::Quaternion _quat;
@@ -64,17 +60,22 @@ static ConvertHeight convert_height;
 
 void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  eagleye_heading.header = msg->header;
-  eagleye_heading.heading_angle = msg->heading_angle;
-  eagleye_heading.status = msg->status;
+  eagleye_heading = *msg;
+}
+
+void rolling_callback(const eagleye_msgs::msg::Rolling::ConstPtr& msg)
+{
+  eagleye_rolling = *msg;
+}
+
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstPtr& msg)
+{
+  eagleye_pitching = *msg;
 }
 
 void position_callback(const eagleye_msgs::msg::Position::ConstSharedPtr msg)
 {
-  eagleye_position.header = msg->header;
-  eagleye_position.enu_pos = msg->enu_pos;
-  eagleye_position.ecef_base_pos = msg->ecef_base_pos;
-  eagleye_position.status = msg->status;
+  eagleye_position = *msg;
 }
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
@@ -106,15 +107,18 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
     ll2xy_mgrs(llh,xyz);
   }
 
-  if (eagleye_heading.status.enabled_status == true)
+  tf2::Quaternion localization_quat;
+  if (eagleye_heading.status.enabled_status)
   {
     eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    _quat = createQuaternionMsgFromYaw((90* M_PI / 180)-eagleye_heading.heading_angle);
+    tf2::Matrix3x3(localization_quat).setRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
   }
   else
   {
-    _quat = createQuaternionMsgFromYaw(0);
+    tf2::Quaternion localization_quat;
+    tf2::Matrix3x3(localization_quat).setRPY(0, 0, 0);
   }
+  _quat = tf2::toMsg(localization_quat);
 
   pose.header = msg->header;
   pose.header.frame_id = "map";
@@ -164,6 +168,8 @@ int main(int argc, char** argv)
   auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
   auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, fix_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
   pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
   br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
