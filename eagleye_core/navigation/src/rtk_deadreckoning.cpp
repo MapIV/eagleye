@@ -37,7 +37,9 @@
 // #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 // #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,  eagleye_msgs::msg::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
+void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,
+  eagleye_msgs::msg::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
+  eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
 {
 
   double enu_pos[3],enu_rtk[3];
@@ -45,30 +47,11 @@ void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_
   double ecef_rtk[3];
   double llh_pos[3],llh_rtk[3];
 
-  rclcpp::Time ros_clock(rtklib_nav.header.stamp);
-  rclcpp::Time ros_clock2(fix.header.stamp);
-  rclcpp::Time ros_clock3(enu_vel.header.stamp);
+  rclcpp::Time ros_clock(fix.header.stamp);
+  rclcpp::Time ros_clock2(enu_vel.header.stamp);
 
-  auto rtklib_nav_time = ros_clock.seconds();
-  auto fix_time = ros_clock2.seconds();
-  auto enu_vel_time = ros_clock3.seconds();
-
-  if(rtk_deadreckoning_parameter.use_ecef_base_position)
-  {
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtk_deadreckoning_parameter.ecef_base_pos_x;
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtk_deadreckoning_parameter.ecef_base_pos_y;
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = rtk_deadreckoning_parameter.ecef_base_pos_z;
-    rtk_deadreckoning_status->ecef_base_pos_status = true;
-    rtk_deadreckoning_status->position_estimate_start_status = true;
-  }
-  else if(!rtk_deadreckoning_status->ecef_base_pos_status && rtklib_nav_time!= 0)
-  {
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
-    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
-    rtk_deadreckoning_status->ecef_base_pos_status = true;
-    rtk_deadreckoning_status->position_estimate_start_status = true;
-  }
+  auto fix_time = ros_clock.seconds();
+  auto enu_vel_time = ros_clock2.seconds();
 
   if(rtk_deadreckoning_status->position_estimate_start_status)
   {
@@ -116,11 +99,15 @@ void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_
       enu_absolute_rtk_deadreckoning->status.enabled_status = true;
       enu_absolute_rtk_deadreckoning->status.estimate_status = true;
     }
-    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_velocity_threshold)
+    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) +
+      (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_velocity_threshold)
     {
-      rtk_deadreckoning_status->provisional_enu_pos_x = enu_absolute_rtk_deadreckoning->enu_pos.x + enu_vel.vector.x * (enu_vel_time - rtk_deadreckoning_status->time_last);
-      rtk_deadreckoning_status->provisional_enu_pos_y = enu_absolute_rtk_deadreckoning->enu_pos.y + enu_vel.vector.y * (enu_vel_time - rtk_deadreckoning_status->time_last);
-      rtk_deadreckoning_status->provisional_enu_pos_z = enu_absolute_rtk_deadreckoning->enu_pos.z + enu_vel.vector.z * (enu_vel_time - rtk_deadreckoning_status->time_last);
+      rtk_deadreckoning_status->provisional_enu_pos_x = enu_absolute_rtk_deadreckoning->enu_pos.x + enu_vel.vector.x *
+        (enu_vel_time - rtk_deadreckoning_status->time_last);
+      rtk_deadreckoning_status->provisional_enu_pos_y = enu_absolute_rtk_deadreckoning->enu_pos.y + enu_vel.vector.y *
+        (enu_vel_time - rtk_deadreckoning_status->time_last);
+      rtk_deadreckoning_status->provisional_enu_pos_z = enu_absolute_rtk_deadreckoning->enu_pos.z + enu_vel.vector.z *
+        (enu_vel_time - rtk_deadreckoning_status->time_last);
       enu_absolute_rtk_deadreckoning->status.enabled_status = true;
       enu_absolute_rtk_deadreckoning->status.estimate_status = false;
     }
@@ -147,4 +134,68 @@ void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_
     enu_absolute_rtk_deadreckoning->status.enabled_status = false;
     enu_absolute_rtk_deadreckoning->status.estimate_status = false;
   }
+}
+
+void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,
+  eagleye_msgs::msg::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
+  eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
+{
+  rclcpp::Time rtklib_nav_clock(rtklib_nav.header.stamp);
+  double rtklib_nav_time = rtklib_nav_clock.seconds();
+
+  if(rtk_deadreckoning_parameter.use_ecef_base_position)
+  {
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtk_deadreckoning_parameter.ecef_base_pos_x;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtk_deadreckoning_parameter.ecef_base_pos_y;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = rtk_deadreckoning_parameter.ecef_base_pos_z;
+    rtk_deadreckoning_status->ecef_base_pos_status = true;
+    rtk_deadreckoning_status->position_estimate_start_status = true;
+  }
+  else if(!rtk_deadreckoning_status->ecef_base_pos_status && rtklib_nav_time != 0)
+  {
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
+    rtk_deadreckoning_status->ecef_base_pos_status = true;
+    rtk_deadreckoning_status->position_estimate_start_status = true;
+  }
+
+  rtk_deadreckoning_estimate_(enu_vel, fix, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
+}
+
+void rtk_deadreckoning_estimate(geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,  eagleye_msgs::msg::Heading heading,
+  RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
+  eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
+{
+  double ecef_pos[3];
+  double llh_pos[3];
+
+  rclcpp::Time fix_clock(fix.header.stamp);
+  double fix_time = fix_clock.seconds();
+
+  if(rtk_deadreckoning_parameter.use_ecef_base_position)
+  {
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = rtk_deadreckoning_parameter.ecef_base_pos_x;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = rtk_deadreckoning_parameter.ecef_base_pos_y;
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = rtk_deadreckoning_parameter.ecef_base_pos_z;
+    rtk_deadreckoning_status->ecef_base_pos_status = true;
+    rtk_deadreckoning_status->position_estimate_start_status = true;
+  }
+  else if(!rtk_deadreckoning_status->ecef_base_pos_status && fix_time != 0)
+  {
+
+    llh_pos[0] = fix.latitude *M_PI/180;
+    llh_pos[1] = fix.longitude *M_PI/180;
+    llh_pos[2] = fix.altitude;
+
+    llh2xyz(llh_pos,ecef_pos);
+
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.x = ecef_pos[0];
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.y = ecef_pos[1];
+    enu_absolute_rtk_deadreckoning->ecef_base_pos.z = ecef_pos[2];
+    rtk_deadreckoning_status->ecef_base_pos_status = true;
+    rtk_deadreckoning_status->position_estimate_start_status = true;
+  }
+
+  rtk_deadreckoning_estimate_(enu_vel, fix, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
 }

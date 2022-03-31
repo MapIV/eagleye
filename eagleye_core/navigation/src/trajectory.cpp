@@ -51,11 +51,11 @@ void trajectory_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::ms
   {
     if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold  && yawrate_offset_2nd.status.enabled_status == true)
     {
-      eagleye_twist->twist.angular.z = -1 * (-1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)); //Inverted because the coordinate system is reversed
+      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
     }
     else
     {
-      eagleye_twist->twist.angular.z = -1 * (-1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset)); //Inverted because the coordinate system is reversed
+      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); //Inverted because the coordinate system is reversed
     }
   }
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
@@ -124,11 +124,11 @@ void trajectory3d_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::
   {
     if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold  && yawrate_offset_2nd.status.enabled_status == true)
     {
-      eagleye_twist->twist.angular.z = -1 * (-1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset)); //Inverted because the coordinate system is reversed
+      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
     }
     else
     {
-      eagleye_twist->twist.angular.z = -1 * (-1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset)); //Inverted because the coordinate system is reversed
+      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); //Inverted because the coordinate system is reversed
     }
   }
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
