@@ -63,12 +63,12 @@ void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
   eagleye_heading = *msg;
 }
 
-void rolling_callback(const eagleye_msgs::msg::Rolling::ConstPtr& msg)
+void rolling_callback(const eagleye_msgs::msg::Rolling::ConstSharedPtr msg)
 {
   eagleye_rolling = *msg;
 }
 
-void pitching_callback(const eagleye_msgs::msg::Pitching::ConstPtr& msg)
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 {
   eagleye_pitching = *msg;
 }
@@ -168,8 +168,8 @@ int main(int argc, char** argv)
   auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
   auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, fix_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("/eagleye/rolling", 1000, rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", 1000, pitching_callback);
   pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
   br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
