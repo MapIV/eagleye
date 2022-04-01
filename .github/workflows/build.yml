@@ -1,6 +1,11 @@
 name: build
-on: pull_request
-
+on:
+  push:
+    branches:
+      - ros2-main
+  pull_request:
+    branches:
+      - ros2-main
 jobs:
   build:
     runs-on:  ubuntu-20.04
