@@ -70,7 +70,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _pitching.header.frame_id = "base_link";
   _acc_x_offset.header = msg->header;
   _acc_x_scale_factor.header = msg->header;
-  pitching_estimate(_imu, _fix, _velocity_scale_factor, _distance, _height_parameter, &_height_status,
+  pitching_estimate(_imu, _gga, _velocity_scale_factor, _distance, _height_parameter, &_height_status,
     &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
   _pub1.publish(_height);
   _pub2.publish(_pitching);
@@ -94,10 +94,10 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "height");
   ros::NodeHandle nh;
 
-  std::string subscribe_navsatgga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("navsatgga_topic", subscribe_navsatgga_topic_name);
+  nh.getParam("gga_topic", subscribe_gga_topic_name);
   nh.getParam("imu_topic", subscribe_imu_topic_name);
   nh.getParam("height/estimated_distance", _height_parameter.estimated_distance);
   nh.getParam("height/estimated_distance_max", _height_parameter.estimated_distance_max);
@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   nh.getParam("height/outlier_threshold", _height_parameter.outlier_threshold);
   nh.getParam("height/average_num", _height_parameter.average_num);
 
-  std::cout<< "subscribe_navsatgga_topic_name " << subscribe_navsatgga_topic_name << std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "estimated_distance " << _height_parameter.estimated_distance << std::endl;
   std::cout<< "estimated_distance_max " << _height_parameter.estimated_distance_max << std::endl;
@@ -120,7 +120,7 @@ int main(int argc, char** argv)
   std::cout<< "average_num " << _height_parameter.average_num << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe(subscribe_navsatgga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 

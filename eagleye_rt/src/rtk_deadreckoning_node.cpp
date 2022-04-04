@@ -117,7 +117,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     fix.latitude = _gga.lat;
     fix.longitude = _gga.lon;
     fix.altitude = _gga.alt + _gga.undulation;
-    _pub2.publish(_fix);
+    _pub2.publish(fix);
   }
 }
 
