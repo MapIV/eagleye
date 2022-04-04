@@ -36,9 +36,7 @@ gnss:
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
-## Either one of navsatfix and nmea_sentence should be specified.
 ## If RTK positioning is not used, the following topic settings are not necessary.
-navsatfix_topic: /fix
 nmea_sentence_topic: /nmea_sentence
 
 #Parameter settings for Eagleye
