@@ -32,56 +32,56 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static ros::Publisher rolling_pub;
+static ros::Publisher _rolling_pub;
 
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor_msg;
-static eagleye_msgs::YawrateOffset yawrate_offset_2nd_msg;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop_msg;
-static sensor_msgs::Imu imu_msg;
+static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor_msg;
+static eagleye_msgs::YawrateOffset _yawrate_offset_2nd_msg;
+static eagleye_msgs::YawrateOffset _yawrate_offset_stop_msg;
+static sensor_msgs::Imu _imu_msg;
 
-static eagleye_msgs::Rolling rolling_msg;
+static eagleye_msgs::Rolling _rolling_msg;
 
-struct RollingParameter rolling_parameter;
-struct RollingStatus rolling_status;
+struct RollingParameter _rolling_parameter;
+struct RollingStatus _rolling_status;
 
-static std::string subscribe_imu_topic_name;
+static std::string _subscribe_imu_topic_name;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor_msg = *msg;
+  _velocity_scale_factor_msg = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop_msg = *msg;
+  _yawrate_offset_stop_msg = *msg;
 }
 
 void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_2nd_msg = *msg;
+  _yawrate_offset_2nd_msg = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu_msg = *msg;
-  rolling_estimate(imu_msg, velocity_scale_factor_msg, yawrate_offset_stop_msg, yawrate_offset_2nd_msg,
-                   rolling_parameter, &rolling_status, &rolling_msg);
-  rolling_pub.publish(rolling_msg);
+  _imu_msg = *msg;
+  rolling_estimate(_imu_msg, _velocity_scale_factor_msg, _yawrate_offset_stop_msg, _yawrate_offset_2nd_msg,
+                   _rolling_parameter, &_rolling_status, &_rolling_msg);
+  _rolling_pub.publish(_rolling_msg);
 }
 
 void setParam(ros::NodeHandle nh)
 {
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", rolling_parameter.reverse_imu);
-  nh.getParam("rolling/stop_judgment_velocity_threshold", rolling_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("rolling/filter_process_noise", rolling_parameter.filter_process_noise);
-  nh.getParam("rolling/filter_observation_noise", rolling_parameter.filter_observation_noise);
+  nh.getParam("imu_topic", _subscribe_imu_topic_name);
+  nh.getParam("reverse_imu", _rolling_parameter.reverse_imu);
+  nh.getParam("rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("rolling/filter_process_noise", _rolling_parameter.filter_process_noise);
+  nh.getParam("rolling/filter_observation_noise", _rolling_parameter.filter_observation_noise);
 
-  std::cout << "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
-  std::cout << "reverse_imu " << rolling_parameter.reverse_imu << std::endl;
-  std::cout << "stop_judgment_velocity_threshold " << rolling_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout << "filter_process_noise " << rolling_parameter.filter_process_noise << std::endl;
-  std::cout << "filter_observation_noise " << rolling_parameter.filter_observation_noise << std::endl;
+  std::cout << "subscribe_imu_topic_name " << _subscribe_imu_topic_name << std::endl;
+  std::cout << "reverse_imu " << _rolling_parameter.reverse_imu << std::endl;
+  std::cout << "stop_judgment_velocity_threshold " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
+  std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
 }
 
 void rolling_node(ros::NodeHandle nh)
@@ -89,7 +89,7 @@ void rolling_node(ros::NodeHandle nh)
   setParam(nh);
 
   ros::Subscriber imu_sub =
-      nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+      nh.subscribe(_subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber velocity_scale_factor_sub =
       nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber yawrate_offset_2nd_sub =
@@ -97,7 +97,7 @@ void rolling_node(ros::NodeHandle nh)
   ros::Subscriber yawrate_offset_stop_sub =
       nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
 
-  rolling_pub = nh.advertise<eagleye_msgs::Rolling>("rolling", 1000);
+  _rolling_pub = nh.advertise<eagleye_msgs::Rolling>("rolling", 1000);
 
   ros::spin();
 }

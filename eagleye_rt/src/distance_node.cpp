@@ -32,25 +32,22 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static ros::Publisher pub;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::Distance distance;
+static ros::Publisher _pub;
+static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static eagleye_msgs::Distance _distance;
 
-struct DistanceStatus distance_status;
+struct DistanceStatus _distance_status;
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.header.frame_id = "base_link";
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
-  distance_estimate(velocity_scale_factor,&distance_status,&distance);
+  _distance.header = msg->header;
+  _distance.header.frame_id = "base_link";
+  _velocity_scale_factor = *msg;
+  distance_estimate(_velocity_scale_factor, &_distance_status, &_distance);
 
-  if(distance_status.time_last != 0)
+  if(_distance_status.time_last != 0)
   {
-    pub.publish(distance);
+    _pub.publish(_distance);
   }
 }
 
@@ -58,9 +55,9 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "distance");
 
-  ros::NodeHandle n;
-  ros::Subscriber sub1 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  pub = n.advertise<eagleye_msgs::Distance>("distance", 1000);
+  ros::NodeHandle nh;
+  ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  _pub = nh.advertise<eagleye_msgs::Distance>("distance", 1000);
 
   ros::spin();
 

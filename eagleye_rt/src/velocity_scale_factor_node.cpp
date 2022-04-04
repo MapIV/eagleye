@@ -32,43 +32,41 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static rtklib_msgs::RtklibNav rtklib_nav;
-static nmea_msgs::Gprmc nmea_rmc;
-static geometry_msgs::TwistStamped velocity;
-static sensor_msgs::Imu imu;
+static rtklib_msgs::RtklibNav _rtklib_nav;
+static nmea_msgs::Gprmc _nmea_rmc;
+static geometry_msgs::TwistStamped _velocity;
+static sensor_msgs::Imu _imu;
 
-static ros::Publisher pub;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
+static ros::Publisher _pub;
+static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 
-struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
-struct VelocityScaleFactorStatus velocity_scale_factor_status;
+struct VelocityScaleFactorParameter _velocity_scale_factor_parameter;
+struct VelocityScaleFactorStatus _velocity_scale_factor_status;
 
-static std::string use_gnss_mode;
+static std::string _use_gnss_mode;
 
-bool is_first_move = false;
+bool _is_first_move = false;
+
+std::string velocity_scale_factor_save_str;
+double saved_vsf_estimater_number;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  _rtklib_nav = *msg;
 }
 
 void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
 {
-  nmea_rmc = *msg;
+  _nmea_rmc = *msg;
 }
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  _velocity = *msg;
 
-  if (is_first_move == false && msg->twist.linear.x > velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (!_is_first_move && msg->twist.linear.x > _velocity_scale_factor_parameter.estimated_velocity_threshold)
   {
-    is_first_move = true;
+    _is_first_move = true;
   }
 }
 
@@ -76,68 +74,125 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   double initial_velocity_scale_factor = 1.0;
 
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.header.frame_id = "base_link";
+  _imu = *msg;
+  _velocity_scale_factor.header = msg->header;
+  _velocity_scale_factor.header.frame_id = "base_link";
 
-  if (is_first_move == false)
+  if (!_is_first_move)
   {
-    velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
-    velocity_scale_factor.correction_velocity = velocity.twist;
-    velocity_scale_factor.status.enabled_status = false;
-    velocity_scale_factor.status.estimate_status = false;
-    pub.publish(velocity_scale_factor);
+    _velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
+    _velocity_scale_factor.correction_velocity = _velocity.twist;
+    _velocity_scale_factor.status.enabled_status = false;
+    _velocity_scale_factor.status.estimate_status = false;
+    _pub.publish(_velocity_scale_factor);
     return;
   }
 
-  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
-  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    velocity_scale_factor_estimate(nmea_rmc,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
-  pub.publish(velocity_scale_factor);
+  if (_use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    velocity_scale_factor_estimate(_rtklib_nav, _velocity, _velocity_scale_factor_parameter, &_velocity_scale_factor_status, &_velocity_scale_factor);
+  else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
+    velocity_scale_factor_estimate(_nmea_rmc, _velocity, _velocity_scale_factor_parameter, &_velocity_scale_factor_status, &_velocity_scale_factor);
+  _pub.publish(_velocity_scale_factor);
+}
+
+void load_velocity_scale_factor(std::string txt_path)
+{
+  std::ifstream ifs(txt_path);
+  if (!ifs)
+  {
+    std::cout << "Initial VelocityScaleFactor file not found!!" << std::endl;
+  }
+  else
+  {
+    int count = 0;
+    std::string row;
+    while (getline(ifs, row))
+    {
+      if(count == 1)
+      {
+        saved_vsf_estimater_number = std::stod(row);
+      }
+      if(count == 3)
+      {
+        double saved_velocity_scale_factor = std::stod(row);
+        _velocity_scale_factor_status.velocity_scale_factor_last = saved_velocity_scale_factor;
+        _velocity_scale_factor.scale_factor = saved_velocity_scale_factor;
+      }
+      count++;
+    }
+  }
+}
+void timer_callback(const ros::TimerEvent & e)
+{
+  if(!_velocity_scale_factor.status.enabled_status && saved_vsf_estimater_number >= _velocity_scale_factor_status.estimated_number)
+  {
+    return;
+  }
+
+  std::ofstream csv_file(velocity_scale_factor_save_str);
+  csv_file << "estimated_number";
+  csv_file << "\n";
+  csv_file << _velocity_scale_factor_status.estimated_number;
+  csv_file << "\n";
+  csv_file << "velocity_scale_factor";
+  csv_file << "\n";
+  csv_file << _velocity_scale_factor_status.velocity_scale_factor_last;
+  csv_file << "\n";
+
+  saved_vsf_estimater_number = _velocity_scale_factor_status.estimated_number;
+
+  return;
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "velocity_scale_factor");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/mosaic/rmc";
 
-  n.getParam("twist_topic",subscribe_twist_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("rmc_topic",subscribe_rmc_topic_name);
-  n.getParam("velocity_scale_factor/estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
-  n.getParam("velocity_scale_factor/estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
-  n.getParam("velocity_scale_factor/estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
-  n.getParam("velocity_scale_factor/estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
-  n.getParam("use_gnss_mode",use_gnss_mode);
+  double velocity_scale_factor_save_duration; // [sec]
 
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_rmc_topic_name "<<subscribe_rmc_topic_name<<std::endl;
-  std::cout<< "estimated_number_min "<<velocity_scale_factor_parameter.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<velocity_scale_factor_parameter.estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_coefficient "<<velocity_scale_factor_parameter.estimated_coefficient<<std::endl;
-  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
+  nh.getParam("twist_topic",subscribe_twist_topic_name);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
+  nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  nh.getParam("rmc_topic",subscribe_rmc_topic_name);
+  nh.getParam("velocity_scale_factor/estimated_number_min",_velocity_scale_factor_parameter.estimated_number_min);
+  nh.getParam("velocity_scale_factor/estimated_number_max",_velocity_scale_factor_parameter.estimated_number_max);
+  nh.getParam("velocity_scale_factor/estimated_velocity_threshold",_velocity_scale_factor_parameter.estimated_velocity_threshold);
+  nh.getParam("velocity_scale_factor/estimated_coefficient",_velocity_scale_factor_parameter.estimated_coefficient);
+  nh.getParam("use_gnss_mode",_use_gnss_mode);
+  nh.getParam("velocity_scale_factor_save_str", velocity_scale_factor_save_str);
+  nh.getParam("velocity_scale_factor/save_velocity_scale_factor", _velocity_scale_factor_parameter.save_velocity_scale_factor);
+  nh.getParam("velocity_scale_factor/velocity_scale_factor_save_duration", velocity_scale_factor_save_duration);
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
-  pub = n.advertise<eagleye_msgs::VelocityScaleFactor>("velocity_scale_factor", 1000);
+  std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+  std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
+  std::cout<< "estimated_number_min " << _velocity_scale_factor_parameter.estimated_number_min << std::endl;
+  std::cout<< "estimated_number_max " << _velocity_scale_factor_parameter.estimated_number_max << std::endl;
+  std::cout<< "estimated_velocity_threshold " << _velocity_scale_factor_parameter.estimated_velocity_threshold << std::endl;
+  std::cout<< "estimated_coefficient " << _velocity_scale_factor_parameter.estimated_coefficient << std::endl;
+  std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
+  std::cout<< "velocity_scale_factor_save_str " << velocity_scale_factor_save_str << std::endl;
+  std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;
+  std::cout<< "velocity_scale_factor_save_duration " << velocity_scale_factor_save_duration << std::endl;
+
+  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
+  _pub = nh.advertise<eagleye_msgs::VelocityScaleFactor>("velocity_scale_factor", 1000);
+  if(_velocity_scale_factor_parameter.save_velocity_scale_factor)
+  {
+    ros::Timer timer = nh.createTimer(ros::Duration(velocity_scale_factor_save_duration), timer_callback);
+
+    load_velocity_scale_factor(velocity_scale_factor_save_str);
+  }
 
   ros::spin();
 

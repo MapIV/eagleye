@@ -32,107 +32,106 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static nmea_msgs::Gpgga gga;
-static sensor_msgs::Imu imu;
-static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::Distance distance;
-static eagleye_msgs::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset yawrate_offset;
-static eagleye_msgs::SlipAngle slip_angle;
-static eagleye_msgs::Heading heading_interpolate;
+static nmea_msgs::Gpgga _gga;
+static sensor_msgs::Imu _imu;
+static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static eagleye_msgs::Distance _distance;
+static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset _yawrate_offset;
+static eagleye_msgs::SlipAngle _slip_angle;
+static eagleye_msgs::Heading _heading_interpolate;
 
+static ros::Publisher _pub;
+static eagleye_msgs::Heading _heading;
 
-static ros::Publisher pub;
-static eagleye_msgs::Heading heading;
-
-struct RtkHeadingParameter heading_parameter;
-struct RtkHeadingStatus heading_status;
+struct RtkHeadingParameter _heading_parameter;
+struct RtkHeadingStatus _heading_status;
 
 void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  gga = *msg;
+  _gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor = *msg;
+  _velocity_scale_factor = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop = *msg;
+  _yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset = *msg;
+  _yawrate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 {
-  slip_angle = *msg;
+  _slip_angle = *msg;
 }
 
 void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate = *msg;
+  _heading_interpolate = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance = *msg;
+  _distance = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu = *msg;
-  heading.header = msg->header;
-  heading.header.frame_id = "base_link";
-  rtk_heading_estimate(gga,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,
-    heading_parameter,&heading_status,&heading);
+  _imu = *msg;
+  _heading.header = msg->header;
+  _heading.header.frame_id = "base_link";
+  rtk_heading_estimate(_gga, _imu, _velocity_scale_factor, _distance, _yawrate_offset_stop, _yawrate_offset,
+    _slip_angle, _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
-  if (heading.status.estimate_status == true)
+  if (_heading.status.estimate_status)
   {
-    pub.publish(heading);
+    _pub.publish(_heading);
   }
-  heading.status.estimate_status = false;
+  _heading.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "rtk_heading");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("gga_topic",subscribe_gga_topic_name);
-  n.getParam("reverse_imu", heading_parameter.reverse_imu);
-  n.getParam("rtk_heading/estimated_distance",heading_parameter.estimated_distance);
-  n.getParam("rtk_heading/estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
-  n.getParam("rtk_heading/estimated_number_min",heading_parameter.estimated_number_min);
-  n.getParam("rtk_heading/estimated_number_max",heading_parameter.estimated_number_max);
-  n.getParam("rtk_heading/estimated_gnss_coefficient",heading_parameter.estimated_gnss_coefficient);
-  n.getParam("rtk_heading/estimated_heading_coefficient",heading_parameter.estimated_heading_coefficient);
-  n.getParam("rtk_heading/outlier_threshold",heading_parameter.outlier_threshold);
-  n.getParam("rtk_heading/estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
-  n.getParam("rtk_heading/stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
-  n.getParam("rtk_heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  nh.getParam("imu_topic" , subscribe_imu_topic_name);
+  nh.getParam("gga_topic",subscribe_gga_topic_name);
+  nh.getParam("reverse_imu", _heading_parameter.reverse_imu);
+  nh.getParam("rtk_heading/estimated_distance",_heading_parameter.estimated_distance);
+  nh.getParam("rtk_heading/estimated_heading_buffer_min",_heading_parameter.estimated_heading_buffer_min);
+  nh.getParam("rtk_heading/estimated_number_min",_heading_parameter.estimated_number_min);
+  nh.getParam("rtk_heading/estimated_number_max",_heading_parameter.estimated_number_max);
+  nh.getParam("rtk_heading/estimated_gnss_coefficient",_heading_parameter.estimated_gnss_coefficient);
+  nh.getParam("rtk_heading/estimated_heading_coefficient",_heading_parameter.estimated_heading_coefficient);
+  nh.getParam("rtk_heading/outlier_threshold",_heading_parameter.outlier_threshold);
+  nh.getParam("rtk_heading/estimated_velocity_threshold",_heading_parameter.estimated_velocity_threshold);
+  nh.getParam("rtk_heading/stop_judgment_velocity_threshold",_heading_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("rtk_heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
-  std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
-  std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
-  std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<heading_parameter.estimated_number_max<<std::endl;
-  std::cout<< "estimated_gnss_coefficient "<<heading_parameter.estimated_gnss_coefficient<<std::endl;
-  std::cout<< "estimated_heading_coefficient "<<heading_parameter.estimated_heading_coefficient<<std::endl;
-  std::cout<< "outlier_threshold "<<heading_parameter.outlier_threshold<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<heading_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<heading_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "estimated_yawrate_threshold "<<heading_parameter.estimated_yawrate_threshold<<std::endl;
+  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
+  std::cout<< "reverse_imu " << _heading_parameter.reverse_imu << std::endl;
+  std::cout<< "estimated_distance " << _heading_parameter.estimated_distance << std::endl;
+  std::cout<< "estimated_heading_buffer_min " << _heading_parameter.estimated_heading_buffer_min << std::endl;
+  std::cout<< "estimated_number_min " << _heading_parameter.estimated_number_min << std::endl;
+  std::cout<< "estimated_number_max " << _heading_parameter.estimated_number_max << std::endl;
+  std::cout<< "estimated_gnss_coefficient " << _heading_parameter.estimated_gnss_coefficient << std::endl;
+  std::cout<< "estimated_heading_coefficient " << _heading_parameter.estimated_heading_coefficient << std::endl;
+  std::cout<< "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
+  std::cout<< "estimated_velocity_threshold " << _heading_parameter.estimated_velocity_threshold << std::endl;
+  std::cout<< "stop_judgment_velocity_threshold " << _heading_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::cout<< "estimated_yawrate_threshold " << _heading_parameter.estimated_yawrate_threshold << std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -170,17 +169,16 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = n.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 
-
-  pub = n.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
+  _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 
   ros::spin();
 
