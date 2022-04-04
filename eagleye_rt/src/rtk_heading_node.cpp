@@ -32,7 +32,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static sensor_msgs::NavSatFix fix;
+static nmea_msgs::Gpgga gga;
 static sensor_msgs::Imu imu;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
@@ -48,73 +48,48 @@ static eagleye_msgs::Heading heading;
 struct RtkHeadingParameter heading_parameter;
 struct RtkHeadingStatus heading_status;
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset.header = msg->header;
-  yawrate_offset.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset.status = msg->status;
+  yawrate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate.header = msg->header;
-  heading_interpolate.heading_angle = msg->heading_angle;
-  heading_interpolate.status = msg->status;
+  heading_interpolate = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
-  rtk_heading_estimate(fix,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+  rtk_heading_estimate(gga,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,
+    heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)
   {
@@ -129,10 +104,10 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("gga_topic",subscribe_gga_topic_name);
   n.getParam("reverse_imu", heading_parameter.reverse_imu);
   n.getParam("rtk_heading/estimated_distance",heading_parameter.estimated_distance);
   n.getParam("rtk_heading/estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
@@ -146,7 +121,7 @@ int main(int argc, char** argv)
   n.getParam("rtk_heading/estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
@@ -196,7 +171,7 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = n.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());

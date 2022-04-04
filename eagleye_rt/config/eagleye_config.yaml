@@ -8,7 +8,7 @@ use_gnss_mode: RTKLIB
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
-nmea_sentence_topic: /navsat/nmea_sentence
+nmea_sentence_topic: /nmea_sentence
 localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye

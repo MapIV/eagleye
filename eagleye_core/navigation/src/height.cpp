@@ -33,7 +33,9 @@
 
 #define g 9.80665
 
-void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix fix,const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::Height* height,eagleye_msgs::Pitching* pitching,eagleye_msgs::AccXOffset* acc_x_offset,eagleye_msgs::AccXScaleFactor* acc_x_scale_factor)
+void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+  const eagleye_msgs::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::Height* height,
+  eagleye_msgs::Pitching* pitching,eagleye_msgs::AccXOffset* acc_x_offset,eagleye_msgs::AccXScaleFactor* acc_x_scale_factor)
 {
   int gps_quality = 0;
   double gnss_height = 0.0;
@@ -65,19 +67,19 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   int buffer_erase_count = 0;
 
 /// GNSS FLAG ///
-  if (height_status->fix_time_last == fix.header.stamp.toSec())
+  if (height_status->gga_time_last == gga.header.stamp.toSec())
   {
     gnss_status = false;
     gnss_height = 0.0;
     gps_quality = 0;
-    height_status->fix_time_last = fix.header.stamp.toSec();
+    height_status->gga_time_last = gga.header.stamp.toSec();
   }
   else
   {
     gnss_status = true;
-    gnss_height = fix.altitude;
-    gps_quality = fix.status.status;
-    height_status->fix_time_last = fix.header.stamp.toSec();
+    gnss_height = gga.alt + gga.undulation;;
+    gps_quality = gga.gps_qual;
+    height_status->gga_time_last = gga.header.stamp.toSec();
   }
 
   height_status->flag_reliability = false;
@@ -92,7 +94,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
   }
 
 ///  buffering  ///
-  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality != -1)
+  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality == 4)
   {
     height_status->height_buffer.push_back(gnss_height);
     height_status->relative_height_G_buffer.push_back(height_status->relative_height_G);
@@ -193,7 +195,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality != -1 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality ==4 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
@@ -244,8 +246,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
           for (i = 0; i < height_status->data_number; i++)
           {
-            base_height_buffer.push_back(height_status->height_buffer2[index[index_length-1]] - height_status->correction_relative_height_buffer2[index[index_length-1]] +
-                                height_status->correction_relative_height_buffer2[i]);
+            base_height_buffer.push_back(height_status->height_buffer2[index[index_length-1]] -
+              height_status->correction_relative_height_buffer2[index[index_length-1]] + height_status->correction_relative_height_buffer2[i]);
           }
 
           diff_height_buffer2.clear();
@@ -261,7 +263,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
           for (i = 0; i < height_status->data_number; i++)
           {
-            base_height_buffer2.push_back(tmp_height - height_status->correction_relative_height_buffer2[index[index_length - 1]] + height_status->correction_relative_height_buffer2[i]);
+            base_height_buffer2.push_back(tmp_height - height_status->correction_relative_height_buffer2[index[index_length - 1]] +
+              height_status->correction_relative_height_buffer2[i]);
           }
 
           diff_height_buffer.clear();
@@ -364,7 +367,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const sensor_msgs::NavSatFix f
 
 ///  pitch  ///
   correction_acceleration_linear_x = imu.linear_acceleration.x * height_status->acceleration_SF_linear_x_last + height_status->acceleration_offset_linear_x_last;
-  height_status->acc_buffer.push_back((correction_acceleration_linear_x - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
+  height_status->acc_buffer.push_back((correction_acceleration_linear_x -(velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
   data_num_acc = height_status->acc_buffer.size();
 
   if (data_num_acc > height_parameter.average_num)

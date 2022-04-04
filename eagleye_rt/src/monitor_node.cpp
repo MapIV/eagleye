@@ -37,7 +37,7 @@
 
 static sensor_msgs::Imu imu;
 static rtklib_msgs::RtklibNav rtklib_nav;
-static sensor_msgs::NavSatFix fix;
+static sensor_msgs::NavSatFix rtklib_fix;
 static nmea_msgs::Gpgga gga;
 static geometry_msgs::TwistStamped velocity;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
@@ -97,7 +97,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 
 void rtklib_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix = *msg;
+  rtklib_fix = *msg;
 }
 
 void navsatfix_gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)

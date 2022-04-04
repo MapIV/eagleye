@@ -41,7 +41,7 @@ static eagleye_msgs::Distance distance;
 static eagleye_msgs::Heading heading_interpolate_3rd;
 static eagleye_msgs::Position enu_absolute_pos;
 static geometry_msgs::Vector3Stamped enu_vel;
-static sensor_msgs::NavSatFix fix;
+static nmea_msgs::Gpgga gga;
 static ros::Publisher pub;
 
 struct PositionParameter position_parameter;
@@ -51,44 +51,27 @@ static std::string use_gnss_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  gga = *msg;
 }
 
 void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfListener_, tf2_ros::Buffer* tfBuffer_)
@@ -123,7 +106,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
     position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    position_estimate(fix, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+    position_estimate(gga, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   
   if(enu_absolute_pos.status.estimate_status == true)
   {
@@ -140,10 +123,10 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  n.getParam("gga_topic",subscribe_gga_topic_name);
   n.getParam("position/estimated_distance",position_parameter.estimated_distance);
   n.getParam("position/separation_distance",position_parameter.separation_distance);
   n.getParam("position/estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
@@ -158,7 +141,7 @@ int main(int argc, char** argv)
   n.getParam("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<position_parameter.estimated_velocity_threshold<<std::endl;
@@ -174,7 +157,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = n.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   
   pub = n.advertise<eagleye_msgs::Position>("enu_absolute_pos", 1000);
 
