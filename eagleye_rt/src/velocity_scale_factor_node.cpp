@@ -47,8 +47,9 @@ static std::string _use_gnss_mode;
 
 bool _is_first_move = false;
 
-std::string velocity_scale_factor_save_str;
-double saved_vsf_estimater_number;
+std::string _velocity_scale_factor_save_str;
+double _saved_vsf_estimater_number = 0;
+double _saved_velocity_scale_factor = 1.0;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -72,7 +73,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  double initial_velocity_scale_factor = 1.0;
+  double initial_velocity_scale_factor = _saved_velocity_scale_factor;
 
   _imu = *msg;
   _velocity_scale_factor.header = msg->header;
@@ -82,8 +83,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   {
     _velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
     _velocity_scale_factor.correction_velocity = _velocity.twist;
-    _velocity_scale_factor.status.enabled_status = false;
-    _velocity_scale_factor.status.estimate_status = false;
     _pub.publish(_velocity_scale_factor);
     return;
   }
@@ -110,26 +109,32 @@ void load_velocity_scale_factor(std::string txt_path)
     {
       if(count == 1)
       {
-        saved_vsf_estimater_number = std::stod(row);
+        _saved_vsf_estimater_number = std::stod(row);
+        std::cout<< "saved_vsf_estimater_number " << _saved_vsf_estimater_number << std::endl;
       }
       if(count == 3)
       {
-        double saved_velocity_scale_factor = std::stod(row);
-        _velocity_scale_factor_status.velocity_scale_factor_last = saved_velocity_scale_factor;
-        _velocity_scale_factor.scale_factor = saved_velocity_scale_factor;
+        _saved_velocity_scale_factor = std::stod(row);
+        _velocity_scale_factor_status.estimate_start_status = true;
+        _velocity_scale_factor_status.velocity_scale_factor_last = _saved_velocity_scale_factor;
+        _velocity_scale_factor.status.enabled_status = true;
+        _velocity_scale_factor.scale_factor = _saved_velocity_scale_factor;
+        std::cout<< "saved_velocity_scale_factor " << _saved_velocity_scale_factor << std::endl;
       }
       count++;
     }
   }
+  ifs.close();
 }
 void timer_callback(const ros::TimerEvent & e)
 {
-  if(!_velocity_scale_factor.status.enabled_status && saved_vsf_estimater_number >= _velocity_scale_factor_status.estimated_number)
+  if(!_velocity_scale_factor.status.enabled_status && _saved_vsf_estimater_number >= _velocity_scale_factor_status.estimated_number)
   {
+    std::ofstream csv_file(_velocity_scale_factor_save_str);
     return;
   }
 
-  std::ofstream csv_file(velocity_scale_factor_save_str);
+  std::ofstream csv_file(_velocity_scale_factor_save_str);
   csv_file << "estimated_number";
   csv_file << "\n";
   csv_file << _velocity_scale_factor_status.estimated_number;
@@ -138,8 +143,9 @@ void timer_callback(const ros::TimerEvent & e)
   csv_file << "\n";
   csv_file << _velocity_scale_factor_status.velocity_scale_factor_last;
   csv_file << "\n";
+  csv_file.close();
 
-  saved_vsf_estimater_number = _velocity_scale_factor_status.estimated_number;
+  _saved_vsf_estimater_number = _velocity_scale_factor_status.estimated_number;
 
   return;
 }
@@ -165,7 +171,7 @@ int main(int argc, char** argv)
   nh.getParam("velocity_scale_factor/estimated_velocity_threshold",_velocity_scale_factor_parameter.estimated_velocity_threshold);
   nh.getParam("velocity_scale_factor/estimated_coefficient",_velocity_scale_factor_parameter.estimated_coefficient);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
-  nh.getParam("velocity_scale_factor_save_str", velocity_scale_factor_save_str);
+  nh.getParam("velocity_scale_factor_save_str", _velocity_scale_factor_save_str);
   nh.getParam("velocity_scale_factor/save_velocity_scale_factor", _velocity_scale_factor_parameter.save_velocity_scale_factor);
   nh.getParam("velocity_scale_factor/velocity_scale_factor_save_duration", velocity_scale_factor_save_duration);
 
@@ -178,7 +184,7 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold " << _velocity_scale_factor_parameter.estimated_velocity_threshold << std::endl;
   std::cout<< "estimated_coefficient " << _velocity_scale_factor_parameter.estimated_coefficient << std::endl;
   std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
-  std::cout<< "velocity_scale_factor_save_str " << velocity_scale_factor_save_str << std::endl;
+  std::cout<< "velocity_scale_factor_save_str " << _velocity_scale_factor_save_str << std::endl;
   std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;
   std::cout<< "velocity_scale_factor_save_duration " << velocity_scale_factor_save_duration << std::endl;
 
@@ -187,11 +193,11 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<eagleye_msgs::VelocityScaleFactor>("velocity_scale_factor", 1000);
+  ros::Timer timer;
   if(_velocity_scale_factor_parameter.save_velocity_scale_factor)
   {
-    ros::Timer timer = nh.createTimer(ros::Duration(velocity_scale_factor_save_duration), timer_callback);
-
-    load_velocity_scale_factor(velocity_scale_factor_save_str);
+    timer = nh.createTimer(ros::Duration(velocity_scale_factor_save_duration), timer_callback);
+    load_velocity_scale_factor(_velocity_scale_factor_save_str);
   }
 
   ros::spin();
