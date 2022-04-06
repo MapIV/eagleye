@@ -14,11 +14,11 @@ interval_line: 1
 convert_height_num: 0
 # 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid
 
-# Selecting the kml file to output eagleye estimation results
+# Selecting the kml file(eagleye.kml) to output eagleye estimation results
 output_kml_eagleye_forward_plot: false
 output_kml_eagleye_backward_plot: false
-output_kml_eagleye_pp_plot: false
-output_kml_rtklib_plot: true
+output_kml_eagleye_pp_plot: true
+output_kml_rtklib_plot: false
 output_kml_gnss_plot: true
 output_kml_eagleye_forward_line: true
 output_kml_eagleye_backward_line: true
