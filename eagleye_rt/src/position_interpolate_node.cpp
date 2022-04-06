@@ -36,8 +36,7 @@ static eagleye_msgs::Position _enu_absolute_pos;
 static geometry_msgs::Vector3Stamped _enu_vel;
 static eagleye_msgs::Height _height;
 static eagleye_msgs::Position _gnss_smooth_pos;
-static sensor_msgs::NavSatFix _fix;
-
+static nmea_msgs::Gpgga _gga;
 
 static eagleye_msgs::Position _enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix _eagleye_fix;
@@ -47,9 +46,9 @@ static ros::Publisher _pub2;
 struct PositionInterpolateParameter _position_interpolate_parameter;
 struct PositionInterpolateStatus _position_interpolate_status;
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  _fix = *msg;
+  _gga = *msg;
 }
 
 void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
@@ -80,9 +79,14 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     _pub1.publish(_enu_absolute_pos_interpolate);
     _pub2.publish(_eagleye_fix);
   }
-  else if (_fix.header.stamp.toSec() != 0)
+  else if (_gga.header.stamp.toSec() != 0)
   {
-    _pub2.publish(_fix);
+    sensor_msgs::NavSatFix fix;
+    fix.header = _gga.header;
+    fix.latitude = _gga.lat;
+    fix.longitude = _gga.lon;
+    fix.altitude = _gga.alt + _gga.undulation;
+    _pub2.publish(fix);
   }
 }
 
@@ -91,12 +95,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle nh;
 
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  nh.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  nh.getParam("gga_topic",subscribe_gga_topic_name);
   nh.getParam("position_interpolate/number_buffer_max", _position_interpolate_parameter.number_buffer_max);
   nh.getParam("position_interpolate/stop_judgment_velocity_threshold", _position_interpolate_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_navsatfix_topic_name " << subscribe_navsatfix_topic_name << std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   std::cout<< "number_buffer_max " << _position_interpolate_parameter.number_buffer_max << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _position_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
 
@@ -104,7 +108,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = nh.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
   _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 

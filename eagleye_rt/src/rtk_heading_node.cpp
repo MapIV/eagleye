@@ -32,7 +32,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static sensor_msgs::NavSatFix _fix;
+static nmea_msgs::Gpgga _gga;
 static sensor_msgs::Imu _imu;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::Distance _distance;
@@ -41,16 +41,15 @@ static eagleye_msgs::YawrateOffset _yawrate_offset;
 static eagleye_msgs::SlipAngle _slip_angle;
 static eagleye_msgs::Heading _heading_interpolate;
 
-
 static ros::Publisher _pub;
 static eagleye_msgs::Heading _heading;
 
 struct RtkHeadingParameter _heading_parameter;
 struct RtkHeadingStatus _heading_status;
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  _fix = *msg;
+  _gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -88,7 +87,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _heading.header = msg->header;
   _heading.header.frame_id = "base_link";
-  rtk_heading_estimate(_fix, _imu, _velocity_scale_factor, _distance, _yawrate_offset_stop, _yawrate_offset,
+  rtk_heading_estimate(_gga, _imu, _velocity_scale_factor, _distance, _yawrate_offset_stop, _yawrate_offset,
     _slip_angle, _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
   if (_heading.status.estimate_status)
@@ -104,10 +103,10 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   nh.getParam("imu_topic" , subscribe_imu_topic_name);
-  nh.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
+  nh.getParam("gga_topic",subscribe_gga_topic_name);
   nh.getParam("reverse_imu", _heading_parameter.reverse_imu);
   nh.getParam("rtk_heading/estimated_distance",_heading_parameter.estimated_distance);
   nh.getParam("rtk_heading/estimated_heading_buffer_min",_heading_parameter.estimated_heading_buffer_min);
@@ -121,7 +120,7 @@ int main(int argc, char** argv)
   nh.getParam("rtk_heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
 
   std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name " << subscribe_navsatfix_topic_name << std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   std::cout<< "reverse_imu " << _heading_parameter.reverse_imu << std::endl;
   std::cout<< "estimated_distance " << _heading_parameter.estimated_distance << std::endl;
   std::cout<< "estimated_heading_buffer_min " << _heading_parameter.estimated_heading_buffer_min << std::endl;
@@ -171,14 +170,13 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub8 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-
 
   _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 

@@ -50,7 +50,6 @@ class eagleye_pp
   
   // Data estimated by eagleye
   std::vector<rtklib_msgs::RtklibNav> rtklib_nav_;
-  std::vector<sensor_msgs::NavSatFix> fix_;
   std::vector<sensor_msgs::Imu> imu_;
   std::vector<geometry_msgs::TwistStamped> velocity_;
   std::vector<nmea_msgs::Sentence> nmea_sentence_;
@@ -128,7 +127,7 @@ class eagleye_pp
   eagleye_pp();//Constructor
 
   void setOutputPath(std::string arg_output_path);
-  void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic, std::string *arg_navsatfix_topic, std::string *arg_nmea_sentence_topic);
+  void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic, std::string *arg_nmea_sentence_topic);
   void setDataLength();
   std::size_t getDataLength();
   std::string getUseGNSSMode();

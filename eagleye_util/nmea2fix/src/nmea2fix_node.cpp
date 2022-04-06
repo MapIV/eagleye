@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
   std::string use_gnss_mode;
 
-  n.getParam("nmea2fix_node/sub_topic_name",sub_topic_name);
+  n.getParam("nmea_sentence_topic",sub_topic_name);
   n.getParam("nmea2fix_node/pub_fix_topic_name",pub_fix_topic_name);
   n.getParam("nmea2fix_node/pub_gga_topic_name",pub_gga_topic_name);
   n.getParam("nmea2fix_node/pub_rmc_topic_name",pub_rmc_topic_name);

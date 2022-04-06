@@ -78,7 +78,7 @@ void eagleye_pp::setOutputPath(std::string arg_output_path)
 /********************
 setParam
 *********************/
-void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic, std::string *arg_navsatfix_topic,  std::string *arg_nmea_sentence_topic)
+void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,  std::string *arg_nmea_sentence_topic)
 {
   try
   {
@@ -86,7 +86,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     *arg_twist_topic = arg_conf["twist_topic"].as<std::string>();
     *arg_imu_topic = arg_conf["imu_topic"].as<std::string>();
     *arg_rtklib_nav_topic = arg_conf["rtklib_nav_topic"].as<std::string>();
-    *arg_navsatfix_topic = arg_conf["navsatfix_topic"].as<std::string>();
     *arg_nmea_sentence_topic = arg_conf["nmea_sentence_topic"].as<std::string>();
 
     // output_log = arg_conf["output_log"].as<bool>();
@@ -309,11 +308,6 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
         }
         
       }
-      else if (m_fix_msg != NULL)
-      {
-        sensor_msgs::NavSatFix fix_msg = *m_fix_msg;
-        tmp_fix.push_back(fix_msg);
-      }
       if (m_velocity_msg != NULL)
       {
         geometry_msgs::TwistStamped velocity_msg = *m_velocity_msg;
@@ -366,11 +360,6 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
           }
         }
       }
-      else if (m_fix_msg != NULL)
-      {
-        sensor_msgs::NavSatFix fix_msg = *m_fix_msg;
-        fix_msg_last = fix_msg;
-      }
       if (m_velocity_msg != NULL)
       {
         geometry_msgs::TwistStamped velocity_msg = *m_velocity_msg;
@@ -381,7 +370,6 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
         sensor_msgs::Imu imu_msg = *m_imu_msg;
         imu_.push_back(imu_msg);
         rtklib_nav_.push_back(rtklib_nav_msg_last);
-        fix_.push_back(fix_msg_last);
         gga_.push_back(gga_msg_last);
         rmc_.push_back(rmc_msg_last);
         nmea_sentence_.push_back(nmea_sentence_msg_last);
@@ -392,13 +380,13 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
   }
 
   std::size_t tmp_rtklib_nav_length;
-  std::size_t tmp_fix_length;
+  std::size_t tmp_gga_length;
   std::size_t tmp_rmc_length;
   std::size_t tmp_velocity_length;
 
   setDataLength();
   tmp_rtklib_nav_length = std::distance(tmp_rtklib_nav.begin(), tmp_rtklib_nav.end());
-  tmp_fix_length = std::distance(tmp_fix.begin(), tmp_fix.end());
+  tmp_gga_length = std::distance(tmp_gga.begin(), tmp_gga.end());
   tmp_rmc_length = std::distance(tmp_rmc.begin(), tmp_rmc.end());
   tmp_velocity_length = std::distance(tmp_velocity.begin(), tmp_velocity.end());
 
@@ -408,10 +396,10 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
     rtklib_nav_stamp.push_back(tmp_rtklib_nav[i].header.stamp.toSec());
   }
 
-  std::vector<double> fix_stamp;
-  for (int i=0; i<tmp_fix_length; i++)
+  std::vector<double> gga_stamp;
+  for (int i=0; i<tmp_gga_length; i++)
   {
-    fix_stamp.push_back(tmp_fix[i].header.stamp.toSec());
+    gga_stamp.push_back(tmp_gga[i].header.stamp.toSec());
   }
 
   std::vector<double> rmc_stamp;
@@ -427,18 +415,18 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
   }
 
   std::vector<double>::iterator rtklib_nav_stamp_position;
-  std::vector<double>::iterator fix_stamp_position;
+  std::vector<double>::iterator gga_stamp_position;
   std::vector<double>::iterator rmc_stamp_position;
   std::vector<double>::iterator velocity_stamp_position;
   int rtklib_nav_stamp_index;
-  int fix_stamp_index;
+  int gga_stamp_index;
   int rmc_stamp_index;
   int velocity_stamp_index;
 
   if (timestamp_sort_)
   {
     rtklib_nav_.resize(data_length_);
-    fix_.resize(data_length_);
+    gga_.resize(data_length_);
     velocity_.resize(data_length_);
     if(arg_nmea_data_flag)
     {
@@ -449,12 +437,12 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
     for (int i=0; i<data_length_; i++)
     {
       rtklib_nav_stamp_position = std::lower_bound(rtklib_nav_stamp.begin(), rtklib_nav_stamp.end(), imu_[i].header.stamp.toSec());
-      fix_stamp_position = std::lower_bound(fix_stamp.begin(), fix_stamp.end(), imu_[i].header.stamp.toSec());
+      gga_stamp_position = std::lower_bound(gga_stamp.begin(), gga_stamp.end(), imu_[i].header.stamp.toSec());
       rmc_stamp_position = std::lower_bound(rmc_stamp.begin(), rmc_stamp.end(), imu_[i].header.stamp.toSec());
       velocity_stamp_position = std::lower_bound(velocity_stamp.begin(), velocity_stamp.end(), imu_[i].header.stamp.toSec());
       
       rtklib_nav_stamp_index = std::distance(rtklib_nav_stamp.begin(), rtklib_nav_stamp_position);
-      fix_stamp_index = std::distance(fix_stamp.begin(), fix_stamp_position);
+      gga_stamp_index = std::distance(gga_stamp.begin(), gga_stamp_position);
       rmc_stamp_index = std::distance(rmc_stamp.begin(), rmc_stamp_position);
       velocity_stamp_index = std::distance(velocity_stamp.begin(), velocity_stamp_position);
       if (rtklib_nav_stamp_index != 0)
@@ -462,10 +450,10 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
         rtklib_nav_[i]=tmp_rtklib_nav[rtklib_nav_stamp_index-1];
       }
 
-      if (fix_stamp_index != 0)
+      if (gga_stamp_index != 0)
       {
-        fix_[i]=tmp_fix[fix_stamp_index-1];
-        if(arg_nmea_data_flag) gga_[i]=tmp_gga[fix_stamp_index-1];
+        gga_[i]=tmp_gga[gga_stamp_index-1];
+        if(arg_nmea_data_flag) gga_[i]=tmp_gga[gga_stamp_index-1];
       }
 
       if (rmc_stamp_index != 0)
@@ -613,7 +601,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     _pitching.header = imu_[i].header;
     _acc_x_offset.header = imu_[i].header;
     _acc_x_scale_factor.header = imu_[i].header;
-    pitching_estimate(imu_[i], fix_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
+    pitching_estimate(imu_[i], gga_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
 
     rolling_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, rolling_parameter_, &rolling_status, &_rolling);
 
@@ -626,7 +614,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
       position_estimate(rtklib_nav_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      position_estimate(fix_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
+      position_estimate(gga_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
 
     _enu_absolute_pos_interpolate.header = imu_[i].header;
     _eagleye_fix.header = imu_[i].header;
@@ -1274,21 +1262,21 @@ void eagleye_pp::smoothingTrajectory(void)
   double enu_smoothing_trajectory[3], llh_smoothing_trajectory[3];
   double tmp_vel_begin,tmp_vle_end,all_vel_begin,all_vel_end;
   double tmp_sum_vel, all_sum_vel;
-  double llh_fix[3];
+  double llh_gga[3];
   double diff_pos_east,diff_pos_north,diff_pos_2d;
   double time_last = 0;
   double outlier_num_1 = 0.3,outlier_num_2 = 1.5;
   bool start_estimate_status = false;
-  std::vector<int> index_fix;
+  std::vector<int> index_gga;
   std::vector<double> tmp_vel,all_vel,diff_time;
   std::vector<double> trajectory_ef,trajectory_er,trajectory_nf,trajectory_nr;
   std::vector<double> ratio;
-  std::size_t fix_length;
+  std::size_t gga_length;
   std::size_t enu_relative_pos_length;
   std::size_t enu_absolute_pos_length;
   std::size_t velocity_scale_factor_length;
   std::size_t flag_reliability_buffer_length;
-  std::size_t index_fix_length;
+  std::size_t index_gga_length;
   std::size_t enu_smoothing_trajectory_length;
 
   struct TrajectoryStatus trajectory_status{};
@@ -1297,13 +1285,13 @@ void eagleye_pp::smoothingTrajectory(void)
   }
 
 
-  fix_length = std::distance(fix_.begin(), fix_.end());
+  gga_length = std::distance(gga_.begin(), gga_.end());
   enu_relative_pos_length = std::distance(enu_relative_pos_.begin(), enu_relative_pos_.end());
   enu_absolute_pos_length = std::distance(enu_absolute_pos_.begin(), enu_absolute_pos_.end());
   velocity_scale_factor_length = std::distance(velocity_scale_factor_.begin(), velocity_scale_factor_.end());
   flag_reliability_buffer_length = std::distance(flag_reliability_buffer_.begin(), flag_reliability_buffer_.end());
 
-  if(fix_length > 0 && fix_length == enu_relative_pos_length && fix_length == enu_absolute_pos_length && fix_length == velocity_scale_factor_length)
+  if(gga_length > 0 && gga_length == enu_relative_pos_length && gga_length == enu_absolute_pos_length && gga_length == velocity_scale_factor_length)
   {
     if (enu_absolute_pos_[enu_absolute_pos_length-1].status.enabled_status == true)
     {
@@ -1311,39 +1299,39 @@ void eagleye_pp::smoothingTrajectory(void)
       tmp_ecef_base[1] = enu_absolute_pos_[enu_absolute_pos_length-1].ecef_base_pos.y;
       tmp_ecef_base[2] = enu_absolute_pos_[enu_absolute_pos_length-1].ecef_base_pos.z;
 
-      for(i = 0; i < fix_length; i++)
+      for(i = 0; i < gga_length; i++)
       {
-        if(flag_reliability_buffer_[i] == true && enu_relative_pos_[i].status.enabled_status == true && time_last != fix_[i].header.stamp.toSec() && fix_[i].status.status !=-1 )
-        // if(enu_relative_pos[i].status.enabled_status == true && time_last != fix[i].header.stamp.toSec() && fix[i].status.status !=-1 )
+        if(flag_reliability_buffer_[i] == true && enu_relative_pos_[i].status.enabled_status == true && time_last != gga_[i].header.stamp.toSec() && gga_[i].gps_qual ==4 )
+        // if(enu_relative_pos[i].status.enabled_status == true && time_last != gga[i].header.stamp.toSec() && gga[i].status.status !=-1 )
         {
-          index_fix.push_back(i);
-          time_last = fix_[i].header.stamp.toSec();
+          index_gga.push_back(i);
+          time_last = gga_[i].header.stamp.toSec();
           start_estimate_status = true;
         }
       }
 
-      index_fix_length = std::distance(index_fix.begin(), index_fix.end());
+      index_gga_length = std::distance(index_gga.begin(), index_gga.end());
 
-      if(index_fix_length > 0)
+      if(index_gga_length > 0)
       {
-        tmp_llh[0] = fix_[index_fix[0]].latitude *M_PI/180;
-        tmp_llh[1] = fix_[index_fix[0]].longitude*M_PI/180;
-        tmp_llh[2] = fix_[index_fix[0]].altitude;
+        tmp_llh[0] = gga_[index_gga[0]].lat *M_PI/180;
+        tmp_llh[1] = gga_[index_gga[0]].lon*M_PI/180;
+        tmp_llh[2] = gga_[index_gga[0]].alt + gga_[index_gga[0]].undulation;
 
         llh2xyz(tmp_llh, tmp_ecef);
         xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu);
 
-        for(i = 0; i < index_fix[0]; i++)
+        for(i = 0; i < index_gga[0]; i++)
         {
-          if(fix_[i].header.stamp.toSec() != 0)
+          if(gga_[i].header.stamp.toSec() != 0)
           {
-            if(time_last != fix_[i].header.stamp.toSec() && fix_[i].status.status !=-1)
+            if(time_last != gga_[i].header.stamp.toSec() &&gga_[i].gps_qual ==4)
             {
               index = i;
-              time_last = fix_[i].header.stamp.toSec();
-              tmp_llh[0] = fix_[i].latitude *M_PI/180;
-              tmp_llh[1] = fix_[i].longitude*M_PI/180;
-              tmp_llh[2] = fix_[i].altitude;
+              time_last = gga_[i].header.stamp.toSec();
+              tmp_llh[0] = gga_[i].lat *M_PI/180;
+              tmp_llh[1] = gga_[i].lon*M_PI/180;
+              tmp_llh[2] = gga_[i].alt + gga_[i].undulation;
 
               llh2xyz(tmp_llh, tmp_ecef);
               xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu);
@@ -1367,56 +1355,56 @@ void eagleye_pp::smoothingTrajectory(void)
           else
           {
             smoothing_trajectory_status_.push_back(2);
-            enu_smoothing_trajectory_east_.push_back(b_enu_relative_pos_[i].enu_pos.x + tmp_enu[0] - b_enu_relative_pos_[index_fix[0]].enu_pos.x);
-            enu_smoothing_trajectory_north_.push_back(b_enu_relative_pos_[i].enu_pos.y + tmp_enu[1] - b_enu_relative_pos_[index_fix[0]].enu_pos.y);
+            enu_smoothing_trajectory_east_.push_back(b_enu_relative_pos_[i].enu_pos.x + tmp_enu[0] - b_enu_relative_pos_[index_gga[0]].enu_pos.x);
+            enu_smoothing_trajectory_north_.push_back(b_enu_relative_pos_[i].enu_pos.y + tmp_enu[1] - b_enu_relative_pos_[index_gga[0]].enu_pos.y);
             enu_smoothing_trajectory_height_.push_back(tmp_enu[2]);
           }
         }
 
-        for(i = 1; i < index_fix_length; i++)
+        for(i = 1; i < index_gga_length; i++)
         {
-          tmp_llh[0] = fix_[index_fix[i-1]].latitude *M_PI/180;
-          tmp_llh[1] = fix_[index_fix[i-1]].longitude*M_PI/180;
-          tmp_llh[2] = fix_[index_fix[i-1]].altitude;
+          tmp_llh[0] = gga_[index_gga[i-1]].lat *M_PI/180;
+          tmp_llh[1] = gga_[index_gga[i-1]].lon*M_PI/180;
+          tmp_llh[2] = gga_[index_gga[i-1]].alt + gga_[index_gga[i-1]].undulation;
 
           llh2xyz(tmp_llh, tmp_ecef);
           xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu_f);
 
-          tmp_llh[0] = fix_[index_fix[i]].latitude *M_PI/180;
-          tmp_llh[1] = fix_[index_fix[i]].longitude*M_PI/180;
-          tmp_llh[2] = fix_[index_fix[i]].altitude;
+          tmp_llh[0] = gga_[index_gga[i]].lat *M_PI/180;
+          tmp_llh[1] = gga_[index_gga[i]].lon*M_PI/180;
+          tmp_llh[2] = gga_[index_gga[i]].alt + gga_[index_gga[i]].undulation;
 
           llh2xyz(tmp_llh, tmp_ecef);
           xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu_r);
-          enu2llh(tmp_enu_r, tmp_ecef_base, llh_fix);
+          enu2llh(tmp_enu_r, tmp_ecef_base, llh_gga);
 
-          interval_count =  index_fix[i] - index_fix[i-1] ;
+          interval_count =  index_gga[i] - index_gga[i-1] ;
 
           for(j = 0; j < interval_count; j++)
           {
-            diff_time.push_back(velocity_scale_factor_[index_fix[i-1]+1 + j].header.stamp.toSec() - velocity_scale_factor_[index_fix[i-1]+1 + j-1].header.stamp.toSec());
-            tmp_vel.push_back(velocity_scale_factor_[index_fix[i-1]+1 + j].correction_velocity.linear.x);
-            all_vel.push_back(velocity_scale_factor_[index_fix[i-1]+1 + j].correction_velocity.linear.x);
+            diff_time.push_back(velocity_scale_factor_[index_gga[i-1]+1 + j].header.stamp.toSec() - velocity_scale_factor_[index_gga[i-1]+1 + j-1].header.stamp.toSec());
+            tmp_vel.push_back(velocity_scale_factor_[index_gga[i-1]+1 + j].correction_velocity.linear.x);
+            all_vel.push_back(velocity_scale_factor_[index_gga[i-1]+1 + j].correction_velocity.linear.x);
           }
 
           for(j = 0; j < interval_count; j++)
           {
-            trajectory_ef.push_back(enu_relative_pos_[index_fix[i-1]+j].enu_pos.x + tmp_enu_f[0] - enu_relative_pos_[index_fix[i-1]].enu_pos.x);
-            trajectory_nf.push_back(enu_relative_pos_[index_fix[i-1]+j].enu_pos.y + tmp_enu_f[1] - enu_relative_pos_[index_fix[i-1]].enu_pos.y);
-            trajectory_er.push_back(enu_relative_pos_[index_fix[i-1]+j].enu_pos.x + tmp_enu_r[0] - enu_relative_pos_[index_fix[i-1] + interval_count].enu_pos.x);
-            trajectory_nr.push_back(enu_relative_pos_[index_fix[i-1]+j].enu_pos.y + tmp_enu_r[1] - enu_relative_pos_[index_fix[i-1] + interval_count].enu_pos.y);
+            trajectory_ef.push_back(enu_relative_pos_[index_gga[i-1]+j].enu_pos.x + tmp_enu_f[0] - enu_relative_pos_[index_gga[i-1]].enu_pos.x);
+            trajectory_nf.push_back(enu_relative_pos_[index_gga[i-1]+j].enu_pos.y + tmp_enu_f[1] - enu_relative_pos_[index_gga[i-1]].enu_pos.y);
+            trajectory_er.push_back(enu_relative_pos_[index_gga[i-1]+j].enu_pos.x + tmp_enu_r[0] - enu_relative_pos_[index_gga[i-1] + interval_count].enu_pos.x);
+            trajectory_nr.push_back(enu_relative_pos_[index_gga[i-1]+j].enu_pos.y + tmp_enu_r[1] - enu_relative_pos_[index_gga[i-1] + interval_count].enu_pos.y);
 
             if (j == 1)
             {
-              diff_pos_east = (enu_relative_pos_[index_fix[i-1]+j].enu_pos.x + tmp_enu_f[0] - enu_relative_pos_[index_fix[i-1]].enu_pos.x) - (enu_relative_pos_[index_fix[i-1]+j].enu_pos.x + tmp_enu_r[0] - enu_relative_pos_[index_fix[i-1] + interval_count].enu_pos.x);
-              diff_pos_north = (enu_relative_pos_[index_fix[i-1]+j].enu_pos.y + tmp_enu_f[1] - enu_relative_pos_[index_fix[i-1]].enu_pos.y) - (enu_relative_pos_[index_fix[i-1]+j].enu_pos.y + tmp_enu_r[1] - enu_relative_pos_[index_fix[i-1] + interval_count].enu_pos.y);
+              diff_pos_east = (enu_relative_pos_[index_gga[i-1]+j].enu_pos.x + tmp_enu_f[0] - enu_relative_pos_[index_gga[i-1]].enu_pos.x) - (enu_relative_pos_[index_gga[i-1]+j].enu_pos.x + tmp_enu_r[0] - enu_relative_pos_[index_gga[i-1] + interval_count].enu_pos.x);
+              diff_pos_north = (enu_relative_pos_[index_gga[i-1]+j].enu_pos.y + tmp_enu_f[1] - enu_relative_pos_[index_gga[i-1]].enu_pos.y) - (enu_relative_pos_[index_gga[i-1]+j].enu_pos.y + tmp_enu_r[1] - enu_relative_pos_[index_gga[i-1] + interval_count].enu_pos.y);
               diff_pos_2d = sqrt( pow((diff_pos_east), 2.0) + pow((diff_pos_north), 2.0));
             }
 
-            tmp_vel_begin = velocity_scale_factor_[index_fix[i-1]+1].correction_velocity.linear.x;
-            tmp_vle_end = velocity_scale_factor_[index_fix[i-1] + j-1].correction_velocity.linear.x;
-            all_vel_begin  = velocity_scale_factor_[index_fix[i-1]+1].correction_velocity.linear.x;
-            all_vel_end = velocity_scale_factor_[index_fix[i]].correction_velocity.linear.x;
+            tmp_vel_begin = velocity_scale_factor_[index_gga[i-1]+1].correction_velocity.linear.x;
+            tmp_vle_end = velocity_scale_factor_[index_gga[i-1] + j-1].correction_velocity.linear.x;
+            all_vel_begin  = velocity_scale_factor_[index_gga[i-1]+1].correction_velocity.linear.x;
+            all_vel_end = velocity_scale_factor_[index_gga[i]].correction_velocity.linear.x;
 
             tmp_sum_vel = std::accumulate(tmp_vel.begin(), tmp_vel.begin() + j, 0.0);
             all_sum_vel = std::accumulate(all_vel.begin(), all_vel.end(), 0.0);
@@ -1457,11 +1445,11 @@ void eagleye_pp::smoothingTrajectory(void)
           ratio.clear();
         }
 
-        for(i = index_fix[0]; i < index_fix[index_fix_length-1]; i++)
+        for(i = index_gga[0]; i < index_gga[index_gga_length-1]; i++)
         {
-          tmp_llh[0] = fix_[i].latitude *M_PI/180;
-          tmp_llh[1] = fix_[i].longitude*M_PI/180;
-          tmp_llh[2] = fix_[i].altitude;
+          tmp_llh[0] = gga_[i].lat *M_PI/180;
+          tmp_llh[1] = gga_[i].lon*M_PI/180;
+          tmp_llh[2] = gga_[i].alt + gga_[i].undulation;
 
           llh2xyz(tmp_llh, tmp_ecef);
           xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu);
@@ -1469,24 +1457,24 @@ void eagleye_pp::smoothingTrajectory(void)
           enu_smoothing_trajectory_height_.push_back(tmp_enu[2]);
         }
 
-        tmp_llh[0] = fix_[index_fix[index_fix_length-1]].latitude *M_PI/180;
-        tmp_llh[1] = fix_[index_fix[index_fix_length-1]].longitude*M_PI/180;
-        tmp_llh[2] = fix_[index_fix[index_fix_length-1]].altitude;
+        tmp_llh[0] = gga_[index_gga[index_gga_length-1]].lat *M_PI/180;
+        tmp_llh[1] = gga_[index_gga[index_gga_length-1]].lon*M_PI/180;
+        tmp_llh[2] = gga_[index_gga[index_gga_length-1]].alt + gga_[index_gga[index_gga_length-1]].undulation;
 
         llh2xyz(tmp_llh, tmp_ecef);
         xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu);
 
-        for(i = index_fix[index_fix_length-1]; i < fix_length; i++)
+        for(i = index_gga[index_gga_length-1]; i < gga_length; i++)
         {
           int index;
 
-          if(time_last != fix_[i].header.stamp.toSec() && fix_[i].status.status !=-1)
+          if(time_last != gga_[i].header.stamp.toSec() &&gga_[i].gps_qual ==4)
           {
             index = i;
-            time_last = fix_[i].header.stamp.toSec();
-            tmp_llh[0] = fix_[i].latitude *M_PI/180;
-            tmp_llh[1] = fix_[i].longitude*M_PI/180;
-            tmp_llh[2] = fix_[i].altitude;
+            time_last = gga_[i].header.stamp.toSec();
+            tmp_llh[0] = gga_[i].lat *M_PI/180;
+            tmp_llh[1] = gga_[i].lon*M_PI/180;
+            tmp_llh[2] = gga_[i].alt + gga_[i].undulation;
 
             llh2xyz(tmp_llh, tmp_ecef);
             xyz2enu(tmp_ecef, tmp_ecef_base, tmp_enu);
@@ -1500,7 +1488,7 @@ void eagleye_pp::smoothingTrajectory(void)
       }
       else
       {
-        for(i = 0; i < fix_length; i++)
+        for(i = 0; i < gga_length; i++)
         {
           smoothing_trajectory_status_.push_back(-1);
           enu_smoothing_trajectory_east_.push_back(0);
@@ -1542,8 +1530,6 @@ void eagleye_pp::convertHeight(void)
     {
       convert_height.setLLH(rtklib_nav_[i].status.latitude, rtklib_nav_[i].status.longitude, rtklib_nav_[i].status.altitude);
       rtklib_nav_[i].status.altitude = convert_height.convert2altitude();
-      convert_height.setLLH(fix_[i].latitude, fix_[i].longitude, fix_[i].altitude);
-      fix_[i].altitude = convert_height.convert2altitude();
       convert_height.setLLH(eagleye_fix_[i].latitude, eagleye_fix_[i].longitude, eagleye_fix_[i].altitude);
       eagleye_fix_[i].altitude = convert_height.convert2altitude();
       convert_height.setLLH(b_eagleye_fix_[i].latitude, b_eagleye_fix_[i].longitude, b_eagleye_fix_[i].altitude);
@@ -1558,8 +1544,6 @@ void eagleye_pp::convertHeight(void)
     {
       convert_height.setLLH(rtklib_nav_[i].status.latitude, rtklib_nav_[i].status.longitude, rtklib_nav_[i].status.altitude);
       rtklib_nav_[i].status.altitude = convert_height.convert2ellipsoid();
-      convert_height.setLLH(fix_[i].latitude, fix_[i].longitude, fix_[i].altitude);
-      fix_[i].altitude = convert_height.convert2ellipsoid();
       convert_height.setLLH(eagleye_fix_[i].latitude, eagleye_fix_[i].longitude, eagleye_fix_[i].altitude);
       eagleye_fix_[i].altitude = convert_height.convert2ellipsoid();
       convert_height.setLLH(b_eagleye_fix_[i].latitude, b_eagleye_fix_[i].longitude, b_eagleye_fix_[i].altitude);
@@ -1590,7 +1574,7 @@ void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg
   std::stringstream gnss_plot;
   std::stringstream eagleye_pp_plot;
 
-  int rtknav_seq_last = 0, fix_seq_last = 0;
+  int rtknav_seq_last = 0, gga_seq_last = 0;
   double driving_distance = 0, driving_distance_last = 0, driving_distance_last2 = 0, driving_distance_last3 = 0, driving_distance_last4 = 0, driving_distance_last5 = 0;
 
   if (!boost::filesystem::is_directory(outputpath_))
@@ -2163,7 +2147,7 @@ for(int i = 0; i < data_length_; i++)
       rtknav_seq_last = rtklib_nav_[i].header.seq;
     }
 
-    if (fix_[i].header.seq - fix_seq_last != 0)
+    if (gga_[i].header.seq - gga_seq_last != 0)
     {
       gnss_plot << "\t<Placemark>\n\
       \t\t<name>GNSS Receiver</name>\n\
@@ -2173,30 +2157,30 @@ for(int i = 0; i < data_length_; i++)
       \t\t\t<TABLE border=\"1\" width=\"100%\" Align=\"center\">\n\
       \t\t\t\t<TR ALIGN=RIGHT>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Sequence Number: </TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.seq;
+      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.seq;
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Timestamp:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.stamp.toNSec();
+      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec();
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Status:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << int(fix_[i].status.status);
+      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual);
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Service:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].status.service;
+      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << 0;
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Latitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << " [deg]";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << " [deg]";
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Longitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << " [deg]";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << " [deg]";
       gnss_plot << "</TD></TR>\n\
       \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Altitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].altitude << " [m]";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << " [m]";
       gnss_plot << "</TD></TR>\n\
       \t\t\t</TABLE>\n\
       ]]></description>\n\
       \t\t<styleUrl>";
-      if(fix_[i].status.status == -1)
+      if(gga_[i].gps_qual != 4)
       {
         gnss_plot << "#GNSS";
       }
@@ -2207,14 +2191,14 @@ for(int i = 0; i < data_length_; i++)
       gnss_plot << "</styleUrl>\n\
       \t\t<Point>\n\
       \t\t\t<coordinates>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ",";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ",";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].altitude << ",";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ",";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ",";
+      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << ",";
       gnss_plot << "</coordinates>\n\
       \t\t</Point>\n\
       \t</Placemark>\
       " << std::endl;
-      fix_seq_last = fix_[i].header.seq;
+      gga_seq_last = gga_[i].header.seq;
     }
   }
 
@@ -2348,7 +2332,7 @@ void eagleye_pp::writeLineKML(bool arg_use_rtk_navsatfix_topic, std::string* arg
   std::stringstream eagleye_back_line;
   std::stringstream eagleye_pp_line;
 
-  int rtknav_seq_last = 0,fix_seq_last = 0;
+  int rtknav_seq_last = 0,gga_seq_last = 0;
   double driving_distance = 0,driving_distance_last = 0,driving_distance_last2 = 0,driving_distance_last3 = 0,driving_distance_last4 = 0,driving_distance_last5 = 0;
 
   if(!boost::filesystem::is_directory(outputpath_))
@@ -2438,9 +2422,9 @@ for(int i = 0; i<data_length_; i++)
     rtknav_seq_last = rtklib_nav_[i].header.seq;
   }
 
-  if (fix_[i].header.seq - fix_seq_last != 0)
+  if (gga_[i].header.seq - gga_seq_last != 0)
   {
-    fix_seq_last = fix_[i].header.seq;
+    gga_seq_last = gga_[i].header.seq;
   }
 }
 
@@ -2530,9 +2514,8 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
 ,eagleye_acceleration.orientation_covariance[0],eagleye_acceleration.orientation_covariance[1],eagleye_acceleration.orientation_covariance[2],eagleye_acceleration.orientation_covariance[3],eagleye_acceleration.orientation_covariance[4],eagleye_acceleration.orientation_covariance[5],eagleye_acceleration.orientation_covariance[6],eagleye_acceleration.orientation_covariance[7],eagleye_acceleration.orientation_covariance[8]\
 ,eagleye_posture.roll,eagleye_posture.pitch,eagleye_posture.yaw\
 ,eagleye_posture.orientation_covariance[0],eagleye_posture.orientation_covariance[1],eagleye_posture.orientation_covariance[2],eagleye_posture.orientation_covariance[3],eagleye_posture.orientation_covariance[4],eagleye_posture.orientation_covariance[5],eagleye_posture.orientation_covariance[6],eagleye_posture.orientation_covariance[7],eagleye_posture.orientation_covariance[8]\
-,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
-,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
-,navsat_llh.status\
+,navsat_gga.latitude,navsat_gga.longitude,navsat_gga.altitude\
+,navsat_gga.gps_qual\
 ,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
 ,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
 ,eagleye_pp_llh.status\
@@ -2603,19 +2586,10 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ","; //navsat_llh.latitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ","; //navsat_llh.longitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].altitude << ","; //navsat_llh.altitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[0] << ","; //navsat_llh.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[1] << ","; //navsat_llh.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[2] << ","; //navsat_llh.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[3] << ","; //navsat_llh.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[4] << ","; //navsat_llh.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[5] << ","; //navsat_llh.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[6] << ","; //navsat_llh.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[7] << ","; //navsat_llh.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[8] << ","; //navsat_llh.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(fix_[i].status.status) << ","; //navsat_llh.status
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //navsat_gga.latitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //navsat_gga.longitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; //navsat_gga.altitude
+    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //navsat_gga.gps_qual
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ","; //eagleye_pp_llh.longitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ","; //eagleye_pp_llh.altitude
@@ -2674,10 +2648,9 @@ void eagleye_pp::writeDetailCSV(void)
 ,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
 ,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
 ,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
-,navsat_timestamp\
-,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
-,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
-,navsat_llh.status\
+,gga_timestamp\
+,gga_llh.latitude,gga_llh.longitude,gga_llh.altitude\
+,gga_llh.gps_equal\
 ,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
 ,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
 ,eagleye_pp_llh.status\
@@ -2795,20 +2768,11 @@ void eagleye_pp::writeDetailCSV(void)
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rolling_[i].rolling_angle << ",";
       output_log_csv_file << (rolling_[i].status.enabled_status ? "1" : "0") << ",";
       output_log_csv_file << (rolling_[i].status.estimate_status ? "1" : "0") << ",";
-      output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.stamp.toNSec() << ","; //timestamp
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ","; //navsat_llh.latitude
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ","; //navsat_llh.longitude
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].altitude << ","; //navsat_llh.altitude
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[0] << ","; //navsat_llh.orientation_covariance[0]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[1] << ","; //navsat_llh.orientation_covariance[1]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[2] << ","; //navsat_llh.orientation_covariance[2]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[3] << ","; //navsat_llh.orientation_covariance[3]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[4] << ","; //navsat_llh.orientation_covariance[4]_
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[5] << ","; //navsat_llh.orientation_covariance[5]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[6] << ","; //navsat_llh.orientation_covariance[6]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[7] << ","; //navsat_llh.orientation_covariance[7]
-      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[8] << ","; //navsat_llh.orientation_covariance[8]
-      output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(fix_[i].status.status) << ","; //navsat_llh.status
+      output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; //timestamp
+      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //gga_llh.latitude
+      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //gga_llh.longitude
+      output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << ","; //gga_llh.altitude
+      output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //gga_llh.gps_qual
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ","; //eagleye_pp_llh.longitude
       output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ","; //eagleye_pp_llh.altitude
@@ -2856,10 +2820,9 @@ void eagleye_pp::writeDetailCSV(void)
 ,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
 ,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
 ,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
-,navsat_timestamp\
-,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
-,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
-,navsat_llh.status\
+,gga_timestamp\
+,gga_llh.latitude,gga_llh.longitude,gga_llh.altitude\
+,gga_llh.gps_qual\
 ,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
 ,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
 ,eagleye_pp_llh.status\
@@ -2976,20 +2939,11 @@ void eagleye_pp::writeDetailCSV(void)
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << b_rolling_[i].rolling_angle << ",";
       output_log_back_csv_file << (b_rolling_[i].status.enabled_status ? "1" : "0") << ",";
       output_log_back_csv_file << (b_rolling_[i].status.estimate_status ? "1" : "0") << ",";
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << fix_[i].header.stamp.toNSec() << ","; //timestamp
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].latitude << ","; //navsat_llh.latitude
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].longitude << ","; //navsat_llh.longitude
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].altitude << ","; //navsat_llh.altitude
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[0] << ","; //navsat_llh.orientation_covariance[0]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[1] << ","; //navsat_llh.orientation_covariance[1]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[2] << ","; //navsat_llh.orientation_covariance[2]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[3] << ","; //navsat_llh.orientation_covariance[3]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[4] << ","; //navsat_llh.orientation_covariance[4]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[5] << ","; //navsat_llh.orientation_covariance[5]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[6] << ","; //navsat_llh.orientation_covariance[6]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[7] << ","; //navsat_llh.orientation_covariance[7]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << fix_[i].position_covariance[8] << ","; //navsat_llh.orientation_covariance[8]
-      output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(fix_[i].status.status) << ","; //navsat_llh.status
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; //timestamp
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //gga_llh.latitude
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //gga_llh.longitude
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; //gga_llh.altitude
+      output_log_back_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //gga_llh.gps_qual
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ","; //eagleye_pp_llh.longitude
       output_log_back_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ","; //eagleye_pp_llh.altitude

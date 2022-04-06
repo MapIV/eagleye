@@ -66,7 +66,6 @@ int main(int argc, char *argv[])
   std::string twist_topic = "/can_twist";
   std::string imu_topic = "/imu/data_raw";
   std::string rtklib_nav_topic = "/rtklib_nav";
-  std::string navsatfix_topic = "/navsat/fix";
   std::string nmea_sentence_topic = "/navsat/nmea_sentence";
   bool nmea_data_flag = false;
   bool use_rtk_navsatfix_topic = false;
@@ -74,7 +73,7 @@ int main(int argc, char *argv[])
 
   YAML::Node conf = YAML::LoadFile(config_file);
     
-  eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &navsatfix_topic, &nmea_sentence_topic);
+  eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
   std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
 
@@ -100,15 +99,10 @@ int main(int argc, char *argv[])
   {
     std::cerr << "\033[1;31mError: Cannot find the topic (Please change the Estimation mode): " << nmea_sentence_topic << "\033[0m" << std::endl;
     exit(1);
-  } 
-  else if (rosbag_controller.setTopic(std::string(navsatfix_topic)))
-  {
-    std::cout << "NavSatFix topic: " << navsatfix_topic << std::endl;
-    use_rtk_navsatfix_topic = true;
   }
   else
   {
-    std::cout << "\033[1;33mWarn: Cannot find the topic: " << nmea_sentence_topic << " or " << navsatfix_topic << "\033[0m" << std::endl;
+    std::cout << "\033[1;33mWarn: Cannot find the topic: " << nmea_sentence_topic  << "\033[0m" << std::endl;
     use_rtk_navsatfix_topic = false;
   }
 

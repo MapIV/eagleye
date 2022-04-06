@@ -37,8 +37,8 @@
 
 static sensor_msgs::Imu imu;
 static rtklib_msgs::RtklibNav rtklib_nav;
-static sensor_msgs::NavSatFix fix;
-static sensor_msgs::NavSatFix navsat_fix;
+static sensor_msgs::NavSatFix rtklib_fix;
+static nmea_msgs::Gpgga gga;
 static geometry_msgs::TwistStamped velocity;
 static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::Distance distance;
@@ -61,12 +61,12 @@ static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 static geometry_msgs::TwistStamped eagleye_twist;
 
-static bool navsat_fix_sub_status;
+static bool gga_sub_status;
 static bool print_status;
 
 static double imu_time_last;
 static double rtklib_nav_time_last;
-static double navsat_fix_time_last;
+static double navsat_gga_time_last;
 static double velocity_time_last;
 static double velocity_scale_factor_time_last;
 static double distance_time_last;
@@ -92,188 +92,123 @@ static double th_gnss_deadrock_time = 10;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  rtklib_nav = *msg;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void rtklib_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  rtklib_fix = *msg;
 }
 
-void navsatfix_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void navsatfix_gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  navsat_fix.header = msg->header;
-  navsat_fix.status = msg->status;
-  navsat_fix.latitude = msg->latitude;
-  navsat_fix.longitude = msg->longitude;
-  navsat_fix.altitude = msg->altitude;
-  navsat_fix.position_covariance = msg->position_covariance;
-  navsat_fix.position_covariance_type = msg->position_covariance_type;
-  navsat_fix_sub_status = true;
+  gga = *msg;
+  gga_sub_status = true;
 }
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  velocity.header = msg->header;
-  velocity.twist = msg->twist;
+  velocity = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  distance = *msg;
 }
 
 void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_1st.header = msg->header;
-  heading_1st.heading_angle = msg->heading_angle;
-  heading_1st.status = msg->status;
+  heading_1st = *msg;
 }
 
 void heading_interpolate_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_1st.header = msg->header;
-  heading_interpolate_1st.heading_angle = msg->heading_angle;
-  heading_interpolate_1st.status = msg->status;
+  heading_interpolate_1st = *msg;
 }
 
 void heading_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_2nd.header = msg->header;
-  heading_2nd.heading_angle = msg->heading_angle;
-  heading_2nd.status = msg->status;
+  heading_2nd = *msg;
 }
 
 void heading_interpolate_2nd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_2nd.header = msg->header;
-  heading_interpolate_2nd.heading_angle = msg->heading_angle;
-  heading_interpolate_2nd.status = msg->status;
+  heading_interpolate_2nd = *msg;
 }
 
 void heading_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_3rd.header = msg->header;
-  heading_3rd.heading_angle = msg->heading_angle;
-  heading_3rd.status = msg->status;
+  heading_3rd = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  heading_interpolate_3rd = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_stop.status = msg->status;
+  yawrate_offset_stop = *msg;
 }
 
 void yawrate_offset_1st_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_1st.header = msg->header;
-  yawrate_offset_1st.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_1st.status = msg->status;
+  yawrate_offset_1st = *msg;
 }
 
 void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  yawrate_offset_2nd.header = msg->header;
-  yawrate_offset_2nd.yawrate_offset = msg->yawrate_offset;
-  yawrate_offset_2nd.status = msg->status;
+  yawrate_offset_2nd = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 {
-  slip_angle.header = msg->header;
-  slip_angle.coefficient = msg->coefficient;
-  slip_angle.slip_angle = msg->slip_angle;
-  slip_angle.status = msg->status;
+  slip_angle = *msg;
 }
 
 void enu_relative_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  enu_relative_pos.header = msg->header;
-  enu_relative_pos.enu_pos = msg->enu_pos;
-  enu_relative_pos.ecef_base_pos = msg->ecef_base_pos;
-  enu_relative_pos.status = msg->status;
+  enu_relative_pos = *msg;
 }
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
+  enu_vel = *msg;
 }
 
 void enu_absolute_pos_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  enu_absolute_pos.header = msg->header;
-  enu_absolute_pos.enu_pos = msg->enu_pos;
-  enu_absolute_pos.ecef_base_pos = msg->ecef_base_pos;
-  enu_absolute_pos.status = msg->status;
+  enu_absolute_pos = *msg;
 }
 
 void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
 {
-  height.header = msg->header;
-  height.height = msg->height;
-  height.status = msg->status;
+  height = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 {
-  pitching.header = msg->header;
-  pitching.pitching_angle = msg->pitching_angle;
-  pitching.status = msg->status;
+  pitching = *msg;
 }
-
 
 void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  enu_absolute_pos_interpolate.header = msg->header;
-  enu_absolute_pos_interpolate.enu_pos = msg->enu_pos;
-  enu_absolute_pos_interpolate.ecef_base_pos = msg->ecef_base_pos;
-  enu_absolute_pos_interpolate.status = msg->status;
+  enu_absolute_pos_interpolate = *msg;
 }
 
 void eagleye_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
-  eagleye_fix.header = msg->header;
-  eagleye_fix.status = msg->status;
-  eagleye_fix.latitude = msg->latitude;
-  eagleye_fix.longitude = msg->longitude;
-  eagleye_fix.altitude = msg->altitude;
-  eagleye_fix.position_covariance = msg->position_covariance;
-  eagleye_fix.position_covariance_type = msg->position_covariance_type;
+  eagleye_fix = *msg;
 }
 
 void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
-  eagleye_twist.header = msg->header;
-  eagleye_twist.twist = msg->twist;
+  eagleye_twist = *msg;
 }
 
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -307,12 +242,12 @@ void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (navsat_fix_time_last - navsat_fix.header.stamp.toSec() > th_gnss_deadrock_time || !navsat_fix_sub_status) {
+  if (navsat_gga_time_last - gga.header.stamp.toSec() > th_gnss_deadrock_time || !gga_sub_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
 
-  navsat_fix_time_last = navsat_fix.header.stamp.toSec();
+  navsat_gga_time_last = gga.header.stamp.toSec();
   stat.summary(level, msg);
 }
 void velocity_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -731,15 +666,15 @@ void printStatus(void)
   std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<rtklib_nav.status.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
 
-  std::cout << "--- \033[1;34m navsat(input)\033[m ------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m gga(input)\033[m ------------------------------"<< std::endl;
 
-  if(navsat_fix_sub_status)
+  if(gga_sub_status)
   {
-    std::cout<< "\033[1m rtk status \033[m "<<int(navsat_fix.status.status)<<std::endl;
-    std::cout<< "\033[1m rtk status \033[m "<<(navsat_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
-    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<navsat_fix.latitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<navsat_fix.longitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<navsat_fix.altitude<<" [m]"<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<int(gga.gps_qual)<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<(int(gga.gps_qual)!=4 ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
+    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<gga.lat<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<gga.lon<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<gga.alt + gga.undulation<<" [m]"<<std::endl;
     std::cout << std::endl;
   }
   else
@@ -828,18 +763,17 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/navsatfix/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   n.getParam("twist_topic",subscribe_twist_topic_name);
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
   n.getParam("monitor/print_status",print_status);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<print_status<<std::endl;
 
   // // Diagnostic Updater
@@ -870,8 +804,8 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, rtklib_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = n.subscribe(subscribe_gga_topic_name, 1000, navsatfix_gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());

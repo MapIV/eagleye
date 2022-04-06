@@ -361,7 +361,7 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityS
   position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }
 
-void position_estimate(sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
+void position_estimate(nmea_msgs::Gpgga gga,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
   double llh_pos[3];
   double enu_pos[3];
@@ -369,15 +369,15 @@ void position_estimate(sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFac
   double ecef_base_pos[3];
   bool gnss_update_failure;
 
-  llh_pos[0] = fix.latitude *M_PI/180;
-  llh_pos[1] = fix.longitude *M_PI/180;
-  llh_pos[2] = fix.altitude;
+  llh_pos[0] = gga.lat *M_PI/180;
+  llh_pos[1] = gga.lon *M_PI/180;
+  llh_pos[2] = gga.alt + gga.undulation;
   
   llh2xyz(llh_pos,ecef_pos);
 
   if(enu_absolute_pos->ecef_base_pos.x == 0 && enu_absolute_pos->ecef_base_pos.y == 0 && enu_absolute_pos->ecef_base_pos.z == 0)
   {
-    if (fix.header.stamp.toSec() != 0)
+    if (gga.header.stamp.toSec() != 0)
     {
       enu_absolute_pos->ecef_base_pos.x = ecef_pos[0];
       enu_absolute_pos->ecef_base_pos.y = ecef_pos[1];
@@ -415,7 +415,7 @@ void position_estimate(sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFac
     gnss_update_failure = false;
   }
 
-  if (position_status->nmea_time_last == fix.header.stamp.toSec() || enu_vel.header.stamp.toSec() == 0)
+  if (position_status->nmea_time_last == gga.header.stamp.toSec() || enu_vel.header.stamp.toSec() == 0)
   {
     enu_pos[0] = 0.0;
     enu_pos[1] = 0.0;
@@ -431,7 +431,7 @@ void position_estimate(sensor_msgs::NavSatFix fix,eagleye_msgs::VelocityScaleFac
   position_status->enu_pos[1] = enu_pos[1];
   position_status->enu_pos[2] = enu_pos[2];
   position_status->gnss_update_failure = gnss_update_failure;
-  position_status->nmea_time_last = fix.header.stamp.toSec();
+  position_status->nmea_time_last = gga.header.stamp.toSec();
 
   position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }
