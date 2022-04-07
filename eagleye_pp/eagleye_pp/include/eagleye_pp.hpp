@@ -140,6 +140,9 @@ class eagleye_pp
   std::size_t getDataLength();
   std::string getUseGNSSMode();
   std::vector<rtklib_msgs::RtklibNav> getRtklibNavVector();
+  bool getUseBackward();
+  bool getUseCombination();
+
 
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);
