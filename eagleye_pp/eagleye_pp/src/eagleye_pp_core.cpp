@@ -1583,7 +1583,7 @@ void eagleye_pp::convertHeight(void)
   }
 }
 
-void eagleye_pp::writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name, EagleyeStates eagleye_state, int i)
+void eagleye_pp::writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name,const EagleyeStates& eagleye_state, int i)
 {
   *eagleye_plot << "\t\t<Placemark>\n\
   \t\t\t<name>" << name << "</name>\n\

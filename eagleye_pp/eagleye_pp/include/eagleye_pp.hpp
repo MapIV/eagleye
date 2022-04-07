@@ -158,7 +158,7 @@ class eagleye_pp
   void convertHeight();
 
   // output function
-  void writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name, EagleyeStates eagleye_state, int i);
+  void writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name, const EagleyeStates& eagleye_state, int i);
 
   void writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
   void addHeaderLineKML(std::ofstream* output_line_kml_file);
