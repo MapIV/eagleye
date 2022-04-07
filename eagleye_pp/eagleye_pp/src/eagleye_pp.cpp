@@ -140,19 +140,25 @@ int main(int argc, char *argv[])
   std::cout << std::endl << "forward estimation finish" <<  std::endl;
 
   //Backward
-  forward_flag = false;
-  eagleye_pp.estimatingEagleye(forward_flag);
-  std::cout << std::endl << "backward estimation finish" <<  std::endl;
+  if(eagleye_pp.getUseBackward())
+  {
+    forward_flag = false;
+    eagleye_pp.estimatingEagleye(forward_flag);
+    std::cout << std::endl << "backward estimation finish" <<  std::endl;
+  }
   
   if(use_rtklib_topic)
   {
     eagleye_pp.smoothingDeadReckoning();
-    std::cout << std::endl << "smotthing dead reckoning finish" <<  std::endl;
+    std::cout << std::endl << "smoothing dead reckoning finish" <<  std::endl;
   }
 
   // forward/backward combination
-  std::cout << "start eagleye forward/backward combination processing!" << std::endl;
-  eagleye_pp.smoothingTrajectory();
+  if(eagleye_pp.getUseCombination())
+  {
+    std::cout << "start eagleye forward/backward combination processing!" << std::endl;
+    eagleye_pp.smoothingTrajectory();
+  }
 
   // Convert height
   eagleye_pp.convertHeight();

@@ -56,34 +56,42 @@ class eagleye_pp
   std::vector<nmea_msgs::Gpgga> gga_;
   std::vector<nmea_msgs::Gprmc> rmc_;
 
-  std::vector<bool> flag_reliability_buffer_,b_flag_reliability_buffer_;
+  struct EagleyeStates
+  {
+    std::vector<bool> flag_reliability_buffer;
+    std::vector<double> enu_smoothing_trajectory_east;
+    std::vector<double> smoothing_trajectory_status;
+    std::vector<double> llh_smoothing_trajectory_lat;
+    std::vector<eagleye_msgs::VelocityScaleFactor> velocity_scale_factor;
+    std::vector<eagleye_msgs::Distance> distance;
+    std::vector<eagleye_msgs::Heading> heading_1st; 
+    std::vector<eagleye_msgs::Heading> heading_interpolate_1st;
+    std::vector<eagleye_msgs::Heading> heading_2nd;
+    std::vector<eagleye_msgs::Heading> heading_interpolate_2nd;
+    std::vector<eagleye_msgs::Heading> heading_3rd;
+    std::vector<eagleye_msgs::Heading> heading_interpolate_3rd;
+    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_stop;
+    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_1st;
+    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_2nd;
+    std::vector<eagleye_msgs::SlipAngle> slip_angle;
+    std::vector<eagleye_msgs::Height> height;
+    std::vector<eagleye_msgs::Pitching> pitching;
+    std::vector<eagleye_msgs::AccXOffset> acc_x_offset;
+    std::vector<eagleye_msgs::AccXScaleFactor> acc_x_scale_factor;
+    std::vector<eagleye_msgs::Position> enu_relative_pos;
+    std::vector<geometry_msgs::Vector3Stamped> enu_vel;
+    std::vector<eagleye_msgs::Position> enu_absolute_pos;
+    std::vector<eagleye_msgs::Position> enu_absolute_pos_interpolate; 
+    std::vector<eagleye_msgs::Position> gnss_smooth_pos_enu;
+    std::vector<eagleye_msgs::Rolling> rolling;
+    std::vector<sensor_msgs::NavSatFix> eagleye_fix;
+    std::vector<geometry_msgs::TwistStamped> eagleye_twist;
+  };
+
+  EagleyeStates eagleye_state_forward_, eagleye_state_backward_;
   std::vector<double> enu_smoothing_trajectory_east_, enu_smoothing_trajectory_north_, enu_smoothing_trajectory_height_;
   std::vector<double> smoothing_trajectory_status_;
   std::vector<double> llh_smoothing_trajectory_lat_,llh_smoothing_trajectory_lon_,llh_smoothing_trajectory_hei_;
-  std::vector<eagleye_msgs::VelocityScaleFactor> velocity_scale_factor_,b_velocity_scale_factor_;
-  std::vector<eagleye_msgs::Distance> distance_,b_distance_;
-  std::vector<eagleye_msgs::Heading> heading_1st_,b_heading_1st_; 
-  std::vector<eagleye_msgs::Heading> heading_interpolate_1st_,b_heading_interpolate_1st_;
-  std::vector<eagleye_msgs::Heading> heading_2nd_,b_heading_2nd_;
-  std::vector<eagleye_msgs::Heading> heading_interpolate_2nd_,b_heading_interpolate_2nd_;
-  std::vector<eagleye_msgs::Heading> heading_3rd_,b_heading_3rd_;
-  std::vector<eagleye_msgs::Heading> heading_interpolate_3rd_,b_heading_interpolate_3rd_;
-  std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_stop_,b_yawrate_offset_stop_;
-  std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_1st_,b_yawrate_offset_1st_;
-  std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_2nd_,b_yawrate_offset_2nd_;
-  std::vector<eagleye_msgs::SlipAngle> slip_angle_,b_slip_angle_;
-  std::vector<eagleye_msgs::Height> height_,b_height_;
-  std::vector<eagleye_msgs::Pitching> pitching_,b_pitching_;
-  std::vector<eagleye_msgs::AccXOffset> acc_x_offset_,b_acc_x_offset_;
-  std::vector<eagleye_msgs::AccXScaleFactor> acc_x_scale_factor_,b_acc_x_scale_factor_;
-  std::vector<eagleye_msgs::Position> enu_relative_pos_,b_enu_relative_pos_;
-  std::vector<geometry_msgs::Vector3Stamped> enu_vel_,b_enu_vel_;
-  std::vector<eagleye_msgs::Position> enu_absolute_pos_,b_enu_absolute_pos_;
-  std::vector<eagleye_msgs::Position> enu_absolute_pos_interpolate_,b_enu_absolute_pos_interpolate_; 
-  std::vector<eagleye_msgs::Position> gnss_smooth_pos_enu_,b_gnss_smooth_pos_enu_;
-  std::vector<eagleye_msgs::Rolling> rolling_,b_rolling_;
-  std::vector<sensor_msgs::NavSatFix> eagleye_fix_,b_eagleye_fix_;
-  std::vector<geometry_msgs::TwistStamped> eagleye_twist_,b_eagleye_twist_;
 
   // Data retrieved from .yaml file
   double interval_plot_;
@@ -132,6 +140,9 @@ class eagleye_pp
   std::size_t getDataLength();
   std::string getUseGNSSMode();
   std::vector<rtklib_msgs::RtklibNav> getRtklibNavVector();
+  bool getUseBackward();
+  bool getUseCombination();
+
 
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);
@@ -145,8 +156,19 @@ class eagleye_pp
 
   void smoothingTrajectory();
   void convertHeight();
+
+  // output function
+  void writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name, const EagleyeStates& eagleye_state, int i);
+
   void writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
+  void addHeaderLineKML(std::ofstream* output_line_kml_file);
+  void addLineStyleInKML(std::ofstream* output_line_kml_file, std::string style_id, std::string color);
+  void addPlacemarkInKML(std::ofstream* output_line_kml_file,std::string name, int visibility,std::string coordinates);
+  void updateLineKML(std::stringstream* eagleye_line,double llh[3], eagleye_msgs::Distance distance, double * driving_distance_last);
   void writeLineKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
+
   void writeSimpleCSV();
+
+  void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, EagleyeStates eagleye_state);
   void writeDetailCSV();
 };

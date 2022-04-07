@@ -15,6 +15,7 @@ convert_height_num: 0
 # 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid
 
 # Selecting the kml file to output eagleye estimation results
+# plot is processing heavy, but it can display the states at that time at each point
 output_kml_eagleye_forward_plot: false
 output_kml_eagleye_backward_plot: false
 output_kml_eagleye_pp_plot: false
