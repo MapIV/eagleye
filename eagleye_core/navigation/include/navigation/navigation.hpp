@@ -68,7 +68,7 @@ struct VelocityScaleFactorStatus
   std::vector<double> velocity_buffer;
   int tow_last, estimated_number;
   double rmc_time_last;
-  double velocity_scale_factor_last{1.0};
+  double velocity_scale_factor_last;
   bool estimate_start_status;
 };
 
