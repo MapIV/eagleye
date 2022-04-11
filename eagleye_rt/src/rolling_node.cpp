@@ -45,22 +45,22 @@ struct RollingStatus _rolling_status;
 
 static std::string _subscribe_imu_topic_name;
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstPtr& msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstPtr msg)
 {
   _velocity_scale_factor_msg = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
 {
   _yawrate_offset_stop_msg = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr& msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
 {
   _yawrate_offset_2nd_msg = *msg;
 }
 
-void imu_callback(const sensor_msgs::msg::Imu::ConstPtr& msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
 {
   _imu_msg = *msg;
   rolling_estimate(_imu_msg, _velocity_scale_factor_msg, _yawrate_offset_stop_msg, _yawrate_offset_2nd_msg,
@@ -68,7 +68,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstPtr& msg)
   _rolling_pub->publish(_rolling_msg);
 }
 
-void setParam(rclcpp::Node::SharedPtr &  node)
+void setParam(rclcpp::Node::SharedPtr node)
 {
   node->declare_parameter("imu_topic",_subscribe_imu_topic_name);
   node->declare_parameter("reverse_imu",_rolling_parameter.reverse_imu);
@@ -89,7 +89,7 @@ void setParam(rclcpp::Node::SharedPtr &  node)
   std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
 }
 
-void rolling_node(rclcpp::Node::SharedPtr &  node)
+void rolling_node(rclcpp::Node::SharedPtr node)
 {
   setParam(node);
 
