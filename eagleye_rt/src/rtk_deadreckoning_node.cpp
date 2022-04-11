@@ -50,6 +50,8 @@ rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub2;
 struct RtkDeadreckoningParameter rtk_deadreckoning_parameter;
 struct RtkDeadreckoningStatus rtk_deadreckoning_status;
 
+static std::string use_gnss_mode;
+
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 
@@ -102,7 +104,10 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
-  rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+    rtk_deadreckoning_estimate(enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
   if (enu_absolute_rtk_deadreckoning.status.enabled_status == true)
   {
     pub1->publish(enu_absolute_rtk_deadreckoning);
@@ -141,6 +146,7 @@ int main(int argc, char** argv)
   node->get_parameter("rtk_deadreckoning.stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("tf_gnss_flame.parent", rtk_deadreckoning_parameter.tf_gnss_parent_flame);
   node->get_parameter("tf_gnss_flame.child", rtk_deadreckoning_parameter.tf_gnss_child_flame);
+  node->get_parameter("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
@@ -151,6 +157,7 @@ int main(int argc, char** argv)
   std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "tf_gnss_flame.parent "<<rtk_deadreckoning_parameter.tf_gnss_parent_flame<<std::endl;
   std::cout<< "tf_gnss_flame.child "<<rtk_deadreckoning_parameter.tf_gnss_child_flame<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
   auto sub1 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000, enu_vel_callback);
@@ -159,8 +166,6 @@ int main(int argc, char** argv)
   
   pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_rtk_deadreckoning", 1000);
   pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("rtk_fix", 1000);
-
-  //ros::Timer timer = n.createTimer(ros::Duration(0.5), std::bind(timer_callback,std::placeholders::_1, &tfListener_, &tfBuffer_));
 
   const auto period_ns =
       std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.5));

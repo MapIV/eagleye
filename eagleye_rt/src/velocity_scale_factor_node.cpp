@@ -33,6 +33,7 @@
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
+static nmea_msgs::msg::Gprmc nmea_rmc;
 static geometry_msgs::msg::TwistStamped velocity;
 static sensor_msgs::msg::Imu imu;
 
@@ -42,6 +43,8 @@ static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 
 struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
 struct VelocityScaleFactorStatus velocity_scale_factor_status;
+
+static std::string use_gnss_mode;
 
 bool is_first_move = false;
 
@@ -64,6 +67,11 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
   }
 }
 
+void rmc_callback(const nmea_msgs::msg::Gprmc::ConstSharedPtr msg)
+{
+  nmea_rmc = *msg;
+}
+
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   double initial_velocity_scale_factor = saved_velocity_scale_factor;
@@ -80,7 +88,10 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     return;
   }
 
-  velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+    velocity_scale_factor_estimate(nmea_rmc,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
   pub->publish(velocity_scale_factor);
 }
 
@@ -152,6 +163,7 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
   node->declare_parameter("imu_topic",subscribe_imu_topic_name);
@@ -174,10 +186,12 @@ int main(int argc, char** argv)
   node->get_parameter("velocity_scale_factor_save_str",velocity_scale_factor_save_str);
   node->get_parameter("velocity_scale_factor.save_velocity_scale_factor",velocity_scale_factor_parameter.save_velocity_scale_factor);
   node->get_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
+  node->get_parameter("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+  std::cout<< "subscribe_rmc_topic_name "<<subscribe_rmc_topic_name<<std::endl;
   std::cout<< "estimated_number_min "<<velocity_scale_factor_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_number_max "<<velocity_scale_factor_parameter.estimated_number_max<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
@@ -185,10 +199,12 @@ int main(int argc, char** argv)
   std::cout<< "velocity_scale_factor_save_str "<<velocity_scale_factor_save_str<<std::endl;
   std::cout<< "save_velocity_scale_factor "<<velocity_scale_factor_parameter.save_velocity_scale_factor<<std::endl;
   std::cout<< "velocity_scale_factor_save_duration "<<velocity_scale_factor_save_duration<<std::endl;
+  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
   auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
+  auto sub4 = node->create_subscription<nmea_msgs::msg::Gprmc>(subscribe_rmc_topic_name, 1000, rmc_callback);
   pub = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10));
 
   double delta_time = static_cast<double>(velocity_scale_factor_save_duration);

@@ -170,6 +170,7 @@ struct RtkHeadingParameter
 struct RtkHeadingStatus
 {
   int tow_last;
+  double rmc_time_last;
   int estimated_number;
   double last_rtk_heading_angle;
   std::vector<double> time_buffer;
@@ -473,6 +474,8 @@ struct RollingStatus
 
 extern void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, eagleye_msgs::msg::VelocityScaleFactor*);
+extern void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
+  VelocityScaleFactorStatus*, eagleye_msgs::msg::VelocityScaleFactor*);
 extern void distance_estimate(const eagleye_msgs::msg::VelocityScaleFactor, DistanceStatus*,eagleye_msgs::msg::Distance*);
 extern void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped, const sensor_msgs::msg::Imu, const YawrateOffsetStopParameter,
   YawrateOffsetStopStatus*, eagleye_msgs::msg::YawrateOffset*);
@@ -481,7 +484,11 @@ extern void yawrate_offset_estimate(const eagleye_msgs::msg::VelocityScaleFactor
 extern void heading_estimate(const rtklib_msgs::msg::RtklibNav, const sensor_msgs::msg::Imu, const eagleye_msgs::msg::VelocityScaleFactor,
   const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle, const eagleye_msgs::msg::Heading,
   const HeadingParameter, HeadingStatus*,eagleye_msgs::msg::Heading*);
+extern void heading_estimate(const nmea_msgs::msg::Gprmc, const sensor_msgs::msg::Imu, const eagleye_msgs::msg::VelocityScaleFactor, const eagleye_msgs::msg::YawrateOffset,
+  const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle, const eagleye_msgs::msg::Heading, const HeadingParameter, HeadingStatus*,eagleye_msgs::msg::Heading*);
 extern void position_estimate(const rtklib_msgs::msg::RtklibNav, const eagleye_msgs::msg::VelocityScaleFactor, const eagleye_msgs::msg::Distance,
+  const eagleye_msgs::msg::Heading, const geometry_msgs::msg::Vector3Stamped, const PositionParameter, PositionStatus*, eagleye_msgs::msg::Position*);
+extern void position_estimate(const sensor_msgs::msg::NavSatFix, const eagleye_msgs::msg::VelocityScaleFactor, const eagleye_msgs::msg::Distance,
   const eagleye_msgs::msg::Heading, const geometry_msgs::msg::Vector3Stamped, const PositionParameter, PositionStatus*, eagleye_msgs::msg::Position*);
 extern void slip_angle_estimate(const sensor_msgs::msg::Imu, const eagleye_msgs::msg::VelocityScaleFactor,const eagleye_msgs::msg::YawrateOffset,
   const eagleye_msgs::msg::YawrateOffset,const SlipangleParameter,eagleye_msgs::msg::SlipAngle*);
@@ -508,6 +515,8 @@ extern void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::Twis
   const AngularVelocityOffsetStopParameter, AngularVelocityOffsetStopStatus*, eagleye_msgs::msg::AngularVelocityOffset*);
 extern void rtk_deadreckoning_estimate(const rtklib_msgs::msg::RtklibNav,const geometry_msgs::msg::Vector3Stamped,const sensor_msgs::msg::NavSatFix,
   const eagleye_msgs::msg::Heading,const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::msg::Position*,sensor_msgs::msg::NavSatFix*);
+extern void rtk_deadreckoning_estimate(const geometry_msgs::msg::Vector3Stamped,const sensor_msgs::msg::NavSatFix, const eagleye_msgs::msg::Heading,
+  const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::msg::Position*,sensor_msgs::msg::NavSatFix*);
 extern void rtk_heading_estimate(const sensor_msgs::msg::NavSatFix, const sensor_msgs::msg::Imu, const eagleye_msgs::msg::VelocityScaleFactor,
   const eagleye_msgs::msg::Distance,const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle,
   const eagleye_msgs::msg::Heading, const RtkHeadingParameter, RtkHeadingStatus*,eagleye_msgs::msg::Heading*);
