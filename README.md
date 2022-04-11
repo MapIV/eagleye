@@ -231,6 +231,8 @@ The 3D maps (point cloud and vector data) of the route is also available from [A
 
 1. Yoshiko Kojima, et., al., "Precise Localization using Tightly Coupled Integration based on Trajectory estimated from GPS Doppler", International Symposium on Advanced Vehicle Control(AVEC), 2010 [Link](https://ci.nii.ac.jp/naid/10029931657/)
 
+1. A. Takanose, et., al., "Eagleye: A Lane-Level Localization Using Low-Cost GNSS/IMU", Intelligent Vehicles (IV) workshop, 2021 [Link](https://www.autoware.org/iv2021video-workshoppapers3)
+
 ## License
 Eagleye is provided under the [BSD 3-Clause](https://github.com/MapIV/eagleye/blob/master/LICENSE) License.
 
