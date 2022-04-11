@@ -35,45 +35,35 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-static rtklib_msgs::RtklibNav rtklib_nav;
-static sensor_msgs::NavSatFix fix;
-static geometry_msgs::Vector3Stamped enu_vel;
+static rtklib_msgs::RtklibNav _rtklib_nav;
+static nmea_msgs::Gpgga _gga;
+static geometry_msgs::Vector3Stamped _enu_vel;
 
-static eagleye_msgs::Position enu_absolute_rtk_deadreckoning;
-static sensor_msgs::NavSatFix eagleye_fix;
-static eagleye_msgs::Heading heading_interpolate_3rd;
+static eagleye_msgs::Position _enu_absolute_rtk_deadreckoning;
+static sensor_msgs::NavSatFix _eagleye_fix;
+static eagleye_msgs::Heading _heading_interpolate_3rd;
 
-static ros::Publisher pub1;
-static ros::Publisher pub2;
+static ros::Publisher _pub1;
+static ros::Publisher _pub2;
 
-struct RtkDeadreckoningParameter rtk_deadreckoning_parameter;
-struct RtkDeadreckoningStatus rtk_deadreckoning_status;
+struct RtkDeadreckoningParameter _rtk_deadreckoning_parameter;
+struct RtkDeadreckoningStatus _rtk_deadreckoning_status;
+
+static std::string _use_gnss_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  rtklib_nav.header = msg->header;
-  rtklib_nav.tow = msg->tow;
-  rtklib_nav.ecef_pos = msg->ecef_pos;
-  rtklib_nav.ecef_vel = msg->ecef_vel;
-  rtklib_nav.status = msg->status;
+  _rtklib_nav = *msg;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  _gga = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  heading_interpolate_3rd.header = msg->header;
-  heading_interpolate_3rd.heading_angle = msg->heading_angle;
-  heading_interpolate_3rd.status = msg->status;
+  _heading_interpolate_3rd = *msg;
 }
 
 
@@ -82,15 +72,16 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfList
   geometry_msgs::TransformStamped transformStamped;
   try
   {
-    transformStamped = tfBuffer_->lookupTransform(rtk_deadreckoning_parameter.tf_gnss_parent_flame, rtk_deadreckoning_parameter.tf_gnss_child_flame, ros::Time(0));
+    transformStamped = tfBuffer_->lookupTransform(_rtk_deadreckoning_parameter.tf_gnss_parent_flame,
+                                                  _rtk_deadreckoning_parameter.tf_gnss_child_flame, ros::Time(0));
 
-    rtk_deadreckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
-    rtk_deadreckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
-    rtk_deadreckoning_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
   }
   catch (tf2::TransformException& ex)
   {
@@ -101,63 +92,76 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfList
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  enu_vel.header = msg->header;
-  enu_vel.vector = msg->vector;
-  enu_absolute_rtk_deadreckoning.header = msg->header;
-  enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
-  eagleye_fix.header = msg->header;
-  eagleye_fix.header.frame_id = "gnss";
-  rtk_deadreckoning_estimate(rtklib_nav,enu_vel,fix,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
-  if(enu_absolute_rtk_deadreckoning.status.enabled_status == true)
+  _enu_vel = *msg;
+  _enu_absolute_rtk_deadreckoning.header = msg->header;
+  _enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
+  _eagleye_fix.header = msg->header;
+  _eagleye_fix.header.frame_id = "gnss";
+
+  if (_use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB") // use RTKLIB mode
+    rtk_deadreckoning_estimate(_rtklib_nav, _enu_vel, _gga, _heading_interpolate_3rd,
+      _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);
+  else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
+    rtk_deadreckoning_estimate(_enu_vel, _gga, _heading_interpolate_3rd,
+      _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);    
+  
+  if(_enu_absolute_rtk_deadreckoning.status.enabled_status)
   {
-    pub1.publish(enu_absolute_rtk_deadreckoning);
-    pub2.publish(eagleye_fix);
+    _pub1.publish(_enu_absolute_rtk_deadreckoning);
+    _pub2.publish(_eagleye_fix);
   }
-  else if (fix.header.stamp.toSec() != 0)
+  else if (_gga.header.stamp.toSec() != 0)
   {
-    pub2.publish(fix);
+    sensor_msgs::NavSatFix fix;
+    fix.header = _gga.header;
+    fix.latitude = _gga.lat;
+    fix.longitude = _gga.lon;
+    fix.altitude = _gga.alt + _gga.undulation;
+    _pub2.publish(fix);
   }
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "rtk_deadreckoning");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("ecef_base_pos/x", rtk_deadreckoning_parameter.ecef_base_pos_x);
-  n.getParam("ecef_base_pos/y", rtk_deadreckoning_parameter.ecef_base_pos_y);
-  n.getParam("ecef_base_pos/z", rtk_deadreckoning_parameter.ecef_base_pos_z);
-  n.getParam("ecef_base_pos/use_ecef_base_position", rtk_deadreckoning_parameter.use_ecef_base_position);
-  n.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
-  n.getParam("tf_gnss_flame/parent", rtk_deadreckoning_parameter.tf_gnss_parent_flame);
-  n.getParam("tf_gnss_flame/child", rtk_deadreckoning_parameter.tf_gnss_child_flame);
+  nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  nh.getParam("gga_topic",subscribe_gga_topic_name);
+  nh.getParam("ecef_base_pos/x", _rtk_deadreckoning_parameter.ecef_base_pos_x);
+  nh.getParam("ecef_base_pos/y", _rtk_deadreckoning_parameter.ecef_base_pos_y);
+  nh.getParam("ecef_base_pos/z", _rtk_deadreckoning_parameter.ecef_base_pos_z);
+  nh.getParam("ecef_base_pos/use_ecef_base_position", _rtk_deadreckoning_parameter.use_ecef_base_position);
+  nh.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("tf_gnss_flame/parent", _rtk_deadreckoning_parameter.tf_gnss_parent_flame);
+  nh.getParam("tf_gnss_flame/child", _rtk_deadreckoning_parameter.tf_gnss_child_flame);
+  nh.getParam("use_gnss_mode",_use_gnss_mode);
 
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
-  std::cout<< "ecef_base_pos_x "<<rtk_deadreckoning_parameter.ecef_base_pos_x<<std::endl;
-  std::cout<< "ecef_base_pos_y "<<rtk_deadreckoning_parameter.ecef_base_pos_y<<std::endl;
-  std::cout<< "ecef_base_pos_z "<<rtk_deadreckoning_parameter.ecef_base_pos_z<<std::endl;
-  std::cout<< "use_ecef_base_position "<<rtk_deadreckoning_parameter.use_ecef_base_position<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "tf_gnss_flame/parent "<<rtk_deadreckoning_parameter.tf_gnss_parent_flame<<std::endl;
-  std::cout<< "tf_gnss_flame/child "<<rtk_deadreckoning_parameter.tf_gnss_child_flame<<std::endl;
+  std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
+  std::cout<< "ecef_base_pos_x " << _rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
+  std::cout<< "ecef_base_pos_y " << _rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
+  std::cout<< "ecef_base_pos_z " << _rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
+  std::cout<< "use_ecef_base_position " << _rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
+  std::cout<< "stop_judgment_velocity_threshold " << _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::cout<< "tf_gnss_flame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_flame << std::endl;
+  std::cout<< "tf_gnss_flame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_flame << std::endl;
+  std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   
-  pub1 = n.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
-  pub2 = n.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
+  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
+  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
 
   tf2_ros::Buffer tfBuffer_;
   tf2_ros::TransformListener tfListener_(tfBuffer_);
-  ros::Timer timer = n.createTimer(ros::Duration(0.5), boost::bind(timer_callback,_1, &tfListener_, &tfBuffer_));
+  ros::Timer timer = nh.createTimer(ros::Duration(0.5), boost::bind(timer_callback,_1, &tfListener_, &tfBuffer_));
 
   ros::spin();
 

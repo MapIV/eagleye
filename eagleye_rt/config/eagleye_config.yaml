@@ -1,13 +1,20 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
+#Estimate mode
+use_gnss_mode: RTKLIB
+## RTKLIB (rtklib) or NMEA (nmea)
+## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
+
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
-navsatfix_topic: /navsat/fix
-nmea_sentence_topic: /navsat/nmea_sentence
+nmea_sentence_topic: /nmea_sentence
+localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
-reverse_imu: false
+reverse_imu: false                                    # reverse imu angular_velocity.z
+reverse_imu_angular_velocity_x: true                  # reverse imu angular_velocity.x
+reverse_imu_linear_acceleration_y: false              # reverse imu linear_acceleration.y
 
 tf_gnss_flame:
   parent: "base_link"
@@ -24,6 +31,8 @@ velocity_scale_factor:                                #Parameters for estimating
   estimated_number_max: 20000                          #Maximum number of data used for estimation. (default:20000 = 400s)
   estimated_velocity_threshold: 2.78                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
   estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
+  save_velocity_scale_factor: false                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
+  velocity_scale_factor_save_duration: 100.0           #[sec]
 
 yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
@@ -85,7 +94,6 @@ slip_coefficient:
 
 trajectory:
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
   timer_updata_rate: 10                               #default:10 hz
   th_deadlock_time: 1                                 #default:1s
 
@@ -118,6 +126,18 @@ height:
   estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
   outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
   average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
+
+enable_additional_rolling:
+  matching_update_distance: 0.3                       #Distance to re-estimate from previous estimate. (default:0.3 m)
+  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+  rolling_buffer_num: 50                              #Number of data to take a moving average of roll angle (default:50 = 1s)
+  link_Time_stamp_parameter: 0.01                     #Time considered to be in sync for time synchronization. (default:0.01 s)
+  imu_buffer_num: 10                                  #Number of IMU data to be stored for time correction. (default:10)
+
+rolling:
+  stop_judgment_velocity_threshold: 0.01
+  filter_process_noise: 0.01
+  filter_observation_noise: 1
 
 monitor:
   print_status: true

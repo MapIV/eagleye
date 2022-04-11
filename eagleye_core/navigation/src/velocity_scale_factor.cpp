@@ -31,72 +31,47 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
-{
-    double ecef_vel[3];
-    double ecef_pos[3];
-    double enu_vel[3];
+#define knot2mps 0.51477
 
-    bool gnss_status,gnss_update;
-    int i;
-    double initial_velocity_scale_factor = 1.0;
-    double doppler_velocity = 0.0;
-    double raw_velocity_scale_factor = 0.0;
-    std::size_t index_length;
-    std::size_t gnss_status_buffer_length;
+void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
+{ 
 
-    ecef_vel[0] = rtklib_nav.ecef_vel.x;
-    ecef_vel[1] = rtklib_nav.ecef_vel.y;
-    ecef_vel[2] = rtklib_nav.ecef_vel.z;
-    ecef_pos[0] = rtklib_nav.ecef_pos.x;
-    ecef_pos[1] = rtklib_nav.ecef_pos.y;
-    ecef_pos[2] = rtklib_nav.ecef_pos.z;
+  int i;
+  double initial_velocity_scale_factor = 1.0;
+  double raw_velocity_scale_factor = 0.0;
+  std::size_t index_length;
+  std::size_t gnss_status_buffer_length;
+  double estimated_number_cur;
 
-    xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
-
-    if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
+  if(velocity_scale_factor_parameter.save_velocity_scale_factor)
+  {
+    if(velocity_scale_factor->status.enabled_status)
     {
-      enu_vel[0] = 0;
-      enu_vel[1] = 0;
-      enu_vel[2] = 0;
-      gnss_update = false;
+      initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
     }
-    else
-    {
-      gnss_update = true;
-    }
+  }
 
-    doppler_velocity = std::sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
+  if(velocity_scale_factor->status.enabled_status == true)
+  {
+    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_max;
+  }
+  else
+  {
+    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_min;
+  }
 
-  if (velocity_scale_factor_status->estimated_number < velocity_scale_factor_parameter.estimated_number_max)
+  if (velocity_scale_factor_status->estimated_number < estimated_number_cur)
   {
     ++velocity_scale_factor_status->estimated_number;
   }
   else
   {
-    velocity_scale_factor_status->estimated_number = velocity_scale_factor_parameter.estimated_number_max;
+    velocity_scale_factor_status->estimated_number = estimated_number_cur;
   }
-
-  if (velocity_scale_factor_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
-  {
-    gnss_status = false;
-    doppler_velocity = 0;
-    velocity_scale_factor_status->tow_last = rtklib_nav.tow;
-  }
-  else
-  {
-    gnss_status = true;
-    doppler_velocity = doppler_velocity;
-    velocity_scale_factor_status->tow_last = rtklib_nav.tow;
-  }
-
-  velocity_scale_factor_status->gnss_status_buffer.push_back(gnss_status);
-  velocity_scale_factor_status->doppler_velocity_buffer.push_back(doppler_velocity);
-  velocity_scale_factor_status->velocity_buffer.push_back(velocity.twist.linear.x);
 
   gnss_status_buffer_length = std::distance(velocity_scale_factor_status->gnss_status_buffer.begin(), velocity_scale_factor_status->gnss_status_buffer.end());
 
-  if (gnss_status_buffer_length > velocity_scale_factor_parameter.estimated_number_max)
+  if (gnss_status_buffer_length > estimated_number_cur)
   {
     velocity_scale_factor_status->gnss_status_buffer.erase(velocity_scale_factor_status->gnss_status_buffer.begin());
     velocity_scale_factor_status->doppler_velocity_buffer.erase(velocity_scale_factor_status->doppler_velocity_buffer.begin());
@@ -108,7 +83,7 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
   std::vector<int> index;
   std::vector<double> velocity_scale_factor_buffer;
 
-  if (velocity_scale_factor_status->estimated_number > velocity_scale_factor_parameter.estimated_number_min && velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true && velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] > velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (velocity_scale_factor_status->estimated_number >= velocity_scale_factor_parameter.estimated_number_min && velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true && velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] > velocity_scale_factor_parameter.estimated_velocity_threshold)
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
     {
@@ -178,4 +153,82 @@ void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, con
 
   velocity_scale_factor_status->velocity_scale_factor_last = velocity_scale_factor->scale_factor;
 
+}
+
+void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav rtklib_nav, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
+{
+
+    double ecef_vel[3];
+    double ecef_pos[3];
+    double enu_vel[3];
+
+    bool gnss_status,gnss_update;
+    double doppler_velocity = 0.0;
+
+    ecef_vel[0] = rtklib_nav.ecef_vel.x;
+    ecef_vel[1] = rtklib_nav.ecef_vel.y;
+    ecef_vel[2] = rtklib_nav.ecef_vel.z;
+    ecef_pos[0] = rtklib_nav.ecef_pos.x;
+    ecef_pos[1] = rtklib_nav.ecef_pos.y;
+    ecef_pos[2] = rtklib_nav.ecef_pos.z;
+
+    xyz2enu_vel(ecef_vel, ecef_pos, enu_vel);
+
+    if (!std::isfinite(enu_vel[0])||!std::isfinite(enu_vel[1])||!std::isfinite(enu_vel[2]))
+    {
+      enu_vel[0] = 0;
+      enu_vel[1] = 0;
+      enu_vel[2] = 0;
+      gnss_update = false;
+    }
+    else
+    {
+      gnss_update = true;
+    }
+
+    doppler_velocity = std::sqrt((enu_vel[0] * enu_vel[0]) + (enu_vel[1] * enu_vel[1]) + (enu_vel[2] * enu_vel[2]));
+
+  if (velocity_scale_factor_status->tow_last == rtklib_nav.tow || rtklib_nav.tow == 0 || gnss_update == false)
+  {
+    gnss_status = false;
+    doppler_velocity = 0;
+    velocity_scale_factor_status->tow_last = rtklib_nav.tow;
+  }
+  else
+  {
+    gnss_status = true;
+    doppler_velocity = doppler_velocity;
+    velocity_scale_factor_status->tow_last = rtklib_nav.tow;
+  }
+
+  velocity_scale_factor_status->gnss_status_buffer.push_back(gnss_status);
+  velocity_scale_factor_status->doppler_velocity_buffer.push_back(doppler_velocity);
+  velocity_scale_factor_status->velocity_buffer.push_back(velocity.twist.linear.x);
+
+  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, velocity_scale_factor);
+}
+
+void velocity_scale_factor_estimate(const nmea_msgs::Gprmc nmea_rmc, const geometry_msgs::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::VelocityScaleFactor* velocity_scale_factor)
+{
+  bool gnss_status;
+  double doppler_velocity = 0.0;
+
+  if (velocity_scale_factor_status->rmc_time_last == nmea_rmc.utc_seconds || nmea_rmc.utc_seconds == 0)
+  {
+    gnss_status = false;
+    doppler_velocity = 0;
+    velocity_scale_factor_status->rmc_time_last = nmea_rmc.utc_seconds;
+  }
+  else
+  {
+    gnss_status = true;
+    doppler_velocity = nmea_rmc.speed * knot2mps;
+    velocity_scale_factor_status->rmc_time_last = nmea_rmc.utc_seconds;
+  }
+
+  velocity_scale_factor_status->gnss_status_buffer.push_back(gnss_status);
+  velocity_scale_factor_status->doppler_velocity_buffer.push_back(doppler_velocity);
+  velocity_scale_factor_status->velocity_buffer.push_back(velocity.twist.linear.x);
+
+  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, velocity_scale_factor);
 }

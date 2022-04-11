@@ -32,119 +32,103 @@
  #include "coordinate/coordinate.hpp"
  #include "navigation/navigation.hpp"
 
- static sensor_msgs::Imu imu;
- static sensor_msgs::NavSatFix fix;
- static eagleye_msgs::VelocityScaleFactor velocity_scale_factor;
- static eagleye_msgs::Distance distance;
+ static sensor_msgs::Imu _imu;
+ static nmea_msgs::Gpgga _gga;
+ static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+ static eagleye_msgs::Distance _distance;
 
- static ros::Publisher pub1,pub2,pub3,pub4,pub5;
- static eagleye_msgs::Height height;
- static eagleye_msgs::Pitching pitching;
- static eagleye_msgs::AccXOffset acc_x_offset;
- static eagleye_msgs::AccXScaleFactor acc_x_scale_factor;
+ static ros::Publisher _pub1, _pub2, _pub3, _pub4, _pub5;
+ static eagleye_msgs::Height _height;
+ static eagleye_msgs::Pitching _pitching;
+ static eagleye_msgs::AccXOffset _acc_x_offset;
+ static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
 
- struct HeightParameter height_parameter;
- struct HeightStatus height_status;
+ struct HeightParameter _height_parameter;
+ struct HeightStatus _height_status;
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  fix.header = msg->header;
-  fix.status = msg->status;
-  fix.latitude = msg->latitude;
-  fix.longitude = msg->longitude;
-  fix.altitude = msg->altitude;
-  fix.position_covariance = msg->position_covariance;
-  fix.position_covariance_type = msg->position_covariance_type;
+  _gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
-  velocity_scale_factor.header = msg->header;
-  velocity_scale_factor.scale_factor = msg->scale_factor;
-  velocity_scale_factor.correction_velocity = msg->correction_velocity;
-  velocity_scale_factor.status = msg->status;
+  _velocity_scale_factor = *msg;
 }
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  distance.header = msg->header;
-  distance.distance = msg->distance;
-  distance.status = msg->status;
+  _distance = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  imu.header = msg->header;
-  imu.orientation = msg->orientation;
-  imu.orientation_covariance = msg->orientation_covariance;
-  imu.angular_velocity = msg->angular_velocity;
-  imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  imu.linear_acceleration = msg->linear_acceleration;
-  imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
-  height.header = msg->header;
-  height.header.frame_id = "base_link";
-  pitching.header = msg->header;
-  pitching.header.frame_id = "base_link";
-  acc_x_offset.header = msg->header;
-  acc_x_scale_factor.header = msg->header;
-  pitching_estimate(imu,fix,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
-  pub1.publish(height);
-  pub2.publish(pitching);
-  pub3.publish(acc_x_offset);
-  pub4.publish(acc_x_scale_factor);
+  _imu = *msg;
+  _height.header = msg->header;
+  _height.header.frame_id = "base_link";
+  _pitching.header = msg->header;
+  _pitching.header.frame_id = "base_link";
+  _acc_x_offset.header = msg->header;
+  _acc_x_scale_factor.header = msg->header;
+  pitching_estimate(_imu, _gga, _velocity_scale_factor, _distance, _height_parameter, &_height_status,
+    &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
+  _pub1.publish(_height);
+  _pub2.publish(_pitching);
+  _pub3.publish(_acc_x_offset);
+  _pub4.publish(_acc_x_scale_factor);
 
-  if(height_status.flag_reliability == true)
+  if(_height_status.flag_reliability)
   {
-    pub5.publish(fix);
+    _pub5.publish(_gga);
   }
 
-  height_status.flag_reliability = false;
-  height.status.estimate_status = false;
-  pitching.status.estimate_status = false;
-  acc_x_offset.status.estimate_status = false;
-  acc_x_scale_factor.status.estimate_status = false;
+  _height_status.flag_reliability = false;
+  _height.status.estimate_status = false;
+  _pitching.status.estimate_status = false;
+  _acc_x_offset.status.estimate_status = false;
+  _acc_x_scale_factor.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "height");
-  ros::NodeHandle n;
+  ros::NodeHandle nh;
 
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  n.getParam("navsatfix_topic",subscribe_navsatfix_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("height/estimated_distance",height_parameter.estimated_distance);
-  n.getParam("height/estimated_distance_max",height_parameter.estimated_distance_max);
-  n.getParam("height/separation_distance",height_parameter.separation_distance);
-  n.getParam("height/estimated_velocity_threshold",height_parameter.estimated_velocity_threshold);
-  n.getParam("height/estimated_velocity_coefficient",height_parameter.estimated_velocity_coefficient);
-  n.getParam("height/estimated_height_coefficient",height_parameter.estimated_height_coefficient);
-  n.getParam("height/outlier_threshold",height_parameter.outlier_threshold);
-  n.getParam("height/average_num",height_parameter.average_num);
+  nh.getParam("gga_topic", subscribe_gga_topic_name);
+  nh.getParam("imu_topic", subscribe_imu_topic_name);
+  nh.getParam("height/estimated_distance", _height_parameter.estimated_distance);
+  nh.getParam("height/estimated_distance_max", _height_parameter.estimated_distance_max);
+  nh.getParam("height/separation_distance", _height_parameter.separation_distance);
+  nh.getParam("height/estimated_velocity_threshold", _height_parameter.estimated_velocity_threshold);
+  nh.getParam("height/estimated_velocity_coefficient", _height_parameter.estimated_velocity_coefficient);
+  nh.getParam("height/estimated_height_coefficient", _height_parameter.estimated_height_coefficient);
+  nh.getParam("height/outlier_threshold", _height_parameter.outlier_threshold);
+  nh.getParam("height/average_num", _height_parameter.average_num);
 
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "estimated_distance "<<height_parameter.estimated_distance<<std::endl;
-  std::cout<< "estimated_distance_max "<<height_parameter.estimated_distance_max<<std::endl;
-  std::cout<< "separation_distance "<<height_parameter.separation_distance<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<height_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_velocity_coefficient "<<height_parameter.estimated_velocity_coefficient<<std::endl;
-  std::cout<< "estimated_height_coefficient "<<height_parameter.estimated_height_coefficient<<std::endl;
-  std::cout<< "outlier_threshold "<<height_parameter.outlier_threshold<<std::endl;
-  std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
+  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
+  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "estimated_distance " << _height_parameter.estimated_distance << std::endl;
+  std::cout<< "estimated_distance_max " << _height_parameter.estimated_distance_max << std::endl;
+  std::cout<< "separation_distance " << _height_parameter.separation_distance << std::endl;
+  std::cout<< "estimated_velocity_threshold " << _height_parameter.estimated_velocity_threshold << std::endl;
+  std::cout<< "estimated_velocity_coefficient " << _height_parameter.estimated_velocity_coefficient << std::endl;
+  std::cout<< "estimated_height_coefficient " << _height_parameter.estimated_height_coefficient << std::endl;
+  std::cout<< "outlier_threshold " << _height_parameter.outlier_threshold << std::endl;
+  std::cout<< "average_num " << _height_parameter.average_num << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = n.subscribe(subscribe_navsatfix_topic_name, 1000, fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 
-  pub1 = n.advertise<eagleye_msgs::Height>("height", 1000);
-  pub2 = n.advertise<eagleye_msgs::Pitching>("pitching", 1000);
-  pub3 = n.advertise<eagleye_msgs::AccXOffset>("acc_x_offset", 1000);
-  pub4 = n.advertise<eagleye_msgs::AccXScaleFactor>("acc_x_scale_factor", 1000);
-  pub5 = n.advertise<sensor_msgs::NavSatFix>("navsat/reliability_fix", 1000);
+  _pub1 = nh.advertise<eagleye_msgs::Height>("height", 1000);
+  _pub2 = nh.advertise<eagleye_msgs::Pitching>("pitching", 1000);
+  _pub3 = nh.advertise<eagleye_msgs::AccXOffset>("acc_x_offset", 1000);
+  _pub4 = nh.advertise<eagleye_msgs::AccXScaleFactor>("acc_x_scale_factor", 1000);
+  _pub5 = nh.advertise<nmea_msgs::Gpgga>("navsat/reliability_gga", 1000);
 
   ros::spin();
 

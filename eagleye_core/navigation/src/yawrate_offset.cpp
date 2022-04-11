@@ -42,14 +42,24 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   std::size_t time_buffer_length;
   std::size_t inversion_up_index_length;
   std::size_t inversion_down_index_length;
+  double estimated_number_cur;
 
-  if (yawrate_offset_status->estimated_number < yawrate_offset_parameter.estimated_number_max)
+  if(yawrate_offset->status.enabled_status == true)
+  {
+    estimated_number_cur = yawrate_offset_parameter.estimated_number_max;
+  }
+  else
+  {
+    estimated_number_cur = yawrate_offset_parameter.estimated_number_min;
+  }
+
+  if (yawrate_offset_status->estimated_number < estimated_number_cur)
   {
     ++yawrate_offset_status->estimated_number;
   }
   else
   {
-    yawrate_offset_status->estimated_number = yawrate_offset_parameter.estimated_number_max;
+    yawrate_offset_status->estimated_number = estimated_number_cur;
   }
 
   if (yawrate_offset_parameter.reverse_imu == false)
@@ -71,7 +81,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
 
   time_buffer_length = std::distance(yawrate_offset_status->time_buffer.begin(), yawrate_offset_status->time_buffer.end());
 
-  if (time_buffer_length > yawrate_offset_parameter.estimated_number_max)
+  if (time_buffer_length >estimated_number_cur)
   {
     yawrate_offset_status->time_buffer.erase(yawrate_offset_status->time_buffer.begin());
     yawrate_offset_status->yawrate_buffer.erase(yawrate_offset_status->yawrate_buffer.begin());

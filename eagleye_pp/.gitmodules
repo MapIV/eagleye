@@ -1,0 +1,3 @@
+[submodule "common/multi_rosbag_controller"]
+	path = common/multi_rosbag_controller
+	url = https://github.com/MapIV/multi_rosbag_controller.git

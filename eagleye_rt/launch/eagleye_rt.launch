@@ -8,6 +8,9 @@
 
     <arg name="use_rtk_deadreckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
+    <arg name="enable_additional_rolling" default="false"/>
+
+    <param name ="velocity_scale_factor_save_str" value="$(find eagleye_rt)/config/velocity_scale_factor.txt"/>
 
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
@@ -30,20 +33,19 @@
     <node pkg="eagleye_rt" name="height_node" type="height"/>
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
     <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
-    <node pkg="eagleye_rt" name="monitor" type="monitor" output="screen" />
+    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen" />
+    <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- RTK Options -->
     <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning" if="$(arg use_rtk_deadreckoning)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_1st" type="rtk_heading" args="1st" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_2nd" type="rtk_heading" args="2nd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
+    <node pkg="eagleye_rt" name="enable_additional_rolling_node" type="enable_additional_rolling" if="$(arg enable_additional_rolling)"/>
 
   </group>
 
-  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch">
-    <arg name="sub_topic_name" default="nmea_sentence"/>
-    <arg name="pub_fix_topic_name" default="navsat/fix"/>
-  </include>
+  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>
 

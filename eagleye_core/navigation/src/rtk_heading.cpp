@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
 
   int i,index_max;
@@ -68,10 +68,10 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
   double ecef_base[3],ecef_pos[3];
 
   heading_status->distance_buffer.push_back(distance.distance);
-  heading_status->latitude_buffer.push_back(fix.latitude);
-  heading_status->longitude_buffer.push_back(fix.longitude);
-  heading_status->altitude_buffer.push_back(fix.altitude);
-  heading_status->fix_status_buffer.push_back(fix.status.status);
+  heading_status->latitude_buffer.push_back(gga.lat);
+  heading_status->longitude_buffer.push_back(gga.lon);
+  heading_status->altitude_buffer.push_back(gga.alt + gga.undulation);
+  heading_status->gga_status_buffer.push_back(gga.gps_qual);
 
   int distance_length;
   distance_length = std::distance(heading_status->distance_buffer.begin(), heading_status->distance_buffer.end());
@@ -87,16 +87,16 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
     heading_status->latitude_buffer.erase(heading_status->latitude_buffer.begin());
     heading_status->longitude_buffer.erase(heading_status->longitude_buffer.begin());
     heading_status->altitude_buffer.erase(heading_status->altitude_buffer.begin());
-    heading_status->fix_status_buffer.erase(heading_status->fix_status_buffer.begin());
+    heading_status->gga_status_buffer.erase(heading_status->gga_status_buffer.begin());
 
     distance_length = std::distance(heading_status->distance_buffer.begin(), heading_status->distance_buffer.end());
 
   }
 
-  double fix_length;
-  fix_length = std::distance(heading_status->fix_status_buffer.begin(), heading_status->fix_status_buffer.end());
+  double gga_length;
+  gga_length = std::distance(heading_status->gga_status_buffer.begin(), heading_status->gga_status_buffer.end());
 
-  if (heading_status->fix_status_buffer[0] == 0 && heading_status->fix_status_buffer[fix_length-1] == 0 && abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
+  if (heading_status->gga_status_buffer[0] == 0 && heading_status->gga_status_buffer[gga_length-1] == 0 && abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
   {
     tmp_llh[0] = heading_status->latitude_buffer[0] *M_PI/180;
     tmp_llh[1] = heading_status->longitude_buffer[0]*M_PI/180;
@@ -104,9 +104,9 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
 
     llh2xyz(tmp_llh,ecef_base);
 
-    llh_pos[0] = heading_status->latitude_buffer[fix_length-1] *M_PI/180;
-    llh_pos[1] = heading_status->longitude_buffer[fix_length-1]*M_PI/180;
-    llh_pos[2] = heading_status->altitude_buffer[fix_length-1];
+    llh_pos[0] = heading_status->latitude_buffer[gga_length-1] *M_PI/180;
+    llh_pos[1] = heading_status->longitude_buffer[gga_length-1]*M_PI/180;
+    llh_pos[2] = heading_status->altitude_buffer[gga_length-1];
 
     llh2xyz(llh_pos,ecef_pos);
     xyz2enu(ecef_pos,ecef_base,enu_pos);
@@ -118,18 +118,18 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
     rtk_heading_angle = rtk_heading_angle + 2*M_PI;
   }
 
-  if (heading_status->tow_last  == fix.header.stamp.toSec() || fix.header.stamp.toSec() == 0 || rtk_heading_angle == 0
+  if (heading_status->tow_last  == gga.header.stamp.toSec() || gga.header.stamp.toSec() == 0 || rtk_heading_angle == 0
     || heading_status->last_rtk_heading_angle == rtk_heading_angle || velocity_scale_factor.correction_velocity.linear.x < heading_parameter.stop_judgment_velocity_threshold)
   {
     gnss_status = false;
     rtk_heading_angle = 0;
-    heading_status->tow_last  = fix.header.stamp.toSec();
+    heading_status->tow_last  = gga.header.stamp.toSec();
   }
   else
   {
     gnss_status = true;
     rtk_heading_angle = rtk_heading_angle;
-    heading_status->tow_last  = fix.header.stamp.toSec();
+    heading_status->tow_last  = gga.header.stamp.toSec();
     heading_status->last_rtk_heading_angle = rtk_heading_angle;
   }
 
@@ -161,7 +161,9 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true && heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold && fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
+  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
+    heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold &&
+    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -199,11 +201,13 @@ void rtk_heading_estimate(sensor_msgs::NavSatFix fix,sensor_msgs::Imu imu,eagley
         {
           if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.stop_judgment_velocity_threshold)
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) *
+              (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
           else
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) * (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) *
+              (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
         }
       }
