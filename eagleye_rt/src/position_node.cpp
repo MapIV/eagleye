@@ -42,13 +42,13 @@ static eagleye_msgs::msg::Distance distance;
 static eagleye_msgs::msg::Heading heading_interpolate_3rd;
 static eagleye_msgs::msg::Position enu_absolute_pos;
 static geometry_msgs::msg::Vector3Stamped enu_vel;
-static sensor_msgs::msg::NavSatFix fix;
+static nmea_msgs::msg::Gpgga gga;
 rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub;
 
 struct PositionParameter position_parameter;
 struct PositionStatus position_status;
 
-static std::string use_gnss_mode;
+std::string use_gnss_mode;
 
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
@@ -73,9 +73,9 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSha
   heading_interpolate_3rd = *msg;
 }
 
-void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
+void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
-  fix = *msg;
+  gga = *msg;
 }
 
 
@@ -109,7 +109,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
     position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    position_estimate(fix, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+    position_estimate(gga, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
   if (enu_absolute_pos.status.estimate_status == true)
   {
     pub->publish(enu_absolute_pos);
@@ -125,10 +125,10 @@ int main(int argc, char** argv)
   // tfBuffer_(node->get_clock());
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
   node->declare_parameter("position.estimated_distance",position_parameter.estimated_distance);
   node->declare_parameter("position.separation_distance",position_parameter.separation_distance);
   node->declare_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
@@ -140,9 +140,10 @@ int main(int argc, char** argv)
   node->declare_parameter("ecef_base_pos.z",position_parameter.ecef_base_pos_z);
   node->declare_parameter("tf_gnss_flame.parent", position_parameter.tf_gnss_parent_flame);
   node->declare_parameter("tf_gnss_flame.child", position_parameter.tf_gnss_child_flame);
+  node->declare_parameter("use_gnss_mode",use_gnss_mode);
 
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("position.estimated_distance",position_parameter.estimated_distance);
   node->get_parameter("position.separation_distance",position_parameter.separation_distance);
   node->get_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
@@ -157,7 +158,7 @@ int main(int argc, char** argv)
   node->get_parameter("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
   std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<position_parameter.estimated_velocity_threshold<<std::endl;
@@ -173,7 +174,7 @@ int main(int argc, char** argv)
   auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
   auto sub5 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
-  auto sub6 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, fix_callback);
+  auto sub6 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   
   pub = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos", 1000);
 

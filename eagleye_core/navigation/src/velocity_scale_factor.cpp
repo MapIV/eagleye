@@ -38,7 +38,6 @@ void velocity_scale_factor_estimate_(const geometry_msgs::msg::TwistStamped velo
 { 
     int i;
     double initial_velocity_scale_factor = 1.0;
-    double doppler_velocity = 0.0;
     double raw_velocity_scale_factor = 0.0;
     std::size_t index_length;
     std::size_t gnss_status_buffer_length;
@@ -50,11 +49,6 @@ void velocity_scale_factor_estimate_(const geometry_msgs::msg::TwistStamped velo
     {
       initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
     }
-  }
-
-  if(velocity_scale_factor_parameter.save_velocity_scale_factor)
-  {
-    initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
   }
 
   if(velocity_scale_factor->status.enabled_status == true)

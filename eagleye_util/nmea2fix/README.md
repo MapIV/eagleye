@@ -29,7 +29,9 @@ The parameters are set in `launch/nmea2fix.launch` .
 
 |Name|Type|Description|Default value|
 |:---|:---|:---|:---|
-|sub_topic_name|bool|Topic name of nmea_msgs/Gpgga to subscribe|/navsat/nmea_sentence|
-|pub_fix_topic_name|double|Topic name of nmea_msgs/Gpgga to publish|/navsat/fix|
-|pub_gga_topic_name|bool|Topic name of nmea_msgs/Gpgga to publish|/gga|
+|nmea_sentence_topic|bool|Topic name of nmea_msgs/Sentence to subscribe|/navsat/nmea_sentence|
+|pub_fix_topic_name|double|Topic name of sensor_msgs/NavSatFix to publish|/navsat/fix|
+|pub_gga_topic_name|bool|Topic name of nmea_msgs/Gpgga to publish|/navsat/gga|
+|pub_rmc_topic_name|bool|Topic name of nmea_msgs/Gprmc to publish|/navsat/rmc|
 |output_gga|bool|Whether to output nmea_msgs/Gpgga|false|
+|output_rmc|bool|Whether to output nmea_msgs/Gprmc|false|

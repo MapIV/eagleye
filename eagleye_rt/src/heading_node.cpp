@@ -47,7 +47,7 @@ static eagleye_msgs::msg::Heading heading;
 struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
-static std::string use_gnss_mode;
+std::string use_gnss_mode;
 
 bool is_first_correction_velocity = false;
 
@@ -130,6 +130,7 @@ int main(int argc, char** argv)
   node->declare_parameter("heading.estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
   node->declare_parameter("heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  node->declare_parameter("use_gnss_mode",use_gnss_mode);
 
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
@@ -142,6 +143,7 @@ int main(int argc, char** argv)
   node->get_parameter("heading.estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
   node->get_parameter("heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  node->get_parameter("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;

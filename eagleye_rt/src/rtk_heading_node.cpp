@@ -32,7 +32,7 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-static sensor_msgs::msg::NavSatFix fix;
+static nmea_msgs::msg::Gpgga gga;
 static sensor_msgs::msg::Imu imu;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::msg::Distance distance;
@@ -47,9 +47,9 @@ static eagleye_msgs::msg::Heading heading;
 struct RtkHeadingParameter heading_parameter;
 struct RtkHeadingStatus heading_status;
 
-void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
+void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
-  fix = *msg;
+  gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
@@ -87,7 +87,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
-  rtk_heading_estimate(fix,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+  rtk_heading_estimate(gga,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)
   {
@@ -102,10 +102,10 @@ int main(int argc, char** argv)
   auto node = rclcpp::Node::make_shared("rtk_heading");
 
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
   node->declare_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->declare_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->declare_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
   node->declare_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->get_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->get_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
   node->get_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
   }
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
-  auto sub2 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, fix_callback);
+  auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
   auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);

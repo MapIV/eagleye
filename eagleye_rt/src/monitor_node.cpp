@@ -37,7 +37,7 @@
 static sensor_msgs::msg::Imu imu;
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static sensor_msgs::msg::NavSatFix fix;
-static sensor_msgs::msg::NavSatFix navsat_fix;
+static nmea_msgs::msg::Gpgga gga;
 static geometry_msgs::msg::TwistStamped velocity;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::msg::Distance distance;
@@ -60,12 +60,12 @@ static eagleye_msgs::msg::Position enu_absolute_pos_interpolate;
 static sensor_msgs::msg::NavSatFix eagleye_fix;
 static geometry_msgs::msg::TwistStamped eagleye_twist;
 
-static bool navsat_fix_sub_status;
+static bool gga_sub_status;
 static bool print_status;
 
 static double imu_time_last;
 static double rtklib_nav_time_last;
-static double navsat_fix_time_last;
+static double navsat_gga_time_last;
 static double velocity_time_last;
 static double velocity_scale_factor_time_last;
 static double distance_time_last;
@@ -101,10 +101,10 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   fix = *msg;
 }
 
-void navsatfix_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
+void navsatfix_gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
-  navsat_fix = *msg;
-  navsat_fix_sub_status = true;
+  gga = *msg;
+  gga_sub_status = true;
 }
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
@@ -245,20 +245,20 @@ void rtklib_nav_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   rtklib_nav_time_last = rtklib_nav_time;
   stat.summary(level, msg);
 }
-void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+void navsat_gga_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  rclcpp::Time ros_clock(navsat_fix.header.stamp);
-  auto navsat_fix_time = ros_clock.seconds();
+  rclcpp::Time ros_clock(gga.header.stamp);
+  auto navsat_gga_time = ros_clock.seconds();
 
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (navsat_fix_time_last - navsat_fix_time > th_gnss_deadrock_time || !navsat_fix_sub_status) {
+  if (navsat_gga_time_last - navsat_gga_time > th_gnss_deadrock_time || !gga_sub_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
 
-  navsat_fix_time_last = navsat_fix_time;
+  navsat_gga_time_last = navsat_gga_time;
   stat.summary(level, msg);
 }
 void velocity_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -734,15 +734,15 @@ void printStatus(void)
   std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<rtklib_nav.status.altitude<<" [m]"<<std::endl;
   std::cout << std::endl;
 
-  std::cout << "--- \033[1;34m navsat(input)\033[m ------------------------------"<< std::endl;
+  std::cout << "--- \033[1;34m gga(input)\033[m ------------------------------"<< std::endl;
 
-  if (navsat_fix_sub_status)
+  if (gga_sub_status)
   {
-    std::cout<< "\033[1m rtk status \033[m "<<int(navsat_fix.status.status)<<std::endl;
-    std::cout<< "\033[1m rtk status \033[m "<<(navsat_fix.status.status ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
-    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<navsat_fix.latitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<navsat_fix.longitude<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<navsat_fix.altitude<<" [m]"<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<int(gga.gps_qual)<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<(int(gga.gps_qual)!=4 ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
+    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<gga.lat<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<gga.lon<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<gga.alt + gga.undulation<<" [m]"<<std::endl;
     std::cout << std::endl;
   }
   else
@@ -831,31 +831,31 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_navsatfix_topic_name = "/navsatfix/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
   node->declare_parameter("imu_topic",subscribe_imu_topic_name);
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
   node->declare_parameter("monitor.print_status",print_status);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.print_status",print_status);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<print_status<<std::endl;
 
   // // Diagnostic Updater
   updater_->setHardwareID("eagleye_topic_checker");
   updater_->add("eagleye_input_imu", imu_topic_checker);
   updater_->add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
-  updater_->add("eagleye_input_navsat_fix", navsat_fix_topic_checker);
+  updater_->add("eagleye_input_navsat_gga", navsat_gga_topic_checker);
   updater_->add("eagleye_input_velocity", velocity_topic_checker);
   updater_->add("eagleye_velocity_scale_factor", velocity_scale_factor_topic_checker);
   updater_->add("eagleye_distance", distance_topic_checker);
@@ -879,7 +879,7 @@ int main(int argc, char** argv)
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback); //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), fix_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, navsatfix_fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, navsatfix_gga_callback); //ros::TransportHints().tcpNoDelay()
   auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback); //ros::TransportHints().tcpNoDelay()
   auto sub6 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
   auto sub7 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()

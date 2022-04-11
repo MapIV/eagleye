@@ -43,7 +43,7 @@ int main(int argc, char** argv)
 
   std::string use_gnss_mode;
 
-  node->declare_parameter("sub_topic_name",sub_topic_name);
+  node->declare_parameter("nmea_sentence_topic",sub_topic_name);
   node->declare_parameter("pub_fix_topic_name",pub_fix_topic_name);
   node->declare_parameter("pub_gga_topic_name",pub_gga_topic_name);
   node->declare_parameter("pub_rmc_topic_name",pub_rmc_topic_name);
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
   node->declare_parameter("output_rmc",output_rmc);
   node->declare_parameter("use_gnss_mode",use_gnss_mode);
 
-  node->get_parameter("sub_topic_name",sub_topic_name);
+  node->get_parameter("nmea_sentence_topic",sub_topic_name);
   node->get_parameter("pub_fix_topic_name",pub_fix_topic_name);
   node->get_parameter("pub_gga_topic_name",pub_gga_topic_name);
   node->get_parameter("pub_rmc_topic_name",pub_rmc_topic_name);

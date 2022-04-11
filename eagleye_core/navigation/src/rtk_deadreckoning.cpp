@@ -37,7 +37,7 @@
 // #include <tf2_sensor_msgs/tf2_sensor_msgs.h>
 // #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
-void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,
+void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nmea_msgs::msg::Gpgga gga,
   eagleye_msgs::msg::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
   eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
 {
@@ -47,10 +47,10 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sen
   double ecef_rtk[3];
   double llh_pos[3],llh_rtk[3];
 
-  rclcpp::Time ros_clock(fix.header.stamp);
+  rclcpp::Time ros_clock(gga.header.stamp);
   rclcpp::Time ros_clock2(enu_vel.header.stamp);
 
-  auto fix_time = ros_clock.seconds();
+  auto gga_time = ros_clock.seconds();
   auto enu_vel_time = ros_clock2.seconds();
 
   if(rtk_deadreckoning_status->position_estimate_start_status)
@@ -59,9 +59,9 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sen
     ecef_base_pos[1] = enu_absolute_rtk_deadreckoning->ecef_base_pos.y;
     ecef_base_pos[2] = enu_absolute_rtk_deadreckoning->ecef_base_pos.z;
 
-    llh_rtk[0] = fix.latitude *M_PI/180;
-    llh_rtk[1] = fix.longitude *M_PI/180;
-    llh_rtk[2] = fix.altitude;
+    llh_rtk[0] = gga.lat *M_PI/180;
+    llh_rtk[1] = gga.lon *M_PI/180;
+    llh_rtk[2] = gga.alt + gga.undulation;
 
     llh2xyz(llh_rtk,ecef_rtk);
     xyz2enu(ecef_rtk,ecef_base_pos,enu_rtk);
@@ -91,7 +91,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sen
     enu_rtk[1] = tmp_pos.getY();
     enu_rtk[2] = tmp_pos.getZ();
 
-    if (rtk_deadreckoning_status->position_stamp_last != fix_time && fix.status.status == 0)
+    if (rtk_deadreckoning_status->position_stamp_last != gga_time && gga.gps_qual == 4)
     {
       rtk_deadreckoning_status->provisional_enu_pos_x = enu_rtk[0];
       rtk_deadreckoning_status->provisional_enu_pos_y = enu_rtk[1];
@@ -127,7 +127,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sen
     enu_absolute_rtk_deadreckoning->enu_pos.z = enu_pos[2];
 
     rtk_deadreckoning_status->time_last = enu_vel_time;
-    rtk_deadreckoning_status->position_stamp_last = fix_time;
+    rtk_deadreckoning_status->position_stamp_last = gga_time;
   }
   else
   {
@@ -136,7 +136,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, sen
   }
 }
 
-void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,
+void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_msgs::msg::Vector3Stamped enu_vel, nmea_msgs::msg::Gpgga gga,
   eagleye_msgs::msg::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
   eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
 {
@@ -160,18 +160,18 @@ void rtk_deadreckoning_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,geometry_
     rtk_deadreckoning_status->position_estimate_start_status = true;
   }
 
-  rtk_deadreckoning_estimate_(enu_vel, fix, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
+  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
 }
 
-void rtk_deadreckoning_estimate(geometry_msgs::msg::Vector3Stamped enu_vel, sensor_msgs::msg::NavSatFix fix,  eagleye_msgs::msg::Heading heading,
+void rtk_deadreckoning_estimate(geometry_msgs::msg::Vector3Stamped enu_vel, nmea_msgs::msg::Gpgga gga,  eagleye_msgs::msg::Heading heading,
   RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
   eagleye_msgs::msg::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::msg::NavSatFix* eagleye_fix)
 {
   double ecef_pos[3];
   double llh_pos[3];
 
-  rclcpp::Time fix_clock(fix.header.stamp);
-  double fix_time = fix_clock.seconds();
+  rclcpp::Time gga_clock(gga.header.stamp);
+  double gga_time = gga_clock.seconds();
 
   if(rtk_deadreckoning_parameter.use_ecef_base_position)
   {
@@ -181,12 +181,12 @@ void rtk_deadreckoning_estimate(geometry_msgs::msg::Vector3Stamped enu_vel, sens
     rtk_deadreckoning_status->ecef_base_pos_status = true;
     rtk_deadreckoning_status->position_estimate_start_status = true;
   }
-  else if(!rtk_deadreckoning_status->ecef_base_pos_status && fix_time != 0)
+  else if(!rtk_deadreckoning_status->ecef_base_pos_status && gga_time != 0)
   {
 
-    llh_pos[0] = fix.latitude *M_PI/180;
-    llh_pos[1] = fix.longitude *M_PI/180;
-    llh_pos[2] = fix.altitude;
+    llh_pos[0] = gga.lat *M_PI/180;
+    llh_pos[1] = gga.lon *M_PI/180;
+    llh_pos[2] = gga.alt + gga.undulation;
 
     llh2xyz(llh_pos,ecef_pos);
 
@@ -197,5 +197,5 @@ void rtk_deadreckoning_estimate(geometry_msgs::msg::Vector3Stamped enu_vel, sens
     rtk_deadreckoning_status->position_estimate_start_status = true;
   }
 
-  rtk_deadreckoning_estimate_(enu_vel, fix, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
+  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
 }

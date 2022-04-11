@@ -44,7 +44,7 @@ static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 struct VelocityScaleFactorParameter velocity_scale_factor_parameter;
 struct VelocityScaleFactorStatus velocity_scale_factor_status;
 
-static std::string use_gnss_mode;
+std::string use_gnss_mode;
 
 bool is_first_move = false;
 
@@ -89,9 +89,13 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   }
 
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
+  {
     velocity_scale_factor_estimate(rtklib_nav,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
+  }
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
+  {
     velocity_scale_factor_estimate(nmea_rmc,velocity,velocity_scale_factor_parameter,&velocity_scale_factor_status,&velocity_scale_factor);
+  }
   pub->publish(velocity_scale_factor);
 }
 
@@ -175,6 +179,7 @@ int main(int argc, char** argv)
   node->declare_parameter("velocity_scale_factor_save_str",velocity_scale_factor_save_str);
   node->declare_parameter("velocity_scale_factor.save_velocity_scale_factor",velocity_scale_factor_parameter.save_velocity_scale_factor);
   node->declare_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
+  node->declare_parameter("use_gnss_mode",use_gnss_mode);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("imu_topic",subscribe_imu_topic_name);

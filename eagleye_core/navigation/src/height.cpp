@@ -33,7 +33,9 @@
 
 #define g 9.80665
 
-void pitching_estimate(const sensor_msgs::msg::Imu imu,const sensor_msgs::msg::NavSatFix fix,const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::msg::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::msg::Height* height,eagleye_msgs::msg::Pitching* pitching,eagleye_msgs::msg::AccXOffset* acc_x_offset,eagleye_msgs::msg::AccXScaleFactor* acc_x_scale_factor)
+void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpgga gga,const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,
+  const eagleye_msgs::msg::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::msg::Height* height,
+  eagleye_msgs::msg::Pitching* pitching,eagleye_msgs::msg::AccXOffset* acc_x_offset,eagleye_msgs::msg::AccXScaleFactor* acc_x_scale_factor)
 {
   int gps_quality = 0;
   double gnss_height = 0.0;
@@ -64,25 +66,25 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const sensor_msgs::msg::N
 
   int buffer_erase_count = 0;
 
-  rclcpp::Time ros_clock(fix.header.stamp);
+  rclcpp::Time ros_clock(gga.header.stamp);
   rclcpp::Time ros_clock2(imu.header.stamp);
-  auto fix_time = ros_clock.seconds();
+  auto gga_time = ros_clock.seconds();
   auto imu_time = ros_clock2.seconds();
 
 /// GNSS FLAG ///
-  if (height_status->fix_time_last == fix_time)
+  if (height_status->gga_time_last == gga_time)
   {
     gnss_status = false;
     gnss_height = 0.0;
     gps_quality = 0;
-    height_status->fix_time_last = fix_time;
+    height_status->gga_time_last = gga_time;
   }
   else
   {
     gnss_status = true;
-    gnss_height = fix.altitude;
-    gps_quality = fix.status.status;
-    height_status->fix_time_last = fix_time;
+    gnss_height = gga.alt + gga.undulation;
+    gps_quality = gga.gps_qual;
+    height_status->gga_time_last = gga_time;
   }
 
   height_status->flag_reliability = false;
@@ -97,7 +99,7 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const sensor_msgs::msg::N
   }
 
 ///  buffering  ///
-  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality != -1)
+  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality == 4)
   {
     height_status->height_buffer.push_back(gnss_height);
     height_status->relative_height_G_buffer.push_back(height_status->relative_height_G);
@@ -198,7 +200,7 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const sensor_msgs::msg::N
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality != -1 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality == 4 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();

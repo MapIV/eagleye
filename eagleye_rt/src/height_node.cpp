@@ -33,7 +33,7 @@
  #include "eagleye_navigation/eagleye_navigation.hpp"
 
  static sensor_msgs::msg::Imu imu;
- static sensor_msgs::msg::NavSatFix fix;
+ static nmea_msgs::msg::Gpgga gga;
  static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
  static eagleye_msgs::msg::Distance distance;
 
@@ -41,7 +41,7 @@
  rclcpp::Publisher<eagleye_msgs::msg::Pitching>::SharedPtr pub2;
  rclcpp::Publisher<eagleye_msgs::msg::AccXOffset>::SharedPtr pub3;
  rclcpp::Publisher<eagleye_msgs::msg::AccXScaleFactor>::SharedPtr pub4;
- rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub5;
+ rclcpp::Publisher<nmea_msgs::msg::Gpgga>::SharedPtr pub5;
  static eagleye_msgs::msg::Height height;
  static eagleye_msgs::msg::Pitching pitching;
  static eagleye_msgs::msg::AccXOffset acc_x_offset;
@@ -50,9 +50,9 @@
  struct HeightParameter height_parameter;
  struct HeightStatus height_status;
 
-void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
+void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
-  fix = *msg;
+  gga = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
@@ -74,7 +74,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   pitching.header.frame_id = "base_link";
   acc_x_offset.header = msg->header;
   acc_x_scale_factor.header = msg->header;
-  pitching_estimate(imu,fix,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
+  pitching_estimate(imu,gga,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
   pub1->publish(height);
   pub2->publish(pitching);
   pub3->publish(acc_x_offset);
@@ -82,7 +82,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 
   if (height_status.flag_reliability == true)
   {
-    pub5->publish(fix);
+    pub5->publish(gga);
   }
 
   height_status.flag_reliability = false;
@@ -97,10 +97,10 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("height");
 
-  std::string subscribe_navsatfix_topic_name = "/navsat/fix";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  node->declare_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
   node->declare_parameter("imu_topic",subscribe_imu_topic_name);
   node->declare_parameter("height.estimated_distance",height_parameter.estimated_distance);
   node->declare_parameter("height.estimated_distance_max",height_parameter.estimated_distance_max);
@@ -111,7 +111,7 @@ int main(int argc, char** argv)
   node->declare_parameter("height.outlier_threshold",height_parameter.outlier_threshold);
   node->declare_parameter("height.average_num",height_parameter.average_num);
 
-  node->get_parameter("navsatfix_topic",subscribe_navsatfix_topic_name);
+  node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("height.estimated_distance",height_parameter.estimated_distance);
   node->get_parameter("height.estimated_distance_max",height_parameter.estimated_distance_max);
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
   node->get_parameter("height.outlier_threshold",height_parameter.outlier_threshold);
   node->get_parameter("height.average_num",height_parameter.average_num);
 
-  std::cout<< "subscribe_navsatfix_topic_name "<<subscribe_navsatfix_topic_name<<std::endl;
+  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<height_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_distance_max "<<height_parameter.estimated_distance_max<<std::endl;
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
   std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<sensor_msgs::msg::NavSatFix>(subscribe_navsatfix_topic_name, 1000, fix_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback); //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()
 
@@ -142,13 +142,13 @@ int main(int argc, char** argv)
   std::string publish_pitching_topic_name = "pitching";
   std::string publish_acc_x_offset_topic_name = "acc_x_offset";
   std::string publish_acc_x_scale_factor_topic_name = "acc_x_scale_factor";
-  std::string publish_nav_sat_fix_topic_name = "navsat/reliability_fix";
+  std::string publish_nav_sat_gga_topic_name = "navsat/reliability_gga";
 
   pub1 = node->create_publisher<eagleye_msgs::msg::Height>(publish_height_topic_name, 1000);
   pub2 = node->create_publisher<eagleye_msgs::msg::Pitching>(publish_pitching_topic_name, 1000);
   pub3 = node->create_publisher<eagleye_msgs::msg::AccXOffset>(publish_acc_x_offset_topic_name, 1000);
   pub4 = node->create_publisher<eagleye_msgs::msg::AccXScaleFactor>(publish_acc_x_scale_factor_topic_name, 1000);
-  pub5 = node->create_publisher<sensor_msgs::msg::NavSatFix>(publish_nav_sat_fix_topic_name, 1000);
+  pub5 = node->create_publisher<nmea_msgs::msg::Gpgga>(publish_nav_sat_gga_topic_name, 1000);
 
   rclcpp::spin(node);
 
