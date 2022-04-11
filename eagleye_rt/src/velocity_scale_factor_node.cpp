@@ -45,6 +45,10 @@ struct VelocityScaleFactorStatus velocity_scale_factor_status;
 
 bool is_first_move = false;
 
+std::string velocity_scale_factor_save_str;
+double saved_vsf_estimater_number;
+double saved_velocity_scale_factor = 1.0;
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
@@ -62,7 +66,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  double initial_velocity_scale_factor = 1.0;
+  double initial_velocity_scale_factor = saved_velocity_scale_factor;
 
   imu = *msg;
   velocity_scale_factor.header = msg->header;
@@ -72,8 +76,6 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   {
     velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
     velocity_scale_factor.correction_velocity = velocity.twist;
-    velocity_scale_factor.status.enabled_status = false;
-    velocity_scale_factor.status.estimate_status = false;
     pub->publish(velocity_scale_factor);
     return;
   }
@@ -82,10 +84,70 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   pub->publish(velocity_scale_factor);
 }
 
+void load_velocity_scale_factor(std::string txt_path)
+{
+  std::ifstream ifs(txt_path);
+  if (!ifs)
+  {
+    std::cout << "Initial VelocityScaleFactor file not found!" << std::endl;
+  }
+  else
+  {
+    std::cout << "Loaded the saved velocity scale factor!" << std::endl;
+    int count = 0;
+    std::string row;
+    while (getline(ifs, row))
+    {
+      if(count == 1)
+      {
+        saved_vsf_estimater_number = std::stod(row);
+        std::cout<< "saved_vsf_estimater_number " << saved_vsf_estimater_number << std::endl;
+      }
+      if(count == 3)
+      {
+        saved_velocity_scale_factor = std::stod(row);
+        velocity_scale_factor_status.estimate_start_status = true;
+        velocity_scale_factor_status.velocity_scale_factor_last = saved_velocity_scale_factor;
+        velocity_scale_factor.status.enabled_status = true;
+        velocity_scale_factor.scale_factor = saved_velocity_scale_factor;
+        std::cout<< "saved_velocity_scale_factor " << saved_velocity_scale_factor << std::endl;
+      }
+      count++;
+    }
+  }
+  ifs.close();
+}
+
+void on_timer()
+{
+  if(!velocity_scale_factor.status.enabled_status && saved_vsf_estimater_number >= velocity_scale_factor_status.estimated_number)
+  {
+    std::ofstream csv_file(velocity_scale_factor_save_str);
+    return;
+  }
+
+  std::ofstream csv_file(velocity_scale_factor_save_str);
+  csv_file << "estimated_number";
+  csv_file << "\n";
+  csv_file << velocity_scale_factor_status.estimated_number;
+  csv_file << "\n";
+  csv_file << "velocity_scale_factor";
+  csv_file << "\n";
+  csv_file << velocity_scale_factor_status.velocity_scale_factor_last;
+  csv_file << "\n";
+  csv_file.close();
+
+  saved_vsf_estimater_number = velocity_scale_factor_status.estimated_number;
+
+  return;
+}
+
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("velocity_scale_factor");
+
+  double velocity_scale_factor_save_duration = 100.0;
 
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
@@ -98,6 +160,9 @@ int main(int argc, char** argv)
   node->declare_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
   node->declare_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
   node->declare_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+  node->declare_parameter("velocity_scale_factor_save_str",velocity_scale_factor_save_str);
+  node->declare_parameter("velocity_scale_factor.save_velocity_scale_factor",velocity_scale_factor_parameter.save_velocity_scale_factor);
+  node->declare_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
@@ -106,6 +171,9 @@ int main(int argc, char** argv)
   node->get_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
   node->get_parameter("velocity_scale_factor.estimated_velocity_threshold",velocity_scale_factor_parameter.estimated_velocity_threshold);
   node->get_parameter("velocity_scale_factor.estimated_coefficient",velocity_scale_factor_parameter.estimated_coefficient);
+  node->get_parameter("velocity_scale_factor_save_str",velocity_scale_factor_save_str);
+  node->get_parameter("velocity_scale_factor.save_velocity_scale_factor",velocity_scale_factor_parameter.save_velocity_scale_factor);
+  node->get_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -114,11 +182,27 @@ int main(int argc, char** argv)
   std::cout<< "estimated_number_max "<<velocity_scale_factor_parameter.estimated_number_max<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "estimated_coefficient "<<velocity_scale_factor_parameter.estimated_coefficient<<std::endl;
+  std::cout<< "velocity_scale_factor_save_str "<<velocity_scale_factor_save_str<<std::endl;
+  std::cout<< "save_velocity_scale_factor "<<velocity_scale_factor_parameter.save_velocity_scale_factor<<std::endl;
+  std::cout<< "velocity_scale_factor_save_duration "<<velocity_scale_factor_save_duration<<std::endl;
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
   auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   pub = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10));
+
+  double delta_time = static_cast<double>(velocity_scale_factor_save_duration);
+  auto timer_callback = std::bind(on_timer);
+  const auto period_ns =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));
+  auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
+    node->get_clock(), period_ns, std::move(timer_callback),
+    node->get_node_base_interface()->get_context());
+  if(velocity_scale_factor_parameter.save_velocity_scale_factor)
+  {
+    node->get_node_timers_interface()->add_timer(timer, nullptr);
+    load_velocity_scale_factor(velocity_scale_factor_save_str);
+  }
 
   rclcpp::spin(node);
 

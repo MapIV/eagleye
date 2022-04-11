@@ -46,6 +46,14 @@ void velocity_scale_factor_estimate_(const geometry_msgs::msg::TwistStamped velo
 
   if(velocity_scale_factor_parameter.save_velocity_scale_factor)
   {
+    if(velocity_scale_factor->status.enabled_status)
+    {
+      initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
+    }
+  }
+
+  if(velocity_scale_factor_parameter.save_velocity_scale_factor)
+  {
     initial_velocity_scale_factor = velocity_scale_factor_status->velocity_scale_factor_last;
   }
 
