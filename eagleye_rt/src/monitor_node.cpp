@@ -89,6 +89,7 @@ static double eagleye_twist_time_last;
 
 static double update_rate = 10;
 static double th_gnss_deadrock_time = 10;
+static double th_velocity_scale_factor_percent = 0.2;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -272,7 +273,8 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(velocity_scale_factor.scale_factor)) {
+  else if (!std::isfinite(velocity_scale_factor.scale_factor) ||
+    th_velocity_scale_factor_percent < std::abs(1.0 - velocity_scale_factor.scale_factor)) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
