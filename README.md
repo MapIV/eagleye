@@ -43,7 +43,7 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/rtklib_ros_bri
 Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge/tree/ros2-v0.1.0), [nmea_ros_bridge](https://github.com/MapIV/nmea_ros_bridge/tree/ros2-v0.1.0))
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git -b ros2-master
+	git clone https://github.com/MapIV/eagleye.git -b main-ros2
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
 	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
@@ -66,19 +66,9 @@ ie)
 
 2. GNSS receiver settings.
 
-See [docs/img/mosaic_setting](docs/img/mosaic_setting)
+Access mosaic's web ui and upload the following file in Admin/Configuration.
 
-### IMU
-
-1. IMU settings.
-
-* Output rate 50Hz
-
-2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
-
-		 reverse_imu: true
-
-### Eagleye parameters
+https://www.dropbox.com/s/uckt9### Eagleye parameters
 
 The parameters of eagleye can be set in the [eagleye_config.yaml](https://github.com/MapIV/eagleye/tree/ros2-galactic-v1.1.5/eagleye_rt/config/eagleye_config.yaml). The default settings are 5Hz for GNSS and 50Hz for IMU.
 
@@ -137,6 +127,10 @@ To visualize the eagleye output location /eagleye/fix, for example, use the foll
 
 	ros2 launch eagleye_fix2kml fix2kml.xml
 
+
+2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
+
+		 reverse_imu: true
 
 ## Sample data
 ### ROSBAG(ROS1)
