@@ -87,8 +87,10 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 ///  relative_height  ///
   if (velocity_scale_factor.correction_velocity.linear.x > 0 && height_status->time_last != 0)
   {
-    height_status->relative_height_G += imu.linear_acceleration.x * velocity_scale_factor.correction_velocity.linear.x*(imu.header.stamp.toSec()-height_status->time_last)/g;
-    height_status->relative_height_diffvel += - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last) * velocity_scale_factor.correction_velocity.linear.x/g;
+    height_status->relative_height_G += imu.linear_acceleration.x * velocity_scale_factor.correction_velocity.linear.x*
+      (imu.header.stamp.toSec()-height_status->time_last)/g;
+    height_status->relative_height_diffvel += - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last) *
+      velocity_scale_factor.correction_velocity.linear.x/g;
     height_status->relative_height_offset += velocity_scale_factor.correction_velocity.linear.x*(imu.header.stamp.toSec()-height_status->time_last)/g;
     correction_relative_height = height_status->relative_height_G + height_status->relative_height_offset + height_status->relative_height_diffvel;
   }
@@ -173,7 +175,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
       for (i = 0; i < height_status->data_number; i++)
       {
         diff_height = height_status->height_buffer[i] - height_status->height_buffer[0];
-        diff_relative_height = (height_status->relative_height_G_buffer[i] + height_status->relative_height_diffvel_buffer[i])- (height_status->relative_height_G_buffer[0] + height_status->relative_height_diffvel_buffer[0]);
+        diff_relative_height = (height_status->relative_height_G_buffer[i] + height_status->relative_height_diffvel_buffer[i])-
+          (height_status->relative_height_G_buffer[0] + height_status->relative_height_diffvel_buffer[0]);
         diff_relative_height_offset = height_status->relative_height_offset_buffer[i] - height_status->relative_height_offset_buffer[0];
         A += diff_relative_height_offset * diff_relative_height_offset;
         B += 2 * diff_relative_height_offset * (diff_height - diff_relative_height);
@@ -188,14 +191,16 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
     for (i = 0; i < height_status->data_number; i++)
     {
-      height_status->correction_relative_height_buffer[i] = height_status->acceleration_SF_linear_x_last * height_status->relative_height_G_buffer[i] + height_status->relative_height_diffvel_buffer[i] + height_status->acceleration_offset_linear_x_last * height_status->relative_height_offset_buffer[i];
+      height_status->correction_relative_height_buffer[i] = height_status->acceleration_SF_linear_x_last * height_status->relative_height_G_buffer[i] +
+        height_status->relative_height_diffvel_buffer[i] + height_status->acceleration_offset_linear_x_last * height_status->relative_height_offset_buffer[i];
     }
   }
 
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality ==4 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality ==4 && data_status == true &&
+      velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
@@ -367,7 +372,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
 ///  pitch  ///
   correction_acceleration_linear_x = imu.linear_acceleration.x * height_status->acceleration_SF_linear_x_last + height_status->acceleration_offset_linear_x_last;
-  height_status->acc_buffer.push_back((correction_acceleration_linear_x -(velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
+  height_status->acc_buffer.push_back((correction_acceleration_linear_x -
+    (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
   data_num_acc = height_status->acc_buffer.size();
 
   if (data_num_acc > height_parameter.average_num)

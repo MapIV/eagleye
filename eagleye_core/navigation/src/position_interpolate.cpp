@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Position gnss_smooth_pos, eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status, eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
+void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Position gnss_smooth_pos,
+  eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status,
+  eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   int i;
@@ -68,11 +70,15 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     position_estimate_status = false;
   }
 
-  if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_velocity_threshold)
+  if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) +
+    (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_velocity_threshold)
   {
-    position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
-    position_interpolate_status->provisional_enu_pos_y = enu_absolute_pos_interpolate->enu_pos.y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
-    position_interpolate_status->provisional_enu_pos_z = enu_absolute_pos_interpolate->enu_pos.z + enu_vel.vector.z * (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
+    position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x *
+      (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
+    position_interpolate_status->provisional_enu_pos_y = enu_absolute_pos_interpolate->enu_pos.y + enu_vel.vector.y *
+      (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
+    position_interpolate_status->provisional_enu_pos_z = enu_absolute_pos_interpolate->enu_pos.z + enu_vel.vector.z *
+      (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
   }
 
   // data buffer generate
@@ -103,16 +109,20 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
       }
     }
 
-    if (position_estimate_status == true && estimate_index > 0 && position_interpolate_status->number_buffer >= estimate_index && position_interpolate_status->position_estimate_status_count > 1)
+    if (position_estimate_status == true && estimate_index > 0 && position_interpolate_status->number_buffer >= estimate_index &&
+      position_interpolate_status->position_estimate_status_count > 1)
     {
       diff_estimate_enu_pos_x = (position_interpolate_status->provisional_enu_pos_x_buffer[estimate_index-1] - enu_absolute_pos.enu_pos.x);
       diff_estimate_enu_pos_y = (position_interpolate_status->provisional_enu_pos_y_buffer[estimate_index-1] - enu_absolute_pos.enu_pos.y);
       diff_estimate_enu_pos_z = (position_interpolate_status->provisional_enu_pos_z_buffer[estimate_index-1] - enu_absolute_pos.enu_pos.z);
       for (i = estimate_index; i <= position_interpolate_status->number_buffer; i++)
       {
-        position_interpolate_status->provisional_enu_pos_x_buffer[i-1] = position_interpolate_status->provisional_enu_pos_x_buffer[i-1] - diff_estimate_enu_pos_x;
-        position_interpolate_status->provisional_enu_pos_y_buffer[i-1] = position_interpolate_status->provisional_enu_pos_y_buffer[i-1] - diff_estimate_enu_pos_y;
-        position_interpolate_status->provisional_enu_pos_z_buffer[i-1] = position_interpolate_status->provisional_enu_pos_z_buffer[i-1] - diff_estimate_enu_pos_z;
+        position_interpolate_status->provisional_enu_pos_x_buffer[i-1] = position_interpolate_status->provisional_enu_pos_x_buffer[i-1] -
+          diff_estimate_enu_pos_x;
+        position_interpolate_status->provisional_enu_pos_y_buffer[i-1] = position_interpolate_status->provisional_enu_pos_y_buffer[i-1] -
+          diff_estimate_enu_pos_y;
+        position_interpolate_status->provisional_enu_pos_z_buffer[i-1] = position_interpolate_status->provisional_enu_pos_z_buffer[i-1] -
+          diff_estimate_enu_pos_z;
       }
       position_interpolate_status->provisional_enu_pos_x = position_interpolate_status->provisional_enu_pos_x_buffer[position_interpolate_status->number_buffer-1];
       position_interpolate_status->provisional_enu_pos_y = position_interpolate_status->provisional_enu_pos_y_buffer[position_interpolate_status->number_buffer-1];

@@ -31,7 +31,8 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
+void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter,
+  SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
 {
 
   int i;

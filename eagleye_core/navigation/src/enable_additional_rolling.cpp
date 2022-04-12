@@ -33,7 +33,11 @@
 
 #define g 9.80665
 
-void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,const sensor_msgs::Imu imu,const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,eagleye_msgs::Rolling* rolling_angle,eagleye_msgs::AccYOffset* acc_y_offset)
+void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::YawrateOffset yawrate_offset_2nd,
+  const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,const sensor_msgs::Imu imu,
+  const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,
+  const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,eagleye_msgs::Rolling* rolling_angle,
+  eagleye_msgs::AccYOffset* acc_y_offset)
 {
   bool acc_offset_status = false;
   bool rolling_buffer_status = false;
@@ -130,7 +134,8 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
           quaternionMsgToTF(localization_pose.pose.orientation, localization_quat);
           tf::Matrix3x3(localization_quat).getRPY(additional_angle[0], additional_angle[1], additional_angle[2]);
 
-          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
+          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-
+            rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
           rolling_status->acc_offset_sum = rolling_status->acc_offset_sum + acc_y_offset_tmp;
           rolling_status->acc_offset_data_count ++;
           acc_y_offset->acc_y_offset = rolling_status->acc_offset_sum/rolling_status->acc_offset_data_count;
@@ -156,11 +161,13 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   {
     if (velocity_scale_factor.correction_velocity.linear.x > rolling_parameter.stop_judgment_velocity_threshold)
     {
-      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-(rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
+      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-
+        (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
     else
     {
-      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-(rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
+      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-
+        (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
   }
 
