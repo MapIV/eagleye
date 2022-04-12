@@ -76,6 +76,43 @@ Clone and build the necessary packages for Eagleye.
 
 		 reverse_imu: true
 
+## Start each sensor driver
+
+1. Check if wheel speed (vehicle speed) is published in `/can_twist` topic.
+
+* Topic name: /can_twist
+* Message type: geometry_msgs/TwistStamped twist.liner.x
+
+
+2. Check if the IMU data is published in `/imu/data_raw` topic.
+
+3. Start RTKLIB.
+
+	ex. single point positioning
+
+		cd $HOME/RTKLIB
+		bash rtklib_ros_bridge_single.sh
+
+	ex. Real Time Kinematic
+ 
+ 		cd $HOME/RTKLIB
+		bash rtklib_ros_bridge_meijo_rtk.sh
+
+4. Check if RTKLIB is working by execute the following command in the terminal. If the RTKLIB is working correctly, positioning information is appeared continuously in the terminal.
+
+		status 0.1  
+
+5. Start rtklib_ros_bridge.
+
+		roslaunch rtklib_bridge rtklib_bridge.launch   
+
+6. Start nmea_comms in f9p or nmea_ros_bridge in mosaic.
+
+		roslaunch nmea_comms f9p_nmea_sentence.launch
+
+or
+
+		roslaunch nmea_ros_bridge nmea_udp.launch
 
 ## eagleye_rt
 
