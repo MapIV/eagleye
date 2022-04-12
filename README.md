@@ -68,7 +68,9 @@ ie)
 
 Access mosaic's web ui and upload the following file in Admin/Configuration.
 
-https://www.dropbox.com/s/uckt9### Eagleye parameters
+https://www.dropbox.com/s/uckt9
+
+### Eagleye parameters
 
 The parameters of eagleye can be set in the [eagleye_config.yaml](https://github.com/MapIV/eagleye/tree/ros2-galactic-v1.1.5/eagleye_rt/config/eagleye_config.yaml). The default settings are 5Hz for GNSS and 50Hz for IMU.
 
