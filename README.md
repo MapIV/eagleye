@@ -115,13 +115,30 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 		ros2 run rtklib_bridge rtklib_bridge --ros-args --params-file $HOME/ros2_ws/src/rtklib_ros_bridge/rtklib_bridge/param/param.yaml 
 
-6. Start nmea_comms.
+6. Start nmea_ros_bridge.
 
 		ros2 launch nmea_ros_bridge nmea_udp.launch.py
 
 7. Start eagleye.
 
 		ros2 launch eagleye_rt eagleye_rt.launch.xml
+
+## Node
+### Subscribed Topics
+ - /navsat/nmea_sentence (nmea_msgs/Sentence)
+
+ - /can_twist (geometry_msgs/TwistStamped)
+
+ - /rtklib_nav (rtklib_msgs/RtklibNav)
+
+ - /imu/data_raw (sensor_msgs/Imu)
+
+### Main Published Topics
+
+ - /eagleye/fix (sensor_msgs/NavSatFix) 
+
+ - /eagleye/twist (ngeometry_msgs/TwistStamped)
+
 
 ### Note
 
@@ -130,9 +147,9 @@ To visualize the eagleye output location /eagleye/fix, for example, use the foll
 	ros2 launch eagleye_fix2kml fix2kml.xml
 
 
-2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
+To convert from eagleye/fix to eagleye/pose, use the following command　
 
-		 reverse_imu: true
+	ros2 launch eagleye_fix2pose fix2pose.xml
 
 ## Sample data
 ### ROSBAG(ROS1)
