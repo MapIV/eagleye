@@ -61,6 +61,9 @@ static eagleye_msgs::Position enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix eagleye_fix;
 static geometry_msgs::TwistStamped eagleye_twist;
 
+static geometry_msgs::TwistStamped::ConstPtr comparison_velocity_ptr;
+static sensor_msgs::Imu corrected_imu;
+
 static bool gga_sub_status;
 static bool print_status;
 
@@ -87,9 +90,13 @@ static double enu_absolute_pos_time_last;
 static double enu_absolute_pos_interpolate_time_last;
 static double eagleye_twist_time_last;
 
-static double update_rate = 10;
-static double th_gnss_deadrock_time = 10;
-static double th_velocity_scale_factor_percent = 0.2;
+bool use_compare_yawrate = false;
+double update_rate = 10.0;
+double th_gnss_deadrock_time = 10;
+double th_velocity_scale_factor_percent = 20;
+double th_diff_rad_per_sec = 0.17453;
+int num_continuous_abnormal_yawrate = 0;
+int th_num_continuous_abnormal_yawrate = 10;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -212,6 +219,16 @@ void eagleye_twist_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   eagleye_twist = *msg;
 }
 
+void comparison_velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+{
+  comparison_velocity_ptr = msg;
+}
+
+void corrected_imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  corrected_imu = *msg;
+}
+
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -225,6 +242,7 @@ void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   imu_time_last = imu.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void rtklib_nav_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -238,6 +256,7 @@ void rtklib_nav_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   rtklib_nav_time_last = rtklib_nav.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -251,6 +270,7 @@ void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   navsat_gga_time_last = gga.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void velocity_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -264,6 +284,7 @@ void velocity_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   velocity_time_last = velocity.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -273,10 +294,13 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(velocity_scale_factor.scale_factor) ||
-    th_velocity_scale_factor_percent < std::abs(1.0 - velocity_scale_factor.scale_factor)) {
+  else if (!std::isfinite(velocity_scale_factor.scale_factor)) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     msg = "invalid number";
+  }
+  else if (th_velocity_scale_factor_percent / 100 < std::abs(1.0 - velocity_scale_factor.scale_factor)) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "Estimated velocity scale factor is too large or too small";
   }
   else if (!velocity_scale_factor.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
@@ -286,6 +310,7 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
   velocity_scale_factor_time_last = velocity_scale_factor.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void distance_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -307,6 +332,7 @@ void distance_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   distance_time_last = distance.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -328,6 +354,7 @@ void heading_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & sta
   heading_1st_time_last = heading_1st.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_interpolate_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -349,6 +376,7 @@ void heading_interpolate_1st_topic_checker(diagnostic_updater::DiagnosticStatusW
   heading_interpolate_1st_time_last = heading_interpolate_1st.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -370,6 +398,7 @@ void heading_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & sta
   heading_2nd_time_last = heading_2nd.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_interpolate_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -391,6 +420,7 @@ void heading_interpolate_2nd_topic_checker(diagnostic_updater::DiagnosticStatusW
   heading_interpolate_2nd_time_last = heading_interpolate_2nd.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_3rd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -412,6 +442,7 @@ void heading_3rd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & sta
   heading_3rd_time_last = heading_3rd.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void heading_interpolate_3rd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -454,6 +485,7 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
   yawrate_offset_stop_time_last = yawrate_offset_stop.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -475,6 +507,7 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
   yawrate_offset_1st_time_last = yawrate_offset_1st.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -496,6 +529,7 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
   yawrate_offset_2nd_time_last = yawrate_offset_2nd.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void slip_angle_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -521,6 +555,7 @@ void slip_angle_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   slip_angle_time_last = slip_angle.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void enu_vel_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -538,6 +573,7 @@ void enu_vel_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   enu_vel_time_last = enu_vel.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void height_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -559,6 +595,7 @@ void height_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   height_time_last = height.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void pitching_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -580,6 +617,7 @@ void pitching_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   pitching_time_last = pitching.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void enu_absolute_pos_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -601,6 +639,7 @@ void enu_absolute_pos_topic_checker(diagnostic_updater::DiagnosticStatusWrapper 
   enu_absolute_pos_time_last = enu_absolute_pos.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void enu_absolute_pos_interpolate_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -622,6 +661,7 @@ void enu_absolute_pos_interpolate_topic_checker(diagnostic_updater::DiagnosticSt
   enu_absolute_pos_interpolate_time_last = enu_absolute_pos_interpolate.header.stamp.toSec();
   stat.summary(level, msg);
 }
+
 void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
@@ -638,6 +678,32 @@ void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   }
 
   eagleye_twist_time_last = eagleye_twist.header.stamp.toSec();
+  stat.summary(level, msg);
+}
+
+void corrected_imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+{
+  if(comparison_velocity_ptr == nullptr)
+  {
+    return;
+  }
+
+  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  std::string msg = "OK";
+
+  if(use_compare_yawrate && th_diff_rad_per_sec < std::abs(corrected_imu.angular_velocity.z - comparison_velocity_ptr->twist.angular.z))
+  {
+    num_continuous_abnormal_yawrate++;
+  }
+  else
+  {
+    num_continuous_abnormal_yawrate = 0;
+  }
+
+  if (num_continuous_abnormal_yawrate > th_num_continuous_abnormal_yawrate) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "Corrected yaw rate too large or too small";
+  }
   stat.summary(level, msg);
 }
 
@@ -766,17 +832,31 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string comparison_twist_topic_name = "/calculated_twist";
 
   n.getParam("twist_topic",subscribe_twist_topic_name);
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   n.getParam("monitor/print_status",print_status);
+  n.getParam("monitor/update_rate",update_rate);
+  n.getParam("monitor/th_gnss_deadrock_time",th_gnss_deadrock_time);
+  n.getParam("monitor/th_velocity_scale_factor_percent",th_velocity_scale_factor_percent);
+  n.getParam("monitor/use_compare_yawrate",use_compare_yawrate);
+  n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
+  n.getParam("monitor/th_diff_rad_per_sec",th_diff_rad_per_sec);
+  n.getParam("monitor/th_num_continuous_abnormal_yawrate",th_num_continuous_abnormal_yawrate);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<print_status<<std::endl;
+  std::cout<< "update_rate "<<update_rate<<std::endl;
+  std::cout<< "th_gnss_deadrock_time "<<th_gnss_deadrock_time<<std::endl;
+  std::cout<< "th_velocity_scale_factor_percent "<<th_velocity_scale_factor_percent<<std::endl;
+  std::cout<< "use_compare_yawrate "<<use_compare_yawrate<<std::endl;
+  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
+  std::cout<< "th_diff_rad_per_sec "<<th_diff_rad_per_sec<<std::endl;
 
   // // Diagnostic Updater
   diagnostic_updater::Updater updater_;
@@ -803,6 +883,7 @@ int main(int argc, char** argv)
   updater_.add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater_.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_.add("eagleye_twist", twist_topic_checker);
+  updater_.add("eagleye_corrected_imu", corrected_imu_topic_checker);
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
@@ -829,6 +910,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub23 = n.subscribe("enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub24 = n.subscribe("fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub25 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub26 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub27 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
 
   ros::Timer timer = n.createTimer(ros::Duration(1/update_rate), boost::bind(timer_callback,_1, &updater_));
 
