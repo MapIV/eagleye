@@ -1750,7 +1750,7 @@ output_plot_kml_file << "</name>\n\
 \t\t<name>Eagleye Logo</name>\n\
 \t\t<visibility>1</visibility>\n\
 \t\t<Icon>\n\
-\t\t\t<href>https://github.com/MapIV/eagleye/blob/master/docs/logo.png?raw=true</href>\n\
+\t\t\t<href>https://github.com/MapIV/eagleye/blob/main-ros1/docs/logo.png?raw=true</href>\n\
 \t\t</Icon>\n\
 \t\t<overlayXY x=\"-0.3\" y=\"-1\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
 \t\t<screenXY x=\"0\" y=\"0\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
@@ -2241,7 +2241,7 @@ void eagleye_pp::addHeaderLineKML(std::ofstream* output_line_kml_file)
   \t<name>Eagleye Logo</name>\n\
   \t<visibility>1</visibility>\n\
   \t<Icon>\n\
-  \t\t<href>https://github.com/MapIV/eagleye/blob/master/docs/logo.png?raw=true</href>\n\
+  \t\t<href>https://github.com/MapIV/eagleye/blob/main-ros1/docs/logo.png?raw=true</href>\n\
   \t</Icon>\n\
   \t<overlayXY x=\"-0.3\" y=\"-1\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
   \t<screenXY x=\"0\" y=\"0\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
@@ -2537,7 +2537,7 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
 }
 
 
-void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, EagleyeStates eagleye_state)
+void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state)
 {
     *output_log_csv_file << "timestamp,imu.angular_velocity.x,imu.angular_velocity.y,imu.angular_velocity.z,imu.linear_acceleration.x,imu.linear_acceleration.y,imu.linear_acceleration.z\
 ,rtklib_nav.tow,rtklib_nav.ecef_pos.x,rtklib_nav.ecef_pos.y,rtklib_nav.ecef_pos.z,rtklib_nav.ecef_vel.x,rtklib_nav.ecef_vel.y,rtklib_nav.ecef_vel.z,rtklib_nav.status.status.status,rtklib_nav.status.status.service,rtklib_nav.status.latitude,rtklib_nav.status.longitude,rtklib_nav.status.altitude\
@@ -2720,7 +2720,7 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, Eagley
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.x << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.y << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_relative_pos[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state_forward_.enu_relative_pos[i].status.enabled_status ? "1" : "0");
       *output_log_csv_file << "\n";
     }
 }

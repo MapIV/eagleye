@@ -169,6 +169,6 @@ class eagleye_pp
 
   void writeSimpleCSV();
 
-  void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, EagleyeStates eagleye_state);
+  void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state);
   void writeDetailCSV();
 };
