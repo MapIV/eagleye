@@ -2426,8 +2426,9 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
 ,eagleye_acceleration.orientation_covariance[0],eagleye_acceleration.orientation_covariance[1],eagleye_acceleration.orientation_covariance[2],eagleye_acceleration.orientation_covariance[3],eagleye_acceleration.orientation_covariance[4],eagleye_acceleration.orientation_covariance[5],eagleye_acceleration.orientation_covariance[6],eagleye_acceleration.orientation_covariance[7],eagleye_acceleration.orientation_covariance[8]\
 ,eagleye_posture.roll,eagleye_posture.pitch,eagleye_posture.yaw\
 ,eagleye_posture.orientation_covariance[0],eagleye_posture.orientation_covariance[1],eagleye_posture.orientation_covariance[2],eagleye_posture.orientation_covariance[3],eagleye_posture.orientation_covariance[4],eagleye_posture.orientation_covariance[5],eagleye_posture.orientation_covariance[6],eagleye_posture.orientation_covariance[7],eagleye_posture.orientation_covariance[8]\
-,navsat_gga.latitude,navsat_gga.longitude,navsat_gga.altitude\
-,navsat_gga.gps_qual\
+,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
+,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
+,navsat_llh.gps_qual\
 ,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
 ,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
 ,eagleye_pp_llh.status\
@@ -2498,10 +2499,19 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //navsat_gga.latitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //navsat_gga.longitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; //navsat_gga.altitude
-    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //navsat_gga.gps_qual
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //navsat_llh.latitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //navsat_llh.longitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; //navsat_llh.altitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[0]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[1]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[2]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[3]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[4]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[5]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[6]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[7]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[8]
+    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //navsat_llh.gps_qual
     if(getUseCombination())
     {
       output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
