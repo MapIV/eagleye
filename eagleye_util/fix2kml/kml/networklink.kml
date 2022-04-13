@@ -11,7 +11,7 @@
       <name>Eagleye Logo</name>
       <visibility>1</visibility>
       <Icon>
-        <href>https://github.com/MapIV/eagleye/blob/master/docs/logo.png?raw=true</href>
+        <href>https://github.com/MapIV/eagleye/blob/main-ros2/docs/logo.png?raw=true</href>
       </Icon>
       <overlayXY x="-0.3" y="-1" xunits="fraction" yunits="fraction"/>
       <screenXY x="0" y="0" xunits="fraction" yunits="fraction"/>
