@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu, const YawrateOffsetStopParameter yawrate_offset_stop_parameter, YawrateOffsetStopStatus* yawrate_offset_stop_status, eagleye_msgs::YawrateOffset* yawrate_offset_stop)
+void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu,
+  const YawrateOffsetStopParameter yawrate_offset_stop_parameter, YawrateOffsetStopStatus* yawrate_offset_stop_status,
+  eagleye_msgs::YawrateOffset* yawrate_offset_stop)
 {
 
   int i;
@@ -52,7 +54,8 @@ void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, co
       yawrate_offset_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
     }
   }
-  else if ( std::fabs(std::fabs(yawrate_offset_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) < yawrate_offset_stop_parameter.outlier_threshold && yawrate_offset_stop_status->estimate_start_status == true)
+  else if ( std::fabs(std::fabs(yawrate_offset_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
+    yawrate_offset_stop_parameter.outlier_threshold && yawrate_offset_stop_status->estimate_start_status == true)
   {
     if (yawrate_offset_stop_parameter.reverse_imu == false)
     {

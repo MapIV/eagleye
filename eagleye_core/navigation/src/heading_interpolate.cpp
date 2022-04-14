@@ -31,7 +31,10 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::Heading* heading_interpolate)
+void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+  const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,
+  const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,
+  eagleye_msgs::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
@@ -78,9 +81,11 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     heading_estimate_status = false;
   }
 
-  if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) >
+    heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
-    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu.header.stamp.toSec() - heading_interpolate_status->time_last));
+    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle +
+      (yawrate * (imu.header.stamp.toSec() - heading_interpolate_status->time_last));
   }
 
   // data buffer generate
@@ -107,14 +112,17 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
       }
     }
 
-    if (heading_estimate_status == true && estimate_index > 0 && heading_interpolate_status->number_buffer >= estimate_index && heading_interpolate_status->heading_estimate_status_count > 1)
+    if (heading_estimate_status == true && estimate_index > 0 && heading_interpolate_status->number_buffer >= estimate_index &&
+      heading_interpolate_status->heading_estimate_status_count > 1)
     {
       diff_estimate_heading_angle = (heading_interpolate_status->provisional_heading_angle_buffer[estimate_index-1] - heading.heading_angle);
       for (i = estimate_index; i <= heading_interpolate_status->number_buffer; i++)
       {
-        heading_interpolate_status->provisional_heading_angle_buffer[i-1] = heading_interpolate_status->provisional_heading_angle_buffer[i-1] - diff_estimate_heading_angle;
+        heading_interpolate_status->provisional_heading_angle_buffer[i-1] = heading_interpolate_status->provisional_heading_angle_buffer[i-1] -
+          diff_estimate_heading_angle;
       }
-      heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle_buffer[heading_interpolate_status->number_buffer-1];
+      heading_interpolate_status->provisional_heading_angle =
+        heading_interpolate_status->provisional_heading_angle_buffer[heading_interpolate_status->number_buffer-1];
 
       heading_interpolate->status.enabled_status = true;
       heading_interpolate->status.estimate_status = true;

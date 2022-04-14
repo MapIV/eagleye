@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset_2nd,eagleye_msgs::Heading heading_interpolate_3rd,SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
+void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtklib_nav,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+  eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset_2nd,eagleye_msgs::Heading heading_interpolate_3rd,
+  SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
 {
 
   int i;
@@ -90,7 +92,8 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
   if (heading_interpolate_3rd.status.estimate_status == true)
   {
-    if ((velocity_scale_factor.correction_velocity.linear.x > slip_coefficient_parameter.estimated_velocity_threshold) && (fabs(yawrate) > slip_coefficient_parameter.estimated_yawrate_threshold))
+    if ((velocity_scale_factor.correction_velocity.linear.x > slip_coefficient_parameter.estimated_velocity_threshold) &&
+      (fabs(yawrate) > slip_coefficient_parameter.estimated_yawrate_threshold))
     {
       double imu_heading;
 
@@ -140,7 +143,8 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
               sum_y += slip_coefficient_status->doppler_slip_buffer[i];
               sum_x2 += pow(slip_coefficient_status->acceleration_y_buffer[i], 2);
             }
-            *estimate_coefficient = (slip_coefficient_status->heading_estimate_status_count * sum_xy - sum_x * sum_y) / (slip_coefficient_status->heading_estimate_status_count * sum_x2 - pow(sum_x, 2));
+            *estimate_coefficient = (slip_coefficient_status->heading_estimate_status_count * sum_xy - sum_x * sum_y) /
+              (slip_coefficient_status->heading_estimate_status_count * sum_x2 - pow(sum_x, 2));
           }
         }
       }

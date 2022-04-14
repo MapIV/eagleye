@@ -31,7 +31,8 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::SlipAngle* slip_angle)
+void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::YawrateOffset yawrate_offset_stop,
+  eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::SlipAngle* slip_angle)
 {
 
   int i;
@@ -59,7 +60,8 @@ void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor
 
   acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
 
-  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
+  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true &&
+    yawrate_offset_2nd.status.enabled_status == true)
   {
       slip_angle->coefficient = slip_angle_parameter.manual_coefficient;
       slip_angle->slip_angle = slip_angle_parameter.manual_coefficient * acceleration_y;

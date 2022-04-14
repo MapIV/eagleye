@@ -35,7 +35,8 @@ void distance_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_fa
 {
   if(distance_status->time_last != 0)
   {
-    distance->distance = distance->distance + velocity_scale_factor.correction_velocity.linear.x * std::abs((velocity_scale_factor.header.stamp.toSec() - distance_status->time_last));
+    distance->distance = distance->distance + velocity_scale_factor.correction_velocity.linear.x * std::abs((velocity_scale_factor.header.stamp.toSec() -
+      distance_status->time_last));
     distance->status.enabled_status = distance->status.estimate_status = true;
     distance_status->time_last = velocity_scale_factor.header.stamp.toSec();
   }
