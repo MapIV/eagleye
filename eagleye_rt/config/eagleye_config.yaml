@@ -5,8 +5,8 @@
     ## RTKLIB (rtklib) or NMEA (nmea)
     ## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
 
-    twist_topic: /can_twist
-    imu_topic: /imu/data_raw
+    twist_topic: /vehicle/status/twist
+    imu_topic: /sensing/imu/data_raw
     rtklib_nav_topic: /rtklib_nav
     ## If RTK positioning is not used, the following topic settings are not necessary.
     nmea_sentence_topic: /navsat/nmea_sentence
