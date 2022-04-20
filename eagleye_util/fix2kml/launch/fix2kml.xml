@@ -1,13 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <launch>
 
   <arg name="filename" default="$(find-pkg-share eagleye_fix2kml)/kml/eagleye_fix.kml"/>
   <arg name="kmlname" default="Eagleye"/>
-
-  <node pkg="eagleye_fix2kml" name="fix2kml_node" exec="fix2kml" output="screen">
+  <arg name="fixname" default="/eagleye/fix"/>
+  <node pkg="eagleye_fix2kml" name="fix2kml_node" exec="fix2kml" output="log">
+        <param name="fixname"  value="$(var fixname)"/>
         <param name="filename" value="$(var filename)"/>
-        <param name="kmlname" value="$(var kmlname)"/>
+        <param name="kmlname"  value="$(var kmlname)"/>
+  </node>
+
+  <arg name="raw_filename" default="$(find-pkg-share eagleye_fix2kml)/kml/raw_fix.kml"/>
+  <arg name="raw_kmlname" default="Raw"/>
+  <arg name="raw_fixname" default="/sensing/gnss/ublox/nav_sat_fix"/>
+  <node pkg="eagleye_fix2kml" name="rawfix2kml_node" exec="fix2kml" output="log">
+        <param name="fixname"  value="$(var raw_fixname)"/>
+        <param name="filename" value="$(var raw_filename)"/>
+        <param name="kmlname"  value="$(var raw_kmlname)"/>
   </node>
 
 </launch>
