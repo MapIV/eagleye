@@ -36,7 +36,7 @@
 static double interval = 0.2;  //m
 static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
-static std::string filename, kmlname, fixname;
+static std::string filename, kmlname, fixname, color = "ff0000ff";
 
 void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
@@ -60,16 +60,19 @@ int main(int argc, char** argv)
   node->declare_parameter("filename", filename);
   node->declare_parameter("kmlname", kmlname);
   node->declare_parameter("fixname", fixname);
+  node->declare_parameter("color", color);
 
   node->get_parameter("filename", filename);
   node->get_parameter("kmlname", kmlname);
   node->get_parameter("fixname", fixname);
+  node->get_parameter("color", color);
 
   std::cout << "filename: " << filename << std::endl;
   std::cout << "kmlname: " << kmlname << std::endl;
   std::cout << "fixname: " << fixname << std::endl;
+  std::cout << "color: " << color << std::endl;
 
-  KmlGenerator kmlfile(kmlname);
+  KmlGenerator kmlfile(kmlname,color);
 
   std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc = std::bind(&receive_data, std::placeholders::_1, &kmlfile);
   auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>(fixname, rclcpp::QoS(10), sub1_fnc);
