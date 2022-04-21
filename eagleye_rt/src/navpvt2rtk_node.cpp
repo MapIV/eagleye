@@ -45,9 +45,9 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   r.tow = msg->i_tow;
 
   double llh[3];
-  llh[0] = msg->lat * 1e-7;  // [deg / 1e-7]->[deg]
-  llh[1] = msg->lon * 1e-7;  // [deg / 1e-7]->[deg]
-  llh[2] = msg->height;
+  llh[0] = msg->lat * 1e-7 * M_PI / 180.0;  // [deg / 1e-7]->[rad]
+  llh[1] = msg->lon * 1e-7 * M_PI / 180.0;  // [deg / 1e-7]->[rad]
+  llh[2] = msg->height * 1e-3;              // [mm]->[m]
   double ecef_pos[3];
   llh2xyz(llh, ecef_pos);
 
