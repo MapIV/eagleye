@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+    <arg name="config_yaml" default="eagleye_config.yaml"/>
+
+    <group>
+        <push-ros-namespace namespace="eagleye"/>
+        <node pkg="eagleye_rt" name="navpvt2rtk_node" exec="navpvt2rtk" output="log">
+            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name ="ublox_navpvt_topic" value="/sensing/gnss/ublox/navpvt"/>
+            <param name ="nav_sat_fix_topic" value="/sensing/gnss/ublox/nav_sat_fix"/>
+        </node>
+    </group>
+
+    <include file="$(find-pkg-share eagleye_rt)/launch/eagleye_rt.launch.xml"/>
+</launch>
