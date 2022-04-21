@@ -21,16 +21,20 @@ void ublox_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   double llh[3];
   llh[0] = msg->lat * 1e-7;
   llh[1] = msg->lon * 1e-7;
-  llh[2] = msg->height;
-  double xyz[3];
-  llh2xyz(llh, xyz);
+  llh[2] = msg->height * 1e-3;  // [mm]->[m]
+  double ecef_pos[3];
+  llh2xyz(llh, ecef_pos);
 
-  r.ecef_pos.x = xyz[0];
-  r.ecef_pos.y = xyz[1];
-  r.ecef_pos.z = xyz[2];
-  r.ecef_vel.x = msg->vel_e * 1e-3;
-  r.ecef_vel.y = msg->vel_n * 1e-3;
-  r.ecef_vel.z = -msg->vel_d * 1e-3;
+  double enu_vel[3] = {msg->vel_e * 1e-3, msg->vel_n * 1e-3, -msg->vel_d * 1e-3};
+  double ecef_vel[3];
+  enu2xyz_vel(enu_vel, ecef_pos, ecef_vel);
+
+  r.ecef_pos.x = ecef_pos[0];
+  r.ecef_pos.y = ecef_pos[1];
+  r.ecef_pos.z = ecef_pos[2];
+  r.ecef_vel.x = ecef_vel[0];
+  r.ecef_vel.y = ecef_vel[1];
+  r.ecef_vel.z = ecef_vel[2];
 
   pub_rtk->publish(r);
 }

@@ -29,13 +29,9 @@
 
 void xyz2enu_vel(double ecef_vel[3], double ecef_base_pos[3], double enu_vel[3])
 {
-  // double llh_base_pos[3];
-  // ecef2llh(ecef_base_pos,llh_base_pos);
-  // enu_vel[0] = (-ecef_vel[0] * (sin(llh_base_pos[1]))) + (ecef_vel[1] * (cos(llh_base_pos[1])));
-  // enu_vel[1] = (-ecef_vel[0] * (cos(llh_base_pos[1])) * (sin(llh_base_pos[0]))) - (ecef_vel[1] * (sin(llh_base_pos[1])) * (sin(llh_base_pos[0]))) + (ecef_vel[2] * (cos(llh_base_pos[0])));
-  // enu_vel[2] = (ecef_vel[0] * (cos(llh_base_pos[1])) * (cos(llh_base_pos[0]))) + (ecef_vel[1] * (sin(llh_base_pos[1])) * (cos(llh_base_pos[0]))) + (ecef_vel[2] * (sin(llh_base_pos[0])));
-#warning NOTE:
-  enu_vel[0] = ecef_vel[0];
-  enu_vel[1] = ecef_vel[1];
-  enu_vel[2] = ecef_vel[2];
+  double llh_base_pos[3];
+  ecef2llh(ecef_base_pos, llh_base_pos);
+  enu_vel[0] = (-ecef_vel[0] * (sin(llh_base_pos[1]))) + (ecef_vel[1] * (cos(llh_base_pos[1])));
+  enu_vel[1] = (-ecef_vel[0] * (cos(llh_base_pos[1])) * (sin(llh_base_pos[0]))) - (ecef_vel[1] * (sin(llh_base_pos[1])) * (sin(llh_base_pos[0]))) + (ecef_vel[2] * (cos(llh_base_pos[0])));
+  enu_vel[2] = (ecef_vel[0] * (cos(llh_base_pos[1])) * (cos(llh_base_pos[0]))) + (ecef_vel[1] * (sin(llh_base_pos[1])) * (cos(llh_base_pos[0]))) + (ecef_vel[2] * (sin(llh_base_pos[0])));
 }
