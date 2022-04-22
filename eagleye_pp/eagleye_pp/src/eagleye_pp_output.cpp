@@ -5,9 +5,6 @@
 writePointKML
 Function to output kml(plot)
 bool arg_use_rtk_navsatfix_topic : Determine if to use navsatfix
-std::string* arg_s_eagleye_line : forward line data
-std::string* arg_s_eagleye_back_line : backward line data
-std::string* arg_s_eagleye_pp_line : Line data to merge forward and backward
 ******************************************************************************/
 void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic)
 {
