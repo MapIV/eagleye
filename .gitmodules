@@ -1,0 +1,3 @@
+[submodule "eagleye_util/kml_generator"]
+	path = eagleye_util/kml_generator
+	url = https://github.com/MapIV/kml_generator

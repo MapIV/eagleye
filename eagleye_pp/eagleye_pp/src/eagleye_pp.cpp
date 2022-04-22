@@ -147,11 +147,11 @@ int main(int argc, char *argv[])
     std::cout << std::endl << "backward estimation finish" <<  std::endl;
   }
   
-  if(use_rtklib_topic)
-  {
-    eagleye_pp.smoothingDeadReckoning();
-    std::cout << std::endl << "smoothing dead reckoning finish" <<  std::endl;
-  }
+  // if(use_rtklib_topic)
+  // {
+  //   eagleye_pp.smoothingDeadReckoning();
+  //   std::cout << std::endl << "smoothing dead reckoning finish" <<  std::endl;
+  // }
 
   // forward/backward combination
   if(eagleye_pp.getUseCombination())
@@ -164,13 +164,9 @@ int main(int argc, char *argv[])
   eagleye_pp.convertHeight();
 
   //　output process
-  std::string s_eagleye_line;
-  std::string s_eagleye_back_line;
-  std::string s_eagleye_pp_line;
-
-  eagleye_pp.writeLineKML(use_rtk_navsatfix_topic, &s_eagleye_line, &s_eagleye_back_line, &s_eagleye_pp_line);
-  eagleye_pp.writePointKML(use_rtk_navsatfix_topic, &s_eagleye_line, &s_eagleye_back_line, &s_eagleye_pp_line);
+  eagleye_pp.writeLineKML(use_rtk_navsatfix_topic);
+  eagleye_pp.writePointKML(use_rtk_navsatfix_topic);
   eagleye_pp.writeSimpleCSV();
-  eagleye_pp.writeDetailCSV();
+  // eagleye_pp.writeDetailCSV();
   return 0;
 }
