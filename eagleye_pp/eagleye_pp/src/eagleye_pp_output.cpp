@@ -47,14 +47,14 @@ void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic)
 
   if(output_kml_gnss_plot_)
   {
-    std::vector<Point> rtklibnav_point_vector = rtklibnavVector2PointVector();
+    std::vector<kml_utils::Point> rtklibnav_point_vector = rtklibnavVector2PointVector();
     kml_generator_->addPointVector2PointKML(rtklibnav_point_vector, "RTKLIB", 1);
   }
 
   if(output_kml_gnss_plot_)
   {
     int visibility = (!arg_use_rtk_navsatfix_topic ? 1 : 0);
-    std::pair<std::vector<Point>, std::vector<Point>> gnss_pair_ = ggaVector2PointVectorPair();
+    std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > gnss_pair_ = ggaVector2PointVectorPair();
     kml_generator_->addPointVector2PointKML(gnss_pair_.first, "GNSS_FIX", visibility);
     kml_generator_->addPointVector2PointKML(gnss_pair_.second, "GNSS_NO_FIX", visibility);
   }
@@ -468,21 +468,21 @@ void eagleye_pp::writeDetailCSV(void)
   }
 }
 
-std::vector<Point> eagleye_pp::eagleyeStatus2PointVector( const EagleyeStates& eagleye_state)
+std::vector<kml_utils::Point> eagleye_pp::eagleyeStatus2PointVector( const EagleyeStates& eagleye_state)
 {
   int num_vector = eagleye_state.velocity_scale_factor.size();
-  std::vector<Point> point_vector;
+  std::vector<kml_utils::Point> point_vector;
   
   for(int i=0; i< num_vector ; i++)
   {
-    Point point;
+    kml_utils::Point point;
     point.seq = i;
     point.time = imu_[i].header.stamp.toSec();
     point.latitude = eagleye_state.eagleye_fix[i].latitude;
     point.longitude = eagleye_state.eagleye_fix[i].longitude;
     point.altitude = eagleye_state.eagleye_fix[i].altitude;
 
-    Point::OtherInfo other_info0;
+    kml_utils::OtherInfo other_info0;
     other_info0.name = "Velocity Scale Factor";
     other_info0.value_str = kml_generator_->make_double_string(eagleye_state.velocity_scale_factor[i].scale_factor);
     point_vector.push_back(point);
@@ -490,14 +490,14 @@ std::vector<Point> eagleye_pp::eagleyeStatus2PointVector( const EagleyeStates& e
   return point_vector;
 }
 
-std::vector<Point> eagleye_pp::smoothingLLH2PointVector()
+std::vector<kml_utils::Point> eagleye_pp::smoothingLLH2PointVector()
 {
   int num_vector = llh_smoothing_trajectory_lat_.size();
-  std::vector<Point> point_vector;
+  std::vector<kml_utils::Point> point_vector;
   
   for(int i=0; i< num_vector ; i++)
   {
-    Point point;
+    kml_utils::Point point;
     point.seq = i;
     point.time = imu_[i].header.stamp.toSec();
     point.latitude = llh_smoothing_trajectory_lat_[i];
@@ -508,14 +508,14 @@ std::vector<Point> eagleye_pp::smoothingLLH2PointVector()
   return point_vector;
 }
 
-std::vector<Point> eagleye_pp::rtklibnavVector2PointVector()
+std::vector<kml_utils::Point> eagleye_pp::rtklibnavVector2PointVector()
 {
   int num_vector = rtklib_nav_.size();
-  std::vector<Point> point_vector;
+  std::vector<kml_utils::Point> point_vector;
   
   for(int i=0; i< num_vector ; i++)
   {
-    Point point;
+    kml_utils::Point point;
     point.seq = i;
     point.time = rtklib_nav_[i].header.stamp.toSec();
     point.latitude = rtklib_nav_[i].status.latitude;
@@ -526,15 +526,15 @@ std::vector<Point> eagleye_pp::rtklibnavVector2PointVector()
   return point_vector;
 }
 
-std::pair<std::vector<Point>, std::vector<Point>> eagleye_pp::ggaVector2PointVectorPair()
+std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > eagleye_pp::ggaVector2PointVectorPair()
 {
   int num_vector = gga_.size();
-  std::vector<Point> fix_vector;
-  std::vector<Point> nofix_vector;
+  std::vector<kml_utils::Point> fix_vector;
+  std::vector<kml_utils::Point> nofix_vector;
   
   for(int i=0; i< num_vector ; i++)
   {
-    Point point;
+    kml_utils::Point point;
     point.seq = i;
     point.time = gga_[i].header.stamp.toSec();
     point.latitude = gga_[i].lat;
@@ -548,7 +548,7 @@ std::pair<std::vector<Point>, std::vector<Point>> eagleye_pp::ggaVector2PointVec
       nofix_vector.push_back(point);
     }
   }
-  std::pair<std::vector<Point>, std::vector<Point>> gnss_pair = std::make_pair(fix_vector, nofix_vector);
+  std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > gnss_pair = std::make_pair(fix_vector, nofix_vector);
 
   return gnss_pair;
 }

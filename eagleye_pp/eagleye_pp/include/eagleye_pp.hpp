@@ -138,7 +138,7 @@ private:
   KmlGenerator * kml_generator_;
   KmlGenerator * kml_generator_line_;
 
-  std::vector<Point> forward_point_vector_, backward_point_vector_, smoothing_point_vector_;
+  std::vector<kml_utils::Point> forward_point_vector_, backward_point_vector_, smoothing_point_vector_;
 
   // Private function to calculate the initial azimuth
   void setGPSTime(double arg_GPSTime[]);
@@ -148,10 +148,10 @@ private:
 
   // Private output function
   void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state);
-  std::vector<Point> eagleyeStatus2PointVector( const EagleyeStates& eagleye_state);
-  std::vector<Point> smoothingLLH2PointVector();
-  std::vector<Point> rtklibnavVector2PointVector();
-  std::pair<std::vector<Point>, std::vector<Point>> ggaVector2PointVectorPair();
+  std::vector<kml_utils::Point> eagleyeStatus2PointVector( const EagleyeStates& eagleye_state);
+  std::vector<kml_utils::Point> smoothingLLH2PointVector();
+  std::vector<kml_utils::Point> rtklibnavVector2PointVector();
+  std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > ggaVector2PointVectorPair();
 
 public:
 
