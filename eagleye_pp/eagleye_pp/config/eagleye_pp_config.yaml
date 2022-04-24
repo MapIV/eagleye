@@ -22,8 +22,8 @@ output_kml_eagleye_pp_plot: false
 output_kml_rtklib_plot: true
 output_kml_gnss_plot: true
 output_kml_eagleye_forward_line: true
-output_kml_eagleye_backward_line: false
-output_kml_eagleye_pp_line: false
+output_kml_eagleye_backward_line: true
+output_kml_eagleye_pp_line: true
 
 #Estimate mode
 gnss:

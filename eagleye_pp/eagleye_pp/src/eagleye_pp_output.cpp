@@ -17,46 +17,46 @@ void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic)
   if (output_kml_eagleye_forward_plot_)
   {
     int visibility = (!output_kml_eagleye_pp_plot_ ? 1 : 0);
-    kml_generator_->addPointVector2PointKML(forward_point_vector_, "Eagleye Forward Point", visibility);
+    kml_generator_->addPointVector2PointKML(forward_point_vector_, "Eagleye Forward Point", visibility, KmlGenerator::ColorType::RED);
   }
   if(output_kml_eagleye_backward_plot_)
   {
     int visibility = ((!output_kml_eagleye_pp_plot_ && !output_kml_eagleye_forward_plot_) ? 1 : 0);
-    kml_generator_->addPointVector2PointKML(backward_point_vector_, "Eagleye Backword Point", visibility);
+    kml_generator_->addPointVector2PointKML(backward_point_vector_, "Eagleye Backword Point", visibility, KmlGenerator::ColorType::GREEN);
   }
   if(output_kml_eagleye_pp_plot_)
   {
-    kml_generator_->addPointVector2PointKML(smoothing_point_vector_, "Eagleye Smoothing Point", 0);
+    kml_generator_->addPointVector2PointKML(smoothing_point_vector_, "Eagleye Smoothing Point", 0, KmlGenerator::ColorType::BLUE);
   }
 
 
   if(output_kml_eagleye_forward_line_)
   {
     int visibility = (!output_kml_eagleye_pp_line_ ? 1 : 0);
-    kml_generator_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility);
+    kml_generator_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility, KmlGenerator::ColorType::RED);
   }
   if(output_kml_eagleye_backward_line_)
   {
     int visibility = ((!output_kml_eagleye_pp_line_ && !output_kml_eagleye_forward_line_) ? 1 : 0);
-    kml_generator_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility);
+    kml_generator_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility, KmlGenerator::ColorType::GREEN);
   }
   if(output_kml_eagleye_pp_line_)
   {
-    kml_generator_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1);
+    kml_generator_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1, KmlGenerator::ColorType::BLUE);
   }
 
   if(output_kml_gnss_plot_)
   {
     std::vector<kml_utils::Point> rtklibnav_point_vector = rtklibnavVector2PointVector();
-    kml_generator_->addPointVector2PointKML(rtklibnav_point_vector, "RTKLIB", 1);
+    kml_generator_->addPointVector2PointKML(rtklibnav_point_vector, "RTKLIB", 1, KmlGenerator::ColorType::CYAN);
   }
 
   if(output_kml_gnss_plot_)
   {
     int visibility = (!arg_use_rtk_navsatfix_topic ? 1 : 0);
     std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > gnss_pair_ = ggaVector2PointVectorPair();
-    kml_generator_->addPointVector2PointKML(gnss_pair_.first, "GNSS_FIX", visibility);
-    kml_generator_->addPointVector2PointKML(gnss_pair_.second, "GNSS_NO_FIX", visibility);
+    kml_generator_->addPointVector2PointKML(gnss_pair_.first, "GNSS_FIX", visibility, KmlGenerator::ColorType::ORANGE);
+    kml_generator_->addPointVector2PointKML(gnss_pair_.second, "GNSS_NO_FIX", visibility, KmlGenerator::ColorType::MAGENTA);
   }
 
   kml_generator_->outputKml();
@@ -85,20 +85,19 @@ void eagleye_pp::writeLineKML(bool arg_use_rtk_navsatfix_topic)
   {
     int visibility = (!output_kml_eagleye_pp_line_ ? 1 : 0);
     forward_point_vector_ =eagleyeStatus2PointVector(eagleye_state_forward_);
-    kml_generator_line_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility);
+    kml_generator_line_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility, KmlGenerator::ColorType::RED);
   }
 
   if(output_kml_eagleye_backward_line_)
   {
     int visibility = ((!output_kml_eagleye_pp_line_ && !output_kml_eagleye_forward_line_) ? 1 : 0);
     backward_point_vector_ =eagleyeStatus2PointVector(eagleye_state_backward_);
-    kml_generator_line_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility);
+    kml_generator_line_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility, KmlGenerator::ColorType::GREEN);
   }
 
   if(output_kml_eagleye_pp_line_)
   {
-    smoothing_point_vector_ = smoothingLLH2PointVector();
-    kml_generator_line_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1);
+    kml_generator_line_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1, KmlGenerator::ColorType::BLUE);
   }
 
   kml_generator_line_->outputKml();
