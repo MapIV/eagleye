@@ -97,7 +97,12 @@ ament_auto_add_executable(rtk_heading
   src/rtk_heading_node.cpp
 )
 
+ament_auto_add_executable(navpvt2rtk
+  src/navpvt2rtk_node.cpp
+)
+
 install(TARGETS 
+  navpvt2rtk
   correction_imu
   distance
   heading_interpolate

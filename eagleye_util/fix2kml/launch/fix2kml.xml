@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <launch>
 
   <arg name="filename" default="$(find-pkg-share eagleye_fix2kml)/kml/eagleye_fix.kml"/>
   <arg name="kmlname" default="Eagleye"/>
+  <arg name="fixname" default="/eagleye/fix"/>
+  <arg name="color" default="ff0000ff"/>
 
-  <node pkg="eagleye_fix2kml" name="fix2kml_node" exec="fix2kml" output="screen">
+  <node pkg="eagleye_fix2kml" name="fix2kml_node" exec="fix2kml" output="log">
+        <param name="fixname"  value="$(var fixname)"/>
         <param name="filename" value="$(var filename)"/>
-        <param name="kmlname" value="$(var kmlname)"/>
+        <param name="kmlname"  value="$(var kmlname)"/>
+        <param name="color"  value="$(var color)"/>
   </node>
-
 </launch>
