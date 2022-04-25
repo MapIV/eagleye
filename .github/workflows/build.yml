@@ -17,8 +17,8 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-              with:
-                submodules: true
+        with:
+          submodules: true
       - name: rosdep update
         run: |
           apt-get update
