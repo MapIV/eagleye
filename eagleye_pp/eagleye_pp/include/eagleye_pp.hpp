@@ -37,9 +37,15 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include <kml_generator/kml_generator.hpp>
+
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
+#include "nmea2fix/nmea2fix.hpp"
+
 class eagleye_pp
 {
-  private:
+private:
  
   // Frequently used variables
   std::string outputpath_;
@@ -129,13 +135,32 @@ class eagleye_pp
   struct HeightParameter height_parameter_;
   struct RollingParameter rolling_parameter_;
 
-  // Function declaration
-  public:
+  KmlGenerator * kml_generator_;
+  KmlGenerator * kml_generator_line_;
 
-  eagleye_pp();//Constructor
+  std::vector<kml_utils::Point> forward_point_vector_, backward_point_vector_, smoothing_point_vector_;
+
+  // Private function to calculate the initial azimuth
+  void setGPSTime(double arg_GPSTime[]);
+  void calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
+  void calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw_2D, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe);
+  void calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw_2D[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe);
+
+  // Private output function
+  void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state);
+  std::vector<kml_utils::Point> eagleyeStatus2PointVector( const EagleyeStates& eagleye_state);
+  std::vector<kml_utils::Point> smoothingLLH2PointVector();
+  std::vector<kml_utils::Point> rtklibnavVector2PointVector();
+  std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > ggaVector2PointVectorPair();
+  void addOtherInformation(kml_utils::Point & point, std::string other_info_name, std::string other_info_value_str);
+
+public:
+
+  eagleye_pp(); // Constructor
 
   void setOutputPath(std::string arg_output_path);
-  void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic, std::string *arg_nmea_sentence_topic);
+  void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
+    std::string *arg_nmea_sentence_topic);
   void setDataLength();
   std::size_t getDataLength();
   std::string getUseGNSSMode();
@@ -143,32 +168,18 @@ class eagleye_pp
   bool getUseBackward();
   bool getUseCombination();
 
-
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);
 
-  // Function to calculate the initial azimuth
-  void setGPSTime(double arg_GPSTime[]);
-  void calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
-  void calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw_2D, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe);
-  void calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw_2D[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe);
-  void smoothingDeadReckoning();
-
+  void smoothingDeadReckoning(); // Public function to calculate the initial azimuth
   void smoothingTrajectory();
+
   void convertHeight();
 
-  // output function
-  void writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name, const EagleyeStates& eagleye_state, int i);
-
-  void writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
-  void addHeaderLineKML(std::ofstream* output_line_kml_file);
-  void addLineStyleInKML(std::ofstream* output_line_kml_file, std::string style_id, std::string color);
-  void addPlacemarkInKML(std::ofstream* output_line_kml_file,std::string name, int visibility,std::string coordinates);
-  void updateLineKML(std::stringstream* eagleye_line,double llh[3], eagleye_msgs::Distance distance, double * driving_distance_last);
-  void writeLineKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line);
+  // Public output function
+  void writePointKML(bool arg_use_rtk_navsatfix_topic);
+  void writeLineKML(bool arg_use_rtk_navsatfix_topic);
 
   void writeSimpleCSV();
-
-  void writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state);
   void writeDetailCSV();
 };

@@ -69,7 +69,7 @@ KmlGenerator::KmlGenerator(const std::string kmlname)
     << "\t\t<name>" <<  kmlname <<"</name>" <<  "\n"
     << "\t\t<Style>" <<  "\n"
     << "\t\t\t<LineStyle>" <<  "\n"
-    << "\t\t\t\t<color>ff0000ff</color>" <<  "\n"
+    << "\t\t\t\t<color>ff00ff00</color>" <<  "\n"
     << "\t\t\t\t<width>5.00</width>" <<  "\n"
     << "\t\t\t</LineStyle>" <<  "\n"
     << "\t\t</Style>"	<< "\n"

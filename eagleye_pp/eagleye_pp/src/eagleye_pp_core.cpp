@@ -23,9 +23,6 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
-#include "nmea2fix/nmea2fix.hpp"
 #include "eagleye_pp.hpp"
 #include <multi_rosbag_controller/multi_rosbag_controller.hpp>
 
@@ -61,6 +58,8 @@ eagleye_pp::eagleye_pp()
   position_interpolate_parameter_ = {};
   smoothing_parameter_ = {};
   height_parameter_ = {};
+
+  
 }
 
 
@@ -72,13 +71,19 @@ std::string arg_output_path: Output destination obtained from the launch file
 void eagleye_pp::setOutputPath(std::string arg_output_path)
 {
  outputpath_ = arg_output_path;
+
+ std::string name = "eagleye";
+  std::string logo_link_url = "https://github.com/MapIV/eagleye/blob/main-ros1/docs/logo.png";
+  kml_generator_ = new KmlGenerator(outputpath_ + "ealgeye.kml", name, logo_link_url);
+  kml_generator_line_ = new KmlGenerator(outputpath_ + "ealgeye_line.kml", name, logo_link_url);
 }
 
 
 /********************
 setParam
 *********************/
-void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,  std::string *arg_nmea_sentence_topic)
+void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
+  std::string *arg_nmea_sentence_topic)
 {
   try
   {
@@ -570,36 +575,47 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
 
     _heading_1st.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st, heading_parameter_, &heading_1st_status, &_heading_1st);
+      heading_estimate(rtklib_nav_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
+        heading_parameter_, &heading_1st_status, &_heading_1st);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st, heading_parameter_, &heading_1st_status, &_heading_1st);
+      heading_estimate(rmc_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
+        heading_parameter_, &heading_1st_status, &_heading_1st);
 
     _heading_interpolate_1st.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _heading_1st, _slip_angle, heading_interpolate_parameter_, &heading_interpolate_1st_status, &_heading_interpolate_1st);
+    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _heading_1st, _slip_angle,
+      heading_interpolate_parameter_, &heading_interpolate_1st_status, &_heading_interpolate_1st);
 
     _yawrate_offset_1st.header = imu_[i].header;
-    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_1st, imu_[i], yawrate_offset_1st_parameter_, &yawrate_offset_1st_status, &_yawrate_offset_1st);
+    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_1st, imu_[i], yawrate_offset_1st_parameter_,
+      &yawrate_offset_1st_status, &_yawrate_offset_1st);
 
     _heading_2nd.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle, _heading_interpolate_2nd, heading_parameter_, &heading_2nd_status, &_heading_2nd);
+      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle,
+        _heading_interpolate_2nd, heading_parameter_, &heading_2nd_status, &_heading_2nd);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle, _heading_interpolate_2nd, heading_parameter_, &heading_2nd_status, &_heading_2nd);
+      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle, _heading_interpolate_2nd,
+        heading_parameter_, &heading_2nd_status, &_heading_2nd);
 
     _heading_interpolate_2nd.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _heading_2nd, _slip_angle, heading_interpolate_parameter_, &heading_interpolate_2nd_status, &_heading_interpolate_2nd);
+    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _heading_2nd, _slip_angle,
+      heading_interpolate_parameter_, &heading_interpolate_2nd_status, &_heading_interpolate_2nd);
 
     _yawrate_offset_2nd.header = imu_[i].header;
-    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_2nd, imu_[i], yawrate_offset_2nd_parameter_, &yawrate_offset_2nd_status, &_yawrate_offset_2nd);
+    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_2nd, imu_[i], yawrate_offset_2nd_parameter_,
+      &yawrate_offset_2nd_status, &_yawrate_offset_2nd);
 
     _heading_3rd.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd, heading_parameter_, &heading_3rd_status, &_heading_3rd);
+      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
+        heading_parameter_, &heading_3rd_status, &_heading_3rd);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd, heading_parameter_, &heading_3rd_status, &_heading_3rd);
+      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
+        heading_parameter_, &heading_3rd_status, &_heading_3rd);
 
     _heading_interpolate_3rd.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _heading_3rd, _slip_angle, heading_interpolate_parameter_, &heading_interpolate_3rd_status, &_heading_interpolate_3rd);
+    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _heading_3rd, _slip_angle,
+      heading_interpolate_parameter_, &heading_interpolate_3rd_status, &_heading_interpolate_3rd);
 
     _distance.header = imu_[i].header;
     if(_distance.header.stamp.toSec() != 0)
@@ -611,7 +627,8 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     _pitching.header = imu_[i].header;
     _acc_x_offset.header = imu_[i].header;
     _acc_x_scale_factor.header = imu_[i].header;
-    pitching_estimate(imu_[i], gga_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching, &_acc_x_offset, &_acc_x_scale_factor);
+    pitching_estimate(imu_[i], gga_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching,
+      &_acc_x_offset, &_acc_x_scale_factor);
 
     rolling_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, rolling_parameter_, &rolling_status, &_rolling);
 
@@ -622,13 +639,15 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
 
     _enu_absolute_pos.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      position_estimate(rtklib_nav_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
+      position_estimate(rtklib_nav_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status,
+        &_enu_absolute_pos);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
       position_estimate(gga_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
 
     _enu_absolute_pos_interpolate.header = imu_[i].header;
     _eagleye_fix.header = imu_[i].header;
-    position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, position_interpolate_parameter_, &position_interpolate_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
+    position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, position_interpolate_parameter_, &position_interpolate_status,
+      &_enu_absolute_pos_interpolate, &_eagleye_fix);
 
     if(arg_forward_flag)
     {
@@ -806,7 +825,8 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
       }
     }
 
-    if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x > TH_VEL_EST && index_Dist > index_Raw[0]){  
+    if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x > TH_VEL_EST &&
+      index_Dist > index_Raw[0]){
       int ESTNUM = i - index_Dist + 1;
       int i_start = i-ESTNUM + 1;
       int local_length = ESTNUM;//(i - i_start)+1;
@@ -1106,56 +1126,88 @@ void eagleye_pp::calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw[],
       }else if(flag_DRs[i] == 1 && i == arg_index_DRe[a] ){
         switch_tmp = 1;
         if (Tramodelswitch == 0){  
-          pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-          pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+          pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+            sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+          pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+            cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
         }else if( Tramodelswitch == 1){    
           if(abs(Yawrate_Est[i]) > TH_Yaw){
-             pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
-             pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
+             pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+              ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+
+              cos(Heading_IMU_slip[i-1]));
+             pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+              ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-
+              sin(Heading_IMU_slip[i-1]));
           }else{
-            pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-            pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+              sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+              cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
           }
         } // else if( Tramodelswitch == 1)
       }else if( i > 0){
         if(Tramodelswitch == 0){  
           if(switch_tmp == 0){
-            pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-            pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+              sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+            pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+              cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
           }else if(switch_tmp == 1){
             if(flag_DRs[i-1] == 1){
-              pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-              pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] +
+                sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] +
+                cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
             }else{
-              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[I] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+                sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+                cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[I] - arg_GPSTime[i-1]);
             }
           } // else if(switch_tmp == 1)
         }else if(Tramodelswitch == 1){     
           if(switch_tmp == 0){
             if(abs(Yawrate_Est[i]) > TH_Yaw){
-              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
-              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
+              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+                ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+
+                (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+                ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+
+                (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
             }else{
-              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+                sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+              pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+                cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
             }
           }else if(switch_tmp == 1){
             if (flag_DRs[i-1] == 1){
               if (abs(Yawrate_Est[i]) > TH_Yaw){
-                pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] + ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
-                pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] + ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] +
+                  ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+
+                  (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] +
+                  ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+
+                  (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
               }else{
-                pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-                pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i-1 + datanum * 0] +
+                  sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i + datanum * 1]= UsrPos_TaGRTK_enu[i-1 + datanum * 1] +
+                  cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
               }
 	    }else{ 
               if(abs(Yawrate_Est[i]) > TH_Yaw){
-                pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
-                pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+(Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+                  ((correction_velocity_x)/Yawrate_Est[i])*(-cos(Heading_IMU_slip[i-1]+
+                  (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))+cos(Heading_IMU_slip[i-1]));
+                pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+                  ((correction_velocity_x)/Yawrate_Est[i])*(sin(Heading_IMU_slip[i-1]+
+                  (Yawrate_Est[i]*(arg_GPSTime[i] - arg_GPSTime[i-1])))-sin(Heading_IMU_slip[i-1]));
               }else{
-                pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] + sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
-                pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] + cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i + datanum * 0] = pUsrPos_FixSlip[i-1 + datanum * 0] +
+                  sin(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
+                pUsrPos_FixSlip[i + datanum * 1]= pUsrPos_FixSlip[i-1 + datanum * 1] +
+                  cos(Heading_IMU_slip[i])*correction_velocity_x*(arg_GPSTime[i] - arg_GPSTime[i-1]);
               }
             }
           } // else if(switch_tmp == 1)
@@ -1421,10 +1473,12 @@ void eagleye_pp::smoothingTrajectory(void)
             {
               diff_pos_east = (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.x + tmp_enu_f[0] -
                 eagleye_state_forward_.enu_relative_pos[index_gga[i-1]].enu_pos.x) -
-                (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.x + tmp_enu_r[0] - eagleye_state_forward_.enu_relative_pos[index_gga[i-1] + interval_count].enu_pos.x);
+                (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.x + tmp_enu_r[0] -
+                eagleye_state_forward_.enu_relative_pos[index_gga[i-1] + interval_count].enu_pos.x);
               diff_pos_north = (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.y + tmp_enu_f[1] -
                 eagleye_state_forward_.enu_relative_pos[index_gga[i-1]].enu_pos.y) -
-                (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.y + tmp_enu_r[1] - eagleye_state_forward_.enu_relative_pos[index_gga[i-1] + interval_count].enu_pos.y);
+                (eagleye_state_forward_.enu_relative_pos[index_gga[i-1]+j].enu_pos.y + tmp_enu_r[1] -
+                eagleye_state_forward_.enu_relative_pos[index_gga[i-1] + interval_count].enu_pos.y);
               diff_pos_2d = sqrt( pow((diff_pos_east), 2.0) + pow((diff_pos_north), 2.0));
             }
 
@@ -1559,11 +1613,14 @@ void eagleye_pp::convertHeight(void)
     {
       convert_height.setLLH(rtklib_nav_[i].status.latitude, rtklib_nav_[i].status.longitude, rtklib_nav_[i].status.altitude);
       rtklib_nav_[i].status.altitude = convert_height.convert2altitude();
-      convert_height.setLLH(eagleye_state_forward_.eagleye_fix[i].latitude, eagleye_state_forward_.eagleye_fix[i].longitude, eagleye_state_forward_.eagleye_fix[i].altitude);
+      convert_height.setLLH(eagleye_state_forward_.eagleye_fix[i].latitude, eagleye_state_forward_.eagleye_fix[i].longitude,
+        eagleye_state_forward_.eagleye_fix[i].altitude);
       eagleye_state_forward_.eagleye_fix[i].altitude = convert_height.convert2altitude();
-      convert_height.setLLH(eagleye_state_backward_.eagleye_fix[i].latitude, eagleye_state_backward_.eagleye_fix[i].longitude, eagleye_state_backward_.eagleye_fix[i].altitude);
+      convert_height.setLLH(eagleye_state_backward_.eagleye_fix[i].latitude, eagleye_state_backward_.eagleye_fix[i].longitude,
+        eagleye_state_backward_.eagleye_fix[i].altitude);
       eagleye_state_backward_.eagleye_fix[i].altitude = convert_height.convert2altitude();
-      convert_height.setLLH(llh_smoothing_trajectory_lat_[i], llh_smoothing_trajectory_lon_[i], llh_smoothing_trajectory_hei_[i]);
+      convert_height.setLLH(llh_smoothing_trajectory_lat_[i], llh_smoothing_trajectory_lon_[i],
+        llh_smoothing_trajectory_hei_[i]);
       llh_smoothing_trajectory_hei_[i] = convert_height.convert2altitude();
     }
   }
@@ -1573,1192 +1630,14 @@ void eagleye_pp::convertHeight(void)
     {
       convert_height.setLLH(rtklib_nav_[i].status.latitude, rtklib_nav_[i].status.longitude, rtklib_nav_[i].status.altitude);
       rtklib_nav_[i].status.altitude = convert_height.convert2ellipsoid();
-      convert_height.setLLH(eagleye_state_forward_.eagleye_fix[i].latitude, eagleye_state_forward_.eagleye_fix[i].longitude, eagleye_state_forward_.eagleye_fix[i].altitude);
+      convert_height.setLLH(eagleye_state_forward_.eagleye_fix[i].latitude, eagleye_state_forward_.eagleye_fix[i].longitude,
+        eagleye_state_forward_.eagleye_fix[i].altitude);
       eagleye_state_forward_.eagleye_fix[i].altitude = convert_height.convert2ellipsoid();
-      convert_height.setLLH(eagleye_state_backward_.eagleye_fix[i].latitude, eagleye_state_backward_.eagleye_fix[i].longitude, eagleye_state_backward_.eagleye_fix[i].altitude);
+      convert_height.setLLH(eagleye_state_backward_.eagleye_fix[i].latitude, eagleye_state_backward_.eagleye_fix[i].longitude,
+        eagleye_state_backward_.eagleye_fix[i].altitude);
       eagleye_state_backward_.eagleye_fix[i].altitude = convert_height.convert2ellipsoid();
       convert_height.setLLH(llh_smoothing_trajectory_lat_[i], llh_smoothing_trajectory_lon_[i], llh_smoothing_trajectory_hei_[i]);
       llh_smoothing_trajectory_hei_[i] = convert_height.convert2ellipsoid();
-    }
-  }
-}
-
-void eagleye_pp::writePointKMLOneWay(std::stringstream* eagleye_plot, std::string name,const EagleyeStates& eagleye_state, int i)
-{
-  *eagleye_plot << "\t\t<Placemark>\n\
-  \t\t\t<name>" << name << "</name>\n\
-  \t\t\t<visibility>0</visibility>\n\
-  \t\t\t<Snippet></Snippet>\n\
-  \t\t\t<description><![CDATA[<B>Eagleye Status</B><BR><BR>\n\
-  \t\t\t\t<TABLE border=\"1\" width=\"100%\" Align=\"center\">\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Sequence Number: </TD><TD>";
-  *eagleye_plot << i;
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Timestamp:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_[i].header.stamp.toNSec();
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>CAN Velocity:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.linear.x * 3.6 << " [km/h]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Linear Acceleration X:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.x << " [m/s^2]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Linear Acceleration Y:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.y << " [m/s^2]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Linear Acceleration Z:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.z << " [m/s^2]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Angular Velocity X:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.x << " [rad/s]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Angular Velocity Y:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.y << " [rad/s]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>IMU Angular Velocity Z:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.z << " [rad/s]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Velocity:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x * 3.6 << " [km/h]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Velocity Scale Factor:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.velocity_scale_factor[i].scale_factor;
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Velocity Scale Factor Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.velocity_scale_factor[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 1st:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_1st[i].heading_angle << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 1st Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.heading_interpolate_1st[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 2nd:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_2nd[i].heading_angle << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 2nd Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.heading_interpolate_2nd[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 3rd:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_3rd[i].heading_angle << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Heading 3rd Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.heading_interpolate_3rd[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Yawrate Offset Stop:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_stop[i].yawrate_offset << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Yawrate Offset Stop Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.yawrate_offset_stop[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Yawrate Offset 1st:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_1st[i].yawrate_offset << " [rad]";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_2nd[i].yawrate_offset << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Yawrate Offset 2nd Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.yawrate_offset_2nd[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Tire Slip Angle:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.slip_angle[i].slip_angle << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Tire Slip Angle Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.slip_angle[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Pitchi Angle:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.pitching[i].pitching_angle << " [rad]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Pitchi Angle Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.pitching[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Height Flag:</TD><TD>";
-  *eagleye_plot << bool(eagleye_state.height[i].status.enabled_status);
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Latitude:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].latitude << " [deg]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Longitude:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].longitude << " [deg]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Estimate Altitude:</TD><TD>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].altitude << " [m]";
-  *eagleye_plot << "</TD></TR>\n\
-  \t\t\t\t</TABLE>\n\
-  \t\t\t]]></description>\n\
-  \t\t\t<styleUrl>";
-  if(bool(eagleye_state.enu_absolute_pos_interpolate[i].status.estimate_status) == false)
-  {
-    *eagleye_plot << "#EAGLEYE";
-  }
-  else
-  {
-    *eagleye_plot << "#EAGLEYE_EST";
-  }
-  *eagleye_plot << "</styleUrl>\n\
-  \t\t\t<Point>\n\
-  \t\t\t\t<coordinates>";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].longitude << ",";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].latitude << ",";
-  *eagleye_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].altitude << ",";
-  *eagleye_plot << "</coordinates>\n\
-  \t\t\t</Point>\n\
-  \t\t</Placemark>\
-  " << std::endl;
-}
-
-/******************************************************************************
-writePointKML
-Function to output kml(plot)
-bool arg_use_rtk_navsatfix_topic : Determine if to use navsatfix
-std::string* arg_s_eagleye_line : forward line data
-std::string* arg_s_eagleye_back_line : backward line data
-std::string* arg_s_eagleye_pp_line : Line data to merge forward and backward
-******************************************************************************/
-void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic,std::string* arg_s_eagleye_line,std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line)
-{
-  std::ofstream output_plot_kml_file(outputpath_ + "eagleye.kml", std::ios::out);
-  std::cout << "Output file = " << outputpath_ << "eagleye.kml" << std::endl;
-
-  std::stringstream eagleye_plot;
-  std::stringstream eagleye_back_plot;
-  std::stringstream rtklib_plot;
-  std::stringstream gnss_plot;
-  std::stringstream eagleye_pp_plot;
-
-  int rtknav_seq_last = 0, gga_seq_last = 0;
-  double driving_distance = 0, driving_distance_last = 0, driving_distance_last2 = 0, driving_distance_last3 = 0,
-    driving_distance_last4 = 0, driving_distance_last5 = 0;
-
-  if (!boost::filesystem::is_directory(outputpath_))
-  {
-    boost::filesystem::create_directory(outputpath_);
-    std::cout << "Directory created: " << outputpath_ << std::endl;
-  }
-
-  output_plot_kml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-<kml xmlns=\"http://earth.google.com/kml/2.2\">\n\
-<Document>\n\
-<name>";
-output_plot_kml_file << "eagleye";
-output_plot_kml_file << "</name>\n\
-<open>1</open>\n\
-<Folder id=\"ID1\">\n\
-<name>Screen Overlays</name>\n\
-<visibility>0</visibility>\n\
-<open>0</open>\n\
-\t<ScreenOverlay>\n\
-\t\t<name>Eagleye Logo</name>\n\
-\t\t<visibility>1</visibility>\n\
-\t\t<Icon>\n\
-\t\t\t<href>https://github.com/MapIV/eagleye/blob/main-ros1/docs/logo.png?raw=true</href>\n\
-\t\t</Icon>\n\
-\t\t<overlayXY x=\"-0.3\" y=\"-1\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
-\t\t<screenXY x=\"0\" y=\"0\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
-\t\t<size x=\"260.6\" y=\"56.0\" xunits=\"pixels\" yunits=\"pixels\"/>\n\
-\t</ScreenOverlay>\n\
-</Folder>\n\
-\t<Style id=\"EAGLEYE\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff0000ff</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_EST\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff0000ff</color>\n\
-\t\t\t<scale>0.4</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/square.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"RTKLIB\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ffff00ff</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"RTKLIB_FIX\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ffff00ff</color>\n\
-\t\t\t<scale>0.4</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/square.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"GNSS\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff00ffff</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"GNSS_FIX\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff00ff00</color>\n\
-\t\t\t<scale>0.4</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/square.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_PP_STATUS_0\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff00ff00</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.googros/ros.hle.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_PP_STATUS_1\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ffff00ff</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_PP_STATUS_2\">\n\
-\t\t<IconStyle>\n\
-\t\t\t<color>ff0000ff</color>\n\
-\t\t\t<scale>0.5</scale>\n\
-\t\t\t<Icon>\n\
-\t\t\t<href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>\n\
-\t\t\t</Icon>\n\
-\t\t</IconStyle>\n\
-\t\t<LabelStyle>\n\
-\t\t\t<scale>0</scale>\n\
-\t\t</LabelStyle>\n\
-\t\t<BalloonStyle>\n\
-\t\t\t<bgColor>fffff8f0</bgColor>\n\
-\t\t\t<text><![CDATA[<b><font color=\"#CC0000\" size=\"+3\">$[name]</font></b><br>$[description]</font><br/>]]></text>\n\
-\t\t</BalloonStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_LINE\">\n\
-\t\t<LineStyle>\n\
-\t\t\t<color>ff0000ff</color>\n\
-\t\t\t<width>5.00</width>\n\
-\t\t</LineStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_BACK_LINE\">\n\
-\t\t<LineStyle>\n\
-\t\t\t<color>ff00ff00</color>\n\
-\t\t\t<width>5.00</width>\n\
-\t\t</LineStyle>\n\
-\t</Style>\n\
-\t<Style id=\"EAGLEYE_PP_LINE\">\n\
-\t\t<LineStyle>\n\
-\t\t\t<color>ffff0000</color>\n\
-\t\t\t<width>5.00</width>\n\
-\t\t</LineStyle>\n\
-\t</Style>\n\
-<Folder id=\"ID2\">\n\
-\t<name>CAR Trajectry</name>\n\
-\t<visibility>1</visibility>\n\
-\t<open>0</open>\
-" << std::endl;
-
-for(int i = 0; i < data_length_; i++)
-  {
-    if (output_kml_eagleye_forward_plot_)
-    {
-      if(bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.enabled_status) == true)
-      {
-        if(std::abs((eagleye_state_forward_.distance[i].distance - driving_distance_last)) > interval_plot_ ||
-          bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status) == true)
-        {
-
-          writePointKMLOneWay(&eagleye_plot, "Eagleye", eagleye_state_forward_, i);
-
-          driving_distance_last = eagleye_state_forward_.distance[i].distance;
-        }
-      }
-    }
-
-    if(output_kml_eagleye_pp_plot_)
-    {
-      if(smoothing_trajectory_status_[i] != -1)
-      {
-        eagleye_pp_plot << "\t<Placemark>\n\
-        \t\t<name>Eagleye_pp</name>\n\
-        \t\t<visibility>0</visibility>\n\
-        \t\t<Snippet></Snippet>\n\
-        \t\t<styleUrl>";
-        if(smoothing_trajectory_status_[i] == 0)
-        {
-          eagleye_pp_plot << "#EAGLEYE_PP_STATUS_0";
-        }
-        else if(smoothing_trajectory_status_[i] == 1)
-        {
-          eagleye_pp_plot << "#EAGLEYE_PP_STATUS_1";
-        }
-        else if(smoothing_trajectory_status_[i] == 2)
-        {
-          eagleye_pp_plot << "#EAGLEYE_PP_STATUS_2";
-        }
-        eagleye_pp_plot << "</styleUrl>\n\
-        \t\t<Point>\n\
-        \t\t\t<coordinates>";
-        eagleye_pp_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ",";
-        eagleye_pp_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ",";
-        eagleye_pp_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ",";
-        eagleye_pp_plot << "</coordinates>\n\
-        \t\t</Point>\n\
-        \t</Placemark>\
-        " << std::endl;
-      }
-    }
-
-    if (output_kml_eagleye_backward_plot_)
-    {
-      if(bool(eagleye_state_backward_.enu_absolute_pos_interpolate[i].status.enabled_status) == true)
-      {
-        if(std::abs((eagleye_state_backward_.distance[i].distance - driving_distance_last4)) > interval_plot_ ||
-        bool(eagleye_state_backward_.enu_absolute_pos_interpolate[i].status.estimate_status) == true)
-        {
-          writePointKMLOneWay(&eagleye_back_plot, "Eagleye_Back", eagleye_state_backward_, i);
-
-          driving_distance_last4 = eagleye_state_backward_.distance[i].distance;
-        }
-      }
-    }
-
-    if (rtklib_nav_[i].header.seq - rtknav_seq_last != 0 && output_kml_rtklib_plot_)
-    {
-      rtklib_plot << "\t<Placemark>\n\
-      \t\t<name>RTKLIB</name>\n\
-      \t\t<visibility>0</visibility>\n\
-      \t\t<Snippet></Snippet>\n\
-      <description><![CDATA[<B>RTKLIB Status</B><BR><BR>\n\
-      \t\t\t<TABLE border=\"1\" width=\"100%\" Align=\"center\">\n\
-      \t\t\t\t<TR ALIGN=RIGHT>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Sequence Number: </TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].header.seq;
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Timestamp:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].header.stamp.toNSec();
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Time of Week:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].tow << " [ms]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF X:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.x << " [m]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF Y:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.y << " [m]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF Z:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.z << " [m]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF Velocity X:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.x << " [m/s]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF Velocity Y:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.y << " [m/s]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>ECEF Velocity Z:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.z << " [m/s]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Status:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << int(rtklib_nav_[i].status.status.status);
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Service:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].status.status.service;
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Latitude:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.latitude << " [deg]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Longitude:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.longitude << " [deg]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Altitude:</TD><TD>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.altitude << " [m]";
-      rtklib_plot << "</TD></TR>\n\
-      \t\t\t</TABLE>\n\
-      ]]></description>\n\
-      \t\t<styleUrl>";
-      if(rtklib_nav_[i].status.status.status == -1)
-      {
-        rtklib_plot << "#RTKLIB";
-      }
-      else
-      {
-        rtklib_plot << "#RTKLIB_FIX";
-      }
-      rtklib_plot << "</styleUrl>\n\
-      \t\t<Point>\n\
-      \t\t\t<coordinates>";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.longitude << ",";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.latitude << ",";
-      rtklib_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.altitude << ",";
-      rtklib_plot << "</coordinates>\n\
-      \t\t</Point>\n\
-      \t</Placemark>\
-      " << std::endl;
-      rtknav_seq_last = rtklib_nav_[i].header.seq;
-    }
-
-    if (gga_[i].header.seq - gga_seq_last != 0 && output_kml_gnss_plot_)
-    {
-      gnss_plot << "\t<Placemark>\n\
-      \t\t<name>GNSS Receiver</name>\n\
-      \t\t<visibility>0</visibility>\n\
-      \t\t<Snippet></Snippet>\n\
-      <description><![CDATA[<B>GNSS Receiver Status</B><BR><BR>\n\
-      \t\t\t<TABLE border=\"1\" width=\"100%\" Align=\"center\">\n\
-      \t\t\t\t<TR ALIGN=RIGHT>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Sequence Number: </TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.seq;
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Timestamp:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec();
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Status:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual);
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Service:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<int>::max_digits10) << 0;
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Latitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << " [deg]";
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Longitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << " [deg]";
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t\t<TR ALIGN=RIGHT><TD ALIGN=LEFT>Altitude:</TD><TD>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << " [m]";
-      gnss_plot << "</TD></TR>\n\
-      \t\t\t</TABLE>\n\
-      ]]></description>\n\
-      \t\t<styleUrl>";
-      if(gga_[i].gps_qual != 4)
-      {
-        gnss_plot << "#GNSS";
-      }
-      else
-      {
-        gnss_plot << "#GNSS_FIX";
-      }
-      gnss_plot << "</styleUrl>\n\
-      \t\t<Point>\n\
-      \t\t\t<coordinates>";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ",";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ",";
-      gnss_plot << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << ",";
-      gnss_plot << "</coordinates>\n\
-      \t\t</Point>\n\
-      \t</Placemark>\
-      " << std::endl;
-      gga_seq_last = gga_[i].header.seq;
-    }
-  }
-
-  std::string s_eagleye_plot = eagleye_plot.str();
-  std::string s_eagleye_back_plot = eagleye_back_plot.str();
-  std::string s_rtklib_plot = rtklib_plot.str();
-  std::string s_gnss_plot = gnss_plot.str();
-  std::string s_eagleye_pp_plot = eagleye_pp_plot.str();
-
-  if(output_kml_eagleye_forward_plot_)
-  {
-
-    output_plot_kml_file <<"\t<Folder id=\"ID21\">\n\
-    \t<name>EAGLEYE_FORWARD</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<open>0</open>\n\
-    " << s_eagleye_plot <<"\t</Folder>\n";
-  }
-
-  if(output_kml_eagleye_backward_plot_)
-  {
-    output_plot_kml_file <<"\t<Folder id=\"ID21\">\n\
-    \t<name>EAGLEYE_BACKWARD</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<open>0</open>\n\
-    " << s_eagleye_back_plot <<"\t</Folder>\n";
-  }
-
-  if(output_kml_eagleye_pp_plot_)
-  {
-    output_plot_kml_file <<"\t<Folder id=\"ID24\">\n\
-    \t<name>EAGLEYE_PP</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<open>0</open>\n\
-    " << s_eagleye_pp_plot <<"\t</Folder>\n";
-  }
-
-  if(output_kml_rtklib_plot_)
-  {
-    output_plot_kml_file <<"\t<Folder id=\"ID22\">\n\
-    \t<name>RTKLIB</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<open>0</open>\n\
-    " << s_rtklib_plot <<"\t</Folder>\n";
-  }
-
-  if(output_kml_gnss_plot_)
-  {
-    output_plot_kml_file <<"\t<Folder id=\"ID23\">\n\
-    \t<name>GNSS</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<open>0</open>\n\
-    " << s_gnss_plot <<"\t</Folder>\n";
-  }
-
-  if(output_kml_eagleye_forward_line_)
-  {
-      output_plot_kml_file <<"\t<Placemark>\n\
-    \t<name>EAGLEYE_FORWARD_LINE</name>\n\
-    \t<visibility>" << (!arg_use_rtk_navsatfix_topic ? "1" : "0") <<"</visibility>\n\
-    \t<description><![CDATA[]]></description>\n\
-    \t<styleUrl>#EAGLEYE_LINE</styleUrl>\n\
-    \t<LineString>\n\
-    \t\t<extrude>0</extrude>\n\
-    \t\t<tessellate>1</tessellate>\n\
-    \t\t<altitudeMode>clampToGround</altitudeMode>\n\
-    \t\t<coordinates>\n\
-    " << *arg_s_eagleye_line <<"\t\t</coordinates>\n\
-    \t</LineString>\n\
-    \t</Placemark>\n";
-  }
- if(output_kml_eagleye_backward_line_)
-  {
-
-    output_plot_kml_file <<"\t<Placemark>\n\
-    \t<name>EAGLEYE_BACKWARD_LINE</name>\n\
-    \t<visibility>0</visibility>\n\
-    \t<description><![CDATA[]]></description>\n\
-    \t<styleUrl>#EAGLEYE_BACK_LINE</styleUrl>\n\
-    \t<LineString>\n\
-    \t\t<extrude>0</extrude>\n\
-    \t\t<tessellate>1</tessellate>\n\
-    \t\t<altitudeMode>clampToGround</altitudeMode>\n\
-    \t\t<coordinates>\n\
-    " << *arg_s_eagleye_back_line <<"\t\t</coordinates>\n\
-    \t</LineString>\n\
-    \t</Placemark>\n";
-  }
-  if(output_kml_eagleye_pp_line_)
-  {
-    output_plot_kml_file <<"\t<Placemark>\n\
-    \t<name>EAGLEYE_PP_LINE</name>\n\
-    \t<visibility>" << (arg_use_rtk_navsatfix_topic ? "1" : "0") <<"</visibility>\n\
-    \t<description><![CDATA[]]></description>\n\
-    \t<styleUrl>#EAGLEYE_PP_LINE</styleUrl>\n\
-    \t<LineString>\n\
-    \t\t<extrude>0</extrude>\n\
-    \t\t<tessellate>1</tessellate>\n\
-    \t\t<altitudeMode>clampToGround</altitudeMode>\n\
-    \t\t<coordinates>\n\
-    " << *arg_s_eagleye_pp_line <<"\t\t</coordinates>\n\
-    \t</LineString>\n\
-    \t</Placemark>\n";
-  }
-
-  output_plot_kml_file <<"</Folder>\n\
-  </Document>\n\
-  </kml>\
-  " << std::endl;
-}
-
-void eagleye_pp::addHeaderLineKML(std::ofstream* output_line_kml_file)
-{
-  *output_line_kml_file << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\
-  <kml xmlns=\"http://earth.google.com/kml/2.2\">\n\
-  <Document>\n\
-  <name>\n\
-  " << std::endl ;
-  *output_line_kml_file << "eagleye" << std::endl;
-  *output_line_kml_file << "</name>\n\
-  <ScreenOverlay>\n\
-  \t<name>Eagleye Logo</name>\n\
-  \t<visibility>1</visibility>\n\
-  \t<Icon>\n\
-  \t\t<href>https://github.com/MapIV/eagleye/blob/main-ros1/docs/logo.png?raw=true</href>\n\
-  \t</Icon>\n\
-  \t<overlayXY x=\"-0.3\" y=\"-1\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
-  \t<screenXY x=\"0\" y=\"0\" xunits=\"fraction\" yunits=\"fraction\"/>\n\
-  \t<size x=\"260.6\" y=\"56.0\" xunits=\"pixels\" yunits=\"pixels\"/>\n\
-  </ScreenOverlay>\n\
-  " << std::endl;
-  return;
-}
-
-void eagleye_pp::addLineStyleInKML(std::ofstream* output_line_kml_file, std::string style_id, std::string color)
-{
-  *output_line_kml_file << "<Style id=\"" << style_id << "\">\n\
-  \t<LineStyle>\n\
-  \t\t<color>" << color << "</color>\n\
-  \t\t<width>5.00</width>\n\
-  \t</LineStyle>\n\
-  </Style>\n\
-  " << std::endl;
-}
-
-void eagleye_pp::addPlacemarkInKML(std::ofstream* output_line_kml_file,std::string name, int visibility,std::string coordinates)
-{
-    *output_line_kml_file <<"\t<Placemark>\n\
-    \t<name>" << name << "</name>\n\
-    \t<visibility>" << visibility <<"</visibility>\n\
-    \t<description><![CDATA[]]></description>\n\
-    \t<styleUrl>#" << name << "</styleUrl>\n\
-    \t<LineString>\n\
-    \t\t<extrude>0</extrude>\n\
-    \t\t<tessellate>1</tessellate>\n\
-    \t\t<altitudeMode>clampToGround</altitudeMode>\n\
-    \t\t<coordinates>\n\
-    " << coordinates <<"\t\t</coordinates>\n\
-    \t</LineString>\n\
-    \t</Placemark>\n";
-}
-
-void eagleye_pp::updateLineKML(std::stringstream* eagleye_line,double llh[3], eagleye_msgs::Distance distance, double * driving_distance_last)
-{
-
-  if(std::abs((distance.distance - *driving_distance_last)) > interval_line_)
-  {
-    *eagleye_line << std::setprecision(std::numeric_limits<double>::max_digits10) << llh[0] << "," << llh[1] << "," << llh[2] << std::endl;
-    *driving_distance_last = distance.distance;
-  }
-
-  return;
-}
-
-
-/************************************************************************************************
-writeLineKML
-Function to output kml(line)
-bool arg_use_rtk_navsatfix_topic : Determine if to use navsatfix
-std::string* arg_s_eagleye_line : forward line data(output)
-std::string* arg_s_eagleye_back_line : backward line data(output)
-std::string* arg_s_eagleye_pp_line : Line data to merge forward and backward(output)
-*************************************************************************************************/
-void eagleye_pp::writeLineKML(bool arg_use_rtk_navsatfix_topic, std::string* arg_s_eagleye_line, std::string* arg_s_eagleye_back_line, std::string* arg_s_eagleye_pp_line)
-{
-  std::ofstream output_line_kml_file(outputpath_ + "eagleye_line.kml", std::ios::out);
-  std::cout << "Output file = " << outputpath_ << "eagleye_line.kml" << std::endl;
-  if(!arg_use_rtk_navsatfix_topic)
-  {
-    std::cout << "\033[1;33mWarn: Display kml of forward processing results.\033[0m" << std::endl;
-  }
-
-  std::stringstream eagleye_line;
-  std::stringstream eagleye_back_line;
-  std::stringstream eagleye_pp_line;
-
-  double driving_distance = 0,driving_distance_last = 0,driving_distance_last2 = 0,
-    driving_distance_last3 = 0,driving_distance_last4 = 0,driving_distance_last5 = 0;
-
-  if(!boost::filesystem::is_directory(outputpath_))
-  {
-    boost::filesystem::create_directory(outputpath_);
-    std::cout << "Directory created: " << outputpath_ << std::endl;
-  }
-
-  addHeaderLineKML(&output_line_kml_file);
-
-  addLineStyleInKML(&output_line_kml_file, "EAGLEYE_LINE", "ff0000ff");
-  addLineStyleInKML(&output_line_kml_file, "EAGLEYE_BACK_LINE", "ff00ff00");
-  addLineStyleInKML(&output_line_kml_file, "EAGLEYE_PP_LINE", "ffff0000");
-
-  for(int i = 0; i<data_length_; i++)
-  {
-    if (bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.enabled_status) == true)
-    {
-      if(std::abs((eagleye_state_forward_.distance[i].distance - driving_distance_last)) > interval_plot_ ||
-        bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status) == true)
-      {
-        double llh[3] = {eagleye_state_forward_.eagleye_fix[i].longitude, eagleye_state_forward_.eagleye_fix[i].latitude,
-          eagleye_state_forward_.eagleye_fix[i].altitude};
-        updateLineKML(&eagleye_line,llh,eagleye_state_forward_.distance[i], &driving_distance_last2);
-        driving_distance_last = eagleye_state_forward_.distance[i].distance;
-      }
-    }
-  }
-
-  if(output_kml_eagleye_pp_line_)
-  {
-    for(int i = 0; i<data_length_; i++)
-    {
-      if(smoothing_trajectory_status_[i] != -1)
-      {
-        double llh[3] = {llh_smoothing_trajectory_lon_[i], llh_smoothing_trajectory_lat_[i], llh_smoothing_trajectory_hei_[i]};
-        updateLineKML(&eagleye_pp_line,llh,eagleye_state_forward_.distance[i], &driving_distance_last3);
-      }
-    }
-  }
-
-  if(output_kml_eagleye_backward_line_)
-  {
-    for(int i = 0; i<data_length_; i++)
-    {
-      if (bool(eagleye_state_backward_.enu_absolute_pos_interpolate[i].status.enabled_status) == true)
-      {
-        if(std::abs((eagleye_state_backward_.distance[i].distance - driving_distance_last4)) > interval_plot_ ||
-          bool(eagleye_state_backward_.enu_absolute_pos_interpolate[i].status.estimate_status) == true)
-        {
-          double llh[3] = {eagleye_state_backward_.eagleye_fix[i].longitude, eagleye_state_backward_.eagleye_fix[i].latitude,
-            eagleye_state_backward_.eagleye_fix[i].altitude};
-          updateLineKML(&eagleye_back_line,llh,eagleye_state_backward_.distance[i], &driving_distance_last5);
-
-          driving_distance_last4 = eagleye_state_backward_.distance[i].distance;
-        }
-      }
-    }
-  }
-
-  *arg_s_eagleye_line = eagleye_line.str();
-  *arg_s_eagleye_back_line = eagleye_back_line.str();
-  *arg_s_eagleye_pp_line = eagleye_pp_line.str();
-
-  if(output_kml_eagleye_forward_line_)
-  {
-    int visibility = (!arg_use_rtk_navsatfix_topic ? 1 : 0);
-    addPlacemarkInKML(&output_line_kml_file, "EAGLEYE_LINE", visibility, *arg_s_eagleye_line);
-  }
-
-  if(output_kml_eagleye_backward_line_)
-  {
-    addPlacemarkInKML(&output_line_kml_file, "EAGLEYE_BACK_LINE", 0, *arg_s_eagleye_back_line);
-  }
-
-  if(output_kml_eagleye_pp_line_)
-  {
-    int visibility = (!arg_use_rtk_navsatfix_topic ? 1 : 0);
-    addPlacemarkInKML(&output_line_kml_file, "EAGLEYE_PP_LINE", visibility, *arg_s_eagleye_pp_line);
-  }
-
-  output_line_kml_file << "</Document>\n\
-  </kml>\n\
-  " << std::endl;
-}
-
-
-/************************************************************
-writeSimpleCSV
-Function to output csv(Simplified version)
-************************************************************/
-void eagleye_pp::writeSimpleCSV(void)
-{
-  std::ofstream output_csv_file(outputpath_ + "eagleye.csv", std::ios::out);
-  std::cout << "Output file = " << outputpath_ << "eagleye.csv" << std::endl;
-
-  if (!boost::filesystem::is_directory(outputpath_))
-  {
-    boost::filesystem::create_directory(outputpath_);
-    std::cout << "Directory created: " << outputpath_ << std::endl;
-  }
-
-  // output_csv_file header
-output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye_llh.altitude\
-,eagleye_llh.orientation_covariance[0],eagleye_llh.orientation_covariance[1],eagleye_llh.orientation_covariance[2],eagleye_llh.orientation_covariance[3],eagleye_llh.orientation_covariance[4],eagleye_llh.orientation_covariance[5],eagleye_llh.orientation_covariance[6],eagleye_llh.orientation_covariance[7],eagleye_llh.orientation_covariance[8]\
-,eagleye_llh.status,eagleye_twist.linear.x,eagleye_twist.linear.y,eagleye_twist.linear.z,eagleye_twist.angular.x,eagleye_twist.angular.y,eagleye_twist.angular.z\
-,eagleye_twist.orientation_covariance[0],eagleye_twist.orientation_covariance[1],eagleye_twist.orientation_covariance[2],eagleye_twist.orientation_covariance[3],eagleye_twist.orientation_covariance[4],eagleye_twist.orientation_covariance[5],eagleye_twist.orientation_covariance[6],eagleye_twist.orientation_covariance[7],eagleye_twist.orientation_covariance[8]\
-,eagleye_twist.orientation_covariance[9],eagleye_twist.orientation_covariance[10],eagleye_twist.orientation_covariance[11],eagleye_twist.orientation_covariance[12],eagleye_twist.orientation_covariance[13],eagleye_twist.orientation_covariance[14],eagleye_twist.orientation_covariance[15],eagleye_twist.orientation_covariance[16],eagleye_twist.orientation_covariance[17]\
-,eagleye_acceleration.x,eagleye_acceleration.y,eagleye_acceleration.z\
-,eagleye_acceleration.orientation_covariance[0],eagleye_acceleration.orientation_covariance[1],eagleye_acceleration.orientation_covariance[2],eagleye_acceleration.orientation_covariance[3],eagleye_acceleration.orientation_covariance[4],eagleye_acceleration.orientation_covariance[5],eagleye_acceleration.orientation_covariance[6],eagleye_acceleration.orientation_covariance[7],eagleye_acceleration.orientation_covariance[8]\
-,eagleye_posture.roll,eagleye_posture.pitch,eagleye_posture.yaw\
-,eagleye_posture.orientation_covariance[0],eagleye_posture.orientation_covariance[1],eagleye_posture.orientation_covariance[2],eagleye_posture.orientation_covariance[3],eagleye_posture.orientation_covariance[4],eagleye_posture.orientation_covariance[5],eagleye_posture.orientation_covariance[6],eagleye_posture.orientation_covariance[7],eagleye_posture.orientation_covariance[8]\
-,navsat_llh.latitude,navsat_llh.longitude,navsat_llh.altitude\
-,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
-,navsat_llh.gps_qual\
-,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
-,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
-,eagleye_pp_llh.status\
-" << std::endl;
-
-  //output debug file
-  for(int i=0; i<data_length_; i++)
-  {
-    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_[i].header.stamp.toNSec() << ","; //timestamp
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].latitude << ","; //eagleye_llh.latitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].longitude << ","; //eagleye_llh.longitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].altitude << ","; //eagleye_llh.altitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[0] << ","; //eagleye_llh.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[1] << ","; //eagleye_llh.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[2] << ","; //eagleye_llh.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[3] << ","; //eagleye_llh.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[4] << ","; //eagleye_llh.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[5] << ","; //eagleye_llh.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[6] << ","; //eagleye_llh.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[7] << ","; //eagleye_llh.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[8] << ","; //eagleye_llh.orientation_covariance[8]
-    output_csv_file << bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status) << ","; //eagleye_llh.status
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.x << ","; //eagleye_twist.linear.x
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.y << ","; //eagleye_twist.linear.y
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.z << ","; //eagleye_twist.linear.z
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.x << ","; //eagleye_twist.angular.x
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.y << ","; //eagleye_twist.angular.y
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.z << ","; //eagleye_twist.angular.z
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[9]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[10]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[11]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[12]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[13]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[14]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[15]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[16]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_twist.orientation_covariance[17]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.x << ","; //eagleye_acceleration.x TODO Change to acceleration estimated by eagleye
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.y << ","; //eagleye_acceleration.y
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.z << ","; //eagleye_acceleration.z
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_acceleration.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.rolling[i].rolling_angle << ","; //eagleye_posture.roll
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.pitching[i].pitching_angle << ","; //eagleye_posture.pitch
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_3rd[i].heading_angle << ","; //eagleye_posture.yaw
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_posture.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //navsat_llh.latitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //navsat_llh.longitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; //navsat_llh.altitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //navsat_llh.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //navsat_llh.gps_qual
-    if(getUseCombination())
-    {
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ","; //eagleye_pp_llh.longitude
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ","; //eagleye_pp_llh.altitude
-    }
-    else
-    {
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.latitude
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.longitude
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.altitude      
-    }
-    
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[8]
-    if(getUseCombination())
-    {
-      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << smoothing_trajectory_status_[i] << ","; //eagleye_pp_llh.status
-    }
-    else
-    {
-      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //eagleye_pp_llh.status    
-    }
-    output_csv_file << "\n";
-  }
-}
-
-
-void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const EagleyeStates& eagleye_state)
-{
-    *output_log_csv_file << "timestamp,imu.angular_velocity.x,imu.angular_velocity.y,imu.angular_velocity.z,imu.linear_acceleration.x,imu.linear_acceleration.y,imu.linear_acceleration.z\
-,rtklib_nav.tow,rtklib_nav.ecef_pos.x,rtklib_nav.ecef_pos.y,rtklib_nav.ecef_pos.z,rtklib_nav.ecef_vel.x,rtklib_nav.ecef_vel.y,rtklib_nav.ecef_vel.z,rtklib_nav.status.status.status,rtklib_nav.status.status.service,rtklib_nav.status.latitude,rtklib_nav.status.longitude,rtklib_nav.status.altitude\
-,velocity.twist.linear.x,velocity.twist.linear.y,velocity.twist.linear.z,velocity.twist.angular.x,velocity.twist.angular.y,velocity.twist.angular.z\
-,velocity_scale_factor.scale_factor,velocity_scale_factor.correction_velocity.linear.x,velocity_scale_factor.correction_velocity.linear.y,velocity_scale_factor.correction_velocity.linear.z,velocity_scale_factor.correction_velocity.angular.x,velocity_scale_factor.correction_velocity.angular.y,velocity_scale_factor.correction_velocity.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
-,distance.distance,distance.status.enabled_status,distance.status.estimate_status\
-,heading_1st.heading_angle,heading_1st.status.enabled_status,heading_1st.status.estimate_status\
-,heading_interpolate_1st.heading_angle,heading_interpolate_1st.status.enabled_status,heading_interpolate_1st.status.estimate_status\
-,heading_2nd.heading_angle,heading_2nd.status.enabled_status,heading_2nd.status.estimate_status\
-,heading_interpolate_2nd.heading_angle,heading_interpolate_2nd.status.enabled_status,heading_interpolate_2nd.status.estimate_status\
-,heading_3rd.heading_angle,heading_3rd.status.enabled_status,heading_3rd.status.estimate_status\
-,heading_interpolate_3rd.heading_angle,heading_interpolate_3rd.status.enabled_status,heading_interpolate_3rd.status.estimate_status\
-,yawrate_offset_stop.yawrate_offset,yawrate_offset_stop.status.enabled_status,yawrate_offset_stop.status.estimate_status\
-,yawrate_offset_1st.yawrate_offset,yawrate_offset_1st.status.enabled_status,yawrate_offset_1st.status.estimate_status\
-,yawrate_offset_2nd.yawrate_offset,yawrate_offset_2nd.status.enabled_status,yawrate_offset_2nd.status.estimate_status\
-,slip_angle.coefficient,slip_angle.slip_angle,slip_angle.status.enabled_status,slip_angle.status.estimate_status\
-,enu_vel.vector.x,enu_vel.vector.y,enu_vel.vector.z\
-,enu_absolute_pos.enu_pos.x,enu_absolute_pos.enu_pos.y,enu_absolute_pos.enu_pos.z,enu_absolute_pos.ecef_base_pos.x,enu_absolute_pos.ecef_base_pos.y,enu_absolute_pos.ecef_base_pos.z,enu_absolute_pos.status.enabled_status,enu_absolute_pos.status.estimate_status\
-,enu_absolute_pos_interpolate.enu_pos.x,enu_absolute_pos_interpolate.enu_pos.y,enu_absolute_pos_interpolate.enu_pos.z,enu_absolute_pos_interpolate.ecef_base_pos.x,enu_absolute_pos_interpolate.ecef_base_pos.y,enu_absolute_pos_interpolate.ecef_base_pos.z,enu_absolute_pos_interpolate.status.enabled_status,enu_absolute_pos_interpolate.status.estimate_status\
-,height.height,height.status.enabled_status,height.status.estimate_status\
-,pitching.pitching_angle,pitching.status.enabled_status,pitching.status.estimate_status\
-,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
-,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
-,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
-,gga_timestamp\
-,gga_llh.latitude,gga_llh.longitude,gga_llh.altitude\
-,gga_llh.gps_qual\
-,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
-,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
-,eagleye_pp_llh.status\
-,eagleye_pp_llh.height_status\
-,enu_relative_pos.enu_pos.x,enu_relative_pos.enu_pos.y,enu_relative_pos.enu_pos.z\
-,enu_relative_pos.status.enabled_status\
-" << std::endl;
-    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status
-    for(int i=0; i<data_length_; i++)
-    {
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_[i].header.stamp.toNSec() << ","; //timestamp
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].angular_velocity.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << imu_[i].linear_acceleration.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].tow << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_pos.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].ecef_vel.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(rtklib_nav_[i].status.status.status) << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << rtklib_nav_[i].status.status.service << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.latitude << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.longitude << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << rtklib_nav_[i].status.altitude << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.linear.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.linear.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.linear.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].scale_factor << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.velocity_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.velocity_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.distance[i].distance << ",";
-      *output_log_csv_file << (eagleye_state_forward_.distance[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.distance[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_1st[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_1st[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_2nd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_2nd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_3rd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_3rd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_3rd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_3rd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_3rd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_3rd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_stop[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_stop[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_stop[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_1st[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_2nd[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.slip_angle[i].coefficient << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.slip_angle[i].slip_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.slip_angle[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.slip_angle[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status ? "1" : "0") << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.rollrate_offset << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.pitchrate_offset << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.yawrate_offset << ",";
-      // *output_log_csv_file << (eagleye_state_forward_.angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
-      // *output_log_csv_file << (eagleye_state_forward_.angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.height[i].height << ",";
-      *output_log_csv_file << (eagleye_state_forward_.height[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.height[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.pitching[i].pitching_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.pitching[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.pitching[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.acc_x_offset[i].acc_x_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_offset[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_offset[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.acc_x_scale_factor[i].acc_x_scale_factor << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.rolling[i].rolling_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.rolling[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.rolling[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; //timestamp
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; //gga_llh.latitude
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; //gga_llh.longitude
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << ","; //gga_llh.altitude
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; //gga_llh.gps_qual
-      if(getUseCombination())
-      {
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lat_[i] << ","; //eagleye_pp_llh.latitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_lon_[i] << ","; //eagleye_pp_llh.longitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << llh_smoothing_trajectory_hei_[i] << ","; //eagleye_pp_llh.altitude
-      }
-      else
-      {
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.latitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.longitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.altitude     
-      }
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[0]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[1]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[2]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[3]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[4]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[5]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[6]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[7]
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[8]
-      if(getUseCombination())
-      {
-        *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << smoothing_trajectory_status_[i] << ","; //eagleye_pp_llh.status
-      }
-      else
-      {
-        *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //eagleye_pp_llh.status    
-      }
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << eagleye_state_forward_.flag_reliability_buffer[i] << ","; //eagleye_pp_llh.status
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_relative_pos[i].status.enabled_status ? "1" : "0");
-      *output_log_csv_file << "\n";
-    }
-}
-
-/************************************************************
-writeDetailCSV
-Function to output csv(Detailed version)
-************************************************************/
-void eagleye_pp::writeDetailCSV(void)
-{
-
-  if (!boost::filesystem::is_directory(outputpath_))
-  {
-    boost::filesystem::create_directory(outputpath_);
-    std::cout << "Directory created: " << outputpath_ << std::endl;
-  }
-
-  if(output_log_)
-  {
-    std::ofstream output_log_csv_file(outputpath_ + "eagleye_log.csv", std::ios::out);
-    std::cout << "Output file = " << outputpath_ << "eagleye_log.csv" << std::endl;
-    writeDetailCSVOneWay(&output_log_csv_file, eagleye_state_forward_);
-
-    if(getUseBackward())
-    {
-      std::ofstream output_log_back_csv_file(outputpath_ + "eagleye_log_back.csv", std::ios::out);
-      std::cout << "Output file = " << outputpath_ << "eagleye_log_back.csv" << std::endl;
-      writeDetailCSVOneWay(&output_log_back_csv_file, eagleye_state_backward_);
     }
   }
 }

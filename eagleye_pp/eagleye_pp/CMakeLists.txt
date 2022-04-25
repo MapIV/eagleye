@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   eagleye_coordinate
   eagleye_nmea2fix
   multi_rosbag_controller
+  kml_generator
 )
 
 catkin_package(
@@ -33,6 +34,7 @@ catkin_package(
    eagleye_coordinate
    eagleye_nmea2fix
    multi_rosbag_controller
+   kml_generator
 )
 
 include_directories(include
@@ -40,6 +42,10 @@ include_directories(include
   ${YAML_CPP_INCLUDE_DIRS}
 )
 
-add_executable(eagleye_pp src/eagleye_pp.cpp src/eagleye_pp_core.cpp)
+add_executable(eagleye_pp
+  src/eagleye_pp.cpp
+  src/eagleye_pp_core.cpp
+  src/eagleye_pp_output.cpp
+  )
 target_link_libraries(eagleye_pp ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 add_dependencies(eagleye_pp ${catkin_EXPORTED_TARGETS})
