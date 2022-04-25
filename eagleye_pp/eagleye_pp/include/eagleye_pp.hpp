@@ -152,6 +152,7 @@ private:
   std::vector<kml_utils::Point> smoothingLLH2PointVector();
   std::vector<kml_utils::Point> rtklibnavVector2PointVector();
   std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > ggaVector2PointVectorPair();
+  void addOtherInformation(kml_utils::Point & point, std::string other_info_name, std::string other_info_value_str);
 
 public:
 
