@@ -240,11 +240,11 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[8]
     if(getUseCombination())
     {
-      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << smoothing_trajectory_status_[i] << ","; //eagleye_pp_llh.status
+      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << smoothing_trajectory_status_[i]; //eagleye_pp_llh.status
     }
     else
     {
-      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //eagleye_pp_llh.status    
+      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0; //eagleye_pp_llh.status    
     }
     output_csv_file << "\n";
   }
