@@ -111,7 +111,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   if (eagleye_heading.status.enabled_status)
   {
     eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    tf2::Matrix3x3(localization_quat).setRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
+    localization_quat.setRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
   }
   else
   {
