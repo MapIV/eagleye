@@ -23,46 +23,22 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef COORDINATE_H
-#define COORDINATE_H
+#include "coordinate/coordinate.hpp"
+#include <GeographicLib/Geocentric.hpp>
+#include <eigen3/Eigen/StdVector>
 
-#include <geodesy/utm.h>
-#include "geographic_msgs/GeoPoint.h"
-#include <GeographicLib/Geoid.hpp>
-#include <GeographicLib/MGRS.hpp>
-#include <GeographicLib/UTMUPS.hpp>
-
-class ConvertHeight
+void enu2xyz_vel(double enu_vel[3], double ecef_base_pos[3], double xyz_vel[3])
 {
-public:
-  ConvertHeight();
+  using namespace GeographicLib;
+  Geocentric earth(Constants::WGS84_a(), Constants::WGS84_f());
 
-  double convert2altitude();
-  double convert2ellipsoid();
-  double getGeoidPerMinute();
-  double getGeoidPerDegree();
-  void setLLH(double, double, double);
+  std::vector<double> rotation(9);
+  double llh[3];
+  earth.Reverse(ecef_base_pos[0], ecef_base_pos[1], ecef_base_pos[2], llh[0], llh[1], llh[2], rotation);
 
-private:
-  double _latitude;
-  double _longitude;
-  double _height;
-  double geoid;
-  double converted_height;
-  double** geoid_map_data;
-};
+  Eigen::Matrix3d R(rotation.data());
+  Eigen::Vector3d v_enu(enu_vel);
 
-extern void ll2xy(int, double*, double*);
-extern void ll2xy_mgrs(double*, double*);
-extern void ecef2llh(double*, double*);
-extern void enu2llh(double*, double*, double*);
-extern void enu2xyz_vel(double*, double*, double*);
-extern void llh2xyz(double*, double*);
-extern void xyz2enu(double*, double*, double*);
-extern void xyz2enu_vel(double*, double*, double*);
-extern double geoid_per_degree(double, double);
-extern double geoid_per_minute(double, double,double**);
-extern double** read_geoid_map();
-
-
-#endif /*COORDINATE_H */
+  Eigen::Map<Eigen::Vector3d> v_xyz(xyz_vel);
+  v_xyz = R.transpose() * v_enu;
+}

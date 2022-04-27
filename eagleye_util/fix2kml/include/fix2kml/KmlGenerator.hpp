@@ -37,7 +37,7 @@
 class KmlGenerator
 {
 public:
-  KmlGenerator(const std::string);
+  KmlGenerator(const std::string,const std::string);
   KmlGenerator(const std::string,const std::string,const std::string);
 
 
@@ -55,7 +55,7 @@ private:
   std::stringstream footer_;
 };
 
-KmlGenerator::KmlGenerator(const std::string kmlname)
+KmlGenerator::KmlGenerator(const std::string kmlname, const std::string color="ff0000ff")
 {
   header_ 
     << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" <<  "\n"
@@ -69,7 +69,7 @@ KmlGenerator::KmlGenerator(const std::string kmlname)
     << "\t\t<name>" <<  kmlname <<"</name>" <<  "\n"
     << "\t\t<Style>" <<  "\n"
     << "\t\t\t<LineStyle>" <<  "\n"
-    << "\t\t\t\t<color>ff00ff00</color>" <<  "\n"
+    << "\t\t\t\t<color>"<<color<<"</color>"<< "\n"
     << "\t\t\t\t<width>5.00</width>" <<  "\n"
     << "\t\t\t</LineStyle>" <<  "\n"
     << "\t\t</Style>"	<< "\n"
