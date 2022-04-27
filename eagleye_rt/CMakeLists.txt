@@ -123,6 +123,10 @@ add_executable(rolling src/rolling_node.cpp)
 target_link_libraries(rolling ${catkin_LIBRARIES})
 add_dependencies(rolling ${catkin_EXPORTED_TARGETS})
 
+add_executable(navpvt2rtk src/navpvt2rtk_node.cpp)
+target_link_libraries(navpvt2rtk ${catkin_LIBRARIES})
+add_dependencies(navpvt2rtk ${catkin_EXPORTED_TARGETS})
+
 install(TARGETS
   velocity_scale_factor
   yawrate_offset_stop
@@ -144,6 +148,7 @@ install(TARGETS
   rtk_heading
   enable_additional_rolling
   rolling
+  navpvt2rtk
   DESTINATION lib/${PROJECT_NAME}
 )
 
