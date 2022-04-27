@@ -37,7 +37,7 @@
 static double interval = 0.2; //m
 static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
-static std::string filename, kmlname;
+static std::string filename, kmlname, fixname, color = "ff0000ff";
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
@@ -46,9 +46,9 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 
 void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kmlfile)
 {
-  if( (driving_distance - driving_distance_last) > interval)
+  if((driving_distance - driving_distance_last) > interval)
   {
-    kmlfile->addPoint(msg->longitude,msg->latitude,msg->altitude);
+    kmlfile->addPoint(msg->longitude, msg->latitude, msg->altitude);
     kmlfile->KmlGenerate(filename);
     driving_distance_last = driving_distance;
   }
@@ -61,12 +61,16 @@ int main(int argc, char** argv)
 
   nh.getParam("fix2kml/filename",filename);
   nh.getParam("fix2kml/kmlname",kmlname);
+  nh.getParam("fix2kml/fixname",fixname);
+  nh.getParam("fix2kml/color",color);
   std::cout<< "filename " << filename << std::endl;
   std::cout<< "kmlname " << kmlname << std::endl;
+  std::cout<< "fixname " << fixname << std::endl;
+  std::cout<< "color " << color << std::endl;
 
-  KmlGenerator kmlfile(kmlname);
+  KmlGenerator kmlfile(kmlname, color);
 
-  ros::Subscriber sub1 = nh.subscribe<sensor_msgs::NavSatFix>("eagleye/fix", 1000, boost::bind(receive_data,_1, &kmlfile));
+  ros::Subscriber sub1 = nh.subscribe<sensor_msgs::NavSatFix>(fixname, 1000, boost::bind(receive_data,_1, &kmlfile));
   ros::Subscriber sub2 = nh.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
   ros::spin();
 
