@@ -51,7 +51,7 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 Clone and build the necessary packages for Eagleye. 
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git
+	git clone --recursive https://github.com/MapIV/eagleye.git
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git
 	git clone https://github.com/MapIV/nmea_comms.git
 	git clone https://github.com/MapIV/nmea_ros_bridge.git
