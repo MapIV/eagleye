@@ -372,8 +372,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
 ///  pitch  ///
   correction_acceleration_linear_x = imu.linear_acceleration.x * height_status->acceleration_SF_linear_x_last + height_status->acceleration_offset_linear_x_last;
-  height_status->acc_buffer.push_back((correction_acceleration_linear_x -
-    (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last)));
+  height_status->acc_buffer.push_back((velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last) - correction_acceleration_linear_x);
   data_num_acc = height_status->acc_buffer.size();
 
   if (data_num_acc > height_parameter.average_num)
