@@ -16,7 +16,7 @@ reverse_imu: false                                    # reverse imu angular_velo
 reverse_imu_angular_velocity_x: true                  # reverse imu angular_velocity.x
 reverse_imu_linear_acceleration_y: false              # reverse imu linear_acceleration.y
 
-tf_gnss_flame:
+tf_gnss_frame:
   parent: "base_link"
   child: "gnss"
 
