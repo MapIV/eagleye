@@ -38,7 +38,8 @@ twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 ## If RTK positioning is not used, the following topic settings are not necessary.
-nmea_sentence_topic: /mosaic/nmea_sentence
+## Forward/backward smoothing is not possible without nmea_msgs/Sentence.
+nmea_sentence_topic: /nmea_sentence
 
 #Parameter settings for Eagleye
 reverse_imu: false

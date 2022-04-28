@@ -130,19 +130,18 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   _pose_with_covariance.header = _pose.header;
   _pose_with_covariance.pose.pose = _pose.pose;
   // TODO(Map IV): temporary value
-  double std_dev_pos = 1.5; // [m]
   double std_dev_roll = 100; // [rad]
   double std_dev_pitch = 100; // [rad]
   double std_dev_yaw = 100; // [rad]
   if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
   if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
   if(_eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
-  _pose_with_covariance.pose.covariance[0] = std_dev_pos;
-  _pose_with_covariance.pose.covariance[7] = std_dev_pos;
-  _pose_with_covariance.pose.covariance[14] = std_dev_pos;
-  _pose_with_covariance.pose.covariance[21] = std_dev_roll;
-  _pose_with_covariance.pose.covariance[28] = std_dev_pitch;
-  _pose_with_covariance.pose.covariance[35] = std_dev_yaw;
+  _pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
+  _pose_with_covariance.pose.covariance[7] = msg->position_covariance[7];
+  _pose_with_covariance.pose.covariance[14] = msg->position_covariance[14];
+  _pose_with_covariance.pose.covariance[21] = std_dev_roll * std_dev_roll;
+  _pose_with_covariance.pose.covariance[28] = std_dev_pitch * std_dev_pitch;
+  _pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
   _pose_with_covariance_pub.publish(_pose_with_covariance);
 
   static tf::TransformBroadcaster br;

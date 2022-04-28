@@ -174,6 +174,10 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     enu_absolute_pos_interpolate->enu_pos.z = enu_pos[2];
 
     eagleye_fix->altitude = llh_pos[2];
+    // TODO(Map IV): temporary covariance value
+    eagleye_fix->position_covariance[0] = 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[4] = 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[8] = 1.5 * 1.5; // [m^2]
 
   }
   else
@@ -184,6 +188,9 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     eagleye_fix->longitude = 0;
     eagleye_fix->latitude = 0;
     eagleye_fix->altitude = 0;
+    eagleye_fix->position_covariance[0] = 100 * 100; // [m^2]
+    eagleye_fix->position_covariance[4] = 100 * 100; // [m^2]
+    eagleye_fix->position_covariance[8] = 100 * 100; // [m^2]
   }
 
   position_interpolate_status->time_last = enu_vel.header.stamp.toSec();

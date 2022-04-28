@@ -32,7 +32,7 @@ void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic)
 
   if(output_kml_eagleye_forward_line_)
   {
-    int visibility = (!output_kml_eagleye_pp_line_ ? 1 : 0);
+    int visibility = (!(arg_use_rtk_navsatfix_topic && output_kml_eagleye_pp_line_) ? 1 : 0);
     kml_generator_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility, KmlGenerator::ColorType::RED);
   }
   if(output_kml_eagleye_backward_line_)
@@ -40,7 +40,7 @@ void eagleye_pp::writePointKML(bool arg_use_rtk_navsatfix_topic)
     int visibility = ((!output_kml_eagleye_pp_line_ && !output_kml_eagleye_forward_line_) ? 1 : 0);
     kml_generator_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility, KmlGenerator::ColorType::GREEN);
   }
-  if(output_kml_eagleye_pp_line_)
+  if(arg_use_rtk_navsatfix_topic && output_kml_eagleye_pp_line_)
   {
     kml_generator_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1, KmlGenerator::ColorType::BLUE);
   }
@@ -75,7 +75,7 @@ void eagleye_pp::writeLineKML(bool arg_use_rtk_navsatfix_topic)
   std::cout << "Output file = " << outputpath_ << "eagleye_line.kml" << std::endl;
   if(!arg_use_rtk_navsatfix_topic)
   {
-    std::cout << "\033[1;33mWarn: Display kml of forward processing results.\033[0m" << std::endl;
+    std::cout << "\033[1;33mWarn:Forward/backward smoothing is not possible without nmea_msgs/Sentence. Display kml of forward processing results.\033[0m" << std::endl;
   }
 
   kml_generator_line_->setIntervalType(KmlGenerator::IntervalType::DISTANCE_INTERBAL);
@@ -83,20 +83,21 @@ void eagleye_pp::writeLineKML(bool arg_use_rtk_navsatfix_topic)
 
   if(output_kml_eagleye_forward_line_)
   {
-    int visibility = (!output_kml_eagleye_pp_line_ ? 1 : 0);
-    forward_point_vector_ =eagleyeStatus2PointVector(eagleye_state_forward_);
+    int visibility = (!(arg_use_rtk_navsatfix_topic && output_kml_eagleye_pp_line_) ? 1 : 0);
+    forward_point_vector_ = eagleyeStatus2PointVector(eagleye_state_forward_);
     kml_generator_line_->addPointVector2LineKML(forward_point_vector_, "Eagleye Forward Line", visibility, KmlGenerator::ColorType::RED);
   }
 
   if(output_kml_eagleye_backward_line_)
   {
     int visibility = ((!output_kml_eagleye_pp_line_ && !output_kml_eagleye_forward_line_) ? 1 : 0);
-    backward_point_vector_ =eagleyeStatus2PointVector(eagleye_state_backward_);
+    backward_point_vector_ = eagleyeStatus2PointVector(eagleye_state_backward_);
     kml_generator_line_->addPointVector2LineKML(backward_point_vector_, "Eagleye Backword Line", visibility, KmlGenerator::ColorType::GREEN);
   }
 
-  if(output_kml_eagleye_pp_line_)
+  if(arg_use_rtk_navsatfix_topic && output_kml_eagleye_pp_line_)
   {
+    smoothing_point_vector_ = smoothingLLH2PointVector();
     kml_generator_line_->addPointVector2LineKML(smoothing_point_vector_, "Eagleye Smoothing Line", 1, KmlGenerator::ColorType::BLUE);
   }
 
@@ -120,6 +121,13 @@ void eagleye_pp::writeSimpleCSV(void)
     std::cout << "Directory created: " << outputpath_ << std::endl;
   }
 
+  // TODO(Map IV): temporary covariance value
+  double std_dev_pos = (!getUseCombination()) ? 100 : 1.5; // [m]
+  double std_dev_pos_z = (!getUseCombination()) ? 100 : 1.5; // [m]
+  double std_dev_roll; // [rad]
+  double std_dev_pitch; // [rad]
+  double std_dev_yaw; // [rad]
+
   // output_csv_file header
 output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye_llh.altitude\
 ,eagleye_llh.position_covariance[0],eagleye_llh.position_covariance[1],eagleye_llh.position_covariance[2],eagleye_llh.position_covariance[3],eagleye_llh.position_covariance[4],eagleye_llh.position_covariance[5],eagleye_llh.position_covariance[6],eagleye_llh.position_covariance[7],eagleye_llh.position_covariance[8]\
@@ -134,13 +142,35 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
 ,navsat_llh.orientation_covariance[0],navsat_llh.orientation_covariance[1],navsat_llh.orientation_covariance[2],navsat_llh.orientation_covariance[3],navsat_llh.orientation_covariance[4],navsat_llh.orientation_covariance[5],navsat_llh.orientation_covariance[6],navsat_llh.orientation_covariance[7],navsat_llh.orientation_covariance[8]\
 ,navsat_llh.gps_qual\
 ,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
-,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
+,eagleye_pp_llh.position_covariance[0],eagleye_pp_llh.position_covariance[1],eagleye_pp_llh.position_covariance[2],eagleye_pp_llh.position_covariance[3],eagleye_pp_llh.position_covariance[4],eagleye_pp_llh.position_covariance[5],eagleye_pp_llh.position_covariance[6],eagleye_pp_llh.position_covariance[7],eagleye_pp_llh.position_covariance[8]\
 ,eagleye_pp_llh.status\
 " << std::endl;
 
   // output debug file
   for(int i=0; i<data_length_; i++)
   {
+    if(smoothing_trajectory_status_[i] == 0)
+    {
+      std_dev_pos = 0.3;
+    }
+    else if(smoothing_trajectory_status_[i] == 1)
+    {
+      std_dev_pos = 1.5;
+    }
+    else if(smoothing_trajectory_status_[i] == 2)
+    {
+      std_dev_pos = 4.0;
+    }
+    else if(smoothing_trajectory_status_[i] == -1)
+    {
+      std_dev_pos = 100.0;
+      std_dev_pos_z = 100.0;
+    }
+
+    std_dev_roll = (eagleye_state_forward_.rolling[i].status.enabled_status) ? 0.5 / 180 * M_PI : 100;
+    std_dev_pitch = (eagleye_state_forward_.pitching[i].status.enabled_status) ? 0.5 / 180 * M_PI : 100;
+    std_dev_yaw = (eagleye_state_forward_.heading_interpolate_3rd[i].status.enabled_status) ? 0.2 / 180 * M_PI : 100;
+
     output_csv_file << std::setprecision(15) << imu_[i].header.stamp.toSec() << ","; // timestamp
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].latitude << ","; // eagleye_llh.latitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].longitude << ","; // eagleye_llh.longitude
@@ -194,15 +224,15 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.rolling[i].rolling_angle << ","; // eagleye_posture.roll
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.pitching[i].pitching_angle << ","; // eagleye_posture.pitch
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_3rd[i].heading_angle << ","; // eagleye_posture.yaw
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[0]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_roll * std_dev_roll << ","; // eagleye_posture.orientation_covariance[0]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[1]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[2]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[4]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_pitch * std_dev_pitch << ","; // eagleye_posture.orientation_covariance[4]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[5]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[8]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_yaw * std_dev_yaw << ","; // eagleye_posture.orientation_covariance[8]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; // navsat_llh.latitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; // navsat_llh.longitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; // navsat_llh.altitude
@@ -226,25 +256,24 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     {
       output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.latitude
       output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.longitude
-      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.altitude      
+      output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.altitude
     }
-    
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[0]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[1]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[2]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[3]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[4]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[5]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[6]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[7]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[8]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_pos * std_dev_pos << ","; // eagleye_pp_llh.position_covariance[0]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[1]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[2]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[3]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_pos * std_dev_pos  << ","; // eagleye_pp_llh.position_covariance[4]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[5]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[6]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.position_covariance[7]
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_pos_z * std_dev_pos_z  << ","; // eagleye_pp_llh.position_covariance[8]
     if(getUseCombination())
     {
       output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << smoothing_trajectory_status_[i]; // eagleye_pp_llh.status
     }
     else
     {
-      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0; // eagleye_pp_llh.status    
+      output_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0; // eagleye_pp_llh.status
     }
     output_csv_file << "\n";
   }
