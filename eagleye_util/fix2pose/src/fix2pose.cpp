@@ -39,54 +39,46 @@
 #include "tf/transform_broadcaster.h"
 #include "coordinate/coordinate.hpp"
 
-static eagleye_msgs::Rolling eagleye_rolling;
-static eagleye_msgs::Pitching eagleye_pitching;
-static eagleye_msgs::Heading eagleye_heading;
-static eagleye_msgs::Position eagleye_position;
+static eagleye_msgs::Rolling _eagleye_rolling;
+static eagleye_msgs::Pitching _eagleye_pitching;
+static eagleye_msgs::Heading _eagleye_heading;
+static eagleye_msgs::Position _eagleye_position;
 static geometry_msgs::Quaternion _quat;
 
-static ros::Publisher pub;
-static geometry_msgs::PoseStamped pose;
+static ros::Publisher _pub;
+static geometry_msgs::PoseStamped _pose;
 
-static double m_lat,m_lon,m_h;
-static double m_x,m_y,m_z;
-static int convert_height_num = 0;
-static int plane = 7;
-static int tf_num = 1;
-static std::string parent_frame_id, child_frame_id;
+static int _convert_height_num = 0;
+static int _plane = 7;
+static int _tf_num = 1;
+static std::string _parent_frame_id, _child_frame_id;
 
-static ConvertHeight convert_height;
+static ConvertHeight _convert_height;
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  eagleye_heading.header = msg->header;
-  eagleye_heading.heading_angle = msg->heading_angle;
-  eagleye_heading.status = msg->status;
+  _eagleye_heading = *msg;
 }
 
 void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
 {
-  eagleye_rolling = *msg;
+  _eagleye_rolling = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 {
-  eagleye_pitching = *msg;
+  _eagleye_pitching = *msg;
 }
 
 void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
 {
-  eagleye_position.header = msg->header;
-  eagleye_position.enu_pos = msg->enu_pos;
-  eagleye_position.ecef_base_pos = msg->ecef_base_pos;
-  eagleye_position.status = msg->status;
+  _eagleye_position = *msg;
 }
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
 
   double llh[3] = {0};
-  double _llh[3] = {0};
   double xyz[3] = {0};
   double geoid_height = 0;
 
@@ -94,30 +86,31 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  if (convert_height_num == 1)
+  if (_convert_height_num == 1)
   {
-    convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-    llh[2] = convert_height.convert2altitude();
+    _convert_height.setLLH(msg->latitude, msg->longitude, msg->altitude);
+    llh[2] = _convert_height.convert2altitude();
   }
-  else if(convert_height_num == 2)
+  else if(_convert_height_num == 2)
   {
-    convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-    llh[2] = convert_height.convert2ellipsoid();
-  }
-
-  if (tf_num == 1)
-  {
-    ll2xy(plane,llh,xyz);
-  }
-  else if (tf_num == 2)
-  {
-    ll2xy_mgrs(llh,xyz);
+    _convert_height.setLLH(msg->latitude, msg->longitude, msg->altitude);
+    llh[2] = _convert_height.convert2ellipsoid();
   }
 
-  if (eagleye_heading.status.enabled_status == true)
+  if (_tf_num == 1)
   {
-    eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    tf::Quaternion tf_quat = tf::createQuaternionFromRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
+    ll2xy(_plane, llh, xyz);
+  }
+  else if (_tf_num == 2)
+  {
+    ll2xy_mgrs(llh, xyz);
+  }
+
+  if (_eagleye_heading.status.enabled_status == true)
+  {
+    _eagleye_heading.heading_angle = fmod(_eagleye_heading.heading_angle, 2*M_PI);
+    tf::Quaternion tf_quat = tf::createQuaternionFromRPY(_eagleye_rolling.rolling_angle,
+      _eagleye_pitching.pitching_angle, (90* M_PI / 180) - _eagleye_heading.heading_angle);
     quaternionTFToMsg(tf_quat, _quat);
   }
   else
@@ -125,21 +118,21 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
     _quat = tf::createQuaternionMsgFromYaw(0);
   }
 
-  pose.header = msg->header;
-  pose.header.frame_id = "map";
-  pose.pose.position.x = xyz[1];
-  pose.pose.position.y = xyz[0];
-  pose.pose.position.z = xyz[2];
-  pose.pose.orientation = _quat;
-  pub.publish(pose);
+  _pose.header = msg->header;
+  _pose.header.frame_id = "map";
+  _pose.pose.position.x = xyz[1];
+  _pose.pose.position.y = xyz[0];
+  _pose.pose.position.z = xyz[2];
+  _pose.pose.orientation = _quat;
+  _pub.publish(_pose);
 
   static tf::TransformBroadcaster br;
   tf::Transform transform;
   tf::Quaternion q;
-  transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
-  q.setRPY(0, 0, (90* M_PI / 180)-eagleye_heading.heading_angle);
+  transform.setOrigin(tf::Vector3(_pose.pose.position.x, _pose.pose.position.y, _pose.pose.position.z));
+  q.setRPY(0, 0, (90* M_PI / 180) - _eagleye_heading.heading_angle);
   transform.setRotation(q);
-  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, parent_frame_id, child_frame_id));
+  br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, _parent_frame_id, _child_frame_id));
 }
 
 int main(int argc, char** argv)
@@ -147,24 +140,24 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle nh;
 
-  nh.getParam("fix2pose_node/plane",plane);
-  nh.getParam("fix2pose_node/tf_num",tf_num);
-  nh.getParam("fix2pose_node/convert_height_num",convert_height_num);
-  nh.getParam("fix2pose_node/parent_frame_id",parent_frame_id);
-  nh.getParam("fix2pose_node/child_frame_id",child_frame_id);
+  nh.getParam("fix2pose_node/plane", _plane);
+  nh.getParam("fix2pose_node/tf_num", _tf_num);
+  nh.getParam("fix2pose_node/convert_height_num", _convert_height_num);
+  nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
+  nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
 
-  std::cout<< "plane " << plane << std::endl;
-  std::cout<< "tf_num " << tf_num << std::endl;
-  std::cout<< "convert_height_num " << convert_height_num << std::endl;
-  std::cout<< "parent_frame_id " << parent_frame_id << std::endl;
-  std::cout<< "child_frame_id " << child_frame_id << std::endl;
+  std::cout<< "plane " << _plane << std::endl;
+  std::cout<< "tf_num " << _tf_num << std::endl;
+  std::cout<< "convert_height_num " << _convert_height_num << std::endl;
+  std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
+  std::cout<< "child_frame_id " << _child_frame_id << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
   ros::Subscriber sub2 = nh.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
   ros::Subscriber sub3 = nh.subscribe("eagleye/fix", 1000, fix_callback);
   ros::Subscriber sub4 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
   ros::Subscriber sub5 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
-  pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
+  _pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   ros::spin();
 
   return 0;
