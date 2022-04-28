@@ -137,8 +137,8 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
   if(_eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
   _pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
-  _pose_with_covariance.pose.covariance[7] = msg->position_covariance[7];
-  _pose_with_covariance.pose.covariance[14] = msg->position_covariance[14];
+  _pose_with_covariance.pose.covariance[7] = msg->position_covariance[4];
+  _pose_with_covariance.pose.covariance[14] = msg->position_covariance[8];
   _pose_with_covariance.pose.covariance[21] = std_dev_roll * std_dev_roll;
   _pose_with_covariance.pose.covariance[28] = std_dev_pitch * std_dev_pitch;
   _pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
