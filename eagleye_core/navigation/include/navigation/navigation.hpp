@@ -219,8 +219,8 @@ struct PositionParameter
   double tf_gnss_rotation_y;
   double tf_gnss_rotation_z;
   double tf_gnss_rotation_w;
-  std::string tf_gnss_parent_flame;
-  std::string tf_gnss_child_flame;
+  std::string tf_gnss_parent_frame;
+  std::string tf_gnss_child_frame;
 };
 
 struct PositionStatus
@@ -396,8 +396,8 @@ struct RtkDeadreckoningParameter
   double tf_gnss_rotation_y;
   double tf_gnss_rotation_z;
   double tf_gnss_rotation_w;
-  std::string tf_gnss_parent_flame;
-  std::string tf_gnss_child_flame;
+  std::string tf_gnss_parent_frame;
+  std::string tf_gnss_child_frame;
 };
 
 struct RtkDeadreckoningStatus

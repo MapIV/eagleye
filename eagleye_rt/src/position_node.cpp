@@ -79,7 +79,7 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfList
   geometry_msgs::TransformStamped transformStamped;
   try
   {
-    transformStamped = tfBuffer_->lookupTransform(_position_parameter.tf_gnss_parent_flame, _position_parameter.tf_gnss_child_flame, ros::Time(0));
+    transformStamped = tfBuffer_->lookupTransform(_position_parameter.tf_gnss_parent_frame, _position_parameter.tf_gnss_child_frame, ros::Time(0));
 
     _position_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
     _position_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
@@ -135,8 +135,8 @@ int main(int argc, char** argv)
   nh.getParam("ecef_base_pos/x",_position_parameter.ecef_base_pos_x);
   nh.getParam("ecef_base_pos/y",_position_parameter.ecef_base_pos_y);
   nh.getParam("ecef_base_pos/z",_position_parameter.ecef_base_pos_z);
-  nh.getParam("tf_gnss_flame/parent", _position_parameter.tf_gnss_parent_flame);
-  nh.getParam("tf_gnss_flame/child", _position_parameter.tf_gnss_child_flame);
+  nh.getParam("tf_gnss_frame/parent", _position_parameter.tf_gnss_parent_frame);
+  nh.getParam("tf_gnss_frame/child", _position_parameter.tf_gnss_child_frame);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
@@ -147,8 +147,8 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold " << _position_parameter.outlier_threshold << std::endl;
   std::cout<< "estimated_enu_vel_coefficient " << _position_parameter.estimated_enu_vel_coefficient << std::endl;
   std::cout<< "estimated_position_coefficient " << _position_parameter.estimated_position_coefficient << std::endl;
-  std::cout<< "tf_gnss_flame/parent " << _position_parameter.tf_gnss_parent_flame << std::endl;
-  std::cout<< "tf_gnss_flame/child " << _position_parameter.tf_gnss_child_flame << std::endl;
+  std::cout<< "tf_gnss_frame/parent " << _position_parameter.tf_gnss_parent_frame << std::endl;
+  std::cout<< "tf_gnss_frame/child " << _position_parameter.tf_gnss_child_frame << std::endl;
   std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
