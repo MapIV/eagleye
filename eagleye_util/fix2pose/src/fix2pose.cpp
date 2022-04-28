@@ -29,8 +29,8 @@
  */
 
 #include "ros/ros.h"
-#include "geometry_msgs/PointStamped.h"
 #include "geometry_msgs/PoseStamped.h"
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Rolling.h"
 #include "eagleye_msgs/Pitching.h"
@@ -45,8 +45,9 @@ static eagleye_msgs::Heading _eagleye_heading;
 static eagleye_msgs::Position _eagleye_position;
 static geometry_msgs::Quaternion _quat;
 
-static ros::Publisher _pub;
+static ros::Publisher _pose_pub, _pose_with_covariance_pub;
 static geometry_msgs::PoseStamped _pose;
+static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 
 static int _convert_height_num = 0;
 static int _plane = 7;
@@ -124,7 +125,25 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   _pose.pose.position.y = xyz[0];
   _pose.pose.position.z = xyz[2];
   _pose.pose.orientation = _quat;
-  _pub.publish(_pose);
+  _pose_pub.publish(_pose);
+
+  _pose_with_covariance.header = _pose.header;
+  _pose_with_covariance.pose.pose = _pose.pose;
+  // TODO(Map IV): temporary value
+  double std_dev_pos = 1.5; // [m]
+  double std_dev_roll = 100; // [rad]
+  double std_dev_pitch = 100; // [rad]
+  double std_dev_yaw = 100; // [rad]
+  if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
+  if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
+  if(_eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
+  _pose_with_covariance.pose.covariance[0] = std_dev_pos;
+  _pose_with_covariance.pose.covariance[7] = std_dev_pos;
+  _pose_with_covariance.pose.covariance[14] = std_dev_pos;
+  _pose_with_covariance.pose.covariance[21] = std_dev_roll;
+  _pose_with_covariance.pose.covariance[28] = std_dev_pitch;
+  _pose_with_covariance.pose.covariance[35] = std_dev_yaw;
+  _pose_with_covariance_pub.publish(_pose_with_covariance);
 
   static tf::TransformBroadcaster br;
   tf::Transform transform;
@@ -157,7 +176,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = nh.subscribe("eagleye/fix", 1000, fix_callback);
   ros::Subscriber sub4 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
   ros::Subscriber sub5 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
-  _pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
+  _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
+  _pose_with_covariance_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/eagleye/pose_with_covariance", 1000);
   ros::spin();
 
   return 0;
