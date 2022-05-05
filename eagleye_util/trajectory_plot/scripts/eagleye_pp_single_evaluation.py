@@ -241,8 +241,10 @@ def set_heading_deg(eagleye_df):
         heading_1st_deg = math.degrees(heading_1st_deg_tmp)
         heading_2nd_deg = math.degrees(heading_2nd_deg_tmp)
         heading_3rd_deg = math.degrees(heading_3rd_deg_tmp)
-        set_heading_data.append([heading_1st_deg,heading_2nd_deg,heading_3rd_deg])
-    df = pd.DataFrame(set_heading_data,columns=['heading_1st_deg','heading_2nd_deg','heading_3rd_deg'])
+        rolling = math.degrees(eagleye_df['rolling'][i])
+        pitching = math.degrees(eagleye_df['pitching'][i])
+        set_heading_data.append([heading_1st_deg,heading_2nd_deg,heading_3rd_deg,rolling,pitching])
+    df = pd.DataFrame(set_heading_data,columns=['heading_1st_deg','heading_2nd_deg','heading_3rd_deg','rolling','pitching'])
     return df
 
 def change_anglel_limit(heading):
@@ -299,8 +301,8 @@ def plot_6DoF(eagleye_enu, rtk_enu, raw_enu, eagleye_plot_df):
     plot_xyz(ax_x, eagleye_enu, rtk_enu, raw_enu, 'x', 'X (East-West)','East [m]')
     plot_xyz(ax_y, eagleye_enu, rtk_enu, raw_enu, 'y', 'Y (North-South)','North [m]')
     plot_xyz(ax_z, eagleye_enu, rtk_enu, raw_enu, 'z', 'Z (Height)','Height [m]')
-    plot_rpy(ax_roll, eagleye_plot_df, 'rolling', 'Roll' , 'Roll [deg]')
-    plot_rpy(ax_pitch, eagleye_plot_df, 'pitching', 'Pitch', 'Pitch [deg]')
+    plot_rpy(ax_roll, eagleye_plot_df, 'roll', 'Roll' , 'Roll [deg]')
+    plot_rpy(ax_pitch, eagleye_plot_df, 'pitch', 'Pitch', 'Pitch [deg]')
     plot_rpy(ax_yaw, eagleye_plot_df, 'heading', 'Yaw', 'Yaw [deg]')
 
 if __name__ == "__main__":
@@ -349,15 +351,17 @@ if __name__ == "__main__":
     vel = xyz2enu_vel(raw_xyz_vel,org_xyz)
     vel_2d = (vel[0] ** 2 + vel[1] ** 2) ** 0.5
 
-    eagleye_heading = pd.concat([eagleye_df['heading_1st'],eagleye_df['heading_2nd'],eagleye_df['heading_3rd']],axis=1)
-    eagleye_df_tmp = set_heading_deg(eagleye_heading)
+    eagleye_rpy = pd.concat([eagleye_df['heading_1st'],eagleye_df['heading_2nd'],eagleye_df['heading_3rd'],eagleye_df['rolling'],eagleye_df['pitching']],axis=1)
+    eagleye_df_tmp = set_heading_deg(eagleye_rpy)
     eagleye_df['heading_1st_deg'] = eagleye_df_tmp['heading_1st_deg']
     eagleye_df['heading_2nd_deg'] = eagleye_df_tmp['heading_2nd_deg']
     eagleye_df['heading_3rd_deg'] = eagleye_df_tmp['heading_3rd_deg']
     eagleye_df['heading'] = eagleye_df_tmp['heading_3rd_deg']
+    eagleye_df['roll'] = eagleye_df_tmp['rolling']
+    eagleye_df['pitch'] = eagleye_df_tmp['pitching']
 
 
-    eagleye_plot_df = pd.concat([eagleye_df['elapsed_time'],eagleye_df['distance'],eagleye_df['rolling'],eagleye_df['pitching'],eagleye_df['heading'],raw_df['qual']],axis=1)
+    eagleye_plot_df = pd.concat([eagleye_df['elapsed_time'],eagleye_df['distance'],eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading'],raw_df['qual']],axis=1)
     plot_6DoF(eagleye_enu, rtk_enu, raw_enu, eagleye_plot_df)
 
     fig2 = plt.figure()
@@ -366,7 +370,7 @@ if __name__ == "__main__":
     ax_sf.plot(eagleye_df['elapsed_time'] , eagleye_df['sf'] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
     ax_sf.set_xlabel('Time [s]')
     ax_sf.set_ylabel('Velocity scal factor []')
-    ax_sf.legend()
+    ax_sf.legend(loc='upper right')
     ax_sf.grid()
 
     ax_vel = fig2.add_subplot(2, 1, 2)
@@ -376,7 +380,7 @@ if __name__ == "__main__":
     ax_vel.plot(eagleye_df['elapsed_time'] , eagleye_df['velocity'] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
     ax_vel.set_xlabel('Time [s]')
     ax_vel.set_ylabel('Velocity [m/s]')
-    ax_vel.legend()
+    ax_vel.legend(loc='upper right')
     ax_vel.grid()
 
     fig4 = plt.figure()
@@ -387,7 +391,7 @@ if __name__ == "__main__":
     ax_traj.plot(eagleye_enu['x']-eagleye_enu['x'][0] , eagleye_enu['y']-eagleye_enu['y'][0] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
     ax_traj.set_xlabel('East [m]')
     ax_traj.set_ylabel('North [m]')
-    ax_traj.legend()
+    ax_traj.legend(loc='upper right')
     ax_traj.grid()
     ax_traj.set_aspect('equal')
     ax_traj.axis('square')
@@ -400,7 +404,7 @@ if __name__ == "__main__":
     ax_fix.plot(rtk_enu_float['x']-eagleye_enu['x'][0] , rtk_enu_float['y']-eagleye_enu['y'][0] , marker=".",linestyle="None",markersize=1, color = "yellow",  label="gnss float")    
     ax_fix.set_xlabel('East [m]')
     ax_fix.set_ylabel('North [m]')
-    ax_fix.legend()
+    ax_fix.legend(loc='upper right')
     ax_fix.grid()
     ax_fix.set_aspect('equal','box')
     ax_fix.axis('square')
@@ -414,7 +418,7 @@ if __name__ == "__main__":
     ax_3d.set_xlabel('East [m]')
     ax_3d.set_ylabel('North [m]')
     ax_3d.set_zlabel('Height [m]')
-    ax_3d.legend()
+    ax_3d.legend(loc='upper right')
     ax_3d.grid()
 
     plt.show()
