@@ -1,12 +1,6 @@
 name: build
-on:
-  push:
-    branches:
-      - ros2-main
-  pull_request:
-    branches:
-      - ros2-main
-      - ros2-develop
+on: pull_request
+
 jobs:
   galactic_build:
     runs-on:  ubuntu-20.04
