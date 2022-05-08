@@ -6,6 +6,7 @@ on:
   pull_request:
     branches:
       - ros2-main
+      - ros2-develop
 jobs:
   build:
     runs-on:  ubuntu-20.04

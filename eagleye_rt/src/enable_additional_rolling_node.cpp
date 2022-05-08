@@ -48,37 +48,37 @@ static eagleye_msgs::msg::AccYOffset _acc_y_offset;
 struct EnableAdditionalRollingParameter _rolling_parameter;
 struct EnableAdditionalRollingStatus _rolling_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstPtr &msg)
+void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   _velocity_scale_factor = *msg;
 }
 
-void distance_callback(const eagleye_msgs::msg::Distance::ConstPtr& msg)
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   _distance = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr &msg)
+void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   _yawrate_offset_2nd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr &msg)
+void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   _yawrate_offset_stop = *msg;
 }
 
-void localization_pose_callback(const geometry_msgs::msg::PoseStamped::ConstPtr &msg)
+void localization_pose_callback(const geometry_msgs::msg::PoseStamped::ConstSharedPtr msg)
 {
   _localization_pose = *msg;
 }
 
-void angular_velocity_offset_stop_callback(const eagleye_msgs::msg::AngularVelocityOffset::ConstPtr &msg)
+void angular_velocity_offset_stop_callback(const eagleye_msgs::msg::AngularVelocityOffset::ConstSharedPtr msg)
 {
   _angular_velocity_offset_stop = *msg;
 }
 
-void imu_callback(const sensor_msgs::msg::Imu::ConstPtr &msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   _imu = *msg;
   _acc_y_offset.header = msg->header;
