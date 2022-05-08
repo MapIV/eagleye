@@ -46,7 +46,6 @@ jobs:
           rosdep install --from-paths src --ignore-src -r -y
           colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --catkin-skip-building-tests
 
-jobs:
   foxy_build:
     runs-on:  ubuntu-20.04
     
