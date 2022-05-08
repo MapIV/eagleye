@@ -29,10 +29,10 @@
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <ublox_msgs/msg/nav_pvt.hpp>
 
-rclcpp::Publisher<rtklib_msgs::msg::RtklibNav>::SharedPtr pub_rtk;
-std::optional<sensor_msgs::msg::NavSatFix> nav_msg = std::nullopt;
+rclcpp::Publisher<rtklib_msgs::msg::RtklibNav>::SharedPtr _pub_rtk;
+sensor_msgs::msg::NavSatFix::ConstPtr _nav_msg_ptr;
 
-void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { nav_msg = *msg; }
+void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { _nav_msg_ptr = msg; }
 
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 {
@@ -40,8 +40,8 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
   r.header.stamp.nanosec = msg->nano;
-  if (nav_msg.has_value())
-    r.status = nav_msg.value();
+  if (_nav_msg_ptr != nullptr)
+    r.status = *_nav_msg_ptr;
   r.tow = msg->i_tow;
 
   double llh[3];
@@ -62,7 +62,7 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   r.ecef_vel.y = ecef_vel[1];
   r.ecef_vel.z = ecef_vel[2];
 
-  pub_rtk->publish(r);
+  _pub_rtk->publish(r);
 }
 
 int main(int argc, char** argv)
@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
   auto sub_ublox = node->create_subscription<ublox_msgs::msg::NavPVT>(ublox_navpvt_topic, 1000, navpvt_callback);
   auto sub_fix = node->create_subscription<sensor_msgs::msg::NavSatFix>(nav_sat_fix_topic, 1000, navsatfix_callback);
-  pub_rtk = node->create_publisher<rtklib_msgs::msg::RtklibNav>(rtklib_nav_topic, 10);
+  _pub_rtk = node->create_publisher<rtklib_msgs::msg::RtklibNav>(rtklib_nav_topic, 10);
 
   rclcpp::spin(node);
 
