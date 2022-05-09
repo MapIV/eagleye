@@ -52,19 +52,29 @@ tf2_ros::Buffer tfbuffer_;
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  sensor_msgs::Imu tf_converted_imu;
-
   _imu = *msg;
   _tf_converted_imu.header = _imu.header;
-  _tf_converted_imu.orientation = _imu.orientation;
-  _tf_converted_imu.orientation_covariance = _imu.orientation_covariance;
-  _tf_converted_imu.angular_velocity_covariance = _imu.angular_velocity_covariance;
-  _tf_converted_imu.linear_acceleration_covariance = _imu.linear_acceleration_covariance;
 
   try {
     const geometry_msgs::TransformStamped transform = tfbuffer_.lookupTransform(
       _tf_base_link_frame, msg->header.frame_id, msg->header.stamp);
-    tf2::doTransform(*msg, tf_converted_imu, transform);
+
+    geometry_msgs::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
+    geometry_msgs::Quaternion  transformed_quaternion;
+  
+    angular_velocity.header = _imu.header;
+    angular_velocity.vector = _imu.angular_velocity;
+    linear_acceleration.header = _imu.header;
+    linear_acceleration.vector = _imu.linear_acceleration;
+
+    tf2::doTransform(angular_velocity, transformed_angular_velocity, transform);
+    tf2::doTransform(linear_acceleration, transformed_linear_acceleration, transform);
+    tf2::doTransform(_imu.orientation, transformed_quaternion, transform);
+
+    _tf_converted_imu.angular_velocity = transformed_angular_velocity.vector;
+    _tf_converted_imu.linear_acceleration = transformed_linear_acceleration.vector;
+    _tf_converted_imu.orientation = transformed_quaternion;
+
   } 
   catch (tf2::TransformException& ex)
   {
