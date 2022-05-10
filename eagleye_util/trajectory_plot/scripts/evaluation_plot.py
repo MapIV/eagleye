@@ -33,12 +33,13 @@ import pandas as pd
 
 import matplotlib.pyplot as plt
 
+import util.preprocess as util_prepro
 import util.calc as util_calc
 import util.plot as util_plot
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-ref", "--ref", help="Path to the ref data")
+    parser.add_argument("-ref", "--ref", help="Path to the ref data(POSLV csv)")
     parser.add_argument("-df_ref", "--df_ref", help="Path to the ref data by df")
     parser.add_argument("-df_ref_ros", "--input_df_ref", help="Path to the ref data by df")
     parser.add_argument("-csv", "--input_csv", help="Path to the csv")
@@ -123,7 +124,7 @@ if __name__ == "__main__":
         with open(input_ref_path) as f:
             reader = csv.reader(f)
             ref_data_tmp = [row for row in reader]
-            ref_data_df = util_calc.set_ref_data(ref_data_tmp)
+            ref_data_df = util_prepro.set_ref_data(ref_data_tmp)
             print("set ref_data")
 
     if args.input_csv != None:
@@ -131,27 +132,27 @@ if __name__ == "__main__":
         with open(input_csv_path) as r:
             reader = csv.reader(r)
             csv_data_tmp = [row for row in reader]
-            csv_data_df = util_calc.set_csv_data(csv_data_tmp)
+            csv_data_df = util_prepro.set_csv_data(csv_data_tmp)
             print("set csv_data")
         
     if args.df_ref != None:
-        ref_data_df = util_calc.set_ref_df(args.df_ref)
+        ref_data_df = util_prepro.set_ref_df(args.df_ref)
         print("set ref_data")
 
     if args.input_df_ref != None:
-        ref_data_df = util_calc.set_df(args.df_ref)
+        ref_data_df = util_prepro.set_df(args.df_ref)
         print("set ref_data")
 
     if args.input_df_csv != None:
-        csv_data_df = util_calc.set_df(args.input_df_csv)
+        csv_data_df = util_prepro.set_df(args.input_df_csv)
         print("set csv_data")
 
     if args.input_log_csv != None:
-        csv_data_df, raw_df = util_calc.set_log_df(args.input_log_csv,plane)
+        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane)
         print("set csv_data")
     
     if tf_x != 0 or tf_y != 0:
-        ref_data_df = util_calc.set_tf_xy(ref_data_df,tf_x,tf_y)
+        ref_data_df = util_prepro.set_tf_xy(ref_data_df,tf_x,tf_y)
         print('set tf xy')
     
 

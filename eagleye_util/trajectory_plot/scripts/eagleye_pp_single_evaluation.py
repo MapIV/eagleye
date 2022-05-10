@@ -33,6 +33,7 @@ import pandas as pd
 import sys
 import matplotlib.pyplot as plt
 
+import util.preprocess as util_prepro
 import util.calc as util_calc
 import util.plot as util_plot
 
@@ -54,7 +55,7 @@ if __name__ == "__main__":
 
     print('plane',plane)
 
-    eagleye_df,raw_df = util_calc.set_log_df(input_ref_path,plane)
+    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane)
     print("set ref_data")
 
     eagleye_ecef_base = pd.concat([eagleye_df['ecef_base_x'],eagleye_df['ecef_base_y'],eagleye_df['ecef_base_z']],axis=1)
