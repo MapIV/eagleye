@@ -851,7 +851,7 @@ void outputLog(void)
   else
   {
   std::ofstream output_log_file(output_log_dir, std::ios_base::app);
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _imu.header.stamp.toNSec() << ","; //timestamp
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _imu.header.stamp.toNSec() << ","; // timestamp
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.x << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.y << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.z << ",";
@@ -952,7 +952,7 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // acc_x_offset
   output_log_file << 0 << ","; // acc_x_offset.status.enabled_status
   output_log_file << 0 << ","; // acc_x_offset.status.estimate_status
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // cc_x_scale_factor.acc_x_scale_factor
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // acc_x_scale_factor.acc_x_scale_factor
   output_log_file << 0 << ","; // acc_x_scale_factor.status.enabled_status
   output_log_file << 0 << ","; // acc_x_scale_factor.status.estimate_status
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rolling.rolling_angle << ",";
@@ -963,9 +963,9 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.lon << ","; //gga_llh.longitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.alt +  _gga.undulation<< ","; //gga_llh.altitude
   output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga.gps_qual) << ","; //gga_llh.gps_qual
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.latitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.longitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.altitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.latitude << ","; //eagleye_pp_llh.latitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.longitude << ","; //eagleye_pp_llh.longitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.altitude << ","; //eagleye_pp_llh.altitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[0]
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[1]
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[2]
@@ -980,7 +980,7 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.x << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.y << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.z << ",";
-  output_log_file << (_enu_relative_pos.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_enu_relative_pos.status.enabled_status ? "1" : "0");
   output_log_file << "\n";
   }
   return;
@@ -1060,11 +1060,6 @@ int main(int argc, char** argv)
   updater.add("eagleye_heading_2nd", heading_2nd_topic_checker);
   updater.add("eagleye_heading_interpolate_2nd", heading_interpolate_2nd_topic_checker);
   updater.add("eagleye_heading_3rd", heading_3rd_topic_checker);
-  updater.add("eagleye_heading_interpolate_3rd", heading_interpolate_3rd_topic_checker);
-  updater.add("eagleye_yawrate_offset_stop", yawrate_offset_stop_topic_checker);
-  updater.add("eagleye_yawrate_offset_1st", yawrate_offset_1st_topic_checker);
-  updater.add("eagleye_yawrate_offset_2nd", yawrate_offset_2nd_topic_checker);
-  updater.add("eagleye_slip_angle", slip_angle_topic_checker);
   updater.add("eagleye_enu_vel", enu_vel_topic_checker);
   updater.add("eagleye_height", height_topic_checker);
   updater.add("eagleye_pitching", pitching_topic_checker);
@@ -1109,6 +1104,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub25 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub26 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub27 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub28 = n.subscribe("rolling", 1000, rolling_callback, ros::TransportHints().tcpNoDelay());
 
   ros::Timer timer = n.createTimer(ros::Duration(1/_update_rate), boost::bind(timer_callback,_1, &updater));
 
