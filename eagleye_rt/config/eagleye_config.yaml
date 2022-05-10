@@ -8,7 +8,7 @@ use_gnss_mode: RTKLIB
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
-nmea_sentence_topic: /nmea_sentence
+nmea_sentence_topic: /mosaic/nmea_sentence
 localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
@@ -141,6 +141,7 @@ rolling:
 
 monitor:
   print_status: true
+  log_output_status: true
   update_rate: 10.0
   th_gnss_deadrock_time: 10.0
   th_velocity_scale_factor_percent: 10.0 

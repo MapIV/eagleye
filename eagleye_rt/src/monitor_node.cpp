@@ -34,6 +34,7 @@
 
 #include <boost/bind.hpp>
 #include <diagnostic_updater/diagnostic_updater.h>
+#include <ros/package.h>
 
 static sensor_msgs::Imu _imu;
 static rtklib_msgs::RtklibNav _rtklib_nav;
@@ -54,6 +55,7 @@ static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
 static eagleye_msgs::SlipAngle _slip_angle;
 static eagleye_msgs::Height _height;
 static eagleye_msgs::Pitching _pitching;
+static eagleye_msgs::Rolling _rolling;
 static eagleye_msgs::Position _enu_relative_pos;
 static geometry_msgs::Vector3Stamped _enu_vel;
 static eagleye_msgs::Position _enu_absolute_pos;
@@ -65,7 +67,8 @@ static geometry_msgs::TwistStamped::ConstPtr _comparison_velocity_ptr;
 static sensor_msgs::Imu _corrected_imu;
 
 static bool _gga_sub_status;
-static bool _print_status;
+static bool _print_status, _log_output_status, _log_header_make = false;
+static std::string output_log_dir;
 
 static double _imu_time_last;
 static double _rtklib_nav_time_last;
@@ -202,6 +205,11 @@ void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
 void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 {
   _pitching = *msg;
+}
+
+void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
+{
+  _rolling = *msg;
 }
 
 void enu_absolute_pos_interpolate_callback(const eagleye_msgs::Position::ConstPtr& msg)
@@ -799,6 +807,185 @@ void printStatus(void)
   std::cout << std::endl;
 }
 
+void outputLog(void)
+{
+  if(!_log_header_make)
+  {
+  std::ofstream output_log_file(output_log_dir, std::ios_base::trunc | std::ios_base::out);
+  std::cout << "Output file = eagleye_log.csv" << std::endl;
+  output_log_file << "timestamp,imu.angular_velocity.x,imu.angular_velocity.y,imu.angular_velocity.z,imu.linear_acceleration.x,imu.linear_acceleration.y,imu.linear_acceleration.z\
+,rtklib_nav.tow,rtklib_nav.ecef_pos.x,rtklib_nav.ecef_pos.y,rtklib_nav.ecef_pos.z,rtklib_nav.ecef_vel.x,rtklib_nav.ecef_vel.y,rtklib_nav.ecef_vel.z,rtklib_nav.status.status.status,rtklib_nav.status.status.service,rtklib_nav.status.latitude,rtklib_nav.status.longitude,rtklib_nav.status.altitude\
+,velocity.twist.linear.x,velocity.twist.linear.y,velocity.twist.linear.z,velocity.twist.angular.x,velocity.twist.angular.y,velocity.twist.angular.z\
+,velocity_scale_factor.scale_factor,velocity_scale_factor.correction_velocity.linear.x,velocity_scale_factor.correction_velocity.linear.y,velocity_scale_factor.correction_velocity.linear.z,velocity_scale_factor.correction_velocity.angular.x,velocity_scale_factor.correction_velocity.angular.y,velocity_scale_factor.correction_velocity.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
+,distance.distance,distance.status.enabled_status,distance.status.estimate_status\
+,heading_1st.heading_angle,heading_1st.status.enabled_status,heading_1st.status.estimate_status\
+,heading_interpolate_1st.heading_angle,heading_interpolate_1st.status.enabled_status,heading_interpolate_1st.status.estimate_status\
+,heading_2nd.heading_angle,heading_2nd.status.enabled_status,heading_2nd.status.estimate_status\
+,heading_interpolate_2nd.heading_angle,heading_interpolate_2nd.status.enabled_status,heading_interpolate_2nd.status.estimate_status\
+,heading_3rd.heading_angle,heading_3rd.status.enabled_status,heading_3rd.status.estimate_status\
+,heading_interpolate_3rd.heading_angle,heading_interpolate_3rd.status.enabled_status,heading_interpolate_3rd.status.estimate_status\
+,yawrate_offset_stop.yawrate_offset,yawrate_offset_stop.status.enabled_status,yawrate_offset_stop.status.estimate_status\
+,yawrate_offset_1st.yawrate_offset,yawrate_offset_1st.status.enabled_status,yawrate_offset_1st.status.estimate_status\
+,yawrate_offset_2nd.yawrate_offset,yawrate_offset_2nd.status.enabled_status,yawrate_offset_2nd.status.estimate_status\
+,slip_angle.coefficient,slip_angle.slip_angle,slip_angle.status.enabled_status,slip_angle.status.estimate_status\
+,enu_vel.vector.x,enu_vel.vector.y,enu_vel.vector.z\
+,enu_absolute_pos.enu_pos.x,enu_absolute_pos.enu_pos.y,enu_absolute_pos.enu_pos.z,enu_absolute_pos.ecef_base_pos.x,enu_absolute_pos.ecef_base_pos.y,enu_absolute_pos.ecef_base_pos.z,enu_absolute_pos.status.enabled_status,enu_absolute_pos.status.estimate_status\
+,enu_absolute_pos_interpolate.enu_pos.x,enu_absolute_pos_interpolate.enu_pos.y,enu_absolute_pos_interpolate.enu_pos.z,enu_absolute_pos_interpolate.ecef_base_pos.x,enu_absolute_pos_interpolate.ecef_base_pos.y,enu_absolute_pos_interpolate.ecef_base_pos.z,enu_absolute_pos_interpolate.status.enabled_status,enu_absolute_pos_interpolate.status.estimate_status\
+,height.height,height.status.enabled_status,height.status.estimate_status\
+,pitching.pitching_angle,pitching.status.enabled_status,pitching.status.estimate_status\
+,acc_x_offset.acc_x_offset,acc_x_offset.status.enabled_status,acc_x_offset.status.estimate_status\
+,acc_x_scale_factor.acc_x_scale_factor,acc_x_scale_factor.status.enabled_status,acc_x_scale_factor.status.estimate_status\
+,rolling.rolling_angle,rolling.status.enabled_status,rolling.status.estimate_status\
+,gga_timestamp\
+,gga_llh.latitude,gga_llh.longitude,gga_llh.altitude\
+,gga_llh.gps_qual\
+,eagleye_pp_llh.latitude,eagleye_pp_llh.longitude,eagleye_pp_llh.altitude\
+,eagleye_pp_llh.orientation_covariance[0],eagleye_pp_llh.orientation_covariance[1],eagleye_pp_llh.orientation_covariance[2],eagleye_pp_llh.orientation_covariance[3],eagleye_pp_llh.orientation_covariance[4],eagleye_pp_llh.orientation_covariance[5],eagleye_pp_llh.orientation_covariance[6],eagleye_pp_llh.orientation_covariance[7],eagleye_pp_llh.orientation_covariance[8]\
+,eagleye_pp_llh.status\
+,eagleye_pp_llh.height_status\
+,enu_relative_pos.enu_pos.x,enu_relative_pos.enu_pos.y,enu_relative_pos.enu_pos.z\
+,enu_relative_pos.status.enabled_status\
+" << std::endl;
+  _log_header_make = true;
+  }
+  else
+  {
+  std::ofstream output_log_file(output_log_dir, std::ios_base::app);
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _imu.header.stamp.toNSec() << ","; //timestamp
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.linear_acceleration.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.linear_acceleration.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.linear_acceleration.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _rtklib_nav.tow << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_pos.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_vel.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_vel.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.ecef_vel.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_rtklib_nav.status.status.status) << ",";
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _rtklib_nav.status.status.service << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.status.latitude << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.status.longitude << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rtklib_nav.status.altitude << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.linear.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.linear.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.linear.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.scale_factor << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.z << ",";
+  output_log_file << (_velocity_scale_factor.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_velocity_scale_factor.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance.distance << ",";
+  output_log_file << (_distance.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_distance.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_1st.heading_angle << ",";
+  output_log_file << (_heading_1st.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_1st.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_interpolate_1st.heading_angle << ",";
+  output_log_file << (_heading_interpolate_1st.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_interpolate_1st.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_2nd.heading_angle << ",";
+  output_log_file << (_heading_2nd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_2nd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_interpolate_2nd.heading_angle << ",";
+  output_log_file << (_heading_interpolate_2nd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_interpolate_2nd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_3rd.heading_angle << ",";
+  output_log_file << (_heading_3rd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_3rd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_interpolate_3rd.heading_angle << ",";
+  output_log_file << (_heading_interpolate_3rd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_heading_interpolate_3rd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_stop.yawrate_offset << ",";
+  output_log_file << (_yawrate_offset_stop.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yawrate_offset_stop.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_1st.yawrate_offset << ",";
+  output_log_file << (_yawrate_offset_1st.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yawrate_offset_1st.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_2nd.yawrate_offset << ",";
+  output_log_file << (_yawrate_offset_2nd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yawrate_offset_2nd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _slip_angle.coefficient << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _slip_angle.slip_angle << ",";
+  output_log_file << (_slip_angle.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_slip_angle.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_vel.vector.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_vel.vector.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_vel.vector.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.enu_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.enu_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.enu_pos.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.ecef_base_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.ecef_base_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos.ecef_base_pos.z << ",";
+  output_log_file << (_enu_absolute_pos.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_enu_absolute_pos.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.enu_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.enu_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.enu_pos.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.ecef_base_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.ecef_base_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_absolute_pos_interpolate.ecef_base_pos.z << ",";
+  output_log_file << (_enu_absolute_pos_interpolate.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_enu_absolute_pos_interpolate.status.estimate_status ? "1" : "0") << ",";
+  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.rollrate_offset << ",";
+  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.pitchrate_offset << ",";
+  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.yawrate_offset << ",";
+  // output_log_file << (angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
+  // output_log_file << (angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _height.height << ",";
+  output_log_file << (_height.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_height.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _pitching.pitching_angle << ",";
+  output_log_file << (_pitching.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_pitching.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // acc_x_offset
+  output_log_file << 0 << ","; // acc_x_offset.status.enabled_status
+  output_log_file << 0 << ","; // acc_x_offset.status.estimate_status
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // cc_x_scale_factor.acc_x_scale_factor
+  output_log_file << 0 << ","; // acc_x_scale_factor.status.enabled_status
+  output_log_file << 0 << ","; // acc_x_scale_factor.status.estimate_status
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rolling.rolling_angle << ",";
+  output_log_file << (_rolling.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_rolling.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _gga.header.stamp.toNSec() << ","; //timestamp
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.lat << ","; //gga_llh.latitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.lon << ","; //gga_llh.longitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.alt +  _gga.undulation<< ","; //gga_llh.altitude
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga.gps_qual) << ","; //gga_llh.gps_qual
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.latitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.longitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.altitude
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[0]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[1]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[2]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[3]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[4]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[5]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[6]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[7]
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //eagleye_pp_llh.orientation_covariance[8]
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //eagleye_pp_llh.status
+  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //eagleye_pp_llh.status
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _enu_relative_pos.enu_pos.z << ",";
+  output_log_file << (_enu_relative_pos.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << "\n";
+  }
+  return;
+}
+
 void timer_callback(const ros::TimerEvent& e, diagnostic_updater::Updater * updater)
 {
   // Diagnostic Updater
@@ -808,19 +995,17 @@ void timer_callback(const ros::TimerEvent& e, diagnostic_updater::Updater * upda
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  _imu.header = msg->header;
-  _imu.orientation = msg->orientation;
-  _imu.orientation_covariance = msg->orientation_covariance;
-  _imu.angular_velocity = msg->angular_velocity;
-  _imu.angular_velocity_covariance = msg->angular_velocity_covariance;
-  _imu.linear_acceleration = msg->linear_acceleration;
-  _imu.linear_acceleration_covariance = msg->linear_acceleration_covariance;
+  _imu = *msg;
 
   if(_print_status)
   {
     printStatus();
   }
 
+  if(_log_output_status)
+  {
+    outputLog();
+  }
 }
 
 int main(int argc, char** argv)
@@ -839,6 +1024,7 @@ int main(int argc, char** argv)
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   n.getParam("monitor/print_status",_print_status);
+  n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
   n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
   n.getParam("monitor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
@@ -852,6 +1038,7 @@ int main(int argc, char** argv)
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
+  std::cout<< "log_output_status "<<_log_output_status<<std::endl;
   std::cout<< "update_rate "<<_update_rate<<std::endl;
   std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
   std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
@@ -885,6 +1072,15 @@ int main(int argc, char** argv)
   updater.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater.add("eagleye_twist", twist_topic_checker);
   updater.add("eagleye_corrected_imu", corrected_imu_topic_checker);
+
+  time_t time_;
+  time_ = time(NULL);
+  std::stringstream time_ss;
+  time_ss << time_;
+  std::string time_str = time_ss.str();
+  output_log_dir = ros::package::getPath("eagleye_rt") + "/log/eagleye_log_" + time_str + ".csv";
+
+  std::cout << output_log_dir << std::endl;
 
   ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
