@@ -259,21 +259,23 @@ def latlon_to_19(llh,plane):
         phi_deg=llh['latitude'][i]
         lambda_deg=llh['longitude'][i]
         z=llh['altitude'][i]
-        """ 緯度経度を平面直角座標に変換する
+        """ Converts latitude and longitude to xy in plane rectangular coordinates
         - input:
-            (phi_deg, lambda_deg): 変換したい緯度・経度[度]（分・秒でなく小数であることに注意）
-            (phi0_deg, lambda0_deg): 平面直角座標系原点の緯度・経度[度]（分・秒でなく小数であることに注意）
+            (phi_deg, lambda_deg): Latitude and longitude [degrees] to be converted
+                                   (note that these are decimal numbers, not minutes and seconds)
+            (phi0_deg, lambda0_deg): Latitude and longitude [degrees] of the origin of the rectangular coordinate system
+                                   (note that these are decimal degrees, not minutes and seconds)
         - output:
-        x: 変換後の平面直角座標[m]
-        y: 変換後の平面直角座標[m]
+        x: Transformed plane rectangular coordinates[m]
+        y: Transformed plane rectangular coordinates[m]
         """
-        # 緯度経度・平面直角座標系原点をラジアンに直す
+        # Correcting the latitude-longitude and plane-rectangular coordinate system origin from degree to radian
         phi_rad = np.deg2rad(phi_deg)
         lambda_rad = np.deg2rad(lambda_deg)
         phi0_rad = np.deg2rad(phi0_deg)
         lambda0_rad = np.deg2rad(lambda0_deg)
 
-        # 補助関数
+        # Auxiliary function
         def A_array(n):
             A0 = 1 + (n**2)/4. + (n**4)/64.
             A1 = -     (3./2)*( n - (n**3)/8. - (n**5)/64. ) 
@@ -292,33 +294,33 @@ def latlon_to_19(llh,plane):
             a5 = (34729./80640)*(n**5)
             return np.array([a0, a1, a2, a3, a4, a5])
 
-        # 定数 (a, F: 世界測地系-測地基準系1980（GRS80）楕円体)
+        # Constant (a, F: World Geodetic System - Geodetic Reference System 1980 (GRS80) Ellipsoid)
         m0 = 0.9999 
         a = 6378137.
         F = 298.257222101
 
-        # (1) n, A_i, alpha_iの計算
+        # (1), Calculation of n, A_i, alpha_i
         n = 1. / (2*F - 1)
         A_array = A_array(n)
         alpha_array = alpha_array(n)
 
-        # (2), S, Aの計算
+        # (2), Calculation of S, A
         A_ = ( (m0*a)/(1.+n) )*A_array[0] # [m]
         S_ = ( (m0*a)/(1.+n) )*( A_array[0]*phi0_rad + np.dot(A_array[1:], np.sin(2*phi0_rad*np.arange(1,6))) ) # [m]
 
-        # (3) lambda_c, lambda_sの計算
+        # (3) Calculation of lambda_c, lambda_s
         lambda_c = np.cos(lambda_rad - lambda0_rad)
         lambda_s = np.sin(lambda_rad - lambda0_rad)
 
-        # (4) t, t_の計算
+        # (4)Calculation of  t, t_
         t = np.sinh( np.arctanh(np.sin(phi_rad)) - ((2*np.sqrt(n)) / (1+n))*np.arctanh(((2*np.sqrt(n)) / (1+n)) * np.sin(phi_rad)) )
         t_ = np.sqrt(1 + t*t)
 
-        # (5) xi', eta'の計算
+        # (5) Calculation of xi', eta'
         xi2  = np.arctan(t / lambda_c) # [rad]
         eta2 = np.arctanh(lambda_s / t_)
 
-        # (6) x, yの計算
+        # (6) Calculation of x, y
         x = A_ * (xi2 + np.sum(np.multiply(alpha_array[1:],
                                         np.multiply(np.sin(2*xi2*np.arange(1,6)),
                                                     np.cosh(2*eta2*np.arange(1,6)))))) - S_ # [m]
