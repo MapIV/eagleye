@@ -43,13 +43,13 @@ def judge_qual(xyz,qual,qual_num):
     output_df = pd.DataFrame(set_output_df,columns=['x','y','z','qual'])
     return output_df
 
-def plot_xyz(ax, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_enu, raw_enu, elem, title, y_label):
-    if elem in raw_enu.columns:
-        ax.plot(raw_x_data , raw_enu[elem] , marker=".", linestyle="None",markersize=1, color = "red",  label="gnss raw data(rtklib)")
-    if elem in rtk_enu.columns:
-        ax.plot(rtk_x_data , rtk_enu[elem] , marker="o", linestyle="None",markersize=1, color = "green",  label="gnss rtk data(nmea)")
-    if elem in eagleye_enu.columns:
-        ax.plot(eagleye_x_data , eagleye_enu[elem] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue",  label="eagleye")
+def plot_xyz(ax, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, elem, title, y_label):
+    if elem in raw_xyz.columns:
+        ax.plot(raw_x_data , raw_xyz[elem] , marker=".", linestyle="None",markersize=1, color = "red",  label="gnss raw data(rtklib)")
+    if elem in rtk_xyz.columns:
+        ax.plot(rtk_x_data , rtk_xyz[elem] , marker="o", linestyle="None",markersize=1, color = "green",  label="gnss rtk data(nmea)")
+    if elem in eagleye_xyz.columns:
+        ax.plot(eagleye_x_data , eagleye_xyz[elem] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue",  label="eagleye")
     ax.set_xlabel('time [s]')
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -76,7 +76,7 @@ def plot_each(ax, x_data , eagleye, ref, y_data, title, y_label,ref_data_name):
     ax.legend(loc='upper right')
     ax.grid()
 
-def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_enu, raw_enu, eagleye_plot_rpy):
+def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy):
     fig1 = plt.figure()
     ax_x = fig1.add_subplot(2, 3, 1)
     ax_y = fig1.add_subplot(2, 3, 2)
@@ -84,9 +84,9 @@ def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_en
     ax_roll = fig1.add_subplot(2, 3, 4)
     ax_pitch = fig1.add_subplot(2, 3, 5)
     ax_yaw = fig1.add_subplot(2, 3, 6)
-    plot_xyz(ax_x, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_enu, raw_enu, 'x', 'X (East-West)','East [m]')
-    plot_xyz(ax_y, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_enu, raw_enu, 'y', 'Y (North-South)','North [m]')
-    plot_xyz(ax_z,eagleye_x_data, rtk_x_data, raw_x_data, eagleye_enu, rtk_enu, raw_enu, 'z', 'Z (Height)','Height [m]')
+    plot_xyz(ax_x, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'x', 'X (East-West)','East [m]')
+    plot_xyz(ax_y, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'y', 'Y (North-South)','North [m]')
+    plot_xyz(ax_z,eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'z', 'Z (Height)','Height [m]')
     plot_rpy(ax_roll, eagleye_x_data, eagleye_plot_rpy, 'roll', 'Roll' , 'Roll [deg]')
     plot_rpy(ax_pitch, eagleye_x_data, eagleye_plot_rpy, 'pitch', 'Pitch', 'Pitch [deg]')
     plot_rpy(ax_yaw, eagleye_x_data, eagleye_plot_rpy, 'heading', 'Yaw', 'Yaw [deg]')

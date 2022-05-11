@@ -210,7 +210,11 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
     eagleye_df = eagleye_df.reset_index()
 
     raw_index = raw_df[raw_df['latitude'] == 0].index
-    raw_df = raw_df.drop(raw_index)
+    rtk_index = raw_df[raw_df['rtk_latitude'] == 0].index
+    if len(rtk_index) < len(raw_index):
+        raw_df = raw_df.drop(raw_index)
+    else:
+        raw_df = raw_df.drop(rtk_index)
     raw_df = raw_df.reset_index()
 
     eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)

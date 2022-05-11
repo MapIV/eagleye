@@ -67,21 +67,14 @@ if __name__ == "__main__":
             break
     org_xyz = [org_x,org_y,org_z]
 
-    eagleye_llh = pd.concat([eagleye_df['latitude'],eagleye_df['longitude'],eagleye_df['altitude']],axis=1)
-    eagleye_xyz = util_calc.llh2xyz(eagleye_llh)
-    eagleye_enu = util_calc.xyz2enu(eagleye_xyz,org_xyz)
-    print("calc eagleye enu")
+    eagleye_xyz = pd.concat([eagleye_df['x'],eagleye_df['y'],eagleye_df['z']],axis=1)
 
     raw_llh = pd.concat([raw_df['latitude'],raw_df['longitude'],raw_df['altitude']],axis=1)
-    raw_xyz = util_calc.llh2xyz(raw_llh)
-    raw_enu = util_calc.xyz2enu(raw_xyz,org_xyz)
-    print("calc raw enu")
+    raw_xyz = util_prepro.latlon_to_19(raw_llh,plane)
 
     rtk_llh_tmp = pd.concat([raw_df['rtk_latitude'],raw_df['rtk_longitude'],raw_df['rtk_altitude']],axis=1)
     rtk_llh = rtk_llh_tmp.rename(columns={'rtk_latitude': 'latitude', 'rtk_longitude': 'longitude','rtk_altitude': 'altitude'})
-    rtk_xyz = util_calc.llh2xyz(rtk_llh)
-    rtk_enu = util_calc.xyz2enu(rtk_xyz,org_xyz)
-    print("calc rtk enu")
+    rtk_xyz = util_prepro.latlon_to_19(rtk_llh,plane)
 
     raw_xyz_vel = pd.concat([raw_df['vel_x'],raw_df['vel_y'],raw_df['vel_z']],axis=1)
     vel = util_calc.xyz2enu_vel(raw_xyz_vel,org_xyz)
@@ -97,7 +90,7 @@ if __name__ == "__main__":
     eagleye_df['pitch'] = eagleye_df_tmp['pitch']
 
     eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading']],axis=1)
-    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_enu, rtk_enu, raw_enu, eagleye_plot_rpy)
+    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy)
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
@@ -113,11 +106,11 @@ if __name__ == "__main__":
     ax_vel.legend(loc='upper right')
     ax_vel.grid()
 
-    util_plot.plot_traj_three(raw_enu, rtk_enu, eagleye_enu, "gnss rtk data(nmea)")
+    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
 
-    util_plot.plot_traj_qual(eagleye_enu,raw_df['qual'])
+    util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'])
 
-    util_plot.plot_traj_3d_three(raw_enu, rtk_enu, eagleye_enu, "gnss rtk data(nmea)")
+    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
 
     plt.show()
     
