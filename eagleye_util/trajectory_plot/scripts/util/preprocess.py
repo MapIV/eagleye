@@ -205,11 +205,19 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
                                     'gga_llh.gps_qual': 'qual',
                                     })
 
+    eagleye_index = eagleye_df[eagleye_df['latitude'] == 0].index
+    eagleye_df = eagleye_df.drop(eagleye_index)
+    eagleye_df = eagleye_df.reset_index()
+
+    raw_index = raw_df[raw_df['latitude'] == 0].index
+    raw_df = raw_df.drop(raw_index)
+    raw_df = raw_df.reset_index()
+
     eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)
-    eagleye_df['elapsed_time'] = eagleye_df['TimeStamp'] - eagleye_df['TimeStamp'][0]
-    rpy_df = get_rpy_deg(eagleye_df)
     raw_df['TimeStamp'] = raw_df['TimeStamp_tmp'] * 10 ** (-9)
+    eagleye_df['elapsed_time'] = eagleye_df['TimeStamp'] - raw_df['TimeStamp'][0]
     raw_df['elapsed_time'] = raw_df['TimeStamp'] - raw_df['TimeStamp'][0]
+    rpy_df = get_rpy_deg(eagleye_df)
     xyz = latlon_to_19(eagleye_df,plane)
     set_eagleye_df = pd.concat([eagleye_df,xyz, rpy_df],axis=1)
     return set_eagleye_df, raw_df

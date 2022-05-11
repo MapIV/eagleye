@@ -97,7 +97,7 @@ if __name__ == "__main__":
     eagleye_df['pitch'] = eagleye_df_tmp['pitch']
 
     eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading']],axis=1)
-    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'], eagleye_enu, rtk_enu, raw_enu, eagleye_plot_rpy)
+    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_enu, rtk_enu, raw_enu, eagleye_plot_rpy)
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
