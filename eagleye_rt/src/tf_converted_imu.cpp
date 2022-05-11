@@ -41,65 +41,85 @@
 #include <tf2/transform_datatypes.h>
 #include <tf2_eigen/tf2_eigen.h>
 
-static ros::Publisher _pub;
-static sensor_msgs::Imu _imu;
-
-sensor_msgs::Imu _tf_converted_imu;
-
-std::string _tf_base_link_frame;
-
-tf2_ros::Buffer tfbuffer_;
-
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+class TFConvertedIMU
 {
-  _imu = *msg;
-  _tf_converted_imu.header = _imu.header;
+public:
+  TFConvertedIMU();
+  ~TFConvertedIMU();
+
+private:
+  ros::NodeHandle nh_;
+  ros::Publisher pub_;
+  ros::Subscriber sub_;
+  sensor_msgs::Imu imu_;
+  sensor_msgs::Imu tf_converted_imu_;
+
+  tf2_ros::Buffer tfbuffer_;
+  tf2_ros::TransformListener tflistener_;
+
+  std::string tf_base_link_frame_;
+
+  void imu_callback(const sensor_msgs::Imu::ConstPtr& msg);
+
+};
+
+TFConvertedIMU::TFConvertedIMU() : tflistener_(tfbuffer_)
+{
+  std::string subscribe_imu_topic_name = "/imu/data_raw";
+  std::string publish_imu_topic_name = "imu/data_tf_converted";
+
+  nh_.getParam("imu_topic", subscribe_imu_topic_name);
+  nh_.getParam("publish_imu_topic", publish_imu_topic_name);
+  nh_.getParam("tf_gnss_frame/parent", tf_base_link_frame_);
+  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
+  std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
+  std::cout<< "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
+
+  sub_ = nh_.subscribe(subscribe_imu_topic_name, 1000, &TFConvertedIMU::imu_callback, this, ros::TransportHints().tcpNoDelay());
+  pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data_tf_converted", 1000);
+};
+
+TFConvertedIMU::~TFConvertedIMU(){}; 
+
+void TFConvertedIMU::imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
+{
+  imu_ = *msg;
+  tf_converted_imu_.header = imu_.header;
 
   try {
     const geometry_msgs::TransformStamped transform = tfbuffer_.lookupTransform(
-      _tf_base_link_frame, msg->header.frame_id, msg->header.stamp);
+      tf_base_link_frame_, msg->header.frame_id, ros::Time(0));
 
     geometry_msgs::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
     geometry_msgs::Quaternion  transformed_quaternion;
   
-    angular_velocity.header = _imu.header;
-    angular_velocity.vector = _imu.angular_velocity;
-    linear_acceleration.header = _imu.header;
-    linear_acceleration.vector = _imu.linear_acceleration;
+    angular_velocity.header = imu_.header;
+    angular_velocity.vector = imu_.angular_velocity;
+    linear_acceleration.header = imu_.header;
+    linear_acceleration.vector = imu_.linear_acceleration;
 
     tf2::doTransform(angular_velocity, transformed_angular_velocity, transform);
     tf2::doTransform(linear_acceleration, transformed_linear_acceleration, transform);
-    tf2::doTransform(_imu.orientation, transformed_quaternion, transform);
+    tf2::doTransform(imu_.orientation, transformed_quaternion, transform);
 
-    _tf_converted_imu.angular_velocity = transformed_angular_velocity.vector;
-    _tf_converted_imu.linear_acceleration = transformed_linear_acceleration.vector;
-    _tf_converted_imu.orientation = transformed_quaternion;
+    tf_converted_imu_.angular_velocity = transformed_angular_velocity.vector;
+    tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
+    tf_converted_imu_.orientation = transformed_quaternion;
 
   } 
   catch (tf2::TransformException& ex)
   {
-    ROS_WARN("%s", ex.what());
+    ROS_WARN("Failed to lookup transform: %s", ex.what());
     return;
   }
-  _pub.publish(_tf_converted_imu);
-}
+  pub_.publish(tf_converted_imu_);
+};
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "correction_imu");
-  ros::NodeHandle nh;
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string publish_imu_topic_name = "/imu/data_tf_converted";
-
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("publish_imu_topic", publish_imu_topic_name);
-  nh.getParam("tf_gnss_frame/parent", _tf_base_link_frame);
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
-  std::cout<< "tf_base_link_frame: " << _tf_base_link_frame << std::endl;
-
-  ros::Subscriber sub5 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  _pub = nh.advertise<sensor_msgs::Imu>(publish_imu_topic_name, 1000);
+  ros::init(argc, argv, "tf_converted_imu");
+  
+  TFConvertedIMU main_node;
 
   ros::spin();
 
