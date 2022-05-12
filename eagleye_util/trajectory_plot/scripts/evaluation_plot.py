@@ -188,7 +188,7 @@ if __name__ == "__main__":
 
     # correct anntena position
     if tf_across != 0 or tf_along != 0 or tf_height != 0:
-        data_df = util_calc.correct_anntenapos(data_df,ref_rpy['yaw'],tf_across,tf_along,tf_height)
+        data_df = util_prepro.correct_anntenapos(data_df,ref_rpy['yaw'],tf_across,tf_along,tf_height)
         print('set tf')
     
     # plot 6dof
