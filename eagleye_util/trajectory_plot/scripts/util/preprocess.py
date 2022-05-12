@@ -35,14 +35,14 @@ def set_ref_data(ref_data_tmp): # Creation of dataset with reference to column n
     set_data: List[float] = []
     for i, data in enumerate(ref_data_tmp):
         if i == 0: continue
-        ref_data_time: float = float(data[1]) + float(data[2]) * 1e-9
+        ref_data_time: float = float(data[2]) * 1e-9
         ref_data_x: float = float(data[4])
         ref_data_y: float = float(data[5])
         ref_data_z: float = float(data[6])
-        ref_data_ori_x: float = float(data[8])
-        ref_data_ori_y: float = float(data[9])
-        ref_data_ori_z: float = float(data[10])
-        ref_data_ori_w: float = float(data[11])
+        ref_data_ori_x: float = float(data[7])
+        ref_data_ori_y: float = float(data[8])
+        ref_data_ori_z: float = float(data[9])
+        ref_data_ori_w: float = float(data[10])
         set_data.append([ref_data_time,ref_data_x,ref_data_y,ref_data_z,ref_data_ori_x,ref_data_ori_y,ref_data_ori_z,ref_data_ori_w])
         df = pd.DataFrame(set_data,columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
     return df
@@ -51,41 +51,39 @@ def set_csv_data(csv_data_tmp): # Creation of dataset with reference to column n
     set_data: List[float] = []
     for i, data in enumerate(csv_data_tmp):
         if i == 0: continue
-        ref_data_time: float = float(data[2]) + float(data[3]) * 1e-9
-        ref_data_x: float = float(data[5])
-        ref_data_y: float = float(data[6])
-        ref_data_z: float = float(data[7])
-        ref_data_ori_x: float = float(data[8])
-        ref_data_ori_y: float = float(data[9])
-        ref_data_ori_z: float = float(data[10])
-        ref_data_ori_w: float = float(data[11])
+        ref_data_time: float = float(data[2]) * 1e-9
+        ref_data_x: float = float(data[4])
+        ref_data_y: float = float(data[5])
+        ref_data_z: float = float(data[6])
+        ref_data_ori_x: float = float(data[7])
+        ref_data_ori_y: float = float(data[8])
+        ref_data_ori_z: float = float(data[9])
+        ref_data_ori_w: float = float(data[10])
         set_data.append([ref_data_time,ref_data_x,ref_data_y,ref_data_z,ref_data_ori_x,ref_data_ori_y,ref_data_ori_z,ref_data_ori_w])
         df = pd.DataFrame(set_data,columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
     return df
 
 def set_df(input): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input)
-    df = df[[".header.stamp.secs",
-             ".header.stamp.nsecs",
-             ".pose.pose.position.x",
-             ".pose.pose.position.y",
-             ".pose.pose.position.z",
-             ".pose.pose.orientation.x",
-             ".pose.pose.orientation.y",
-             ".pose.pose.orientation.z",
-             ".pose.pose.orientation.w",
+    df = df[["field.header.stamp",
+             "field.pose.pose.position.x",
+             "field.pose.pose.position.y",
+             "field.pose.pose.position.z",
+             "field.pose.pose.orientation.x",
+             "field.pose.pose.orientation.y",
+             "field.pose.pose.orientation.z",
+             "field.pose.pose.orientation.w",
              ]]
-    df = df.rename(columns={'.header.stamp.secs': 'TimeStamp_sec',
-                            '.header.stamp.nsecs': 'TimeStamp_nsec',
-                            '.pose.pose.position.x': 'x',
-                            '.pose.pose.position.y': 'y',
-                            '.pose.pose.position.z': 'z',
-                            '.pose.pose.orientation.x': 'ori_x',
-                            '.pose.pose.orientation.y': 'ori_y',
-                            '.pose.pose.orientation.z': 'ori_z',
-                            '.pose.pose.orientation.w': 'ori_w',
+    df = df.rename(columns={'field.header.stamp': 'TimeStamp_tmp',
+                            'field.pose.pose.position.x': 'x',
+                            'field.pose.pose.position.y': 'y',
+                            'field.pose.pose.position.z': 'z',
+                            'field.pose.pose.orientation.x': 'ori_x',
+                            'field.pose.pose.orientation.y': 'ori_y',
+                            'field.pose.pose.orientation.z': 'ori_z',
+                            'field.pose.pose.orientation.w': 'ori_w',
                             })
-    df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] * 1e-9
+    df['TimeStamp'] = df['TimeStamp_tmp'] * 1e-9
     df = df.reindex(columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
     return df
 

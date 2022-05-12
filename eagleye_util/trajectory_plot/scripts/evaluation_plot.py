@@ -261,7 +261,8 @@ if __name__ == "__main__":
     # plot 2D trajectory
     util_plot.plot_traj(ref_data_xyz, eagleye_xyz, ref_data_name)
 
-    util_plot.plot_traj_qual(eagleye_xyz,data_df['qual'])
+    if 'qual' in data_df.columns:
+        util_plot.plot_traj_qual(eagleye_xyz,data_df['qual'])
 
     # plot 3d trajectory
     util_plot.plot_traj_3d( ref_df, data_df, ref_data_name)

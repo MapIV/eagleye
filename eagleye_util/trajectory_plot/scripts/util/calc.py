@@ -340,10 +340,7 @@ def quaternion_to_euler_zyx(ori):
         roll = r.as_euler('zyx', degrees=True)[0]
         pitch = r.as_euler('zyx', degrees=True)[1]
         yaw = r.as_euler('zyx', degrees=True)[2]
-        roll_deg = math.degrees(roll)
-        pitch_deg = math.degrees(pitch)
-        yaw_deg = math.degrees(yaw)
-        set_eular_angle.append([roll_deg,pitch_deg,yaw_deg])
+        set_eular_angle.append([roll,pitch,yaw])
     euler_angle = pd.DataFrame(set_eular_angle,columns=['roll','pitch','yaw'])
     return euler_angle
 
