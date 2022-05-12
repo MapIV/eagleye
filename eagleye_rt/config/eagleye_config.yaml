@@ -141,7 +141,7 @@ rolling:
 
 monitor:
   print_status: true
-  log_output_status: true
+  log_output_status: false
   update_rate: 10.0
   th_gnss_deadrock_time: 10.0
   th_velocity_scale_factor_percent: 10.0 
