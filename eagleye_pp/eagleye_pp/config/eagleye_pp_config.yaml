@@ -38,11 +38,9 @@ imu:
     x: 0.0
     y: 0.0
     z: 0.0
-    roll: 0
-    pitch: 0
-    yaw: 0
-    patent: "base_link"
-    child: "imu"
+    roll: 0 # [rad]
+    pitch: 0 # [rad]
+    yaw: 0 # [rad]
 
 # Using Topic Name
 twist_topic: /can_twist

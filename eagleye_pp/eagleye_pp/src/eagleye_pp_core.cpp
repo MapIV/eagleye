@@ -108,6 +108,21 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     output_kml_eagleye_backward_line_ = arg_conf["output_kml_eagleye_backward_line"].as<bool>();
     output_kml_eagleye_pp_line_ = arg_conf["output_kml_eagleye_pp_line"].as<bool>();
 
+    tf2::Quaternion tf2_quat;
+    double x = arg_conf["imu"]["base_link2imu"]["x"].as<double>();
+    double y = arg_conf["imu"]["base_link2imu"]["y"].as<double>();
+    double z = arg_conf["imu"]["base_link2imu"]["z"].as<double>();
+    double roll = arg_conf["imu"]["base_link2imu"]["roll"].as<double>();
+    double pitch = arg_conf["imu"]["base_link2imu"]["pitch"].as<double>();
+    double yaw = arg_conf["imu"]["base_link2imu"]["yaw"].as<double>();
+    tf2_quat.setRPY(roll, pitch, yaw);
+    geometry_msgs::Quaternion geometry_quat = tf2::toMsg(tf2_quat);
+
+    base_link2imu_.transform.translation.x = x;
+    base_link2imu_.transform.translation.y = y;
+    base_link2imu_.transform.translation.z = z;
+    base_link2imu_.transform.rotation = geometry_quat;
+  
     // eagleye_rt params
 
     use_gnss_mode_ = arg_conf["gnss"]["use_gnss_mode"].as<std::string>();
@@ -229,6 +244,30 @@ bool eagleye_pp::getUseCombination(void)
  return (output_kml_eagleye_pp_line_ || output_kml_eagleye_pp_plot_);
 }
 
+sensor_msgs::Imu eagleye_pp::transformIMU(sensor_msgs::Imu imu_msg)
+{
+  sensor_msgs::Imu transformed_imu_msg;
+  transformed_imu_msg.header = imu_msg.header;
+
+  transformed_imu_msg.header = imu_msg.header;
+  geometry_msgs::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
+  geometry_msgs::Quaternion  transformed_quaternion;
+
+  angular_velocity.header = imu_msg.header;
+  angular_velocity.vector = imu_msg.angular_velocity;
+  linear_acceleration.header = imu_msg.header;
+  linear_acceleration.vector = imu_msg.linear_acceleration;
+
+  tf2::doTransform(angular_velocity, transformed_angular_velocity, base_link2imu_);
+  tf2::doTransform(linear_acceleration, transformed_linear_acceleration, base_link2imu_);
+  tf2::doTransform(imu_msg.orientation, transformed_quaternion, base_link2imu_);
+
+  transformed_imu_msg.angular_velocity = transformed_angular_velocity.vector;
+  transformed_imu_msg.linear_acceleration = transformed_linear_acceleration.vector;
+  transformed_imu_msg.orientation = transformed_quaternion;
+  return transformed_imu_msg;
+}
+
 /****************************************************************
 syncTimestamp
 Function to synchronize time
@@ -270,7 +309,8 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
       if (m_imu_msg != NULL)
       {
         sensor_msgs::Imu imu_msg = *m_imu_msg;
-        imu_.push_back(imu_msg);
+        sensor_msgs::Imu transformed_imu_msg = transformIMU(imu_msg);
+        imu_.push_back(transformed_imu_msg);
         rosbag_stamp.push_back(m.getTime().toNSec());
       }
       if (m_rtklib_nav_msg != NULL)

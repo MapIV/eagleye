@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   eagleye_nmea2fix
   multi_rosbag_controller
   kml_generator
+  tf2
+  tf2_geometry_msgs
 )
 
 catkin_package(
@@ -35,6 +37,8 @@ catkin_package(
    eagleye_nmea2fix
    multi_rosbag_controller
    kml_generator
+   tf2
+   tf2_geometry_msgs
 )
 
 include_directories(include
