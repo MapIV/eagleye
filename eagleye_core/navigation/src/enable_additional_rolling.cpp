@@ -51,38 +51,13 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   double rolling_interpolate = 0.0;
   double rolling_offset_buffer_num = rolling_parameter.rolling_buffer_num / 2; // Parameter to correct for time delay caused by moving average.
 
-  /// reverse_imu ///
-  if (!rolling_parameter.reverse_imu)
-  {
-    rolling_status->yawrate = imu.angular_velocity.z;
-  }
-  else
-  {
-    rolling_status->yawrate = -1 * imu.angular_velocity.z;
-  }
+  rolling_status->yawrate = imu.angular_velocity.z;
 
-  /// reverse_imu rollrate ///
-  if (!rolling_parameter.reverse_imu_angular_velocity_x)
-  {
-    rolling_status->rollrate = imu.angular_velocity.x;
-    rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
-  }
-  else
-  {
-    rolling_status->rollrate = -1* imu.angular_velocity.x;
-    rolling_status->rollrate_offset_stop = -1 * angular_velocity_offset_stop.angular_velocity_offset.x;
-  }
 
-  /// reverse_imu y acc ///
-  if (!rolling_parameter.reverse_imu_linear_acceleration_y)
-  {
-    rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
-  }
-  else
-  {
-    rolling_status->imu_acceleration_y = -1* imu.linear_acceleration.y;
-  }
+  rolling_status->rollrate = imu.angular_velocity.x;
+  rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
 
+  rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
 
   // data buffer 
   if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_scale_factor.status.enabled_status)

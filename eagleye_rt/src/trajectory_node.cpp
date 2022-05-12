@@ -136,23 +136,19 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("twist_topic",subscribe_twist_topic_name);
-  nh.getParam("reverse_imu", _trajectory_parameter.reverse_imu);
   nh.getParam("trajectory/stop_judgment_velocity_threshold",_trajectory_parameter.stop_judgment_velocity_threshold);
   nh.getParam("trajectory/stop_judgment_yawrate_threshold",_trajectory_parameter.stop_judgment_yawrate_threshold);
   nh.getParam("trajectory/timer_updata_rate",_update_rate);
   nh.getParam("trajectory/th_deadlock_time",_th_deadlock_time);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _trajectory_parameter.reverse_imu << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _trajectory_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "stop_judgment_yawrate_threshold " << _trajectory_parameter.stop_judgment_yawrate_threshold << std::endl;
   std::cout<< "timer_updata_rate " << _update_rate << std::endl;
   std::cout<< "th_deadlock_time " << _th_deadlock_time << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());

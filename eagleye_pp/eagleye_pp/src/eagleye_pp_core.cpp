@@ -114,11 +114,9 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     use_nmea_downsample_ = arg_conf["gnss"]["use_nmea_downsample"].as<bool>();
     nmea_downsample_freq_ = arg_conf["gnss"]["nmea_downsample_freq"].as<double>();
 
-    heading_interpolate_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     heading_interpolate_parameter_.stop_judgment_velocity_threshold = arg_conf["heading_interpolate"]["stop_judgment_velocity_threshold"].as<double>();
     heading_interpolate_parameter_.number_buffer_max = arg_conf["heading_interpolate"]["number_buffer_max"].as<int>();
 
-    heading_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     heading_parameter_.estimated_number_min = arg_conf["heading"]["estimated_number_min"].as<double>();
     heading_parameter_.estimated_number_max = arg_conf["heading"]["estimated_number_max"].as<double>();
     heading_parameter_.estimated_gnss_coefficient = arg_conf["heading"]["estimated_gnss_coefficient"].as<double>();
@@ -140,7 +138,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     position_parameter_.ecef_base_pos_y = arg_conf["position"]["ecef_base_pos_y"].as<double>();
     position_parameter_.ecef_base_pos_z = arg_conf["position"]["ecef_base_pos_z"].as<double>();
 
-    slip_angle_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     slip_angle_parameter_.manual_coefficient = arg_conf["slip_angle"]["manual_coefficient"].as<double>();
     slip_angle_parameter_.stop_judgment_velocity_threshold = arg_conf["slip_angle"]["stop_judgment_velocity_threshold"].as<double>();
 
@@ -151,7 +148,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     smoothing_parameter_.estimated_velocity_threshold = arg_conf["smoothing"]["estimated_velocity_threshold"].as<double>();
     smoothing_parameter_.estimated_threshold = arg_conf["smoothing"]["estimated_threshold"].as<double>();
 
-    trajectory_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     trajectory_parameter_.stop_judgment_velocity_threshold = arg_conf["trajectory"]["stop_judgment_velocity_threshold"].as<double>();
 
     velocity_scale_factor_parameter_.estimated_number_min = arg_conf["velocity_scale_factor"]["estimated_number_min"].as<int>();
@@ -159,21 +155,18 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     velocity_scale_factor_parameter_.estimated_velocity_threshold = arg_conf["velocity_scale_factor"]["estimated_velocity_threshold"].as<double>();
     velocity_scale_factor_parameter_.estimated_coefficient = arg_conf["velocity_scale_factor"]["estimated_coefficient"].as<double>();
 
-    yawrate_offset_1st_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_1st_parameter_.estimated_number_min = arg_conf["yawrate_offset"]["estimated_number_min"].as<int>();
     yawrate_offset_1st_parameter_.estimated_coefficient = arg_conf["yawrate_offset"]["estimated_coefficient"].as<double>();
     yawrate_offset_1st_parameter_.estimated_velocity_threshold = arg_conf["yawrate_offset"]["estimated_velocity_threshold"].as<double>();
     yawrate_offset_1st_parameter_.estimated_number_max = arg_conf["yawrate_offset"]["1st"]["estimated_number_max"].as<int>();
     yawrate_offset_1st_parameter_.outlier_threshold = arg_conf["yawrate_offset"]["outlier_threshold"].as<double>();
 
-    yawrate_offset_2nd_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_2nd_parameter_.estimated_number_min = arg_conf["yawrate_offset"]["estimated_number_min"].as<int>();
     yawrate_offset_2nd_parameter_.estimated_coefficient = arg_conf["yawrate_offset"]["estimated_coefficient"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_velocity_threshold = arg_conf["yawrate_offset"]["estimated_velocity_threshold"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_number_max = arg_conf["yawrate_offset"]["2nd"]["estimated_number_max"].as<int>();
     yawrate_offset_2nd_parameter_.outlier_threshold = arg_conf["yawrate_offset"]["outlier_threshold"].as<double>();
 
-    yawrate_offset_stop_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_stop_parameter_.stop_judgment_velocity_threshold = arg_conf["yawrate_offset_stop"]["stop_judgment_velocity_threshold"].as<double>();
     yawrate_offset_stop_parameter_.estimated_number = arg_conf["yawrate_offset_stop"]["estimated_number"].as<int>();
     yawrate_offset_stop_parameter_.outlier_threshold = arg_conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
@@ -187,7 +180,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     height_parameter_.outlier_threshold = arg_conf["height"]["outlier_threshold"].as<double>();
     height_parameter_.average_num = arg_conf["height"]["average_num"].as<int>();
 
-    rolling_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     rolling_parameter_.stop_judgment_velocity_threshold = arg_conf["rolling"]["stop_judgment_velocity_threshold"].as<double>();
     rolling_parameter_.filter_process_noise = arg_conf["rolling"]["filter_process_noise"].as<double>();
     rolling_parameter_.filter_observation_noise = arg_conf["rolling"]["filter_observation_noise"].as<double>();

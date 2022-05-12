@@ -79,7 +79,6 @@ struct DistanceStatus
 
 struct YawrateOffsetStopParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double estimated_number;
   double outlier_threshold;
@@ -95,7 +94,6 @@ struct YawrateOffsetStopStatus
 
 struct YawrateOffsetParameter
 {
-  bool reverse_imu;
   double estimated_number_min;
   double estimated_number_max;
   double estimated_coefficient;
@@ -119,7 +117,6 @@ struct YawrateOffsetStatus
 
 struct HeadingParameter
 {
-  bool reverse_imu;
   double estimated_number_min;
   double estimated_number_max;
   double estimated_gnss_coefficient;
@@ -148,7 +145,6 @@ struct HeadingStatus
 
 struct RtkHeadingParameter
 {
-  bool reverse_imu;
   double estimated_distance;
   double estimated_heading_buffer_min;
   double estimated_number_min;
@@ -184,7 +180,6 @@ struct RtkHeadingStatus
 
 struct HeadingInterpolateParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double number_buffer_max;
 };
@@ -264,14 +259,12 @@ struct PositionInterpolateStatus
 
 struct SlipangleParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double manual_coefficient;
 };
 
 struct SlipCoefficientParameter
 {
-  bool reverse_imu;
   double estimated_number_min;
   double estimated_number_max;
   double estimated_velocity_threshold;
@@ -308,7 +301,6 @@ struct SmoothingStatus
 
 struct TrajectoryParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double stop_judgment_yawrate_threshold;
 };
@@ -364,7 +356,6 @@ struct HeightStatus
 
 struct AngularVelocityOffsetStopParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double estimated_number;
   double outlier_threshold;
@@ -419,9 +410,6 @@ struct RtkDeadreckoningStatus
 
 struct EnableAdditionalRollingParameter
 {
-  bool reverse_imu;
-  bool reverse_imu_angular_velocity_x;
-  bool reverse_imu_linear_acceleration_y;
   double matching_update_distance;
   double stop_judgment_velocity_threshold;
   double rolling_buffer_num;
@@ -452,7 +440,6 @@ struct EnableAdditionalRollingStatus
 
 struct RollingParameter
 {
-  bool reverse_imu;
   double stop_judgment_velocity_threshold;
   double filter_process_noise;
   double filter_observation_noise;

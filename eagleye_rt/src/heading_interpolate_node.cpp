@@ -85,14 +85,8 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading_interpolate");
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _heading_interpolate_parameter.reverse_imu);
   nh.getParam("heading_interpolate/stop_judgment_velocity_threshold", _heading_interpolate_parameter.stop_judgment_velocity_threshold);
   nh.getParam("heading_interpolate/number_buffer_max", _heading_interpolate_parameter.number_buffer_max);
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " << _heading_interpolate_parameter.reverse_imu << std::endl;
   std::cout<< "stop_judgment_velocity_threshold: " << _heading_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "number_buffer_max: " << _heading_interpolate_parameter.number_buffer_max << std::endl;
 
@@ -132,7 +126,7 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe(subscribe_topic_name_1, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());

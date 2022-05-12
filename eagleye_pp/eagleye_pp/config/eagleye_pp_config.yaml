@@ -33,6 +33,17 @@ gnss:
   use_nmea_downsample: true
   nmea_downsample_freq: 5
 
+imu:
+  base_link2imu:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    roll: 0
+    pitch: 0
+    yaw: 0
+    patent: "base_link"
+    child: "imu"
+
 # Using Topic Name
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
@@ -42,7 +53,6 @@ rtklib_nav_topic: /rtklib_nav
 nmea_sentence_topic: /nmea_sentence
 
 #Parameter settings for Eagleye
-reverse_imu: false
 
 velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
   estimated_number_min: 1000                           #Minimum number of data used for estimation. (default:1000 = 20s)

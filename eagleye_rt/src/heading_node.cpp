@@ -120,14 +120,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading");
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/mosaic/rmc";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   nh.getParam("rmc_topic",subscribe_rmc_topic_name);
-  nh.getParam("reverse_imu", _heading_parameter.reverse_imu);
   nh.getParam("heading/estimated_number_min",_heading_parameter.estimated_number_min);
   nh.getParam("heading/estimated_number_max",_heading_parameter.estimated_number_max);
   nh.getParam("heading/estimated_gnss_coefficient",_heading_parameter.estimated_gnss_coefficient);
@@ -138,10 +135,8 @@ int main(int argc, char** argv)
   nh.getParam("heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
   std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _heading_parameter.reverse_imu << std::endl;
   std::cout<< "estimated_number_min " << _heading_parameter.estimated_number_min << std::endl;
   std::cout<< "estimated_number_max " << _heading_parameter.estimated_number_max << std::endl;
   std::cout<< "estimated_gnss_coefficient " << _heading_parameter.estimated_gnss_coefficient << std::endl;
@@ -188,7 +183,7 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());

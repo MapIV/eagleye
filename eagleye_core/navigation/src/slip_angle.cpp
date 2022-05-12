@@ -40,14 +40,7 @@ void slip_angle_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor
   double yawrate;
   double acceleration_y;
 
-  if (slip_angle_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_angle_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > slip_angle_parameter.stop_judgment_velocity_threshold)
   {

@@ -83,17 +83,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "yawrate_offset");
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
-  nh.getParam("reverse_imu" , _yawrate_offset_parameter.reverse_imu);
   nh.getParam("yawrate_offset/estimated_number_min", _yawrate_offset_parameter.estimated_number_min);
   nh.getParam("yawrate_offset/estimated_coefficient", _yawrate_offset_parameter.estimated_coefficient);
   nh.getParam("yawrate_offset/estimated_velocity_threshold" , _yawrate_offset_parameter.estimated_velocity_threshold);
   nh.getParam("yawrate_offset/outlier_threshold", _yawrate_offset_parameter.outlier_threshold);
 
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " << _yawrate_offset_parameter.reverse_imu << std::endl;
   std::cout<< "estimated_number_min: " << _yawrate_offset_parameter.estimated_number_min << std::endl;
   std::cout<< "estimated_coefficient: " << _yawrate_offset_parameter.estimated_coefficient << std::endl;
   std::cout<< "estimated_velocity_threshold: " << _yawrate_offset_parameter.estimated_velocity_threshold << std::endl;
@@ -133,7 +127,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_topic_name, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<eagleye_msgs::YawrateOffset>(publish_topic_name, 1000);
 
   ros::spin();
