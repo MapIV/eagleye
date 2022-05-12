@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    Status.msg
+   StatusStamped.msg
    Distance.msg
    VelocityScaleFactor.msg
    YawrateOffset.msg
