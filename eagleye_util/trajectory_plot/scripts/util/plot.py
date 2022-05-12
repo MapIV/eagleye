@@ -164,6 +164,10 @@ def plot_error_distributiln(error_data,ref_data_name):
     ax_aa = fig5.add_subplot(1, 2, 2)
     plot_one(ax_xy, error_data, 'x', 'y', 'X-Y error', 'x error [m]', 'y error [m]', 'None')
     plot_one(ax_aa, error_data, 'across', 'along', 'Across-Along error', 'across error [m]', 'along error [m]', 'None')
+    ax_xy.set_aspect('equal')
+    ax_xy.axis('square')
+    ax_aa.set_aspect('equal')
+    ax_aa.axis('square')
 
 def plot_traj(ref_data, data,ref_data_name):
     fig = plt.figure()

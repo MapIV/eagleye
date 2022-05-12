@@ -66,22 +66,22 @@ def set_csv_data(csv_data_tmp): # Creation of dataset with reference to column n
 def set_df(input): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input)
     df = df[["field.header.stamp",
-             "field.pose.pose.position.x",
-             "field.pose.pose.position.y",
-             "field.pose.pose.position.z",
-             "field.pose.pose.orientation.x",
-             "field.pose.pose.orientation.y",
-             "field.pose.pose.orientation.z",
-             "field.pose.pose.orientation.w",
+             "field.pose.position.x",
+             "field.pose.position.y",
+             "field.pose.position.z",
+             "field.pose.orientation.x",
+             "field.pose.orientation.y",
+             "field.pose.orientation.z",
+             "field.pose.orientation.w",
              ]]
     df = df.rename(columns={'field.header.stamp': 'TimeStamp_tmp',
-                            'field.pose.pose.position.x': 'x',
-                            'field.pose.pose.position.y': 'y',
-                            'field.pose.pose.position.z': 'z',
-                            'field.pose.pose.orientation.x': 'ori_x',
-                            'field.pose.pose.orientation.y': 'ori_y',
-                            'field.pose.pose.orientation.z': 'ori_z',
-                            'field.pose.pose.orientation.w': 'ori_w',
+                            'field.pose.position.x': 'x',
+                            'field.pose.position.y': 'y',
+                            'field.pose.position.z': 'z',
+                            'field.pose.orientation.x': 'ori_x',
+                            'field.pose.orientation.y': 'ori_y',
+                            'field.pose.orientation.z': 'ori_z',
+                            'field.pose.orientation.w': 'ori_w',
                             })
     df['TimeStamp'] = df['TimeStamp_tmp'] * 1e-9
     df = df.reindex(columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
@@ -89,11 +89,11 @@ def set_df(input): # Creation of dataset with reference to labels in df
 
 def set_ref_df(input): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input)
-    df = df[[".header.stamp.secs",
-             ".header.stamp.nsecs",
-             ".pose.pose.position.x",
-             ".pose.pose.position.y",
-             ".pose.pose.position.z",
+    df = df[["TimeStamp_sec",
+             "TimeStamp_nsec",
+             "x",
+             "y",
+             "z",
              "roll",
              "pitch",
              "yaw",
@@ -101,18 +101,6 @@ def set_ref_df(input): # Creation of dataset with reference to labels in df
              "vel_y",
              "vel_z",
              ]]
-    df = df.rename(columns={'.header.stamp.secs': 'TimeStamp_sec',
-                            '.header.stamp.nsecs': 'TimeStamp_nsec',
-                            '.pose.pose.position.x': 'x',
-                            '.pose.pose.position.y': 'y',
-                            '.pose.pose.position.z': 'z',
-                            'roll': 'roll',
-                            'pitch': 'pitch',
-                            'yaw': 'yaw',
-                            'vel_x': 'vel_x',
-                            'vel_y': 'vel_y',
-                            'vel_z': 'vel_z',
-                            })
     df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] * 1e-9
     return df
 
@@ -156,9 +144,9 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
                             'heading_interpolate_1st.heading_angle': 'heading_1st',
                             'heading_interpolate_2nd.heading_angle': 'heading_2nd',
                             'heading_interpolate_3rd.heading_angle': 'yaw_rad',
-                            'enu_vel.vector.x': 'enu_vel_x',
-                            'enu_vel.vector.y': 'enu_vel_y',
-                            'enu_vel.vector.z': 'enu_vel_z',
+                            'enu_vel.vector.x': 'vel_x',
+                            'enu_vel.vector.y': 'vel_y',
+                            'enu_vel.vector.z': 'vel_z',
                             'eagleye_pp_llh.latitude': 'latitude',
                             'eagleye_pp_llh.longitude': 'longitude',
                             'eagleye_pp_llh.altitude': 'altitude',
