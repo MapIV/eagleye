@@ -32,7 +32,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::Heading _heading_interpolate;
 static sensor_msgs::Imu _imu;
@@ -44,9 +44,9 @@ struct YawrateOffsetStatus _yawrate_offset_status;
 
 bool _is_first_heading= false;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor = *msg;
+  _velocity = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -73,7 +73,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   _imu = *msg;
   _yawrate_offset.header = msg->header;
-  yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate, _imu, _yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
+  yawrate_offset_estimate(_velocity, _yawrate_offset_stop, _heading_interpolate, _imu, _yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
   _pub.publish(_yawrate_offset);
   _yawrate_offset.status.estimate_status = false;
 }
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("velocity", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_topic_name, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());

@@ -73,6 +73,7 @@ private:
     std::vector<double> enu_smoothing_trajectory_east;
     std::vector<double> smoothing_trajectory_status;
     std::vector<double> llh_smoothing_trajectory_lat;
+    std::vector<geometry_msgs::TwistStamped> correction_velocity;
     std::vector<eagleye_msgs::VelocityScaleFactor> velocity_scale_factor;
     std::vector<eagleye_msgs::Distance> distance;
     std::vector<eagleye_msgs::Heading> heading_1st; 

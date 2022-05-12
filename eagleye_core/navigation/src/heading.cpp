@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::YawrateOffset yawrate_offset_stop,
+void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,eagleye_msgs::YawrateOffset yawrate_offset_stop,
   eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter,
   HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
@@ -59,7 +59,7 @@ void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor ve
   // data buffer generate
   heading_status->time_buffer .push_back(imu.header.stamp.toSec());
   heading_status->yawrate_buffer .push_back(yawrate);
-  heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
+  heading_status->correction_velocity_buffer .push_back(velocity.twist.linear.x);
   heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
   heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);
@@ -235,7 +235,7 @@ void heading_estimate_(sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor ve
   }
 }
 
-void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,
   eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
@@ -288,10 +288,10 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,eag
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
-  heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }
 
-void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,
   eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
@@ -314,5 +314,5 @@ void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,eagle
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
-  heading_estimate_(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }

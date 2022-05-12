@@ -33,7 +33,7 @@
 #include "navigation/navigation.hpp"
 
 static sensor_msgs::Imu _imu;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset _yawrate_offset;
 static eagleye_msgs::Heading _heading;
@@ -45,9 +45,9 @@ static eagleye_msgs::Heading _heading_interpolate;
 struct HeadingInterpolateParameter _heading_interpolate_parameter;
 struct HeadingInterpolateStatus _heading_interpolate_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor = *msg;
+  _velocity = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -75,7 +75,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _heading_interpolate.header = msg->header;
   _heading_interpolate.header.frame_id = "base_link";
-  heading_interpolate_estimate(_imu, _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset, _heading, _slip_angle,
+  heading_interpolate_estimate(_imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _heading, _slip_angle,
     _heading_interpolate_parameter, &_heading_interpolate_status, &_heading_interpolate);
   _pub.publish(_heading_interpolate);
 }

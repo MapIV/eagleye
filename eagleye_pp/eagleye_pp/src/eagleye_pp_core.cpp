@@ -542,6 +542,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   struct PositionInterpolateStatus position_interpolate_status{};
   struct SmoothingStatus smoothing_status{};
 
+  geometry_msgs::TwistStamped _correction_velocity;
   eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
   eagleye_msgs::Distance _distance;
   eagleye_msgs::Heading _heading_1st;
@@ -591,90 +592,91 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     }
 
     _velocity_scale_factor.header = imu_[i].header;
+    _correction_velocity.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      velocity_scale_factor_estimate(rtklib_nav_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_velocity_scale_factor);
+      velocity_scale_factor_estimate(rtklib_nav_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      velocity_scale_factor_estimate(rmc_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_velocity_scale_factor);
+      velocity_scale_factor_estimate(rmc_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
 
     _slip_angle.header = imu_[i].header;
-    slip_angle_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, slip_angle_parameter_, &_slip_angle);
+    slip_angle_estimate(imu_[i], _correction_velocity, _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, slip_angle_parameter_, &_slip_angle);
 
     _gnss_smooth_pos_enu.header = imu_[i].header;
-    smoothing_estimate(rtklib_nav_[i], _velocity_scale_factor, smoothing_parameter_, &smoothing_status, &_gnss_smooth_pos_enu);
+    smoothing_estimate(rtklib_nav_[i], _correction_velocity, smoothing_parameter_, &smoothing_status, &_gnss_smooth_pos_enu);
 
     _yawrate_offset_stop.header = imu_[i].header;
     yawrate_offset_stop_estimate(velocity_[i], imu_[i], yawrate_offset_stop_parameter_, &yawrate_offset_stop_status, &_yawrate_offset_stop);
 
     _heading_1st.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
+      heading_estimate(rtklib_nav_[i], imu_[i],_correction_velocity, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
         heading_parameter_, &heading_1st_status, &_heading_1st);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i],_velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
+      heading_estimate(rmc_[i], imu_[i],_correction_velocity, _yawrate_offset_stop, _yawrate_offset_stop, _slip_angle, _heading_interpolate_1st,
         heading_parameter_, &heading_1st_status, &_heading_1st);
 
     _heading_interpolate_1st.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_stop, _heading_1st, _slip_angle,
+    heading_interpolate_estimate(imu_[i], _correction_velocity, _yawrate_offset_stop, _yawrate_offset_stop, _heading_1st, _slip_angle,
       heading_interpolate_parameter_, &heading_interpolate_1st_status, &_heading_interpolate_1st);
 
     _yawrate_offset_1st.header = imu_[i].header;
-    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_1st, imu_[i], yawrate_offset_1st_parameter_,
+    yawrate_offset_estimate(_correction_velocity, _yawrate_offset_stop, _heading_interpolate_1st, imu_[i], yawrate_offset_1st_parameter_,
       &yawrate_offset_1st_status, &_yawrate_offset_1st);
 
     _heading_2nd.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle,
+      heading_estimate(rtklib_nav_[i], imu_[i], _correction_velocity, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle,
         _heading_interpolate_2nd, heading_parameter_, &heading_2nd_status, &_heading_2nd);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle, _heading_interpolate_2nd,
+      heading_estimate(rmc_[i], imu_[i], _correction_velocity, _yawrate_offset_stop, _yawrate_offset_1st, _slip_angle, _heading_interpolate_2nd,
         heading_parameter_, &heading_2nd_status, &_heading_2nd);
 
     _heading_interpolate_2nd.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_1st, _heading_2nd, _slip_angle,
+    heading_interpolate_estimate(imu_[i], _correction_velocity, _yawrate_offset_stop, _yawrate_offset_1st, _heading_2nd, _slip_angle,
       heading_interpolate_parameter_, &heading_interpolate_2nd_status, &_heading_interpolate_2nd);
 
     _yawrate_offset_2nd.header = imu_[i].header;
-    yawrate_offset_estimate(_velocity_scale_factor, _yawrate_offset_stop, _heading_interpolate_2nd, imu_[i], yawrate_offset_2nd_parameter_,
+    yawrate_offset_estimate(_correction_velocity, _yawrate_offset_stop, _heading_interpolate_2nd, imu_[i], yawrate_offset_2nd_parameter_,
       &yawrate_offset_2nd_status, &_yawrate_offset_2nd);
 
     _heading_3rd.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      heading_estimate(rtklib_nav_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
+      heading_estimate(rtklib_nav_[i], imu_[i], _correction_velocity, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
         heading_parameter_, &heading_3rd_status, &_heading_3rd);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      heading_estimate(rmc_[i], imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
+      heading_estimate(rmc_[i], imu_[i], _correction_velocity, _yawrate_offset_2nd, _yawrate_offset_stop, _slip_angle, _heading_interpolate_3rd,
         heading_parameter_, &heading_3rd_status, &_heading_3rd);
 
     _heading_interpolate_3rd.header = imu_[i].header;
-    heading_interpolate_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _heading_3rd, _slip_angle,
+    heading_interpolate_estimate(imu_[i], _correction_velocity, _yawrate_offset_2nd, _yawrate_offset_stop, _heading_3rd, _slip_angle,
       heading_interpolate_parameter_, &heading_interpolate_3rd_status, &_heading_interpolate_3rd);
 
     _distance.header = imu_[i].header;
     if(_distance.header.stamp.toSec() != 0)
     {
-      distance_estimate(_velocity_scale_factor, &distance_status, &_distance);
+      distance_estimate(_correction_velocity, &distance_status, &_distance);
     }
 
     _height.header = imu_[i].header;
     _pitching.header = imu_[i].header;
     _acc_x_offset.header = imu_[i].header;
     _acc_x_scale_factor.header = imu_[i].header;
-    pitching_estimate(imu_[i], gga_[i], _velocity_scale_factor, _distance, height_parameter_, &height_status, &_height, &_pitching,
+    pitching_estimate(imu_[i], gga_[i], _correction_velocity, _distance, height_parameter_, &height_status, &_height, &_pitching,
       &_acc_x_offset, &_acc_x_scale_factor);
 
-    rolling_estimate(imu_[i], _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, rolling_parameter_, &rolling_status, &_rolling);
+    rolling_estimate(imu_[i], _correction_velocity, _yawrate_offset_stop, _yawrate_offset_2nd, rolling_parameter_, &rolling_status, &_rolling);
 
     _enu_vel.header = imu_[i].header;
     _enu_relative_pos.header = imu_[i].header;
     _eagleye_twist.header = imu_[i].header;
-    trajectory_estimate(imu_[i], _velocity_scale_factor, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+    trajectory_estimate(imu_[i], _correction_velocity, _velocity_scale_factor, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
 
     _enu_absolute_pos.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      position_estimate(rtklib_nav_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status,
+      position_estimate(rtklib_nav_[i], _correction_velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status,
         &_enu_absolute_pos);
     else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      position_estimate(gga_[i], _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
+      position_estimate(gga_[i], _correction_velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
 
     _enu_absolute_pos_interpolate.header = imu_[i].header;
     _eagleye_fix.header = imu_[i].header;
@@ -683,6 +685,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
 
     if(arg_forward_flag)
     {
+      eagleye_state_forward_.correction_velocity.push_back(_correction_velocity);
     	eagleye_state_forward_.velocity_scale_factor.push_back(_velocity_scale_factor);
     	eagleye_state_forward_.distance.push_back(_distance);
     	eagleye_state_forward_.heading_1st.push_back(_heading_1st);
@@ -711,6 +714,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     }
     else
     {
+      eagleye_state_backward_.correction_velocity.push_back(_correction_velocity);
 	    eagleye_state_backward_.velocity_scale_factor.push_back(_velocity_scale_factor);
     	eagleye_state_backward_.distance.push_back(_distance);
     	eagleye_state_backward_.heading_1st.push_back(_heading_1st);
@@ -753,6 +757,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
 
   if(!arg_forward_flag)
   { 
+    std::reverse(eagleye_state_backward_.correction_velocity.begin(), eagleye_state_backward_.correction_velocity.end());
     std::reverse(eagleye_state_backward_.velocity_scale_factor.begin(), eagleye_state_backward_.velocity_scale_factor.end());
     std::reverse(eagleye_state_backward_.distance.begin(), eagleye_state_backward_.distance.end());
     std::reverse(eagleye_state_backward_.heading_1st.begin(), eagleye_state_backward_.heading_1st.end());
@@ -846,7 +851,7 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
   std::vector<double> _distance(datanum, 0.0);
 
   for(int i = 1; i < datanum; i++){
-    _distance[i] = _distance[i-1] + eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
+    _distance[i] = _distance[i-1] + eagleye_state_forward_.correction_velocity[i].twist.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
   }
   for(int i = 0; i < datanum; i++){
     int index_Dist = -1;
@@ -857,7 +862,7 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
       }
     }
 
-    if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x > TH_VEL_EST &&
+    if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && eagleye_state_forward_.correction_velocity[i].twist.linear.x > TH_VEL_EST &&
       index_Dist > index_Raw[0]){
       int ESTNUM = i - index_Dist + 1;
       int i_start = i-ESTNUM + 1;
@@ -886,7 +891,7 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
       }        
       std::vector<int> pindex_vel;
       for(int j = 0; j < local_length; j++){ 
-	if(eagleye_state_forward_.velocity_scale_factor[i_start + j].correction_velocity.linear.x > TH_VEL_EST ){
+	if(eagleye_state_forward_.correction_velocity[i_start + j].twist.linear.x > TH_VEL_EST ){
 	    pindex_vel.push_back(j);
 	}
       }
@@ -965,7 +970,7 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
           }       
         } // while(1)  
       } // if (index.size() > pindex_vel_length*TH_CALC_MINNUM)
-    } // if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && velocity_scale_factor_[i].correction_velocity.linear.x > TH_VEL_EST && index_Dist > index_Raw[0])
+    } // if (_distance[i] > ESTDIST && flag_GNSS_[i] == 1 && correction_velocity[i].twist.linear.x > TH_VEL_EST && index_Dist > index_Raw[0])
   } // for(int i = 0; i < datanum; i++){
   
   int kk = 0;
@@ -1024,7 +1029,7 @@ void eagleye_pp::calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw, std::vec
   std::vector<double> _distance(datanum, 0.0);
 
   for(int i = 1; i < datanum; i++){
-    _distance[i] = _distance[i-1] + eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
+    _distance[i] = _distance[i-1] + eagleye_state_forward_.correction_velocity[i].twist.linear.x * (arg_GPSTime[i] - arg_GPSTime[i-1]);
   }
   for(int i = 0; i < datanum; i++){
     if (arg_flag_SMRaw[i] == 1){
@@ -1098,7 +1103,7 @@ void eagleye_pp::calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw[],
   std::vector<double> slip(datanum, 0.0);
   for(int i = 0; i < datanum; i++){
     Yawrate_Est[i] = eagleye_state_forward_.eagleye_twist[i].twist.angular.z;
-    slip[i] = eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x * Yawrate_Est[i] * slip_angle_parameter_.manual_coefficient;
+    slip[i] = eagleye_state_forward_.correction_velocity[i].twist.linear.x * Yawrate_Est[i] * slip_angle_parameter_.manual_coefficient;
   }
   std::size_t DRerr_length = arg_index_DRs.size() * 6 + 6;
   // double **DRerr, *DRerr_row;
@@ -1147,7 +1152,7 @@ void eagleye_pp::calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw[],
           a = a + 1;   
         }      
       }
-      double correction_velocity_x = eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x;
+      double correction_velocity_x = eagleye_state_forward_.correction_velocity[i].twist.linear.x;
       if (i == 0){
         pUsrPos_FixSlip[i + datanum * 0] = UsrPos_TaGRTK_enu[i + datanum * 0];
         pUsrPos_FixSlip[i + datanum * 1] = UsrPos_TaGRTK_enu[i + datanum * 1];
@@ -1376,7 +1381,7 @@ void eagleye_pp::smoothingTrajectory(void)
 
   struct TrajectoryStatus trajectory_status{};
   for(int i = 0; i < data_length_; i++){ // Added to use the corrected initial azimuth
-    trajectory_estimate(imu_[i], eagleye_state_forward_.velocity_scale_factor[i], eagleye_state_forward_.heading_interpolate_3rd[i], 
+    trajectory_estimate(imu_[i], eagleye_state_forward_.correction_velocity[i], eagleye_state_forward_.velocity_scale_factor[i], eagleye_state_forward_.heading_interpolate_3rd[i], 
       eagleye_state_forward_.yawrate_offset_stop[i], eagleye_state_forward_.yawrate_offset_2nd[i],
       trajectory_parameter_, &trajectory_status, &eagleye_state_forward_.enu_vel[i], &eagleye_state_forward_.enu_relative_pos[i],
       &eagleye_state_forward_.eagleye_twist[i]);
@@ -1486,8 +1491,8 @@ void eagleye_pp::smoothingTrajectory(void)
           {
             diff_time.push_back(eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1 + j].header.stamp.toSec() -
               eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1 + j-1].header.stamp.toSec());
-            tmp_vel.push_back(eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1 + j].correction_velocity.linear.x);
-            all_vel.push_back(eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1 + j].correction_velocity.linear.x);
+            tmp_vel.push_back(eagleye_state_forward_.correction_velocity[index_gga[i-1]+1 + j].twist.linear.x);
+            all_vel.push_back(eagleye_state_forward_.correction_velocity[index_gga[i-1]+1 + j].twist.linear.x);
           }
 
           for(j = 0; j < interval_count; j++)
@@ -1514,10 +1519,10 @@ void eagleye_pp::smoothingTrajectory(void)
               diff_pos_2d = sqrt( pow((diff_pos_east), 2.0) + pow((diff_pos_north), 2.0));
             }
 
-            tmp_vel_begin = eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1].correction_velocity.linear.x;
-            tmp_vle_end = eagleye_state_forward_.velocity_scale_factor[index_gga[i-1] + j-1].correction_velocity.linear.x;
-            all_vel_begin  = eagleye_state_forward_.velocity_scale_factor[index_gga[i-1]+1].correction_velocity.linear.x;
-            all_vel_end = eagleye_state_forward_.velocity_scale_factor[index_gga[i]].correction_velocity.linear.x;
+            tmp_vel_begin = eagleye_state_forward_.correction_velocity[index_gga[i-1]+1].twist.linear.x;
+            tmp_vle_end = eagleye_state_forward_.correction_velocity[index_gga[i-1] + j-1].twist.linear.x;
+            all_vel_begin  = eagleye_state_forward_.correction_velocity[index_gga[i-1]+1].twist.linear.x;
+            all_vel_end = eagleye_state_forward_.correction_velocity[index_gga[i]].twist.linear.x;
 
             tmp_sum_vel = std::accumulate(tmp_vel.begin(), tmp_vel.begin() + j, 0.0);
             all_sum_vel = std::accumulate(all_vel.begin(), all_vel.end(), 0.0);

@@ -34,7 +34,7 @@
 
 static nmea_msgs::Gpgga _gga;
 static sensor_msgs::Imu _imu;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::Distance _distance;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset _yawrate_offset;
@@ -52,9 +52,9 @@ void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
   _gga = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor = *msg;
+  _velocity = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -87,7 +87,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _heading.header = msg->header;
   _heading.header.frame_id = "base_link";
-  rtk_heading_estimate(_gga, _imu, _velocity_scale_factor, _distance, _yawrate_offset_stop, _yawrate_offset,
+  rtk_heading_estimate(_gga, _imu, _velocity, _distance, _yawrate_offset_stop, _yawrate_offset,
     _slip_angle, _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
   if (_heading.status.estimate_status)
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());

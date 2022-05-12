@@ -122,6 +122,11 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   _velocity = *msg;
 }
 
+void correction_velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
+  correction_velocity = *msg;
+}
+
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
   _velocity_scale_factor = *msg;
@@ -763,9 +768,15 @@ void printStatus(void)
 
 
   std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
+<<<<<<< HEAD
   std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<_velocity_scale_factor.scale_factor<<std::endl;
   std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<_velocity_scale_factor.correction_velocity.linear.x * 3.6<<" [km/h]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(_velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+=======
+  std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<velocity_scale_factor.scale_factor<<std::endl;
+  std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<correction_velocity.twist.linear.x * 3.6<<" [km/h]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+>>>>>>> Support for message changes
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
@@ -1083,6 +1094,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, rtklib_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe(subscribe_gga_topic_name, 1000, navsatfix_gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+<<<<<<< HEAD
   ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub8 = n.subscribe("heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
@@ -1106,6 +1118,31 @@ int main(int argc, char** argv)
   ros::Subscriber sub26 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub27 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub28 = n.subscribe("rolling", 1000, rolling_callback, ros::TransportHints().tcpNoDelay());
+=======
+  ros::Subscriber sub6 = n.subscribe("velocity", 1000, correction_velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = n.subscribe("heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub10 = n.subscribe("heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub11 = n.subscribe("heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub12 = n.subscribe("heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub13 = n.subscribe("heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub14 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub15 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub16 = n.subscribe("yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub17 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub18 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub19 = n.subscribe("enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub20 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub21 = n.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub22 = n.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub23 = n.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub24 = n.subscribe("enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub25 = n.subscribe("fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub26 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub27 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub28 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
+>>>>>>> Support for message changes
 
   ros::Timer timer = n.createTimer(ros::Duration(1/_update_rate), boost::bind(timer_callback,_1, &updater));
 

@@ -38,7 +38,7 @@
 
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static sensor_msgs::Imu _imu;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
@@ -55,10 +55,10 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   _rtklib_nav = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor = *msg;
-  if (_is_first_correction_velocity == false && msg->correction_velocity.linear.x > _slip_coefficient_parameter.estimated_velocity_threshold)
+  _velocity = *msg;
+  if (_is_first_correction_velocity == false && msg->twist.linear.x > _slip_coefficient_parameter.estimated_velocity_threshold)
   {
     _is_first_correction_velocity = true;
   }
@@ -87,7 +87,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   }
 
   _imu = *msg;
-  slip_coefficient_estimate(_imu, _rtklib_nav, _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, 
+  slip_coefficient_estimate(_imu, _rtklib_nav, _velocity, _yawrate_offset_stop, _yawrate_offset_2nd, 
     _heading_interpolate_3rd, _slip_coefficient_parameter, &_slip_coefficient_status, &_estimate_coefficient);
 
   std::cout << "--- \033[1;34m slip_coefficient \033[m ------------------------------" <<  std::endl;

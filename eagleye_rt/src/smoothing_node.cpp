@@ -34,15 +34,15 @@
 
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static eagleye_msgs::Position _enu_absolute_pos, _gnss_smooth_pos_enu;
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static ros::Publisher _pub;
 
 struct SmoothingParameter _smoothing_parameter;
 struct SmoothingStatus _smoothing_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor = *msg;
+  _velocity = *msg;
 }
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
@@ -50,7 +50,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
   _rtklib_nav = *msg;
   _gnss_smooth_pos_enu.header = msg->header;
   _gnss_smooth_pos_enu.header.frame_id = "base_link";
-  smoothing_estimate(_rtklib_nav, _velocity_scale_factor, _smoothing_parameter, &_smoothing_status, &_gnss_smooth_pos_enu);
+  smoothing_estimate(_rtklib_nav, _velocity, _smoothing_parameter, &_smoothing_status, &_gnss_smooth_pos_enu);
   _pub.publish(_gnss_smooth_pos_enu);
 }
 
@@ -77,7 +77,7 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold " << _smoothing_parameter.estimated_velocity_threshold << std::endl;
   std::cout<< "estimated_threshold " << _smoothing_parameter.estimated_threshold << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("velocity", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
 
   _pub = nh.advertise<eagleye_msgs::Position>("gnss_smooth_pos_enu", 1000);

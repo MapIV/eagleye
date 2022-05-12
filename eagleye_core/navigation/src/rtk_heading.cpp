@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,
+void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,eagleye_msgs::Distance distance,
   eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
@@ -116,7 +116,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
 
   if (heading_status->tow_last  == gga.header.stamp.toSec() || gga.header.stamp.toSec() == 0 || rtk_heading_angle == 0 ||
       heading_status->last_rtk_heading_angle == rtk_heading_angle ||
-      velocity_scale_factor.correction_velocity.linear.x < heading_parameter.stop_judgment_velocity_threshold)
+      velocity.twist.linear.x < heading_parameter.stop_judgment_velocity_threshold)
   {
     gnss_status = false;
     rtk_heading_angle = 0;
@@ -134,7 +134,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
   heading_status->time_buffer .push_back(imu.header.stamp.toSec());
   heading_status->heading_angle_buffer .push_back(rtk_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
-  heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
+  heading_status->correction_velocity_buffer .push_back(velocity.twist.linear.x);
   heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
   heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);

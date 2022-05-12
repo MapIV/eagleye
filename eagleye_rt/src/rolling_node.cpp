@@ -34,7 +34,7 @@
 
 static ros::Publisher _rolling_pub;
 
-static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor_msg;
+static geometry_msgs::TwistStamped _velocity_msg;
 static eagleye_msgs::YawrateOffset _yawrate_offset_2nd_msg;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop_msg;
 static sensor_msgs::Imu _imu_msg;
@@ -46,9 +46,9 @@ struct RollingStatus _rolling_status;
 
 static std::string _subscribe_imu_topic_name;
 
-void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  _velocity_scale_factor_msg = *msg;
+  _velocity_msg = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -64,7 +64,7 @@ void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& ms
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   _imu_msg = *msg;
-  rolling_estimate(_imu_msg, _velocity_scale_factor_msg, _yawrate_offset_stop_msg, _yawrate_offset_2nd_msg,
+  rolling_estimate(_imu_msg, _velocity_msg, _yawrate_offset_stop_msg, _yawrate_offset_2nd_msg,
                    _rolling_parameter, &_rolling_status, &_rolling_msg);
   _rolling_pub.publish(_rolling_msg);
 }

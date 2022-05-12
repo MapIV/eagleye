@@ -33,6 +33,7 @@
 
 static ros::Publisher _pub1, _pub2;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
+static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::Distance _distance;
@@ -45,6 +46,11 @@ static eagleye_msgs::AccYOffset _acc_y_offset;
 
 struct EnableAdditionalRollingParameter _rolling_parameter;
 struct EnableAdditionalRollingStatus _rolling_status;
+
+void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
+  _velocity = *msg;
+}
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr &msg)
 {
@@ -83,7 +89,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr &msg)
   _acc_y_offset.header.frame_id = "imu";
   _rolling_angle.header = msg->header;
   _rolling_angle.header.frame_id = "base_link";
-  enable_additional_rolling_estimate(_velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _distance, _imu,
+  enable_additional_rolling_estimate(_velocity, _velocity_scale_factor, _yawrate_offset_2nd, _yawrate_offset_stop, _distance, _imu,
     _localization_pose, _angular_velocity_offset_stop, _rolling_parameter, &_rolling_status, &_rolling_angle, &_acc_y_offset);
   _pub1.publish(_acc_y_offset);
   _pub2.publish(_rolling_angle);
