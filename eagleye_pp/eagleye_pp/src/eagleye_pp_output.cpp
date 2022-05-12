@@ -516,33 +516,33 @@ std::vector<kml_utils::Point> eagleye_pp::eagleyeStatus2PointVector( const Eagle
     point.longitude = eagleye_state.eagleye_fix[i].longitude;
     point.altitude = eagleye_state.eagleye_fix[i].altitude;
 
-    addOtherInformation(point, "CAN Velocity [km/h] ", kml_generator_->makeDouble2String(velocity_[i].twist.linear.x * 3.6));
-    addOtherInformation(point, "IMU Linear Acceleration X [m/s^2] ", kml_generator_->makeDouble2String(imu_[i].linear_acceleration.x));
-    addOtherInformation(point, "IMU Linear Acceleration Y [m/s^2] ", kml_generator_->makeDouble2String(imu_[i].linear_acceleration.y));
-    addOtherInformation(point, "IMU Linear Acceleration Z [m/s^2] ", kml_generator_->makeDouble2String(imu_[i].linear_acceleration.z));
-    addOtherInformation(point, "IMU Angular Velocity X [rad/s] ", kml_generator_->makeDouble2String(imu_[i].angular_velocity.x));
-    addOtherInformation(point, "IMU Angular Velocity Y [rad/s] ", kml_generator_->makeDouble2String(imu_[i].angular_velocity.y));
-    addOtherInformation(point, "IMU Angular Velocity Z [rad/s] ", kml_generator_->makeDouble2String(imu_[i].angular_velocity.z));
-    addOtherInformation(point, "Estimate Velocity [km/h] ", kml_generator_->makeDouble2String(eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x * 3.6));
-    addOtherInformation(point, "Velocity Scale Factor", kml_generator_->makeDouble2String(eagleye_state.velocity_scale_factor[i].scale_factor));
-    addOtherInformation(point, "Velocity Scale Factor Flag", kml_generator_->makeBool2String(eagleye_state.velocity_scale_factor[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Heading 1st [rad] ", kml_generator_->makeDouble2String(eagleye_state.heading_interpolate_1st[i].heading_angle));
-    addOtherInformation(point, "Estimate Heading 1st Flag", kml_generator_->makeBool2String(eagleye_state.heading_interpolate_1st[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Heading 2nd [rad] ", kml_generator_->makeDouble2String(eagleye_state.heading_interpolate_2nd[i].heading_angle));
-    addOtherInformation(point, "Estimate Heading 2nd Flag", kml_generator_->makeBool2String(eagleye_state.heading_interpolate_2nd[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Heading 3rd [rad] ", kml_generator_->makeDouble2String(eagleye_state.heading_interpolate_3rd[i].heading_angle));
-    addOtherInformation(point, "Estimate Heading 3rd Flag", kml_generator_->makeBool2String(eagleye_state.heading_interpolate_3rd[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Yawrate Offset Stop [rad] ", kml_generator_->makeDouble2String(eagleye_state.yawrate_offset_stop[i].yawrate_offset));
-    addOtherInformation(point, "Estimate Yawrate Offset Stop Flag", kml_generator_->makeBool2String(eagleye_state.yawrate_offset_stop[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Yawrate Offset 1st [rad] ", kml_generator_->makeDouble2String(eagleye_state.yawrate_offset_1st[i].yawrate_offset));
-    addOtherInformation(point, "Estimate Yawrate Offset 1st Flag", kml_generator_->makeBool2String(eagleye_state.yawrate_offset_1st[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Yawrate Offset 2nd [rad] ", kml_generator_->makeDouble2String(eagleye_state.yawrate_offset_2nd[i].yawrate_offset));
-    addOtherInformation(point, "Estimate Yawrate Offset 2nd Flag", kml_generator_->makeBool2String(eagleye_state.yawrate_offset_2nd[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Tire Slip Angle [rad] ", kml_generator_->makeDouble2String(eagleye_state.slip_angle[i].slip_angle));
-    addOtherInformation(point, "Estimate Tire Slip Angle Flag", kml_generator_->makeBool2String(eagleye_state.slip_angle[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Pitch Angle [rad] ", kml_generator_->makeDouble2String(eagleye_state.pitching[i].pitching_angle));
-    addOtherInformation(point, "Estimate Pitch Angle Flag", kml_generator_->makeBool2String(eagleye_state.pitching[i].status.enabled_status));
-    addOtherInformation(point, "Estimate Height Angle Flag", kml_generator_->makeBool2String(eagleye_state.height[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "CAN Velocity [km/h] ", kml_utils::makeDouble2String(velocity_[i].twist.linear.x * 3.6));
+    kml_utils::addOtherInformation(point, "IMU Linear Acceleration X [m/s^2] ", kml_utils::makeDouble2String(imu_[i].linear_acceleration.x));
+    kml_utils::addOtherInformation(point, "IMU Linear Acceleration Y [m/s^2] ", kml_utils::makeDouble2String(imu_[i].linear_acceleration.y));
+    kml_utils::addOtherInformation(point, "IMU Linear Acceleration Z [m/s^2] ", kml_utils::makeDouble2String(imu_[i].linear_acceleration.z));
+    kml_utils::addOtherInformation(point, "IMU Angular Velocity X [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.x));
+    kml_utils::addOtherInformation(point, "IMU Angular Velocity Y [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.y));
+    kml_utils::addOtherInformation(point, "IMU Angular Velocity Z [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.z));
+    kml_utils::addOtherInformation(point, "Estimate Velocity [km/h] ", kml_utils::makeDouble2String(eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x * 3.6));
+    kml_utils::addOtherInformation(point, "Velocity Scale Factor", kml_utils::makeDouble2String(eagleye_state.velocity_scale_factor[i].scale_factor));
+    kml_utils::addOtherInformation(point, "Velocity Scale Factor Flag", kml_utils::makeBool2String(eagleye_state.velocity_scale_factor[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Heading 1st [rad] ", kml_utils::makeDouble2String(eagleye_state.heading_interpolate_1st[i].heading_angle));
+    kml_utils::addOtherInformation(point, "Estimate Heading 1st Flag", kml_utils::makeBool2String(eagleye_state.heading_interpolate_1st[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Heading 2nd [rad] ", kml_utils::makeDouble2String(eagleye_state.heading_interpolate_2nd[i].heading_angle));
+    kml_utils::addOtherInformation(point, "Estimate Heading 2nd Flag", kml_utils::makeBool2String(eagleye_state.heading_interpolate_2nd[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Heading 3rd [rad] ", kml_utils::makeDouble2String(eagleye_state.heading_interpolate_3rd[i].heading_angle));
+    kml_utils::addOtherInformation(point, "Estimate Heading 3rd Flag", kml_utils::makeBool2String(eagleye_state.heading_interpolate_3rd[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset Stop [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_stop[i].yawrate_offset));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset Stop Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_stop[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 1st [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_1st[i].yawrate_offset));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 1st Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_1st[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 2nd [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_2nd[i].yawrate_offset));
+    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 2nd Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_2nd[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Tire Slip Angle [rad] ", kml_utils::makeDouble2String(eagleye_state.slip_angle[i].slip_angle));
+    kml_utils::addOtherInformation(point, "Estimate Tire Slip Angle Flag", kml_utils::makeBool2String(eagleye_state.slip_angle[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Pitch Angle [rad] ", kml_utils::makeDouble2String(eagleye_state.pitching[i].pitching_angle));
+    kml_utils::addOtherInformation(point, "Estimate Pitch Angle Flag", kml_utils::makeBool2String(eagleye_state.pitching[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate Height Angle Flag", kml_utils::makeBool2String(eagleye_state.height[i].status.enabled_status));
 
     point_vector.push_back(point);
   }
@@ -603,6 +603,7 @@ std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > eagley
     {
       fix_vector.push_back(point);
     }
+    else
     {
       nofix_vector.push_back(point);
     }
@@ -610,12 +611,4 @@ std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > eagley
   std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > gnss_pair = std::make_pair(fix_vector, nofix_vector);
 
   return gnss_pair;
-}
-
-void eagleye_pp::addOtherInformation(kml_utils::Point & point, std::string other_info_name, std::string other_info_value_str)
-{
-  kml_utils::OtherInfo other_info;
-  other_info.name = other_info_name;
-  other_info.value_str = other_info_value_str;
-  point.other_info_vector.push_back(other_info);
 }
