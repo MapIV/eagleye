@@ -140,7 +140,7 @@ if __name__ == "__main__":
         print("set ref_data")
 
     if args.input_df_ref != None:
-        ref_data_df = util_prepro.set_df(args.df_ref)
+        ref_data_df = util_prepro.set_df(args.input_df_ref)
         print("set ref_data")
 
     if args.input_df_csv != None:

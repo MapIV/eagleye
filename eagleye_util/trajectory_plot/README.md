@@ -1,5 +1,11 @@
 # eagleye_evaluation
 
+## Set up
+```
+pip3 install scipy
+pip3 install open3d
+```
+
 ## Usage
 ### eagleye_pp_single_evaluation
 ```
