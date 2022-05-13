@@ -55,6 +55,7 @@ Clone and build the necessary packages for Eagleye.
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git
 	git clone https://github.com/MapIV/nmea_comms.git
 	git clone https://github.com/MapIV/nmea_ros_bridge.git
+	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	catkin_make -DCMAKE_BUILD_TYPE=Release
 
