@@ -28,6 +28,7 @@
 
 import csv
 import argparse
+import math
 from typing import List
 import pandas as pd
 
@@ -53,6 +54,7 @@ if __name__ == "__main__":
     parser.add_argument("-tf_across", "--tf_across_param",help="tf offset correction")
     parser.add_argument("-tf_along", "--tf_along_param",help="tf offset correction")
     parser.add_argument("-tf_height", "--tf_height_param",help="tf offset correction")
+    parser.add_argument("-tf_yaw", "--tf_yaw_param",help="tf offset correction")
     parser.add_argument("-dr_l", "--distance_length_param",help="tf offset correction")
     parser.add_argument("-dr_s", "--distance_step_param",help="tf offset correction")
     parser.add_argument("-ref_name", "--ref_data_name_param",help="ref data name")
@@ -67,6 +69,7 @@ if __name__ == "__main__":
     tf_across = 0.0
     tf_along = 0.0
     tf_height = 0.0
+    tf_yaw = 0.0
     distance_length = 100 # Distance to calculate relative trajectory. (default:100 = 100[m])
     distance_step = 50 # Calculate relative trajectories step (default:50 = 50[m])
     ref_data_name = 'ref data' # Reference Legend Name. (default:'ref data')
@@ -97,6 +100,9 @@ if __name__ == "__main__":
     if args.tf_height_param != None:
         tf_height = float(args.tf_height_param)
 
+    if args.tf_yaw_param != None:
+        tf_yaw = float(args.tf_yaw_param)
+
     if args.distance_length_param != None:
         distance_length = float(args.distance_length_param)
 
@@ -114,6 +120,7 @@ if __name__ == "__main__":
     print('tf_across',tf_across)
     print('tf_along',tf_along)
     print('tf_height',tf_height)
+    print('tf_yaw',tf_yaw)
     print('distance_length',distance_length)
     print('distance_step',distance_step)
     print('ref_data_name',ref_data_name)
@@ -168,6 +175,16 @@ if __name__ == "__main__":
         eagleye_rpy = util_calc.quaternion_to_euler_zyx(eagleye_ori_df)
     elif 'roll' in data_df.columns and 'pitch' in data_df.columns and 'yaw' in data_df.columns:
         eagleye_rpy = pd.concat([data_df['roll'],data_df['pitch'],data_df['yaw']],axis=1)
+
+    if tf_yaw != 0:
+        print("yaw data set")
+        set_heading_data: List[float] = []
+        eagleye_rpy['yaw'] = eagleye_rpy['yaw'] + tf_yaw
+        for i in range(len(eagleye_rpy)):
+            yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(eagleye_rpy['yaw'][i]))
+            yaw = math.degrees(yaw_tmp)
+            set_heading_data.append([yaw])
+        eagleye_rpy['yaw'] = pd.DataFrame(set_heading_data,columns=['yaw'])
 
     
     ref_rpy = pd.DataFrame()

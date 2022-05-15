@@ -53,6 +53,7 @@ Position correction options for reference and eagleye data
 * [`-tf_across`]: Correction amount in vehicle orthogonal direction[m]
 * [`-tf_along`]: Correction amount in the direction of vehicle travel[m]
 * [`-tf_height`]: Correction amount in height direction[m]
+* [`-tf_yaw`]: Correction amount in yaw[deg]
 
 Options for relative positional accuracy evaluation
 * [`-dr_l`]: Length of distance to evaluate relative position[m]

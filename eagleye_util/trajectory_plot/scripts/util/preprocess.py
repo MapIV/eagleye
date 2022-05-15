@@ -31,6 +31,8 @@ import pandas as pd
 import numpy as np
 import math
 
+import util.calc as util_calc
+
 def set_ref_data(ref_data_tmp): # Creation of dataset with reference to column number
     set_data: List[float] = []
     for i, data in enumerate(ref_data_tmp):
@@ -102,6 +104,12 @@ def set_ref_df(input): # Creation of dataset with reference to labels in df
              "vel_z",
              ]]
     df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] * 1e-9
+    set_heading_data: List[float] = []
+    for i in range(len(df)):
+        yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(df['yaw'][i]))
+        yaw = math.degrees(yaw_tmp)
+        set_heading_data.append([yaw])
+    df['yaw'] = pd.DataFrame(set_heading_data,columns=['yaw'])
     return df
 
 def set_log_df(input,plane): # Creation of dataset with reference to labels in df
@@ -234,21 +242,13 @@ def get_rpy_deg(rpy_rad):
     for i in range(len(rpy_rad)):
         roll_tmp = rpy_rad['roll_rad'][i]
         pitch_tmp = rpy_rad['pitch_rad'][i]
-        yaw_tmp = change_anglel_limit(rpy_rad['yaw_rad'][i])
+        yaw_tmp = util_calc.change_anglel_limit_pi(rpy_rad['yaw_rad'][i])
         roll = math.degrees(roll_tmp)
         pitch = math.degrees(pitch_tmp)
         yaw = math.degrees(yaw_tmp)
         set_heading_data.append([roll,pitch,yaw])
     df = pd.DataFrame(set_heading_data,columns=['roll','pitch','yaw'])
     return df
-
-def change_anglel_limit(heading):
-    while heading < 0 or math.pi * 2 < heading:
-        if heading < 0:
-            heading += math.pi * 2
-        else:
-            heading -= math.pi * 2
-    return heading
 
 def latlon_to_19(llh,plane):
     phi0_deg , lambda0_deg = plane_table(plane)
