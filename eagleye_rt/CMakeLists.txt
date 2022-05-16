@@ -18,6 +18,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_ros
   tf2_geometry_msgs
+  tf2_sensor_msgs
+  tf2_eigen
 )
 
 catkin_package(
@@ -36,6 +38,8 @@ catkin_package(
   tf2
   tf2_ros
   tf2_geometry_msgs
+  tf2_sensor_msgs
+  tf2_eigen
 )
 
 include_directories(
@@ -127,6 +131,10 @@ add_executable(navpvt2rtk src/navpvt2rtk_node.cpp)
 target_link_libraries(navpvt2rtk ${catkin_LIBRARIES})
 add_dependencies(navpvt2rtk ${catkin_EXPORTED_TARGETS})
 
+add_executable(tf_converted_imu src/tf_converted_imu.cpp)
+target_link_libraries(tf_converted_imu ${catkin_LIBRARIES})
+add_dependencies(tf_converted_imu ${catkin_EXPORTED_TARGETS})
+
 install(TARGETS
   velocity_scale_factor
   yawrate_offset_stop
@@ -149,6 +157,7 @@ install(TARGETS
   enable_additional_rolling
   rolling
   navpvt2rtk
+  tf_converted_imu
   DESTINATION lib/${PROJECT_NAME}
 )
 

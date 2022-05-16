@@ -73,18 +73,12 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _slip_angle_parameter.reverse_imu);
   nh.getParam("slip_angle/manual_coefficient", _slip_angle_parameter.manual_coefficient);
   nh.getParam("slip_angle/stop_judgment_velocity_threshold", _slip_angle_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _slip_angle_parameter.reverse_imu << std::endl;
   std::cout<< "manual_coefficient " << _slip_angle_parameter.manual_coefficient << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _slip_angle_parameter.stop_judgment_velocity_threshold << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());

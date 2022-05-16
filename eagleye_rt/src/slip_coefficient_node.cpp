@@ -101,12 +101,9 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("rtklib_nav_topic", subscribe_rtklib_nav_topic_name);
-  nh.getParam("reverse_imu", _slip_coefficient_parameter.reverse_imu);
   nh.getParam("slip_coefficient/estimated_number_min", _slip_coefficient_parameter.estimated_number_min);
   nh.getParam("slip_coefficient/estimated_number_max", _slip_coefficient_parameter.estimated_number_max);
   nh.getParam("slip_coefficient/estimated_velocity_threshold", _slip_coefficient_parameter.estimated_velocity_threshold);
@@ -114,9 +111,7 @@ int main(int argc, char** argv)
   nh.getParam("slip_coefficient/lever_arm", _slip_coefficient_parameter.lever_arm);
   nh.getParam("slip_coefficient/stop_judgment_velocity_threshold", _slip_coefficient_parameter.stop_judgment_velocity_threshold);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _slip_coefficient_parameter.reverse_imu << std::endl;
   std::cout<< "estimated_number_min " << _slip_coefficient_parameter.estimated_number_min << std::endl;
   std::cout<< "estimated_number_max " << _slip_coefficient_parameter.estimated_number_max << std::endl;
   std::cout<< "estimated_velocity_threshold " << _slip_coefficient_parameter.estimated_velocity_threshold << std::endl;
@@ -124,7 +119,7 @@ int main(int argc, char** argv)
   std::cout<< "lever_arm " << _slip_coefficient_parameter.lever_arm << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _slip_coefficient_parameter.stop_judgment_velocity_threshold << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback);
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback);
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback);
   ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);

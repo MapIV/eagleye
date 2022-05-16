@@ -108,17 +108,30 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     output_kml_eagleye_backward_line_ = arg_conf["output_kml_eagleye_backward_line"].as<bool>();
     output_kml_eagleye_pp_line_ = arg_conf["output_kml_eagleye_pp_line"].as<bool>();
 
+    tf2::Quaternion tf2_quat;
+    double x = arg_conf["imu"]["base_link2imu"]["x"].as<double>();
+    double y = arg_conf["imu"]["base_link2imu"]["y"].as<double>();
+    double z = arg_conf["imu"]["base_link2imu"]["z"].as<double>();
+    double roll = arg_conf["imu"]["base_link2imu"]["roll"].as<double>();
+    double pitch = arg_conf["imu"]["base_link2imu"]["pitch"].as<double>();
+    double yaw = arg_conf["imu"]["base_link2imu"]["yaw"].as<double>();
+    tf2_quat.setRPY(roll, pitch, yaw);
+    geometry_msgs::Quaternion geometry_quat = tf2::toMsg(tf2_quat);
+
+    base_link2imu_.transform.translation.x = x;
+    base_link2imu_.transform.translation.y = y;
+    base_link2imu_.transform.translation.z = z;
+    base_link2imu_.transform.rotation = geometry_quat;
+  
     // eagleye_rt params
 
     use_gnss_mode_ = arg_conf["gnss"]["use_gnss_mode"].as<std::string>();
     use_nmea_downsample_ = arg_conf["gnss"]["use_nmea_downsample"].as<bool>();
     nmea_downsample_freq_ = arg_conf["gnss"]["nmea_downsample_freq"].as<double>();
 
-    heading_interpolate_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     heading_interpolate_parameter_.stop_judgment_velocity_threshold = arg_conf["heading_interpolate"]["stop_judgment_velocity_threshold"].as<double>();
     heading_interpolate_parameter_.number_buffer_max = arg_conf["heading_interpolate"]["number_buffer_max"].as<int>();
 
-    heading_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     heading_parameter_.estimated_number_min = arg_conf["heading"]["estimated_number_min"].as<double>();
     heading_parameter_.estimated_number_max = arg_conf["heading"]["estimated_number_max"].as<double>();
     heading_parameter_.estimated_gnss_coefficient = arg_conf["heading"]["estimated_gnss_coefficient"].as<double>();
@@ -140,7 +153,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     position_parameter_.ecef_base_pos_y = arg_conf["position"]["ecef_base_pos_y"].as<double>();
     position_parameter_.ecef_base_pos_z = arg_conf["position"]["ecef_base_pos_z"].as<double>();
 
-    slip_angle_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     slip_angle_parameter_.manual_coefficient = arg_conf["slip_angle"]["manual_coefficient"].as<double>();
     slip_angle_parameter_.stop_judgment_velocity_threshold = arg_conf["slip_angle"]["stop_judgment_velocity_threshold"].as<double>();
 
@@ -151,7 +163,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     smoothing_parameter_.estimated_velocity_threshold = arg_conf["smoothing"]["estimated_velocity_threshold"].as<double>();
     smoothing_parameter_.estimated_threshold = arg_conf["smoothing"]["estimated_threshold"].as<double>();
 
-    trajectory_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     trajectory_parameter_.stop_judgment_velocity_threshold = arg_conf["trajectory"]["stop_judgment_velocity_threshold"].as<double>();
 
     velocity_scale_factor_parameter_.estimated_number_min = arg_conf["velocity_scale_factor"]["estimated_number_min"].as<int>();
@@ -159,21 +170,18 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     velocity_scale_factor_parameter_.estimated_velocity_threshold = arg_conf["velocity_scale_factor"]["estimated_velocity_threshold"].as<double>();
     velocity_scale_factor_parameter_.estimated_coefficient = arg_conf["velocity_scale_factor"]["estimated_coefficient"].as<double>();
 
-    yawrate_offset_1st_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_1st_parameter_.estimated_number_min = arg_conf["yawrate_offset"]["estimated_number_min"].as<int>();
     yawrate_offset_1st_parameter_.estimated_coefficient = arg_conf["yawrate_offset"]["estimated_coefficient"].as<double>();
     yawrate_offset_1st_parameter_.estimated_velocity_threshold = arg_conf["yawrate_offset"]["estimated_velocity_threshold"].as<double>();
     yawrate_offset_1st_parameter_.estimated_number_max = arg_conf["yawrate_offset"]["1st"]["estimated_number_max"].as<int>();
     yawrate_offset_1st_parameter_.outlier_threshold = arg_conf["yawrate_offset"]["outlier_threshold"].as<double>();
 
-    yawrate_offset_2nd_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_2nd_parameter_.estimated_number_min = arg_conf["yawrate_offset"]["estimated_number_min"].as<int>();
     yawrate_offset_2nd_parameter_.estimated_coefficient = arg_conf["yawrate_offset"]["estimated_coefficient"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_velocity_threshold = arg_conf["yawrate_offset"]["estimated_velocity_threshold"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_number_max = arg_conf["yawrate_offset"]["2nd"]["estimated_number_max"].as<int>();
     yawrate_offset_2nd_parameter_.outlier_threshold = arg_conf["yawrate_offset"]["outlier_threshold"].as<double>();
 
-    yawrate_offset_stop_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     yawrate_offset_stop_parameter_.stop_judgment_velocity_threshold = arg_conf["yawrate_offset_stop"]["stop_judgment_velocity_threshold"].as<double>();
     yawrate_offset_stop_parameter_.estimated_number = arg_conf["yawrate_offset_stop"]["estimated_number"].as<int>();
     yawrate_offset_stop_parameter_.outlier_threshold = arg_conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
@@ -187,7 +195,6 @@ void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std
     height_parameter_.outlier_threshold = arg_conf["height"]["outlier_threshold"].as<double>();
     height_parameter_.average_num = arg_conf["height"]["average_num"].as<int>();
 
-    rolling_parameter_.reverse_imu = arg_conf["reverse_imu"].as<bool>();
     rolling_parameter_.stop_judgment_velocity_threshold = arg_conf["rolling"]["stop_judgment_velocity_threshold"].as<double>();
     rolling_parameter_.filter_process_noise = arg_conf["rolling"]["filter_process_noise"].as<double>();
     rolling_parameter_.filter_observation_noise = arg_conf["rolling"]["filter_observation_noise"].as<double>();
@@ -237,6 +244,30 @@ bool eagleye_pp::getUseCombination(void)
  return (output_kml_eagleye_pp_line_ || output_kml_eagleye_pp_plot_);
 }
 
+sensor_msgs::Imu eagleye_pp::transformIMU(sensor_msgs::Imu imu_msg)
+{
+  sensor_msgs::Imu transformed_imu_msg;
+  transformed_imu_msg.header = imu_msg.header;
+
+  transformed_imu_msg.header = imu_msg.header;
+  geometry_msgs::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
+  geometry_msgs::Quaternion  transformed_quaternion;
+
+  angular_velocity.header = imu_msg.header;
+  angular_velocity.vector = imu_msg.angular_velocity;
+  linear_acceleration.header = imu_msg.header;
+  linear_acceleration.vector = imu_msg.linear_acceleration;
+
+  tf2::doTransform(angular_velocity, transformed_angular_velocity, base_link2imu_);
+  tf2::doTransform(linear_acceleration, transformed_linear_acceleration, base_link2imu_);
+  tf2::doTransform(imu_msg.orientation, transformed_quaternion, base_link2imu_);
+
+  transformed_imu_msg.angular_velocity = transformed_angular_velocity.vector;
+  transformed_imu_msg.linear_acceleration = transformed_linear_acceleration.vector;
+  transformed_imu_msg.orientation = transformed_quaternion;
+  return transformed_imu_msg;
+}
+
 /****************************************************************
 syncTimestamp
 Function to synchronize time
@@ -278,7 +309,8 @@ void eagleye_pp::syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_vie
       if (m_imu_msg != NULL)
       {
         sensor_msgs::Imu imu_msg = *m_imu_msg;
-        imu_.push_back(imu_msg);
+        sensor_msgs::Imu transformed_imu_msg = transformIMU(imu_msg);
+        imu_.push_back(transformed_imu_msg);
         rosbag_stamp.push_back(m.getTime().toNSec());
       }
       if (m_rtklib_nav_msg != NULL)

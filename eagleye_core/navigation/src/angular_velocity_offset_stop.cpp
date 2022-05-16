@@ -47,34 +47,16 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
   // data buffer generate
   if (angular_velocity_stop_status->estimate_start_status == false)
   {
-    if (angular_velocity_stop_parameter.reverse_imu == false)
-    {
-      angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-      angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-      angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-    }
-    else if (angular_velocity_stop_parameter.reverse_imu == true)
-    {
-      angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-      angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-      angular_velocity_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
-    }
+    angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
+    angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
+    angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
   }
   else if ( std::fabs(std::fabs(angular_velocity_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
     angular_velocity_stop_parameter.outlier_threshold && angular_velocity_stop_status->estimate_start_status == true)
   {
-    if (angular_velocity_stop_parameter.reverse_imu == false)
-    {
-      angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-      angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-      angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-    }
-    else if (angular_velocity_stop_parameter.reverse_imu == true)
-    {
-      angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-      angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-      angular_velocity_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
-    }
+    angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
+    angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
+    angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
   }
 
   rollrate_buffer_length = std::distance(angular_velocity_stop_status->rollrate_buffer.begin(), angular_velocity_stop_status->rollrate_buffer.end());

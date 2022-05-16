@@ -102,12 +102,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "rtk_heading");
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("gga_topic",subscribe_gga_topic_name);
-  nh.getParam("reverse_imu", _heading_parameter.reverse_imu);
   nh.getParam("rtk_heading/estimated_distance",_heading_parameter.estimated_distance);
   nh.getParam("rtk_heading/estimated_heading_buffer_min",_heading_parameter.estimated_heading_buffer_min);
   nh.getParam("rtk_heading/estimated_number_min",_heading_parameter.estimated_number_min);
@@ -119,9 +116,7 @@ int main(int argc, char** argv)
   nh.getParam("rtk_heading/stop_judgment_velocity_threshold",_heading_parameter.stop_judgment_velocity_threshold);
   nh.getParam("rtk_heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _heading_parameter.reverse_imu << std::endl;
   std::cout<< "estimated_distance " << _heading_parameter.estimated_distance << std::endl;
   std::cout<< "estimated_heading_buffer_min " << _heading_parameter.estimated_heading_buffer_min << std::endl;
   std::cout<< "estimated_number_min " << _heading_parameter.estimated_number_min << std::endl;
@@ -169,7 +164,7 @@ int main(int argc, char** argv)
     ros::shutdown();
   }
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());

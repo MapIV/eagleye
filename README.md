@@ -73,9 +73,9 @@ Clone and build the necessary packages for Eagleye.
 
 * Output rate 50Hz
 
-2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
+2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set `pitch` to `14159` in `eagleye/eagleye_util/tf/config/sensors_tf.yaml`.
 
-		 reverse_imu: true
+		 pitch: 3.14159
 
 ## Start each sensor driver
 

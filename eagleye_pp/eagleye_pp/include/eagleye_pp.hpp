@@ -43,6 +43,9 @@
 #include "navigation/navigation.hpp"
 #include "nmea2fix/nmea2fix.hpp"
 
+#include <tf2/utils.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+
 class eagleye_pp
 {
 private:
@@ -61,6 +64,8 @@ private:
   std::vector<nmea_msgs::Sentence> nmea_sentence_;
   std::vector<nmea_msgs::Gpgga> gga_;
   std::vector<nmea_msgs::Gprmc> rmc_;
+
+  geometry_msgs::TransformStamped base_link2imu_;
 
   struct EagleyeStates
   {
@@ -166,6 +171,8 @@ public:
   std::vector<rtklib_msgs::RtklibNav> getRtklibNavVector();
   bool getUseBackward();
   bool getUseCombination();
+
+  sensor_msgs::Imu transformIMU(sensor_msgs::Imu imu_msg);
 
   void syncTimestamp(bool arg_nmea_data_flag, rosbag::View& arg_in_view);
   void estimatingEagleye(bool arg_forward_flag);

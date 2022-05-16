@@ -43,14 +43,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
   bool heading_estimate_status;
   std::size_t imu_stamp_buffer_length;
 
-  if (heading_interpolate_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_interpolate_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {

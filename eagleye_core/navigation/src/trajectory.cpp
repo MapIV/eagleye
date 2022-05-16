@@ -37,32 +37,18 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Velocit
   geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {
 
-  if (trajectory_parameter.reverse_imu == false)
+  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
+  yawrate_offset_2nd.status.enabled_status == true)
   {
-    if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
-    yawrate_offset_2nd.status.enabled_status == true)
-    {
-      eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); // Inverted because the coordinate system is reversed
-    }
-    else
-    {
-      eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); // Inverted because the coordinate system is reversed
-    }
+    // Inverted because the coordinate system is reversed
+    eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
   }
-  else if (trajectory_parameter.reverse_imu == true)
+  else
   {
-    if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold  &&
-      yawrate_offset_2nd.status.enabled_status == true)
-    {
-      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
-      // Inverted because the coordinate system is reversed
-    }
-    else
-    {
-      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); 
-      // Inverted because the coordinate system is reversed
-    }
+    // Inverted because the coordinate system is reversed
+    eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
+
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
 
   if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true &&
@@ -121,30 +107,18 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::Veloc
   const eagleye_msgs::YawrateOffset yawrate_offset_2nd, const eagleye_msgs::Pitching pitching, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {
 
-  if (trajectory_parameter.reverse_imu == false)
+  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
+    yawrate_offset_2nd.status.enabled_status == true)
   {
-    if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
-      yawrate_offset_2nd.status.enabled_status == true)
-    {
-      eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
-    }
-    else
-    {
-      eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); //Inverted because the coordinate system is reversed
-    }
+    //Inverted because the coordinate system is reversed
+    eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
   }
-  else if (trajectory_parameter.reverse_imu == true)
+  else
   {
-    if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold  &&
-      yawrate_offset_2nd.status.enabled_status == true)
-    {
-      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
-    }
-    else
-    {
-      eagleye_twist->twist.angular.z = -1 * (-1 * imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset); //Inverted because the coordinate system is reversed
-    }
+    //Inverted because the coordinate system is reversed
+    eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
+
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
 
   if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true &&

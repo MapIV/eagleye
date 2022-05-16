@@ -12,9 +12,6 @@ nmea_sentence_topic: /mosaic/nmea_sentence
 localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
-reverse_imu: false                                    # reverse imu angular_velocity.z
-reverse_imu_angular_velocity_x: true                  # reverse imu angular_velocity.x
-reverse_imu_linear_acceleration_y: false              # reverse imu linear_acceleration.y
 
 tf_gnss_frame:
   parent: "base_link"

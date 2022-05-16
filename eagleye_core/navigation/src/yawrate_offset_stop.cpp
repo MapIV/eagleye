@@ -45,26 +45,12 @@ void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, co
   // data buffer generate
   if (yawrate_offset_stop_status->estimate_start_status == false)
   {
-    if (yawrate_offset_stop_parameter.reverse_imu == false)
-    {
-      yawrate_offset_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-    }
-    else if (yawrate_offset_stop_parameter.reverse_imu == true)
-    {
-      yawrate_offset_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
-    }
+    yawrate_offset_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
   }
   else if ( std::fabs(std::fabs(yawrate_offset_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
     yawrate_offset_stop_parameter.outlier_threshold && yawrate_offset_stop_status->estimate_start_status == true)
   {
-    if (yawrate_offset_stop_parameter.reverse_imu == false)
-    {
-      yawrate_offset_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-    }
-    else if (yawrate_offset_stop_parameter.reverse_imu == true)
-    {
-      yawrate_offset_stop_status->yawrate_buffer.push_back(-1 * imu.angular_velocity.z);
-    }
+    yawrate_offset_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
   }
 
   yawrate_buffer_length = std::distance(yawrate_offset_stop_status->yawrate_buffer.begin(), yawrate_offset_stop_status->yawrate_buffer.end());

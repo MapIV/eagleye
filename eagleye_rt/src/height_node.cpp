@@ -119,7 +119,7 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold " << _height_parameter.outlier_threshold << std::endl;
   std::cout<< "average_num " << _height_parameter.average_num << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());

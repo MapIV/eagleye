@@ -71,14 +71,10 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
 void setParam(ros::NodeHandle nh)
 {
-  nh.getParam("imu_topic", _subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _rolling_parameter.reverse_imu);
   nh.getParam("rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
   nh.getParam("rolling/filter_process_noise", _rolling_parameter.filter_process_noise);
   nh.getParam("rolling/filter_observation_noise", _rolling_parameter.filter_observation_noise);
 
-  std::cout << "subscribe_imu_topic_name " << _subscribe_imu_topic_name << std::endl;
-  std::cout << "reverse_imu " << _rolling_parameter.reverse_imu << std::endl;
   std::cout << "stop_judgment_velocity_threshold " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
   std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
@@ -89,7 +85,7 @@ void rolling_node(ros::NodeHandle nh)
   setParam(nh);
 
   ros::Subscriber imu_sub =
-      nh.subscribe(_subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+      nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber velocity_scale_factor_sub =
       nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber yawrate_offset_2nd_sub =

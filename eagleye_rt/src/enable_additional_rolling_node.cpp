@@ -94,14 +94,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "enable_additional_rolling");
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name;
   std::string subscribe_localization_pose_topic_name;
 
   nh.getParam("localization_pose_topic", subscribe_localization_pose_topic_name);
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _rolling_parameter.reverse_imu);
-  nh.getParam("reverse_imu_angular_velocity_x", _rolling_parameter.reverse_imu_angular_velocity_x);
-  nh.getParam("reverse_imu_linear_acceleration_y", _rolling_parameter.reverse_imu_linear_acceleration_y);
   nh.getParam("enable_additional_rolling/matching_update_distance", _rolling_parameter.matching_update_distance);
   nh.getParam("enable_additional_rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
   nh.getParam("enable_additional_rolling/rolling_buffer_num", _rolling_parameter.rolling_buffer_num);
@@ -109,10 +104,6 @@ int main(int argc, char** argv)
   nh.getParam("enable_additional_rolling/imu_buffer_num", _rolling_parameter.imu_buffer_num);
 
   std::cout<< "subscribe_localization_pose_topic_name: " << subscribe_localization_pose_topic_name << std::endl;
-  std::cout<< "subscribe_imu_topic_name: " <<  subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " <<  _rolling_parameter.reverse_imu << std::endl;
-  std::cout<< "reverse_imu_angular_velocity_x: " << _rolling_parameter.reverse_imu_angular_velocity_x << std::endl;
-  std::cout<< "reverse_imu_linear_acceleration_y: " << _rolling_parameter.reverse_imu_linear_acceleration_y << std::endl;
   std::cout<< "matching_update_distance: " << _rolling_parameter.matching_update_distance << std::endl;
   std::cout<< "stop_judgment_velocity_threshold: " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "rolling_buffer_num: " << _rolling_parameter.rolling_buffer_num << std::endl;
@@ -125,7 +116,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe(subscribe_localization_pose_topic_name, 1000, localization_pose_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback , ros::TransportHints().tcpNoDelay());
 
   _pub1 = nh.advertise<eagleye_msgs::AccYOffset>("acc_y_offset_additional_rolling", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Rolling>("enable_additional_rolling", 1000);

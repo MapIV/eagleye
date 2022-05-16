@@ -1077,7 +1077,7 @@ int main(int argc, char** argv)
 
   std::cout << output_log_dir << std::endl;
 
-  ros::Subscriber sub1 = n.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = n.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, rtklib_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe(subscribe_gga_topic_name, 1000, navsatfix_gga_callback, ros::TransportHints().tcpNoDelay());
