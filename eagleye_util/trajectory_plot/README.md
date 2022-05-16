@@ -36,6 +36,7 @@ ref data input options
 * [`-ref`]: Import reference data referenced by column count
 * [`-df_ref`]: Import reference data by reference with the name of the HEADER(POSLV csv)
 * [`-df_ref_ros`]: Import reference data of type geometry_msgs/PoseStamped with reference to the name of the HEADER
+* [`-ref_log`]: Import eagleye_pp data by reference with the name of the HEADER(eagleye_log.csv)
 
 eagleye data input options
 * [`-csv`]: Import eagleye data referenced by column count

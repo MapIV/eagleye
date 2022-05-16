@@ -46,6 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("-csv", "--input_csv", help="Path to the csv")
     parser.add_argument("-df_csv", "--input_df_csv", help="Path to the csv by df")
     parser.add_argument("-log", "--input_log_csv", help="Path to the csv by df")
+    parser.add_argument("-ref_log", "--input_ref_log", help="Path to the csv by df")
     parser.add_argument("-p", "--plane_num",help="Plane Cartesian coordinate system number")
     parser.add_argument("-s", "--sync_threshold_time_data_param",help="Gap time to be regarded as synchronous")
     parser.add_argument("-l", "--leap_time_param",help="Time offset correction")
@@ -154,6 +155,10 @@ if __name__ == "__main__":
         csv_data_df = util_prepro.set_df(args.input_df_csv)
         print("set csv_data")
 
+    if args.input_ref_log != None:
+        ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane)
+        print("set ref_data")
+
     if args.input_log_csv != None:
         csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane)
         print("set csv_data")
@@ -201,7 +206,7 @@ if __name__ == "__main__":
         ref_vel_df = pd.concat([ref_df['vel_x'],ref_df['vel_y'],ref_df['vel_z']],axis=1)
         ref_velocity = util_calc.calc_velocity(ref_vel_df)
     elif 'velocity' in ref_df.columns:
-        ref_velocity = ref_df['velocity']
+        ref_velocity['velocity'] = ref_df['velocity']
 
     # correct anntena position
     if tf_across != 0 or tf_along != 0 or tf_height != 0:
