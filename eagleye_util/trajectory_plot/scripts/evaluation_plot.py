@@ -289,5 +289,7 @@ if __name__ == "__main__":
     # plot 3d trajectory
     util_plot.plot_traj_3d( ref_df, data_df, ref_data_name)
 
+    util_calc.error_evaluation(error_plot_df)
+
     plt.show()
     

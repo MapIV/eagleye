@@ -8,6 +8,7 @@ import math
 
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
+from decimal import Decimal, ROUND_HALF_UP
 
 def xyz2enu(ecef_xyz,org_xyz):
     org_llh = xyz2llh(org_xyz)
@@ -395,4 +396,27 @@ def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_leng
                     break
     calc_error = pd.DataFrame(set_calc_error,columns=['start_distance','distance','absolute_pos_x','absolute_pos_y','dr_pos_x','dr_pos_y','error_x','error_y','error_2d'])
     return calc_error
+
+def error_evaluation_each(error, elem):
+    data_max = max(error[elem])
+    data_average = np.average(error[elem])
+    data_std = np.std(error[elem])
+    data_rms = np.sqrt(np.square(error[elem]).mean(axis = 0))
+    digits_num = '0.01'
+    return [elem, \
+           (Decimal(str(data_max)).quantize(Decimal(digits_num), rounding=ROUND_HALF_UP) ), \
+           (Decimal(str(data_average)).quantize(Decimal(digits_num), rounding=ROUND_HALF_UP) ), \
+           (Decimal(str(data_std)).quantize(Decimal(digits_num), rounding=ROUND_HALF_UP) ), \
+           (Decimal(str(data_rms)).quantize(Decimal(digits_num), rounding=ROUND_HALF_UP) )]
+
+def error_evaluation(error):
+    x = error_evaluation_each(error, 'x')
+    y = error_evaluation_each(error, 'y')
+    z = error_evaluation_each(error, 'z')
+    xy = error_evaluation_each(error, '2d')
+    roll = error_evaluation_each(error, 'roll')
+    pitch = error_evaluation_each(error, 'pitch')
+    yaw = error_evaluation_each(error, 'yaw')
+    error_table = pd.DataFrame([x, y, z, xy, roll, pitch, yaw], columns = ['data', 'max', 'average', 'std', 'rms'])
+    print(error_table)
 
