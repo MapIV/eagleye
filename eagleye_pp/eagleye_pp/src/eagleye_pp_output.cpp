@@ -149,7 +149,13 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
   // output debug file
   for(int i=0; i<data_length_; i++)
   {
-    if(smoothing_trajectory_status_[i] == 0)
+
+    if(smoothing_trajectory_status_.empty() || smoothing_trajectory_status_[i] == -1)
+    {
+      std_dev_pos = 100.0;
+      std_dev_pos_z = 100.0;
+    }
+    else if(smoothing_trajectory_status_[i] == 0)
     {
       std_dev_pos = 0.3;
     }
@@ -160,11 +166,6 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     else if(smoothing_trajectory_status_[i] == 2)
     {
       std_dev_pos = 4.0;
-    }
-    else if(smoothing_trajectory_status_[i] == -1)
-    {
-      std_dev_pos = 100.0;
-      std_dev_pos_z = 100.0;
     }
 
     std_dev_roll = (eagleye_state_forward_.rolling[i].status.enabled_status) ? 0.5 / 180 * M_PI : 100;
