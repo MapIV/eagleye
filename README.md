@@ -40,10 +40,10 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 
 	sudo apt-get install gfortran
 	cd $HOME
-	git clone -b rtklib_ros_bridge https://github.com/MapIV/RTKLIB.git
+	git clone -b rtklib_ros_bridge_b34 https://github.com/MapIV/RTKLIB.git
 	cd $HOME/RTKLIB/lib/iers/gcc/
 	make
-	cd $HOME/RTKLIB/app
+	cd $HOME/RTKLIB/app/consapp
 	make 
 
 ### ROS Packages
