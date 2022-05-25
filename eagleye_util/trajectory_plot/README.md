@@ -43,6 +43,7 @@ eagleye data input options
 * [`-df_csv`]: Import eagleye data by reference with the name of the HEADER(/eagleye/pose)
 * [`-log`]: Import eagleye_pp data by reference with the name of the HEADER(eagleye_log.csv)
 * [`-p`]: Plane Cartesian coordinate system number
+* [`-r`]: reverse imu angular_velocity.z
 
 Time synchronization options
 * [`-s`]: Gap time to be regarded as synchronous[s]

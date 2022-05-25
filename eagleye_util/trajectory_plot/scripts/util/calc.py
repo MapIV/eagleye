@@ -291,9 +291,7 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
         ref_qual = pd.DataFrame(set_ref_data_qual,columns=['qual'])
     
     ref_df_output = pd.concat([ref_df,ref_ori,ref_rpy,ref_velocity,ref_vel,ref_distance,ref_qual],axis=1)
-   
     return ref_df_output , data_df_output
-
 
 def calc_error_xyz(elapsed_time,ref_time,eagleye_time,ref_xyz,data_xyz,ref_yaw):
     error_xyz = pd.DataFrame()
@@ -315,32 +313,45 @@ def calc_error_xyz(elapsed_time,ref_time,eagleye_time,ref_xyz,data_xyz,ref_yaw):
     return error
   
 
-def calc_TraRate(diff_2d , eval_step_max): # Calculation of error , x_label , ErrTra_Rater rate
+def calc_TraRate(diff_2d , eval_step_max): # Calculation of error , x_label , ErrTra_Rate rate
     ErrTra_cnt: List[int] = []
+    set_ErrTra_middle: List[float] = []
     set_ErrTra: List[float] = []
     ErrTra_cnt = len(diff_2d)
-    step = 0.1
 
-    for j in range(0 , eval_step_max , 1):
+    step = 0.01
+    eval_step_middle = 0.1
+    for i in np.arange(0, eval_step_middle, step):
         cnt = 0
-        eval_step = j * step
-        for i, ErrTra in tqdm(enumerate(diff_2d)):
-            if ErrTra < eval_step:
+        eval_step = i
+        for data in diff_2d:
+            if data < eval_step:
+                cnt = cnt + 1
+        rate = cnt / ErrTra_cnt
+        set_ErrTra_middle.append([eval_step,rate,rate *100])
+    ErrTra_Rate_middle = pd.DataFrame(set_ErrTra_middle,columns=['x_label','ErrTra_Rate','ErrTra'])
+
+    step = 0.1
+    for i in np.arange(eval_step_middle, eval_step_max, step):
+        cnt = 0
+        eval_step = i
+        for data in diff_2d:
+            if data < eval_step:
                 cnt = cnt + 1
         rate = cnt / ErrTra_cnt
         set_ErrTra.append([eval_step,rate,rate *100])
-    ErrTra_Rate = pd.DataFrame(set_ErrTra,columns=['x_label','ErrTra_Rate','ErrTra'])
+    ErrTra_Rate_tmp = pd.DataFrame(set_ErrTra,columns=['x_label','ErrTra_Rate','ErrTra'])
+    ErrTra_Rate = pd.concat([ErrTra_Rate_middle,ErrTra_Rate_tmp])
     return ErrTra_Rate
-
 
 def quaternion_to_euler_zyx(ori):
     set_eular_angle: List[float] = []
     for i in range(len(ori)):
-        q = [ori.iloc[i]['ori_w'],ori.iloc[i]['ori_x'],ori.iloc[i]['ori_y'],ori.iloc[i]['ori_z']]
+        q = [ori.iloc[i]['ori_x'],ori.iloc[i]['ori_y'],ori.iloc[i]['ori_z'],ori.iloc[i]['ori_w']]
         r = R.from_quat([q[0], q[1], q[2], q[3]])
-        roll = r.as_euler('zyx', degrees=True)[0]
-        pitch = r.as_euler('zyx', degrees=True)[1]
-        yaw = r.as_euler('zyx', degrees=True)[2]
+        roll = r.as_euler('ZYX', degrees=True)[2]
+        pitch = r.as_euler('ZYX', degrees=True)[1]
+        yaw = r.as_euler('ZYX', degrees=True)[0]
         set_eular_angle.append([roll,pitch,yaw])
     euler_angle = pd.DataFrame(set_eular_angle,columns=['roll','pitch','yaw'])
     return euler_angle
@@ -350,6 +361,11 @@ def calc_error_rpy(ref_angle,eagleye_angle):
     error_rpy['roll'] = eagleye_angle['roll'] - ref_angle['roll']
     error_rpy['pitch'] = eagleye_angle['pitch'] - ref_angle['pitch']
     error_rpy['yaw'] = eagleye_angle['yaw'] - ref_angle['yaw']
+    for i in range(len(error_rpy)):
+        if error_rpy['yaw'][i] > math.degrees(math.pi):
+            error_rpy['yaw'][i] = error_rpy['yaw'][i] - 2 * math.degrees(math.pi) 
+        elif error_rpy['yaw'][i] < -math.degrees(math.pi):
+            error_rpy['yaw'][i] = error_rpy['yaw'][i] + 2 * math.degrees(math.pi)
     return error_rpy
 
 def calc_velocity(vel):
@@ -361,7 +377,6 @@ def calc_velocity_error(eagleye_velocity,ref_velocity):
     error_velocity = pd.DataFrame()
     error_velocity['velocity'] = eagleye_velocity - ref_velocity
     return error_velocity
-
 
 def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step):
     last_distance = 0
@@ -418,5 +433,5 @@ def error_evaluation(error):
     pitch = error_evaluation_each(error, 'pitch')
     yaw = error_evaluation_each(error, 'yaw')
     error_table = pd.DataFrame([x, y, z, xy, roll, pitch, yaw], columns = ['data', 'max', 'average', 'std', 'rms'])
-    print(error_table)
+    return error_table
 

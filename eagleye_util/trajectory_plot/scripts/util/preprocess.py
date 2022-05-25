@@ -33,37 +33,33 @@ import math
 
 import util.calc as util_calc
 
-def set_ref_data(ref_data_tmp): # Creation of dataset with reference to column number
-    set_data: List[float] = []
-    for i, data in enumerate(ref_data_tmp):
-        if i == 0: continue
-        ref_data_time: float = float(data[2]) * 1e-9
-        ref_data_x: float = float(data[4])
-        ref_data_y: float = float(data[5])
-        ref_data_z: float = float(data[6])
-        ref_data_ori_x: float = float(data[7])
-        ref_data_ori_y: float = float(data[8])
-        ref_data_ori_z: float = float(data[9])
-        ref_data_ori_w: float = float(data[10])
-        set_data.append([ref_data_time,ref_data_x,ref_data_y,ref_data_z,ref_data_ori_x,ref_data_ori_y,ref_data_ori_z,ref_data_ori_w])
-        df = pd.DataFrame(set_data,columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
-    return df
+def set_ref_data(input_path): # Creation of dataset with reference to column number
+    tmp_df = pd.read_csv(input_path,header=0, index_col=None)
+    ref_data_time = pd.Series(tmp_df.iloc[:,2], name='TimeStamp')
+    ref_data_x = pd.Series(tmp_df.iloc[:,4], name='x')
+    ref_data_y = pd.Series(tmp_df.iloc[:,5], name='y')
+    ref_data_z = pd.Series(tmp_df.iloc[:,6], name='z')
+    ref_data_ori_x = pd.Series(tmp_df.iloc[:,7], name='ori_x')
+    ref_data_ori_y = pd.Series(tmp_df.iloc[:,8], name='ori_y')
+    ref_data_ori_z = pd.Series(tmp_df.iloc[:,9], name='ori_z')
+    ref_data_ori_w = pd.Series(tmp_df.iloc[:,10], name='ori_w')
+    set_ref_df = pd.concat([ref_data_time, ref_data_x, ref_data_y, ref_data_z, ref_data_ori_x, ref_data_ori_y, ref_data_ori_z, ref_data_ori_w],axis=1)
+    set_ref_df['TimeStamp'] = set_ref_df['TimeStamp'] * 10 ** (-9)
+    return set_ref_df
 
-def set_csv_data(csv_data_tmp): # Creation of dataset with reference to column number
-    set_data: List[float] = []
-    for i, data in enumerate(csv_data_tmp):
-        if i == 0: continue
-        ref_data_time: float = float(data[2]) * 1e-9
-        ref_data_x: float = float(data[4])
-        ref_data_y: float = float(data[5])
-        ref_data_z: float = float(data[6])
-        ref_data_ori_x: float = float(data[7])
-        ref_data_ori_y: float = float(data[8])
-        ref_data_ori_z: float = float(data[9])
-        ref_data_ori_w: float = float(data[10])
-        set_data.append([ref_data_time,ref_data_x,ref_data_y,ref_data_z,ref_data_ori_x,ref_data_ori_y,ref_data_ori_z,ref_data_ori_w])
-        df = pd.DataFrame(set_data,columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
-    return df
+def set_csv_data(input_path): # Creation of dataset with reference to column number
+    tmp_df = pd.read_csv(input_path,header=0, index_col=None)
+    data_time = pd.Series(tmp_df.iloc[:,2], name='TimeStamp')
+    data_x = pd.Series(tmp_df.iloc[:,4], name='x')
+    data_y = pd.Series(tmp_df.iloc[:,5], name='y')
+    data_z = pd.Series(tmp_df.iloc[:,6], name='z')
+    data_ori_x = pd.Series(tmp_df.iloc[:,7], name='ori_x')
+    data_ori_y = pd.Series(tmp_df.iloc[:,8], name='ori_y')
+    data_ori_z = pd.Series(tmp_df.iloc[:,9], name='ori_z')
+    data_ori_w = pd.Series(tmp_df.iloc[:,10], name='ori_w')
+    set_df = pd.concat([data_time, data_x, data_y, data_z, data_ori_x, data_ori_y, data_ori_z, data_ori_w],axis=1)
+    set_df['TimeStamp'] = set_df['TimeStamp'] * 10 ** (-9)
+    return set_df
 
 def set_df(input): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input)

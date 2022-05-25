@@ -58,7 +58,7 @@ def plot_xyz(ax, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, r
 
 def plot_rpy(ax, x_data, eagleye_plot_rpy, elem, title, y_label):
     if elem in eagleye_plot_rpy.columns:
-        ax.plot(x_data , eagleye_plot_rpy[elem] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue",  label="eagleye")
+        ax.plot(x_data , eagleye_plot_rpy[elem] , marker="s", linestyle="None",markersize=1, color = "blue",  label="eagleye")
     ax.set_xlabel('time [s]')
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -107,14 +107,14 @@ def plot_6DoF(x_data,eagleye, ref,ref_data_name):
     plot_each(ax_yaw, x_data , eagleye, ref, 'yaw', 'Yaw', 'Yaw [deg]',ref_data_name)
 
 def plot_each_error(ax, error_data, y_data, title, y_label):
-    ax.plot(error_data['elapsed_time'] , error_data[y_data] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue")
+    ax.plot(error_data['elapsed_time'] , error_data[y_data] , marker="s", linestyle="None",markersize=1, color = "blue")
     ax.set_xlabel('time [s]')
     ax.set_ylabel(y_label)
     ax.set_title(title)
     ax.grid()
 
-def plot_one(ax, error_data, x_data, y_data, title, x_label, y_label, line_style):
-    ax.plot(error_data[x_data] , error_data[y_data] , marker="s", linestyle=line_style, markersize=1, alpha=0.3, color = "blue")
+def plot_one(ax, error_data, x_data, y_data, title, x_label, y_label, line_style, marker_size):
+    ax.plot(error_data[x_data] , error_data[y_data] , marker="s", linestyle=line_style, markersize=marker_size, color = "blue")
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -162,8 +162,8 @@ def plot_error_distributiln(error_data,ref_data_name):
     fig5.suptitle(ref_data_name + ' - eagleye Error')
     ax_xy = fig5.add_subplot(1, 2, 1)
     ax_aa = fig5.add_subplot(1, 2, 2)
-    plot_one(ax_xy, error_data, 'x', 'y', 'X-Y error', 'x error [m]', 'y error [m]', 'None')
-    plot_one(ax_aa, error_data, 'across', 'along', 'Across-Along error', 'across error [m]', 'along error [m]', 'None')
+    plot_one(ax_xy, error_data, 'x', 'y', 'X-Y error', 'x error [m]', 'y error [m]', 'None', 1)
+    plot_one(ax_aa, error_data, 'across', 'along', 'Across-Along error', 'across error [m]', 'along error [m]', 'None', 1)
     ax_xy.set_aspect('equal')
     ax_xy.axis('square')
     ax_aa.set_aspect('equal')

@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
-    util_plot.plot_one(ax_sf, eagleye_df, 'elapsed_time', 'sf', 'Velocity scal factor', 'Time [s]', 'Velocity scal factor []', "None")
+    util_plot.plot_one(ax_sf, eagleye_df, 'elapsed_time', 'sf', 'Velocity scal factor', 'Time [s]', 'Velocity scal factor []', "None", 1)
 
     ax_vel = fig2.add_subplot(2, 1, 2)
     ax_vel.set_title('Velocity')

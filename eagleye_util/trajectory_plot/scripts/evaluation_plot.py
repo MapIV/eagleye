@@ -33,6 +33,7 @@ from typing import List
 import pandas as pd
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker
 
 import util.preprocess as util_prepro
 import util.calc as util_calc
@@ -56,10 +57,12 @@ if __name__ == "__main__":
     parser.add_argument("-tf_along", "--tf_along_param",help="tf offset correction")
     parser.add_argument("-tf_height", "--tf_height_param",help="tf offset correction")
     parser.add_argument("-tf_yaw", "--tf_yaw_param",help="tf offset correction")
+    parser.add_argument("-r", "--reverse_imu", action="store_true",help="change reverse_imu true")
     parser.add_argument("-dr_l", "--distance_length_param",help="tf offset correction")
     parser.add_argument("-dr_s", "--distance_step_param",help="tf offset correction")
     parser.add_argument("-ref_name", "--ref_data_name_param",help="ref data name")
     args = parser.parse_args()
+    reverse_imu: bool = args.reverse_imu
 
     # default_param
     plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
@@ -74,7 +77,7 @@ if __name__ == "__main__":
     distance_length = 100 # Distance to calculate relative trajectory. (default:100 = 100[m])
     distance_step = 50 # Calculate relative trajectories step (default:50 = 50[m])
     ref_data_name = 'ref data' # Reference Legend Name. (default:'ref data')
-    eval_step_max = 15 # Maximum value of error to be evaluated default (default:15 = 1.5[m])
+    eval_step_max = 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
 
     # set param
     if args.plane_num != None:
@@ -122,26 +125,19 @@ if __name__ == "__main__":
     print('tf_along',tf_along)
     print('tf_height',tf_height)
     print('tf_yaw',tf_yaw)
+    print('reverse_imu',reverse_imu)
     print('distance_length',distance_length)
     print('distance_step',distance_step)
     print('ref_data_name',ref_data_name)
 
     # set data
     if args.ref != None:
-        input_ref_path: str = args.ref
-        with open(input_ref_path) as f:
-            reader = csv.reader(f)
-            ref_data_tmp = [row for row in reader]
-            ref_data_df = util_prepro.set_ref_data(ref_data_tmp)
-            print("set ref_data")
+        ref_data_df = util_prepro.set_ref_data(args.ref)
+        print("set ref_data")
 
     if args.input_csv != None:
-        input_csv_path: str = args.input_csv
-        with open(input_csv_path) as r:
-            reader = csv.reader(r)
-            csv_data_tmp = [row for row in reader]
-            csv_data_df = util_prepro.set_csv_data(csv_data_tmp)
-            print("set csv_data")
+        csv_data_df = util_prepro.set_csv_data(args.input_csv)
+        print("set csv_data")
         
     if args.df_ref != None:
         ref_data_df = util_prepro.set_ref_df(args.df_ref)
@@ -181,9 +177,11 @@ if __name__ == "__main__":
     elif 'roll' in data_df.columns and 'pitch' in data_df.columns and 'yaw' in data_df.columns:
         eagleye_rpy = pd.concat([data_df['roll'],data_df['pitch'],data_df['yaw']],axis=1)
 
-    if tf_yaw != 0:
-        print("yaw data set")
+    if tf_yaw != 0 or reverse_imu == True :
+        print("set eagleye yaw data")
         set_heading_data: List[float] = []
+        if reverse_imu == True:
+            eagleye_rpy['yaw'] = -1 * eagleye_rpy['yaw']
         eagleye_rpy['yaw'] = eagleye_rpy['yaw'] + tf_yaw
         for i in range(len(eagleye_rpy)):
             yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(eagleye_rpy['yaw'][i]))
@@ -234,6 +232,7 @@ if __name__ == "__main__":
 
     # plot 6dof error
     error_plot_df = pd.concat([Error_data,error_rpy,error_velocity],axis=1)
+    error_table = util_calc.error_evaluation(error_plot_df)
     util_plot.plot_error_6DoF(error_plot_df,ref_data_name)
     util_plot.plot_error(error_plot_df,ref_data_name)
     util_plot.plot_error_distributiln(error_plot_df,ref_data_name)
@@ -246,8 +245,10 @@ if __name__ == "__main__":
 
         fig = plt.figure()
         ax1 = fig.add_subplot(1, 1, 1)
-        util_plot.plot_one(ax1, ErrTra_Rate, 'x_label', 'ErrTra', 'Cumulative Error Distribution', '2D error [m]', 'Rate [%]', '-')
+        util_plot.plot_one(ax1, ErrTra_Rate, 'x_label', 'ErrTra', 'Cumulative Error Distribution', '2D error [m]', 'Rate [%]', '-', 10)
         ax1.set_xscale('log') 
+        ax1.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax1.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
 
     # twist Performance Evaluation
     if 'vel_x' in data_df.columns and 'vel_y' in data_df.columns and 'distance' in data_df.columns:
@@ -262,23 +263,28 @@ if __name__ == "__main__":
 
         fig15 = plt.figure()
         ax_dr = fig15.add_subplot(2, 1, 1)
-        util_plot.plot_one(ax_dr, calc_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-')
+        util_plot.plot_one(ax_dr, calc_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
         
         ax_trarate_dr = fig15.add_subplot(2, 1, 2)
-        util_plot.plot_one(ax_trarate_dr, ErrTra_dr_df, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-')
+        util_plot.plot_one(ax_trarate_dr, ErrTra_dr_df, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
         ax_trarate_dr.set_xscale('log') 
+        ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
+        ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
 
     #  plot velocity
-    if 'velocity' in ref_velocity.columns or 'velocity' in data_df.columns:
+    if 'velocity' in ref_velocity.columns and 'velocity' in data_df.columns:
         fig11 = plt.figure()
         ax_vel = fig11.add_subplot(2, 1, 1)
         util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
 
-    if 'velocity' in error_plot_df.columns:
         ax_err_vel = fig11.add_subplot(2, 1, 2)
         fig11.suptitle(ref_data_name + ' - eagleye Error')
-        util_plot.plot_one(ax_err_vel, error_plot_df, 'elapsed_time', 'velocity', 'Velocity Error', 'time [s]', 'Velocity error[m/s]', 'None')
+        util_plot.plot_one(ax_err_vel, error_plot_df, 'elapsed_time', 'velocity', 'Velocity Error', 'time [s]', 'Velocity error[m/s]', 'None', 1)
 
+    elif 'velocity' in ref_velocity.columns or 'velocity' in data_df.columns:
+        fig11 = plt.figure()
+        ax_vel = fig11.add_subplot(1, 1, 1)
+        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
 
     # plot 2D trajectory
     util_plot.plot_traj(ref_data_xyz, eagleye_xyz, ref_data_name)
@@ -289,7 +295,7 @@ if __name__ == "__main__":
     # plot 3d trajectory
     util_plot.plot_traj_3d( ref_df, data_df, ref_data_name)
 
-    util_calc.error_evaluation(error_plot_df)
+    print(error_table)
 
     plt.show()
     
