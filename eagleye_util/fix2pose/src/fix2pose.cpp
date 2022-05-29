@@ -42,7 +42,6 @@
 static eagleye_msgs::Rolling _eagleye_rolling;
 static eagleye_msgs::Pitching _eagleye_pitching;
 static eagleye_msgs::Heading _eagleye_heading;
-static eagleye_msgs::Position _eagleye_position;
 static geometry_msgs::Quaternion _quat;
 
 static ros::Publisher _pose_pub, _pose_with_covariance_pub;
@@ -69,11 +68,6 @@ void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
 void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 {
   _eagleye_pitching = *msg;
-}
-
-void position_callback(const eagleye_msgs::Position::ConstPtr& msg)
-{
-  _eagleye_position = *msg;
 }
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
@@ -171,10 +165,9 @@ int main(int argc, char** argv)
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = nh.subscribe("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  ros::Subscriber sub3 = nh.subscribe("eagleye/fix", 1000, fix_callback);
-  ros::Subscriber sub4 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
-  ros::Subscriber sub5 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
+  ros::Subscriber sub2 = nh.subscribe("eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub3 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
+  ros::Subscriber sub4 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
   _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
   _pose_with_covariance_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/eagleye/pose_with_covariance", 1000);
   ros::spin();
