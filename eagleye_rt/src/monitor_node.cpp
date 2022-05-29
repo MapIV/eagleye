@@ -1023,6 +1023,7 @@ int main(int argc, char** argv)
   n.getParam("twist_topic",subscribe_twist_topic_name);
   n.getParam("imu_topic",subscribe_imu_topic_name);
   n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
+  n.getParam("gga_topic",subscribe_gga_topic_name)
   n.getParam("monitor/print_status",_print_status);
   n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
