@@ -344,94 +344,94 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.x << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.y << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.velocity_scale_factor[i].scale_factor << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.velocity_scale_factor[i].scale_factor << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.x << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.y << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.y << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.linear.z << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.z << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.x << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.x << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.y << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.y << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state_forward_.velocity_scale_factor[i].correction_velocity.angular.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.velocity_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.velocity_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.distance[i].distance << ",";
-      *output_log_csv_file << (eagleye_state_forward_.distance[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.distance[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_1st[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_1st[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_2nd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_2nd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_3rd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_3rd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_3rd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.heading_interpolate_3rd[i].heading_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_3rd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.heading_interpolate_3rd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_stop[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_stop[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_stop[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_1st[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.yawrate_offset_2nd[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.yawrate_offset_2nd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.slip_angle[i].coefficient << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.slip_angle[i].slip_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.slip_angle[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.slip_angle[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_vel[i].vector.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].enu_pos.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos[i].ecef_base_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].enu_pos.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_absolute_pos_interpolate[i].ecef_base_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status ? "1" : "0") << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.rollrate_offset << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.pitchrate_offset << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.angular_velocity_offset_stop.yawrate_offset << ",";
-      // *output_log_csv_file << (eagleye_state_forward_.angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
-      // *output_log_csv_file << (eagleye_state_forward_.angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.height[i].height << ",";
-      *output_log_csv_file << (eagleye_state_forward_.height[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.height[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.pitching[i].pitching_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.pitching[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.pitching[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.acc_x_offset[i].acc_x_offset << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_offset[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_offset[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.acc_x_scale_factor[i].acc_x_scale_factor << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.acc_x_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.rolling[i].rolling_angle << ",";
-      *output_log_csv_file << (eagleye_state_forward_.rolling[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state_forward_.rolling[i].status.estimate_status ? "1" : "0") << ",";
+        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.z << ",";
+      *output_log_csv_file << (eagleye_state.velocity_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.velocity_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.distance[i].distance << ",";
+      *output_log_csv_file << (eagleye_state.distance[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.distance[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_1st[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_1st[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_1st[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_1st[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_1st[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_1st[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_2nd[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_2nd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_2nd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_2nd[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_2nd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_2nd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_3rd[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_3rd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_3rd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_3rd[i].heading_angle << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_3rd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.heading_interpolate_3rd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_stop[i].yawrate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_stop[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_stop[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_1st[i].yawrate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_1st[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_1st[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_2nd[i].yawrate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_2nd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yawrate_offset_2nd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.slip_angle[i].coefficient << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.slip_angle[i].slip_angle << ",";
+      *output_log_csv_file << (eagleye_state.slip_angle[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.slip_angle[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_vel[i].vector.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_vel[i].vector.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_vel[i].vector.z << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].enu_pos.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].enu_pos.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].enu_pos.z << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].ecef_base_pos.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].ecef_base_pos.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos[i].ecef_base_pos.z << ",";
+      *output_log_csv_file << (eagleye_state.enu_absolute_pos[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.enu_absolute_pos[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].enu_pos.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].enu_pos.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].enu_pos.z << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].ecef_base_pos.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].ecef_base_pos.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_absolute_pos_interpolate[i].ecef_base_pos.z << ",";
+      *output_log_csv_file << (eagleye_state.enu_absolute_pos_interpolate[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.enu_absolute_pos_interpolate[i].status.estimate_status ? "1" : "0") << ",";
+      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.rollrate_offset << ",";
+      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.pitchrate_offset << ",";
+      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.yawrate_offset << ",";
+      // *output_log_csv_file << (eagleye_state.angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
+      // *output_log_csv_file << (eagleye_state.angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.height[i].height << ",";
+      *output_log_csv_file << (eagleye_state.height[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.height[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.pitching[i].pitching_angle << ",";
+      *output_log_csv_file << (eagleye_state.pitching[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.pitching[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.acc_x_offset[i].acc_x_offset << ",";
+      *output_log_csv_file << (eagleye_state.acc_x_offset[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.acc_x_offset[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.acc_x_scale_factor[i].acc_x_scale_factor << ",";
+      *output_log_csv_file << (eagleye_state.acc_x_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.acc_x_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.rolling[i].rolling_angle << ",";
+      *output_log_csv_file << (eagleye_state.rolling[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.rolling[i].status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; // timestamp
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; // gga_llh.latitude
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; // gga_llh.longitude
@@ -445,9 +445,9 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       }
       else
       {
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.latitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.longitude
-        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.altitude     
+        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].latitude << ","; // eagleye_pp_llh.latitude
+        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].longitude << ","; // eagleye_pp_llh.longitude
+        *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.eagleye_fix[i].altitude << ","; // eagleye_pp_llh.altitude     
       }
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[0]
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_pp_llh.orientation_covariance[1]
@@ -466,11 +466,11 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       {
         *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; // eagleye_pp_llh.status    
       }
-      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << eagleye_state_forward_.flag_reliability_buffer[i] << ","; // eagleye_pp_llh.status
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.enu_relative_pos[i].enu_pos.z << ",";
-      *output_log_csv_file << (eagleye_state_forward_.enu_relative_pos[i].status.enabled_status ? "1" : "0");
+      *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << eagleye_state.flag_reliability_buffer[i] << ","; // eagleye_pp_llh.status
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_relative_pos[i].enu_pos.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_relative_pos[i].enu_pos.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.enu_relative_pos[i].enu_pos.z << ",";
+      *output_log_csv_file << (eagleye_state.enu_relative_pos[i].status.enabled_status ? "1" : "0");
       *output_log_csv_file << "\n";
     }
 }

@@ -91,7 +91,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
   double gga_length;
   gga_length = std::distance(heading_status->gga_status_buffer.begin(), heading_status->gga_status_buffer.end());
 
-  if (heading_status->gga_status_buffer[0] == 0 && heading_status->gga_status_buffer[gga_length-1] == 0 &&
+  if (heading_status->gga_status_buffer[0] == 4 && heading_status->gga_status_buffer[gga_length-1] == 4 &&
     abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
   {
     tmp_llh[0] = heading_status->latitude_buffer[0] *M_PI/180;
