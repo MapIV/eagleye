@@ -234,8 +234,19 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_yaw * std_dev_yaw << ","; // eagleye_posture.orientation_covariance[8]
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; // navsat_llh.latitude
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; // navsat_llh.longitude
+    double navsat_lat, navsat_lon;
+    if (gga_[i].lat_dir == "N") {
+      navsat_lat = gga_[i].lat;
+    } else if (gga_[i].lat_dir == "S") {
+      navsat_lat = -gga_[i].lat;
+    }
+    if (gga_[i].lon_dir == "E") {
+      navsat_lon = gga_[i].lon;
+    } else if (gga_[i].lon_dir == "W") {
+      navsat_lon = -gga_[i].lon;
+    }
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << navsat_lat << ","; // navsat_llh.latitude
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << navsat_lon << ","; // navsat_llh.longitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation<< ","; // navsat_llh.altitude
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // navsat_llh.position_covariance[0]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // navsat_llh.position_covariance[1]
@@ -433,8 +444,19 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << (eagleye_state.rolling[i].status.enabled_status ? "1" : "0") << ",";
       *output_log_csv_file << (eagleye_state.rolling[i].status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; // timestamp
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lat << ","; // gga_llh.latitude
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].lon << ","; // gga_llh.longitude
+      double navsat_lat, navsat_lon;
+      if (gga_[i].lat_dir == "N") {
+        navsat_lat = gga_[i].lat;
+      } else if (gga_[i].lat_dir == "S") {
+        navsat_lat = -gga_[i].lat;
+      }
+      if (gga_[i].lon_dir == "E") {
+        navsat_lon = gga_[i].lon;
+      } else if (gga_[i].lon_dir == "W") {
+        navsat_lon = -gga_[i].lon;
+      }
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << navsat_lat << ","; // gga_llh.latitude
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << navsat_lon << ","; // gga_llh.longitude
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << gga_[i].alt +  gga_[i].undulation << ","; // gga_llh.altitude
       *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(gga_[i].gps_qual) << ","; // gga_llh.gps_qual
       if(getUseCombination())
@@ -597,8 +619,16 @@ std::pair<std::vector<kml_utils::Point> , std::vector<kml_utils::Point> > eagley
     kml_utils::Point point;
     point.seq = i;
     point.time = gga_[i].header.stamp.toSec();
-    point.latitude = gga_[i].lat;
-    point.longitude = gga_[i].lon;
+    if (gga_[i].lat_dir == "N") {
+      point.latitude = gga_[i].lat;
+    } else if (gga_[i].lat_dir == "S") {
+      point.latitude = -gga_[i].lat;
+    }
+    if (gga_[i].lon_dir == "E") {
+      point.longitude = gga_[i].lon;
+    } else if (gga_[i].lon_dir == "W") {
+      point.longitude = -gga_[i].lon;
+    }
     point.altitude =  gga_[i].alt +  gga_[i].undulation;
     if(int(gga_[i].gps_qual) == 4) 
     {
