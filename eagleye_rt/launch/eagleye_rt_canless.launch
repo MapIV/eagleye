@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <arg name="use_tf" default="true"/>
+
+  <group ns="eagleye">
+
+    <arg name="use_rtk_deadreckoning" default="true"/>
+    <arg name="use_rtk_heading" default="false"/>
+    <arg name="use_canless_mode" default="true"/>
+    <arg name="enable_additional_rolling" default="false"/>
+    <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
+
+    <param name="yaml_file" value="$(arg yaml_file)"/>
+    <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
+
+    <rosparam command="load" file="$(arg yaml_file)"/>
+
+    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
+    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
+    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
+    <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd" if="$(eval use_rtk_heading == false)"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_1st" type="heading_interpolate" args="1st"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_2nd" type="heading_interpolate" args="2nd"/>
+    <node pkg="eagleye_rt" name="heading_interpolate_node_3rd" type="heading_interpolate" args="3rd"/>
+    <node pkg="eagleye_rt" name="distance_node" type="distance" />
+    <node pkg="eagleye_rt" name="trajectory_node" type="trajectory" />
+    <node pkg="eagleye_rt" name="smoothing_node" type="smoothing"/>
+    <node pkg="eagleye_rt" name="height_node" type="height"/>
+    <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
+    <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
+    <!-- <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen" /> -->
+    <node pkg="eagleye_rt" name="rolling" type="rolling" />
+
+    <!-- CANLess Options -->
+    <node pkg="eagleye_rt" name="velocity_estimator" type="velocity_estimator" if="$(arg use_canless_mode)"/>
+
+    <!-- RTK Options -->
+    <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning"/>
+
+  </group>
+
+  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>
+
+  <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>
+
+</launch>
