@@ -30,33 +30,56 @@ from typing import List
 import pandas as pd
 import numpy as np
 import math
+import yaml
 
 import util.calc as util_calc
 
-def set_ref_data(input_path): # Creation of dataset with reference to column number
+def set_ref_data(input_path,yaml_path): # Creation of dataset with reference to column number
+    yaml_path_str: str = yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
+    index_time = config["ref_index"]["time"]
+    index_x = config["ref_index"]["x"]
+    index_y = config["ref_index"]["y"]
+    index_z = config["ref_index"]["z"]
+    index_ori_x = config["ref_index"]["ori_x"]
+    index_ori_y = config["ref_index"]["ori_y"]
+    index_ori_z = config["ref_index"]["ori_z"]
+    index_ori_w = config["ref_index"]["ori_w"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
-    ref_data_time = pd.Series(tmp_df.iloc[:,2], name='TimeStamp')
-    ref_data_x = pd.Series(tmp_df.iloc[:,4], name='x')
-    ref_data_y = pd.Series(tmp_df.iloc[:,5], name='y')
-    ref_data_z = pd.Series(tmp_df.iloc[:,6], name='z')
-    ref_data_ori_x = pd.Series(tmp_df.iloc[:,7], name='ori_x')
-    ref_data_ori_y = pd.Series(tmp_df.iloc[:,8], name='ori_y')
-    ref_data_ori_z = pd.Series(tmp_df.iloc[:,9], name='ori_z')
-    ref_data_ori_w = pd.Series(tmp_df.iloc[:,10], name='ori_w')
+    ref_data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
+    ref_data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
+    ref_data_y = pd.Series(tmp_df.iloc[:,index_y], name='y')
+    ref_data_z = pd.Series(tmp_df.iloc[:,index_z], name='z')
+    ref_data_ori_x = pd.Series(tmp_df.iloc[:,index_ori_x], name='ori_x')
+    ref_data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
+    ref_data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
+    ref_data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
     set_ref_df = pd.concat([ref_data_time, ref_data_x, ref_data_y, ref_data_z, ref_data_ori_x, ref_data_ori_y, ref_data_ori_z, ref_data_ori_w],axis=1)
     set_ref_df['TimeStamp'] = set_ref_df['TimeStamp'] * 10 ** (-9)
     return set_ref_df
 
-def set_csv_data(input_path): # Creation of dataset with reference to column number
+def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to column number
+    yaml_path_str: str = yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
+    index_time = config["data_index"]["time"]
+    index_x = config["data_index"]["x"]
+    index_y = config["data_index"]["y"]
+    index_z = config["data_index"]["z"]
+    index_ori_x = config["data_index"]["ori_x"]
+    index_ori_y = config["data_index"]["ori_y"]
+    index_ori_z = config["data_index"]["ori_z"]
+    index_ori_w = config["data_index"]["ori_w"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
-    data_time = pd.Series(tmp_df.iloc[:,2], name='TimeStamp')
-    data_x = pd.Series(tmp_df.iloc[:,4], name='x')
-    data_y = pd.Series(tmp_df.iloc[:,5], name='y')
-    data_z = pd.Series(tmp_df.iloc[:,6], name='z')
-    data_ori_x = pd.Series(tmp_df.iloc[:,7], name='ori_x')
-    data_ori_y = pd.Series(tmp_df.iloc[:,8], name='ori_y')
-    data_ori_z = pd.Series(tmp_df.iloc[:,9], name='ori_z')
-    data_ori_w = pd.Series(tmp_df.iloc[:,10], name='ori_w')
+    data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
+    data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
+    data_y = pd.Series(tmp_df.iloc[:,index_y], name='y')
+    data_z = pd.Series(tmp_df.iloc[:,index_z], name='z')
+    data_ori_x = pd.Series(tmp_df.iloc[:,index_ori_x], name='ori_x')
+    data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
+    data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
+    data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
     set_df = pd.concat([data_time, data_x, data_y, data_z, data_ori_x, data_ori_y, data_ori_z, data_ori_w],axis=1)
     set_df['TimeStamp'] = set_df['TimeStamp'] * 10 ** (-9)
     return set_df

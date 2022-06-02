@@ -61,6 +61,7 @@ if __name__ == "__main__":
     parser.add_argument("-dr_l", "--distance_length_param",help="tf offset correction")
     parser.add_argument("-dr_s", "--distance_step_param",help="tf offset correction")
     parser.add_argument("-ref_name", "--ref_data_name_param",help="ref data name")
+    parser.add_argument("-y", "--yaml_path",help="yaml name")
     args = parser.parse_args()
     reverse_imu: bool = args.reverse_imu
 
@@ -132,11 +133,11 @@ if __name__ == "__main__":
 
     # set data
     if args.ref != None:
-        ref_data_df = util_prepro.set_ref_data(args.ref)
+        ref_data_df = util_prepro.set_ref_data(args.ref,args.yaml_path)
         print("set ref_data")
 
     if args.input_csv != None:
-        csv_data_df = util_prepro.set_csv_data(args.input_csv)
+        csv_data_df = util_prepro.set_csv_data(args.input_csv,args.yaml_path)
         print("set csv_data")
         
     if args.df_ref != None:
@@ -233,7 +234,7 @@ if __name__ == "__main__":
     # plot 6dof error
     error_plot_df = pd.concat([Error_data,error_rpy,error_velocity],axis=1)
     error_table = util_calc.error_evaluation(error_plot_df)
-    util_plot.plot_error_6DoF(error_plot_df,ref_data_name)
+    util_plot.plot_error_6DoF(error_plot_df,ref_data_name,error_table)
     util_plot.plot_error(error_plot_df,ref_data_name)
     util_plot.plot_error_distributiln(error_plot_df,ref_data_name)
 

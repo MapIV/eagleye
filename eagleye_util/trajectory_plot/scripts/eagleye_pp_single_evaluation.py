@@ -56,16 +56,16 @@ if __name__ == "__main__":
     print('plane',plane)
 
     eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane)
-    print("set ref_data")
+    print("set eagleye_data")
 
     eagleye_ecef_base = pd.concat([eagleye_df['ecef_base_x'],eagleye_df['ecef_base_y'],eagleye_df['ecef_base_z']],axis=1)
     for i in range(len(eagleye_ecef_base)):
-        if not eagleye_ecef_base['ecef_base_x'][i] == 0 and eagleye_ecef_base['ecef_base_y'][i]:
+        if not eagleye_ecef_base['ecef_base_x'][i] == 0 and not eagleye_ecef_base['ecef_base_y'][i] == 0:
             org_x = eagleye_ecef_base['ecef_base_x'][i]
             org_y = eagleye_ecef_base['ecef_base_y'][i]
             org_z = eagleye_ecef_base['ecef_base_z'][i]
+            org_xyz = [org_x,org_y,org_z]
             break
-    org_xyz = [org_x,org_y,org_z]
 
     eagleye_xyz = pd.concat([eagleye_df['x'],eagleye_df['y'],eagleye_df['z']],axis=1)
 
