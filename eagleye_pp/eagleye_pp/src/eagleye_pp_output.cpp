@@ -348,18 +348,12 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.y << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << velocity_[i].twist.angular.z << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.velocity_scale_factor[i].scale_factor << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.linear.z << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.x << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.y << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) <<
-        eagleye_state.velocity_scale_factor[i].correction_velocity.angular.z << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.linear.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.linear.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.linear.z << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.angular.x << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.angular.y << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.correction_velocity[i].twist.angular.z << ",";
       *output_log_csv_file << (eagleye_state.velocity_scale_factor[i].status.enabled_status ? "1" : "0") << ",";
       *output_log_csv_file << (eagleye_state.velocity_scale_factor[i].status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.distance[i].distance << ",";
@@ -527,7 +521,7 @@ std::vector<kml_utils::Point> eagleye_pp::eagleyeStatus2PointVector( const Eagle
     kml_utils::addOtherInformation(point, "IMU Angular Velocity X [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.x));
     kml_utils::addOtherInformation(point, "IMU Angular Velocity Y [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.y));
     kml_utils::addOtherInformation(point, "IMU Angular Velocity Z [rad/s] ", kml_utils::makeDouble2String(imu_[i].angular_velocity.z));
-    kml_utils::addOtherInformation(point, "Estimate Velocity [km/h] ", kml_utils::makeDouble2String(eagleye_state.velocity_scale_factor[i].correction_velocity.linear.x * 3.6));
+    kml_utils::addOtherInformation(point, "Estimate Velocity [km/h] ", kml_utils::makeDouble2String(eagleye_state.correction_velocity[i].twist.linear.x * 3.6));
     kml_utils::addOtherInformation(point, "Velocity Scale Factor", kml_utils::makeDouble2String(eagleye_state.velocity_scale_factor[i].scale_factor));
     kml_utils::addOtherInformation(point, "Velocity Scale Factor Flag", kml_utils::makeBool2String(eagleye_state.velocity_scale_factor[i].status.enabled_status));
     kml_utils::addOtherInformation(point, "Estimate Heading 1st [rad] ", kml_utils::makeDouble2String(eagleye_state.heading_interpolate_1st[i].heading_angle));

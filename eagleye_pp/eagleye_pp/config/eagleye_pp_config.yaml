@@ -42,6 +42,8 @@ imu:
     pitch: 0 # [rad]
     yaw: 0 # [rad]
 
+use_canless_mode: true  #Estimate mode
+
 # Using Topic Name
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
