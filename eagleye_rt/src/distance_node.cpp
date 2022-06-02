@@ -34,12 +34,22 @@
 
 static ros::Publisher _pub;
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::Distance _distance;
 
 struct DistanceStatus _distance_status;
 
+static bool _use_canless_mode;
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
+}
+
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+
   _distance.header = msg->header;
   _distance.header.frame_id = "base_link";
   _velocity = *msg;
@@ -56,7 +66,11 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "distance");
 
   ros::NodeHandle nh;
-  ros::Subscriber sub1 = nh.subscribe("velocity", 1000, velocity_callback);
+
+  nh.getParam("use_canless_mode",_use_canless_mode);
+
+  ros::Subscriber sub1 = nh.subscribe("velocity", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<eagleye_msgs::Distance>("distance", 1000);
 
   ros::spin();

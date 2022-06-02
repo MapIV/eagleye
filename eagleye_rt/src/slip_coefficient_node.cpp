@@ -39,6 +39,7 @@
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
@@ -49,6 +50,7 @@ struct SlipCoefficientStatus _slip_coefficient_status;
 static double _estimate_coefficient;
 
 bool _is_first_correction_velocity = false;
+static bool _use_canless_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -62,6 +64,11 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
   {
     _is_first_correction_velocity = true;
   }
+}
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -81,10 +88,8 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if (_is_first_correction_velocity == false)
-  {
-    return;
-  }
+  if (_is_first_correction_velocity == false) return;
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
 
   _imu = *msg;
   slip_coefficient_estimate(_imu, _rtklib_nav, _velocity, _yawrate_offset_stop, _yawrate_offset_2nd, 
@@ -110,6 +115,7 @@ int main(int argc, char** argv)
   nh.getParam("slip_coefficient/estimated_yawrate_threshold", _slip_coefficient_parameter.estimated_yawrate_threshold);
   nh.getParam("slip_coefficient/lever_arm", _slip_coefficient_parameter.lever_arm);
   nh.getParam("slip_coefficient/stop_judgment_velocity_threshold", _slip_coefficient_parameter.stop_judgment_velocity_threshold);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
   std::cout<< "estimated_number_min " << _slip_coefficient_parameter.estimated_number_min << std::endl;

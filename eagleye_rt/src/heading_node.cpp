@@ -36,6 +36,7 @@ static rtklib_msgs::RtklibNav _rtklib_nav;
 static nmea_msgs::Gprmc _nmea_rmc;
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::YawrateOffset _yawrate_offset;
 static eagleye_msgs::SlipAngle _slip_angle;
@@ -48,6 +49,7 @@ struct HeadingParameter _heading_parameter;
 struct HeadingStatus _heading_status;
 
 static std::string _use_gnss_mode;
+static bool _use_canless_mode;
 
 bool _is_first_correction_velocity = false;
 
@@ -68,6 +70,11 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
   {
     _is_first_correction_velocity = true;
   }
+}
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -92,10 +99,8 @@ void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if (!_is_first_correction_velocity)
-  {
-    return;
-  }
+  if (!_is_first_correction_velocity) return;
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
 
   _imu = *msg;
   _heading.header = msg->header;
@@ -134,6 +139,7 @@ int main(int argc, char** argv)
   nh.getParam("heading/stop_judgment_velocity_threshold",_heading_parameter.stop_judgment_velocity_threshold);
   nh.getParam("heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
   std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
@@ -187,10 +193,11 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
 
   _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 

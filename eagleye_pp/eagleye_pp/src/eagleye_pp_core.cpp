@@ -56,6 +56,7 @@ eagleye_pp::eagleye_pp()
   velocity_scale_factor_parameter_ = {};
   position_parameter_ = {};
   position_interpolate_parameter_ = {};
+  rtk_deadreckoning_parameter_ = {};
   smoothing_parameter_ = {};
   height_parameter_ = {};
 
@@ -82,31 +83,34 @@ void eagleye_pp::setOutputPath(std::string arg_output_path)
 /********************
 setParam
 *********************/
-void eagleye_pp::setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
+void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
   std::string *arg_nmea_sentence_topic)
 {
+  YAML::Node conf = YAML::LoadFile(arg_config_file);
+  config_file_ = arg_config_file;
   try
   {
-    // Eagleye_pp params
-    *arg_twist_topic = arg_conf["twist_topic"].as<std::string>();
-    *arg_imu_topic = arg_conf["imu_topic"].as<std::string>();
-    *arg_rtklib_nav_topic = arg_conf["rtklib_nav_topic"].as<std::string>();
-    *arg_nmea_sentence_topic = arg_conf["nmea_sentence_topic"].as<std::string>();
 
-    // output_log = arg_conf["output_log"].as<bool>();
+    // Eagleye_pp params
+    *arg_twist_topic = conf["twist_topic"].as<std::string>();
+    *arg_imu_topic = conf["imu_topic"].as<std::string>();
+    *arg_rtklib_nav_topic = conf["rtklib_nav_topic"].as<std::string>();
+    *arg_nmea_sentence_topic = conf["nmea_sentence_topic"].as<std::string>();
+
+    // output_log = conf["output_log"].as<bool>();
     output_log_ = true;
-    // timestamp_sort = arg_conf["timestamp_sort"].as<bool>();
+    // timestamp_sort = conf["timestamp_sort"].as<bool>();
     timestamp_sort_ = true;
-    convert_height_num_ = arg_conf["convert_height_num"].as<int>();
-    interval_line_ = arg_conf["interval_line"].as<double>();
-    output_kml_eagleye_forward_plot_ = arg_conf["output_kml_eagleye_forward_plot"].as<bool>();
-    output_kml_eagleye_backward_plot_ = arg_conf["output_kml_eagleye_backward_plot"].as<bool>();
-    output_kml_eagleye_pp_plot_ = arg_conf["output_kml_eagleye_pp_plot"].as<bool>();
-    output_kml_rtklib_plot_ = arg_conf["output_kml_rtklib_plot"].as<bool>();
-    output_kml_gnss_plot_ = arg_conf["output_kml_gnss_plot"].as<bool>();
-    output_kml_eagleye_forward_line_ = arg_conf["output_kml_eagleye_forward_line"].as<bool>();
-    output_kml_eagleye_backward_line_ = arg_conf["output_kml_eagleye_backward_line"].as<bool>();
-    output_kml_eagleye_pp_line_ = arg_conf["output_kml_eagleye_pp_line"].as<bool>();
+    convert_height_num_ = conf["convert_height_num"].as<int>();
+    interval_line_ = conf["interval_line"].as<double>();
+    output_kml_eagleye_forward_plot_ = conf["output_kml_eagleye_forward_plot"].as<bool>();
+    output_kml_eagleye_backward_plot_ = conf["output_kml_eagleye_backward_plot"].as<bool>();
+    output_kml_eagleye_pp_plot_ = conf["output_kml_eagleye_pp_plot"].as<bool>();
+    output_kml_rtklib_plot_ = conf["output_kml_rtklib_plot"].as<bool>();
+    output_kml_gnss_plot_ = conf["output_kml_gnss_plot"].as<bool>();
+    output_kml_eagleye_forward_line_ = conf["output_kml_eagleye_forward_line"].as<bool>();
+    output_kml_eagleye_backward_line_ = conf["output_kml_eagleye_backward_line"].as<bool>();
+    output_kml_eagleye_pp_line_ = conf["output_kml_eagleye_pp_line"].as<bool>();
 
     tf2::Quaternion tf2_quat;
     double x = arg_conf["imu"]["base_link2imu"]["x"].as<double>();
@@ -541,6 +545,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   struct PositionStatus position_status{};
   struct PositionInterpolateStatus position_interpolate_status{};
   struct SmoothingStatus smoothing_status{};
+  struct RtkDeadreckoningStatus rtk_deadreckoning_status{};
 
   geometry_msgs::TwistStamped _correction_velocity;
   eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
@@ -567,6 +572,10 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   eagleye_msgs::Position _gnss_smooth_pos_enu;
   sensor_msgs::NavSatFix _eagleye_fix;
   geometry_msgs::TwistStamped _eagleye_twist;
+  eagleye_msgs::StatusStamped _velocity_status;
+
+  VelocityEstimator velocity_estimator;
+  velocity_estimator.setParam(config_file_);
 
 
   int last_prog = -1, current_prog;
@@ -591,15 +600,29 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
       }
     }
 
-    _velocity_scale_factor.header = imu_[i].header;
-    _correction_velocity.header = imu_[i].header;
-    if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      velocity_scale_factor_estimate(rtklib_nav_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
-    else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      velocity_scale_factor_estimate(rmc_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
+    if(use_canless_mode_)
+    {
+      velocity_estimator.VelocityEstimate(imu_[i], rtklib_nav_[i], gga_[i], &_correction_velocity);
+      _velocity_status.header = imu_[i].header;
+      _velocity_status.status = velocity_estimator.getStatus();
+    }
+    else
+    {
+      _velocity_scale_factor.header = imu_[i].header;
+      _correction_velocity.header = imu_[i].header;
+      if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
+        velocity_scale_factor_estimate(rtklib_nav_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
+      else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
+        velocity_scale_factor_estimate(rmc_[i], velocity_[i], velocity_scale_factor_parameter_, &velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
 
+      _velocity_status.header = _velocity_scale_factor.header;
+      _velocity_status.status = _velocity_scale_factor.status;
+    }
+
+    if(!use_canless_mode_ || _velocity_status.status.enabled_status)
+    {
     _slip_angle.header = imu_[i].header;
-    slip_angle_estimate(imu_[i], _correction_velocity, _velocity_scale_factor, _yawrate_offset_stop, _yawrate_offset_2nd, slip_angle_parameter_, &_slip_angle);
+    slip_angle_estimate(imu_[i], _correction_velocity, _velocity_status, _yawrate_offset_stop, _yawrate_offset_2nd, slip_angle_parameter_, &_slip_angle);
 
     _gnss_smooth_pos_enu.header = imu_[i].header;
     smoothing_estimate(rtklib_nav_[i], _correction_velocity, smoothing_parameter_, &smoothing_status, &_gnss_smooth_pos_enu);
@@ -669,19 +692,32 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     _enu_vel.header = imu_[i].header;
     _enu_relative_pos.header = imu_[i].header;
     _eagleye_twist.header = imu_[i].header;
-    trajectory_estimate(imu_[i], _correction_velocity, _velocity_scale_factor, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+    trajectory_estimate(imu_[i], _correction_velocity, _velocity_status, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
 
     _enu_absolute_pos.header = imu_[i].header;
-    if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
-      position_estimate(rtklib_nav_[i], _correction_velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status,
-        &_enu_absolute_pos);
-    else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
-      position_estimate(gga_[i], _correction_velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
-
     _enu_absolute_pos_interpolate.header = imu_[i].header;
     _eagleye_fix.header = imu_[i].header;
-    position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, position_interpolate_parameter_, &position_interpolate_status,
-      &_enu_absolute_pos_interpolate, &_eagleye_fix);
+    if(use_canless_mode_)
+    {
+      if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB") 
+        rtk_deadreckoning_estimate(rtklib_nav_[i], _enu_vel, gga_[i], _heading_interpolate_3rd,
+          rtk_deadreckoning_parameter_, &rtk_deadreckoning_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
+      else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA") 
+        rtk_deadreckoning_estimate(_enu_vel, gga_[i], _heading_interpolate_3rd,
+          rtk_deadreckoning_parameter_, &rtk_deadreckoning_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);      
+    }
+    else
+    {
+      if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")
+        position_estimate(rtklib_nav_[i], _correction_velocity, _velocity_status, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status,
+          &_enu_absolute_pos);
+      else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
+        position_estimate(gga_[i], _correction_velocity, _velocity_status, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
+
+      position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, position_interpolate_parameter_, &position_interpolate_status,
+        &_enu_absolute_pos_interpolate, &_eagleye_fix);
+    }
+    }
 
     if(arg_forward_flag)
     {
@@ -1381,7 +1417,12 @@ void eagleye_pp::smoothingTrajectory(void)
 
   struct TrajectoryStatus trajectory_status{};
   for(int i = 0; i < data_length_; i++){ // Added to use the corrected initial azimuth
-    trajectory_estimate(imu_[i], eagleye_state_forward_.correction_velocity[i], eagleye_state_forward_.velocity_scale_factor[i], eagleye_state_forward_.heading_interpolate_3rd[i], 
+    
+    eagleye_msgs::StatusStamped velocity_enable_status;
+    velocity_enable_status.header = eagleye_state_forward_.velocity_scale_factor[i].header;
+    velocity_enable_status.status = eagleye_state_forward_.velocity_scale_factor[i].status;
+
+    trajectory_estimate(imu_[i], eagleye_state_forward_.correction_velocity[i], velocity_enable_status, eagleye_state_forward_.heading_interpolate_3rd[i], 
       eagleye_state_forward_.yawrate_offset_stop[i], eagleye_state_forward_.yawrate_offset_2nd[i],
       trajectory_parameter_, &trajectory_status, &eagleye_state_forward_.enu_vel[i], &eagleye_state_forward_.enu_relative_pos[i],
       &eagleye_state_forward_.eagleye_twist[i]);

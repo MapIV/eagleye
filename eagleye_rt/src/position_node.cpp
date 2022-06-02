@@ -37,6 +37,7 @@
 
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::Distance _distance;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
@@ -49,6 +50,7 @@ struct PositionParameter _position_parameter;
 struct PositionStatus _position_status;
 
 static std::string _use_gnss_mode;
+static bool _use_canless_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -58,6 +60,11 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -104,15 +111,28 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tf_lis
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+
+  eagleye_msgs::StatusStamped velocity_enable_status;
+  if(_use_canless_mode)
+  {
+    velocity_enable_status = _velocity_status;
+  }
+  else
+  {
+    velocity_enable_status.header = _velocity_scale_factor.header;
+    velocity_enable_status.status = _velocity_scale_factor.status;
+  }
+
   _enu_vel = *msg;
   _enu_absolute_pos.header = msg->header;
   _enu_absolute_pos.header.frame_id = "base_link";
 
   if (_use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    position_estimate(_rtklib_nav, _velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd,
+    position_estimate(_rtklib_nav, _velocity, velocity_enable_status, _distance, _heading_interpolate_3rd,
                       _enu_vel, _position_parameter, &_position_status, &_enu_absolute_pos);
   else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
-    position_estimate(_gga, _velocity, _velocity_scale_factor, _distance, _heading_interpolate_3rd,
+    position_estimate(_gga, _velocity, velocity_enable_status, _distance, _heading_interpolate_3rd,
                       _enu_vel, _position_parameter, &_position_status, &_enu_absolute_pos);
   
   if(_enu_absolute_pos.status.estimate_status)
@@ -144,6 +164,7 @@ int main(int argc, char** argv)
   nh.getParam("tf_gnss_frame/parent", _position_parameter.tf_gnss_parent_frame);
   nh.getParam("tf_gnss_frame/child", _position_parameter.tf_gnss_child_frame);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
   std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
@@ -160,10 +181,11 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   
   _pub = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos", 1000);
 

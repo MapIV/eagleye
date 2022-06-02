@@ -32,7 +32,7 @@
 #include "navigation/navigation.hpp"
 
 void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistStamped velocity, 
-  const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, 
+  const eagleye_msgs::StatusStamped velocity_status, const eagleye_msgs::Heading heading_interpolate_3rd, 
   const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, 
   const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, 
   eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
@@ -52,7 +52,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistS
 
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
 
-  if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true &&
+  if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)
   {
     trajectory_status->estimate_status_count = 1;
@@ -104,7 +104,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistS
 }
 
 void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistStamped velocity, 
-  const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::Heading heading_interpolate_3rd, 
+  const eagleye_msgs::StatusStamped velocity_status, const eagleye_msgs::Heading heading_interpolate_3rd, 
   const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, 
   const eagleye_msgs::Pitching pitching, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, 
   geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
@@ -124,7 +124,7 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
 
   eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
 
-  if (trajectory_status->estimate_status_count == 0 && velocity_scale_factor.status.enabled_status == true &&
+  if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)
   {
     trajectory_status->estimate_status_count = 1;

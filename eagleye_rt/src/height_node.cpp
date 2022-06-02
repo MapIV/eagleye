@@ -35,6 +35,7 @@
  static sensor_msgs::Imu _imu;
  static nmea_msgs::Gpgga _gga;
  static geometry_msgs::TwistStamped _velocity;
+ static eagleye_msgs::StatusStamped _velocity_status;
  static eagleye_msgs::Distance _distance;
 
  static ros::Publisher _pub1, _pub2, _pub3, _pub4, _pub5;
@@ -46,6 +47,8 @@
  struct HeightParameter _height_parameter;
  struct HeightStatus _height_status;
 
+ static bool _use_canless_mode;
+
 void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
   _gga = *msg;
@@ -56,6 +59,11 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
   _velocity = *msg;
 }
 
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
+}
+
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
   _distance = *msg;
@@ -63,6 +71,8 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  
   _imu = *msg;
   _height.header = msg->header;
   _height.header.frame_id = "base_link";
@@ -107,6 +117,7 @@ int main(int argc, char** argv)
   nh.getParam("height/estimated_height_coefficient", _height_parameter.estimated_height_coefficient);
   nh.getParam("height/outlier_threshold", _height_parameter.outlier_threshold);
   nh.getParam("height/average_num", _height_parameter.average_num);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
   std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
@@ -122,7 +133,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
 
   _pub1 = nh.advertise<eagleye_msgs::Height>("height", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Pitching>("pitching", 1000);

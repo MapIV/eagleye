@@ -52,6 +52,7 @@ private:
  
   // Frequently used variables
   std::string outputpath_;
+  std::string config_file_;
   std::size_t data_length_;
 
   // For inital azimuth calculation
@@ -124,6 +125,7 @@ private:
   bool output_kml_eagleye_pp_line_;
 
   std::string use_gnss_mode_;
+  bool use_canless_mode_;
   bool use_nmea_downsample_;
   double nmea_downsample_freq_;
 
@@ -137,6 +139,7 @@ private:
   struct VelocityScaleFactorParameter velocity_scale_factor_parameter_;
   struct PositionParameter position_parameter_;
   struct PositionInterpolateParameter position_interpolate_parameter_;
+  struct RtkDeadreckoningParameter rtk_deadreckoning_parameter_;
   struct SmoothingParameter smoothing_parameter_;
   struct HeightParameter height_parameter_;
   struct RollingParameter rolling_parameter_;
@@ -164,7 +167,7 @@ public:
   eagleye_pp(); // Constructor
 
   void setOutputPath(std::string arg_output_path);
-  void setParam(YAML::Node arg_conf, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
+  void setParam(std::string arg_config_file, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
     std::string *arg_nmea_sentence_topic);
   void setDataLength();
   std::size_t getDataLength();

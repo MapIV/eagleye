@@ -33,6 +33,7 @@
 #include "navigation/navigation.hpp"
 
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
 static eagleye_msgs::Heading _heading_interpolate;
 static sensor_msgs::Imu _imu;
@@ -43,10 +44,16 @@ struct YawrateOffsetParameter _yawrate_offset_parameter;
 struct YawrateOffsetStatus _yawrate_offset_status;
 
 bool _is_first_heading= false;
+static bool _use_canless_mode;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
@@ -66,10 +73,8 @@ void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if (_is_first_heading == false)
-  {
-    return;
-  }
+  if (_is_first_heading == false) return;
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
 
   _imu = *msg;
   _yawrate_offset.header = msg->header;
@@ -87,6 +92,7 @@ int main(int argc, char** argv)
   nh.getParam("yawrate_offset/estimated_coefficient", _yawrate_offset_parameter.estimated_coefficient);
   nh.getParam("yawrate_offset/estimated_velocity_threshold" , _yawrate_offset_parameter.estimated_velocity_threshold);
   nh.getParam("yawrate_offset/outlier_threshold", _yawrate_offset_parameter.outlier_threshold);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
   std::cout<< "estimated_number_min: " << _yawrate_offset_parameter.estimated_number_min << std::endl;
   std::cout<< "estimated_coefficient: " << _yawrate_offset_parameter.estimated_coefficient << std::endl;

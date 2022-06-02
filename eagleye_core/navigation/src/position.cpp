@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,
+void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::StatusStamped velocity_status,eagleye_msgs::Distance distance,
   eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,PositionParameter position_parameter,
   PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
@@ -90,7 +90,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Veloc
     gnss_status = false;
   }
 
-  if (heading_interpolate_3rd.status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)
+  if (heading_interpolate_3rd.status.estimate_status == true && velocity_status.status.enabled_status == true)
   {
     heading_interpolate_3rd.status.estimate_status = false; //in order to prevent being judged many times
     ++position_status->heading_estimate_status_count;
@@ -299,7 +299,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Veloc
   data_status = false;
 }
 
-void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::TwistStamped velocity,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::TwistStamped velocity,eagleye_msgs::StatusStamped velocity_status,
   eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,
   PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::Position* enu_absolute_pos)
 {
@@ -369,10 +369,10 @@ void position_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::TwistSta
   position_status->gnss_update_failure = gnss_update_failure;
   position_status->tow_last = rtklib_nav.tow;
 
-  position_estimate_(velocity, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
+  position_estimate_(velocity, velocity_status, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }
 
-void position_estimate(nmea_msgs::Gpgga gga,geometry_msgs::TwistStamped velocity,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void position_estimate(nmea_msgs::Gpgga gga,geometry_msgs::TwistStamped velocity,eagleye_msgs::StatusStamped velocity_status,
   eagleye_msgs::Distance distance,eagleye_msgs::Heading heading_interpolate_3rd,geometry_msgs::Vector3Stamped enu_vel,
   PositionParameter position_parameter,PositionStatus* position_status,eagleye_msgs::Position* enu_absolute_pos)
 {
@@ -446,5 +446,5 @@ void position_estimate(nmea_msgs::Gpgga gga,geometry_msgs::TwistStamped velocity
   position_status->gnss_update_failure = gnss_update_failure;
   position_status->nmea_time_last = gga.header.stamp.toSec();
 
-  position_estimate_(velocity, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
+  position_estimate_(velocity, velocity_status, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }

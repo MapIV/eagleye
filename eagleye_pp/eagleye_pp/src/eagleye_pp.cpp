@@ -70,10 +70,8 @@ int main(int argc, char *argv[])
   bool nmea_data_flag = false;
   bool use_rtk_navsatfix_topic = false;
   bool use_rtklib_topic = false;
-
-  YAML::Node conf = YAML::LoadFile(config_file);
     
-  eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
+  eagleye_pp.setParam(config_file, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
   std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
 

@@ -33,7 +33,7 @@
 
 #define g 9.80665
 
-void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped velocity,const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped velocity,const eagleye_msgs::StatusStamped velocity_status,
   const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,
   const sensor_msgs::Imu imu, const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,
   const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,
@@ -60,7 +60,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
 
   // data buffer 
-  if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_scale_factor.status.enabled_status)
+  if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
@@ -69,7 +69,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
     rolling_status->acceleration_y_buffer.push_back(rolling_status->imu_acceleration_y);
     rolling_status->distance_buffer.push_back(distance.distance);
   }
-  else if (velocity_scale_factor.status.enabled_status)
+  else if (velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.erase(rolling_status->imu_time_buffer.begin());
     rolling_status->yawrate_buffer.erase(rolling_status->yawrate_buffer.begin());
@@ -167,7 +167,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   {
     rolling_status->rolling_estimated_buffer.push_back(rolling_estimated_tmp);
   }
-  else if (velocity_scale_factor.status.enabled_status && acc_y_offset->status.enabled_status)
+  else if (velocity_status.status.enabled_status && acc_y_offset->status.enabled_status)
   {
     rolling_status->rolling_estimated_buffer.erase(rolling_status->rolling_estimated_buffer.begin());
     rolling_status->rolling_estimated_buffer.push_back(rolling_estimated_tmp);
