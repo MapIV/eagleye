@@ -41,6 +41,7 @@ static rtklib_msgs::RtklibNav _rtklib_nav;
 static sensor_msgs::NavSatFix _rtklib_fix;
 static nmea_msgs::Gpgga _gga;
 static geometry_msgs::TwistStamped _velocity;
+static geometry_msgs::TwistStamped _correction_velocity;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::Distance _distance;
 static eagleye_msgs::Heading _heading_1st;
@@ -124,7 +125,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void correction_velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
-  correction_velocity = *msg;
+  _correction_velocity = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
@@ -768,15 +769,8 @@ void printStatus(void)
 
 
   std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
-<<<<<<< HEAD
   std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<_velocity_scale_factor.scale_factor<<std::endl;
-  std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<_velocity_scale_factor.correction_velocity.linear.x * 3.6<<" [km/h]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(_velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
-=======
-  std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<velocity_scale_factor.scale_factor<<std::endl;
-  std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<correction_velocity.twist.linear.x * 3.6<<" [km/h]"<<std::endl;
-  std::cout<< "\033[1m status enable \033[m "<<(velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
->>>>>>> Support for message changes
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
@@ -827,7 +821,7 @@ void outputLog(void)
   output_log_file << "timestamp,imu.angular_velocity.x,imu.angular_velocity.y,imu.angular_velocity.z,imu.linear_acceleration.x,imu.linear_acceleration.y,imu.linear_acceleration.z\
 ,rtklib_nav.tow,rtklib_nav.ecef_pos.x,rtklib_nav.ecef_pos.y,rtklib_nav.ecef_pos.z,rtklib_nav.ecef_vel.x,rtklib_nav.ecef_vel.y,rtklib_nav.ecef_vel.z,rtklib_nav.status.status.status,rtklib_nav.status.status.service,rtklib_nav.status.latitude,rtklib_nav.status.longitude,rtklib_nav.status.altitude\
 ,velocity.twist.linear.x,velocity.twist.linear.y,velocity.twist.linear.z,velocity.twist.angular.x,velocity.twist.angular.y,velocity.twist.angular.z\
-,velocity_scale_factor.scale_factor,velocity_scale_factor.correction_velocity.linear.x,velocity_scale_factor.correction_velocity.linear.y,velocity_scale_factor.correction_velocity.linear.z,velocity_scale_factor.correction_velocity.angular.x,velocity_scale_factor.correction_velocity.angular.y,velocity_scale_factor.correction_velocity.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
+,velocity_scale_factor.scale_factor,correction_velocity.twist.linear.x,correction_velocity.twist.linear.y,correction_velocity.twist.linear.z,correction_velocity.twist.angular.x,correction_velocity.twist.angular.y,correction_velocity.twist.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
 ,distance.distance,distance.status.enabled_status,distance.status.estimate_status\
 ,heading_1st.heading_angle,heading_1st.status.enabled_status,heading_1st.status.estimate_status\
 ,heading_interpolate_1st.heading_angle,heading_interpolate_1st.status.enabled_status,heading_interpolate_1st.status.estimate_status\
@@ -888,12 +882,12 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.y << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.z << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.scale_factor << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.x << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.y << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.z << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.x << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.y << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.z << ",";
   output_log_file << (_velocity_scale_factor.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_velocity_scale_factor.status.estimate_status ? "1" : "0") << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance.distance << ",";
@@ -1094,31 +1088,6 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = n.subscribe("rtklib/fix", 1000, rtklib_fix_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = n.subscribe(subscribe_gga_topic_name, 1000, navsatfix_gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = n.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-<<<<<<< HEAD
-  ros::Subscriber sub6 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = n.subscribe("heading_1st", 1000, heading_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub9 = n.subscribe("heading_interpolate_1st", 1000, heading_interpolate_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub10 = n.subscribe("heading_2nd", 1000, heading_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub11 = n.subscribe("heading_interpolate_2nd", 1000, heading_interpolate_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub12 = n.subscribe("heading_3rd", 1000, heading_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub13 = n.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub14 = n.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub15 = n.subscribe("yawrate_offset_1st", 1000, yawrate_offset_1st_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub16 = n.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub17 = n.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub18 = n.subscribe("enu_relative_pos", 1000, enu_relative_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub19 = n.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub20 = n.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub21 = n.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub22 = n.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub23 = n.subscribe("enu_absolute_pos_interpolate", 1000, enu_absolute_pos_interpolate_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub24 = n.subscribe("fix", 1000, eagleye_fix_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub25 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub26 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub27 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub28 = n.subscribe("rolling", 1000, rolling_callback, ros::TransportHints().tcpNoDelay());
-=======
   ros::Subscriber sub6 = n.subscribe("velocity", 1000, correction_velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = n.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub8 = n.subscribe("distance", 1000, distance_callback, ros::TransportHints().tcpNoDelay());
@@ -1142,7 +1111,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub26 = n.subscribe("twist", 1000, eagleye_twist_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub27 = n.subscribe(comparison_twist_topic_name, 1000, comparison_velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub28 = n.subscribe("imu/data_corrected", 1000, corrected_imu_callback, ros::TransportHints().tcpNoDelay());
->>>>>>> Support for message changes
+  ros::Subscriber sub29 = n.subscribe("rolling", 1000, rolling_callback, ros::TransportHints().tcpNoDelay());
 
   ros::Timer timer = n.createTimer(ros::Duration(1/_update_rate), boost::bind(timer_callback,_1, &updater));
 

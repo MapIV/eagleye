@@ -38,7 +38,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistS
   eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
+  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
   yawrate_offset_2nd.status.enabled_status == true)
   {
     // Inverted because the coordinate system is reversed
@@ -50,7 +50,7 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistS
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
 
-  eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
+  eagleye_twist->twist.linear.x = velocity.twist.linear.x;
 
   if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)
@@ -110,7 +110,7 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
   geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
 {
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
+  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold &&
     yawrate_offset_2nd.status.enabled_status == true)
   {
     //Inverted because the coordinate system is reversed
@@ -122,7 +122,7 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
 
-  eagleye_twist->twist.linear.x = velocity_scale_factor.correction_velocity.linear.x;
+  eagleye_twist->twist.linear.x = velocity.twist.linear.x;
 
   if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)

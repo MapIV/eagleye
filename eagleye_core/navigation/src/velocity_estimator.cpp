@@ -107,11 +107,11 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
     param.estimated_velocity_threshold = conf["velocity_estimator"]["pitching"]["estimated_velocity_threshold"].as<double>();
     param.estimated_gnss_coefficient = conf["velocity_estimator"]["pitching"]["estimated_gnss_coefficient"].as<double>();
     param.estimated_coefficient = conf["velocity_estimator"]["pitching"]["estimated_coefficient"].as<double>();
-    std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
-    std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
-    std::cout<< "estimated_velocity_threshold "<<param.estimated_velocity_threshold<<std::endl;
-    std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
-    std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
+    // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
+    // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
+    // std::cout<< "estimated_velocity_threshold "<<param.estimated_velocity_threshold<<std::endl;
+    // std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
+    // std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
   }
   catch (YAML::Exception& e)
   {
@@ -235,10 +235,10 @@ void VelocityEstimator::AccelerationOffsetEstimator::setParam(std::string yaml_f
     param.buffer_max = conf["velocity_estimator"]["acceleration_offset"]["buffer_max"].as<double>();
     param.filter_process_noise = conf["velocity_estimator"]["acceleration_offset"]["filter_process_noise"].as<double>();
     param.filter_observation_noise = conf["velocity_estimator"]["acceleration_offset"]["filter_observation_noise"].as<double>();
-    std::cout<< "buffer_min "<<param.buffer_min<<std::endl;
-    std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
-    std::cout<< "filter_process_noise "<<param.filter_process_noise<<std::endl;
-    std::cout<< "filter_observation_noise "<<param.filter_observation_noise<<std::endl;
+    // std::cout<< "buffer_min "<<param.buffer_min<<std::endl;
+    // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
+    // std::cout<< "filter_process_noise "<<param.filter_process_noise<<std::endl;
+    // std::cout<< "filter_observation_noise "<<param.filter_observation_noise<<std::endl;
   }
   catch (YAML::Exception& e)
   {
@@ -378,20 +378,20 @@ void VelocityEstimator::setParam(std::string yaml_file)
     param.estimated_coefficient = conf["velocity_estimator"]["doppler_fusion"]["estimated_coefficient"].as<double>();
     param.outlier_threshold = conf["velocity_estimator"]["doppler_fusion"]["outlier_threshold"].as<double>();
 
-    std::cout<< "ecef_base_pos_x "<<param.ecef_base_pos_x<<std::endl;
-    std::cout<< "ecef_base_pos_y "<<param.ecef_base_pos_y<<std::endl;
-    std::cout<< "ecef_base_pos_z "<<param.ecef_base_pos_z<<std::endl;
-    std::cout<< "use_ecef_base_position "<<param.use_ecef_base_position<<std::endl;
+    // std::cout<< "ecef_base_pos_x "<<param.ecef_base_pos_x<<std::endl;
+    // std::cout<< "ecef_base_pos_y "<<param.ecef_base_pos_y<<std::endl;
+    // std::cout<< "ecef_base_pos_z "<<param.ecef_base_pos_z<<std::endl;
+    // std::cout<< "use_ecef_base_position "<<param.use_ecef_base_position<<std::endl;
 
-    std::cout<< "gga_downsample_time "<<param.gga_downsample_time<<std::endl;
-    std::cout<< "stop_judgment_velocity_threshold "<<param.stop_judgment_velocity_threshold<<std::endl;
-    std::cout<< "stop_judgment_buffer_maxnum "<<param.stop_judgment_buffer_maxnum<<std::endl;
-    std::cout<< "variance_threshold "<<param.variance_threshold<<std::endl;
+    // std::cout<< "gga_downsample_time "<<param.gga_downsample_time<<std::endl;
+    // std::cout<< "stop_judgment_velocity_threshold "<<param.stop_judgment_velocity_threshold<<std::endl;
+    // std::cout<< "stop_judgment_buffer_maxnum "<<param.stop_judgment_buffer_maxnum<<std::endl;
+    // std::cout<< "variance_threshold "<<param.variance_threshold<<std::endl;
 
-    std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
-    std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
-    std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
-    std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
+    // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
+    // std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
+    // std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
+    // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
 
     pitchrate_offset_stop_estimator.setParam(yaml_file);
     pitching_estimator.setParam(yaml_file);

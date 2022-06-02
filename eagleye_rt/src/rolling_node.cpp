@@ -95,8 +95,10 @@ void rolling_node(ros::NodeHandle nh)
 
   ros::Subscriber imu_sub =
       nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber velocity_scale_factor_sub =
-      nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber velocity_sub =
+      nh.subscribe("velocity", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber velocity_status_sub = 
+      nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber yawrate_offset_2nd_sub =
       nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber yawrate_offset_stop_sub =

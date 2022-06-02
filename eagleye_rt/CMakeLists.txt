@@ -162,11 +162,7 @@ install(TARGETS
   enable_additional_rolling
   rolling
   navpvt2rtk
-<<<<<<< HEAD
   tf_converted_imu
-=======
-  velocity_estimator
->>>>>>> add velocity estimation node
   DESTINATION lib/${PROJECT_NAME}
 )
 
