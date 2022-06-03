@@ -1,0 +1,19 @@
+ref_index:
+  time: 2
+  x: 4
+  y: 5
+  z: 6
+  ori_x: 7
+  ori_y: 8
+  ori_z: 9
+  ori_w: 10
+
+data_index:
+  time: 2
+  x: 4
+  y: 5
+  z: 6
+  ori_x: 7
+  ori_y: 8
+  ori_z: 9
+  ori_w: 10
