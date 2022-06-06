@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     # default_param
     plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
-    sync_threshold_time = 0.005 # Time threshold for judgment at synchronized. (default:0.005 = 0.005[s])
+    sync_threshold_time = 0.01 # Time threshold for judgment at synchronized. (default:0.01 = 0.01[s])
     leap_time = 0.0 # Offset correction for time synchronization. (default:0.0 = 0.0[s])
     tf_x = 0.0
     tf_y = 0.0
@@ -153,11 +153,11 @@ if __name__ == "__main__":
         print("set csv_data")
 
     if args.input_ref_log != None:
-        ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane)
+        ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane,args.yaml_path)
         print("set ref_data")
 
     if args.input_log_csv != None:
-        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane)
+        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane,args.yaml_path)
         print("set csv_data")
     
     if tf_x != 0 or tf_y != 0:
@@ -233,6 +233,7 @@ if __name__ == "__main__":
 
     # plot 6dof error
     error_plot_df = pd.concat([Error_data,error_rpy,error_velocity],axis=1)
+    print(error_plot_df)
     error_table = util_calc.error_evaluation(error_plot_df)
     util_plot.plot_error_6DoF(error_plot_df,ref_data_name,error_table)
     util_plot.plot_error(error_plot_df,ref_data_name)
@@ -256,7 +257,7 @@ if __name__ == "__main__":
         print("start calc relative position")
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
-        calc_error = util_calc.clac_dr(data_df['TimeStamp'],data_df['distance'],eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
+        calc_error = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
         print("finished calc relative position")
 
         dr_error_2d = calc_error['error_2d'].values.tolist()

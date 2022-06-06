@@ -40,11 +40,13 @@ import util.plot as util_plot
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", action="store")
+    parser.add_argument("input_yaml", action="store")
     parser.add_argument("-r", "--reverse_imu", action="store_true",help="change reverse_imu true")
     parser.add_argument("-p", "--plane_num",help="Plane Cartesian coordinate system number")
     args= parser.parse_args()
     print(args)
     input_ref_path=sys.argv[1]
+    yaml_path=sys.argv[2]
     reverse_imu: bool = args.reverse_imu
 
     plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
@@ -55,7 +57,7 @@ if __name__ == "__main__":
 
     print('plane',plane)
 
-    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane)
+    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane,yaml_path)
     print("set eagleye_data")
 
     eagleye_ecef_base = pd.concat([eagleye_df['ecef_base_x'],eagleye_df['ecef_base_y'],eagleye_df['ecef_base_z']],axis=1)

@@ -5,6 +5,7 @@ from typing import List
 import pandas as pd
 import numpy as np
 import math
+import mgrs
 
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
@@ -150,6 +151,18 @@ def xyz2enu_vel(vel,org_xyz):
         set_vel_data.append([e_vel,n_vel,u_vel,vel_2d])
     df = pd.DataFrame(set_vel_data,columns=['east_vel','north_vel','up_vel','velocity'])
     return df
+
+def ll2mgrs(llh):
+    set_mgrs: List[float] = []
+    m = mgrs.MGRS()
+    for i in range(len(llh)):
+        ll = (llh['latitude'][i], llh['longitude'][i] , 4)
+        coords = m.toMGRS(*ll)
+        zone, x, y = coords[:5], float(coords[5:10]), float(coords[10:])
+        height = llh['altitude'][i]
+        set_mgrs.append([x,y,height])
+    xyz = pd.DataFrame(set_mgrs,columns=['x','y','z'])
+    return xyz
 
 def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchronization
     sync_index = np.zeros(len(csv_data['TimeStamp']))
@@ -378,7 +391,7 @@ def calc_velocity_error(eagleye_velocity,ref_velocity):
     error_velocity['velocity'] = eagleye_velocity - ref_velocity
     return error_velocity
 
-def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step):
+def calc_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step):
     last_distance = 0
     set_calc_error: List[float] = []
     for i in range(len(TimeStamp)):

@@ -46,6 +46,7 @@ def set_ref_data(input_path,yaml_path): # Creation of dataset with reference to 
     index_ori_y = config["ref_index"]["ori_y"]
     index_ori_z = config["ref_index"]["ori_z"]
     index_ori_w = config["ref_index"]["ori_w"]
+    index_time_unit = config["ref_index"]["time_unit"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
     ref_data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
     ref_data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
@@ -56,7 +57,8 @@ def set_ref_data(input_path,yaml_path): # Creation of dataset with reference to 
     ref_data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
     ref_data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
     set_ref_df = pd.concat([ref_data_time, ref_data_x, ref_data_y, ref_data_z, ref_data_ori_x, ref_data_ori_y, ref_data_ori_z, ref_data_ori_w],axis=1)
-    set_ref_df['TimeStamp'] = set_ref_df['TimeStamp'] * 10 ** (-9)
+    if index_time_unit == 1:
+        set_ref_df['TimeStamp'] = set_ref_df['TimeStamp'] * 10 ** (-9)
     return set_ref_df
 
 def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to column number
@@ -71,6 +73,7 @@ def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to 
     index_ori_y = config["data_index"]["ori_y"]
     index_ori_z = config["data_index"]["ori_z"]
     index_ori_w = config["data_index"]["ori_w"]
+    index_time_unit = config["data_index"]["time_unit"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
     data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
     data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
@@ -81,7 +84,8 @@ def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to 
     data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
     data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
     set_df = pd.concat([data_time, data_x, data_y, data_z, data_ori_x, data_ori_y, data_ori_z, data_ori_w],axis=1)
-    set_df['TimeStamp'] = set_df['TimeStamp'] * 10 ** (-9)
+    if index_time_unit == 1:
+        set_df['TimeStamp'] = set_df['TimeStamp'] * 10 ** (-9)
     return set_df
 
 def set_df(input): # Creation of dataset with reference to labels in df
@@ -122,7 +126,7 @@ def set_ref_df(input): # Creation of dataset with reference to labels in df
              "vel_y",
              "vel_z",
              ]]
-    df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] * 1e-9
+    df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] *  10 ** (-9)
     set_heading_data: List[float] = []
     for i in range(len(df)):
         yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(df['yaw'][i]))
@@ -131,8 +135,13 @@ def set_ref_df(input): # Creation of dataset with reference to labels in df
     df['yaw'] = pd.DataFrame(set_heading_data,columns=['yaw'])
     return df
 
-def set_log_df(input,plane): # Creation of dataset with reference to labels in df
+def set_log_df(input,plane,yaml_path): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input,delimiter=None, header='infer',  index_col=None, usecols=None)
+    yaml_path_str: str = yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
+    index_time_unit = config["eagleye_log"]["time_unit"]
+    tf_num = config["eagleye_log"]["tf_num"]
     eagleye_df = df[["timestamp",
              "rtklib_nav.tow",
              "velocity_scale_factor.scale_factor",
@@ -230,13 +239,22 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
         raw_df = raw_df.drop(rtk_index)
     raw_df = raw_df.reset_index()
 
-    eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)
-    raw_df['TimeStamp'] = raw_df['TimeStamp_tmp'] * 10 ** (-9)
+    if index_time_unit == 1:
+        eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)
+        raw_df['TimeStamp'] = raw_df['TimeStamp_tmp'] * 10 ** (-9)
+    elif index_time_unit == 0:
+        eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp']
+        raw_df['TimeStamp'] = raw_df['TimeStamp_tmp']
     eagleye_df['elapsed_time'] = eagleye_df['TimeStamp'] - raw_df['TimeStamp'][0]
     raw_df['elapsed_time'] = raw_df['TimeStamp'] - raw_df['TimeStamp'][0]
     rpy_df = get_rpy_deg(eagleye_df)
-    xyz = latlon_to_19(eagleye_df,plane)
-    set_eagleye_df = pd.concat([eagleye_df,xyz, rpy_df],axis=1)
+    llh = pd.concat([eagleye_df['latitude'],eagleye_df['longitude'],eagleye_df['altitude']],axis=1)
+    if tf_num == 0:
+        xyz = latlon_to_19(llh,plane)
+    elif tf_num == 1:
+        xyz = util_calc.ll2mgrs(llh)
+    print(xyz)
+    set_eagleye_df = pd.concat([eagleye_df, xyz, rpy_df],axis=1)
     return set_eagleye_df, raw_df
 
 def set_tf_xy(xy,tf_x,tf_y):
