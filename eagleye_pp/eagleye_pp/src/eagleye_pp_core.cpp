@@ -234,6 +234,11 @@ std::string eagleye_pp::getUseGNSSMode(void)
  return use_gnss_mode_;
 }
 
+bool eagleye_pp::getUseCanlessMode(void)
+{
+ return use_canless_mode_;
+}
+
 
 std::vector<rtklib_msgs::RtklibNav> eagleye_pp::getRtklibNavVector(void)
 {
@@ -630,7 +635,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     smoothing_estimate(rtklib_nav_[i], _correction_velocity, smoothing_parameter_, &smoothing_status, &_gnss_smooth_pos_enu);
 
     _yawrate_offset_stop.header = imu_[i].header;
-    yawrate_offset_stop_estimate(velocity_[i], imu_[i], yawrate_offset_stop_parameter_, &yawrate_offset_stop_status, &_yawrate_offset_stop);
+    yawrate_offset_stop_estimate(_correction_velocity, imu_[i], yawrate_offset_stop_parameter_, &yawrate_offset_stop_status, &_yawrate_offset_stop);
 
     _heading_1st.header = imu_[i].header;
     if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB")

@@ -172,6 +172,7 @@ public:
   void setDataLength();
   std::size_t getDataLength();
   std::string getUseGNSSMode();
+  bool getUseCanlessMode();
   std::vector<rtklib_msgs::RtklibNav> getRtklibNavVector();
   bool getUseBackward();
   bool getUseCombination();

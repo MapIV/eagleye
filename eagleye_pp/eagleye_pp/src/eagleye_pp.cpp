@@ -81,6 +81,10 @@ int main(int argc, char *argv[])
   {
     std::cout << "TwistStamped topic: " << twist_topic << std::endl;
   }
+  else if(eagleye_pp.getUseCanlessMode() && rosbag_controller.findTopic(std::string(nmea_sentence_topic)) && rosbag_controller.findTopic(std::string(rtklib_nav_topic)))
+  {
+    std::cout << "Velocity Estimate mode" << std::endl;
+  }
   else
   {
     std::cerr << "\033[1;31mError: Cannot find the topic: " << twist_topic << "\033[0m" << std::endl;
