@@ -129,6 +129,16 @@ def plot_two(ax, ref, eagleye, x_data, y_data, title, x_label, y_label, line_sty
     ax.legend(loc='upper right')
     ax.grid()
 
+def plot_three(ax, ref, eagleye, raw, x_data, y_data, title, x_label, y_label, line_style, ref_data_name):
+    ax.plot(ref[x_data] , ref[y_data] , marker=".", linestyle=line_style, markersize=1, color = "red", label=ref_data_name)
+    ax.plot(raw[x_data] , raw[y_data] , marker="o", linestyle=line_style, markersize=1, color = "green", label="initial ref heading")
+    ax.plot(eagleye[x_data] , eagleye[y_data] , marker="s", linestyle=line_style, markersize=1, alpha=0.3, color = "blue", label="eagleye")
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
+    ax.legend(loc='upper right')
+    ax.grid()
+
 def plot_error_6DoF(error_data,ref_data_name, error_table):
     fig2 = plt.figure()
     fig2.suptitle(ref_data_name + ' - eagleye Error')

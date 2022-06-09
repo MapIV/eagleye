@@ -27,6 +27,7 @@
 # Author MapIV Hoda
 
 import argparse
+import yaml
 from re import X
 from typing import List
 import pandas as pd
@@ -41,23 +42,22 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", action="store")
     parser.add_argument("input_yaml", action="store")
-    parser.add_argument("-r", "--reverse_imu", action="store_true",help="change reverse_imu true")
-    parser.add_argument("-p", "--plane_num",help="Plane Cartesian coordinate system number")
     args= parser.parse_args()
     print(args)
     input_ref_path=sys.argv[1]
     yaml_path=sys.argv[2]
-    reverse_imu: bool = args.reverse_imu
 
-    plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
+    yaml_path_str: str = yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
 
     # set param
-    if args.plane_num != None:
-        plane = float(args.plane_num)
+    reverse_imu = config["param"]["reverse_imu_flag"]
+    plane = config["param"]["plane_num"]
 
     print('plane',plane)
 
-    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane,yaml_path)
+    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane,config)
     print("set eagleye_data")
 
     eagleye_ecef_base = pd.concat([eagleye_df['ecef_base_x'],eagleye_df['ecef_base_y'],eagleye_df['ecef_base_z']],axis=1)

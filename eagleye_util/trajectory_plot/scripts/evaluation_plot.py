@@ -29,6 +29,7 @@
 import csv
 import argparse
 import math
+import yaml
 from typing import List
 import pandas as pd
 
@@ -63,59 +64,26 @@ if __name__ == "__main__":
     parser.add_argument("-ref_name", "--ref_data_name_param",help="ref data name")
     parser.add_argument("-y", "--yaml_path",help="yaml name")
     args = parser.parse_args()
-    reverse_imu: bool = args.reverse_imu
 
-    # default_param
-    plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
-    sync_threshold_time = 0.01 # Time threshold for judgment at synchronized. (default:0.01 = 0.01[s])
-    leap_time = 0.0 # Offset correction for time synchronization. (default:0.0 = 0.0[s])
-    tf_x = 0.0
-    tf_y = 0.0
-    tf_across = 0.0
-    tf_along = 0.0
-    tf_height = 0.0
-    tf_yaw = 0.0
-    distance_length = 100 # Distance to calculate relative trajectory. (default:100 = 100[m])
-    distance_step = 50 # Calculate relative trajectories step (default:50 = 50[m])
-    ref_data_name = 'ref data' # Reference Legend Name. (default:'ref data')
-    eval_step_max = 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
+    yaml_path_str: str = args.yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
 
     # set param
-    if args.plane_num != None:
-        plane = float(args.plane_num)
-
-    if args.sync_threshold_time_data_param != None:
-        sync_threshold_time = float(args.sync_threshold_time_data_param)
-
-    if args.leap_time_param != None:
-        leap_time = float(args.leap_time_param)
-
-    if args.tf_x_param != None:
-        tf_x = float(args.tf_x_param)
-    
-    if args.tf_y_param != None:
-        tf_y = float(args.tf_y_param)
-
-    if args.tf_across_param != None:
-        tf_across = float(args.tf_across_param)
-
-    if args.tf_along_param != None:
-        tf_along = float(args.tf_along_param)
-
-    if args.tf_height_param != None:
-        tf_height = float(args.tf_height_param)
-
-    if args.tf_yaw_param != None:
-        tf_yaw = float(args.tf_yaw_param)
-
-    if args.distance_length_param != None:
-        distance_length = float(args.distance_length_param)
-
-    if args.distance_step_param != None:
-        distance_step = float(args.distance_step_param)
-
-    if args.ref_data_name_param != None:
-        ref_data_name = args.ref_data_name_param
+    reverse_imu = config["param"]["reverse_imu_flag"]
+    plane = config["param"]["plane_num"]
+    sync_threshold_time = config["param"]["sync_threshold_time_data_param"]
+    leap_time = config["param"]["leap_time_param"]
+    tf_x = config["param"]["tf_x_param"]
+    tf_y = config["param"]["tf_y_param"]
+    tf_across = config["param"]["tf_across_param"]
+    tf_along = config["param"]["tf_along_param"]
+    tf_height = config["param"]["tf_height_param"]
+    tf_yaw = config["param"]["tf_yaw_param"]
+    distance_length = config["param"]["distance_length_param"]
+    distance_step = config["param"]["distance_step_param"]
+    ref_data_name = config["param"]["ref_data_name_param"]
+    eval_step_max = config["param"]["eval_step_max_param"]
     
     print('plane',plane)
     print('sync_threshold_time',sync_threshold_time)
@@ -133,11 +101,11 @@ if __name__ == "__main__":
 
     # set data
     if args.ref != None:
-        ref_data_df = util_prepro.set_ref_data(args.ref,args.yaml_path)
+        ref_data_df = util_prepro.set_ref_data(args.ref,config)
         print("set ref_data")
 
     if args.input_csv != None:
-        csv_data_df = util_prepro.set_csv_data(args.input_csv,args.yaml_path)
+        csv_data_df = util_prepro.set_csv_data(args.input_csv,config)
         print("set csv_data")
         
     if args.df_ref != None:
@@ -153,11 +121,11 @@ if __name__ == "__main__":
         print("set csv_data")
 
     if args.input_ref_log != None:
-        ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane,args.yaml_path)
+        ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane,config)
         print("set ref_data")
 
     if args.input_log_csv != None:
-        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane,args.yaml_path)
+        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane,config)
         print("set csv_data")
     
     if tf_x != 0 or tf_y != 0:
@@ -257,7 +225,7 @@ if __name__ == "__main__":
         print("start calc relative position")
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
-        calc_error = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
+        calc_error = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
         print("finished calc relative position")
 
         dr_error_2d = calc_error['error_2d'].values.tolist()
