@@ -73,3 +73,8 @@ param:
   distance_step_param: 50 # Calculate relative trajectories step (default:50 = 50[m])
   ref_data_name_param: 'ref data' # Reference Legend Name. (default:'ref data')
   eval_step_max_param: 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
+
+twist_evaluation:
+  dr_error_ylim: 1.0 # ylabel data lim
+
+  

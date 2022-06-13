@@ -202,8 +202,8 @@ def plot_error_distributiln(error_data,ref_data_name):
 def plot_traj(ref_data, data,ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=1, color = "red",  label=ref_data_name)
-    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
+    ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=3, color = "red",  label=ref_data_name)
+    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=3,alpha=0.3 , color = "blue",  label="eagleye")
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
     ax.set_title('2D Trajectory')

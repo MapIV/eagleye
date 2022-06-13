@@ -225,7 +225,7 @@ if __name__ == "__main__":
         print("start calc relative position")
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
-        calc_error = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
+        calc_error,dr_trajcetory = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
         print("finished calc relative position")
 
         dr_error_2d = calc_error['error_2d'].values.tolist()

@@ -71,6 +71,7 @@ if __name__ == "__main__":
     distance_step = config["param"]["distance_step_param"]
     ref_data_name = config["param"]["ref_data_name_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
+    dr_error_ylim = config["twist_evaluation"]["dr_error_ylim"]
     
     print('plane',plane)
     print('sync_threshold_time',sync_threshold_time)
@@ -92,7 +93,7 @@ if __name__ == "__main__":
         print("set ref_data")
 
     if args.input_twist != None:
-        twist_data_df = util_prepro.set_twist_data(args.input_twist,config)
+        csv_data_df = util_prepro.set_twist_data(args.input_twist,config)
         print("set csv_data")
         
     if args.ref_twist != None:
@@ -135,114 +136,46 @@ if __name__ == "__main__":
     print("finished sync_time")
 
     if reverse_imu == True:
-        data_df['angular_z'] = -1 * data_df['angular_z']
-        data_df['yaw'] = -1 * data_df['yaw']
-        data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
-        data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
-        data_df['slip'] = -1 * data_df['slip']
+        if 'angular_z' in data_df.columns:
+            data_df['angular_z'] = -1 * data_df['angular_z']
+        if 'yaw' in data_df.columns:
+            data_df['yaw'] = -1 * data_df['yaw']
+        if 'yawrate_offset_stop' in data_df.columns:
+            data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
+        if 'yawrate_offset' in data_df.columns:
+            data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
+        if 'slip' in data_df.columns:
+            data_df['slip'] = -1 * data_df['slip']
     if not tf_yaw == 0:
         data_df['yaw'] = data_df['yaw'] + tf_yaw
 
-    error_velocity = pd.DataFrame()
-    if 'velocity' in data_df.columns and 'velocity' in ref_df.columns:
-        fig1 = plt.figure()
-        ax_vel = fig1.add_subplot(2, 1, 1)
-        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_df, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
-
-        error_velocity = util_calc.calc_velocity_error(data_df['velocity'],ref_df['velocity'])
-        error_plot_velocity = pd.concat([ref_df['elapsed_time'],error_velocity],axis=1)
-        ax_err_vel = fig1.add_subplot(2, 1, 2)
-        fig1.suptitle(ref_data_name + ' - eagleye Error')
-        util_plot.plot_one(ax_err_vel, error_plot_velocity, 'elapsed_time', 'velocity', 'Velocity Error', 'time [s]', 'Velocity error[m/s]', 'None', 1)
-
-    elif 'velocity' in ref_df.columns or 'velocity' in data_df.columns:
-        fig11 = plt.figure()
-        ax_vel = fig11.add_subplot(1, 1, 1)
-        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_df, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
-    elif 'velocity' in data_df.columns and 'velocity' in ref_df.columns and args.input_ref_log != None or args.input_log_csv != None:
-        fig1 = plt.figure()
-        ax_vel = fig1.add_subplot(2, 1, 1)
-        ax_vel.set_title('Velocity')
-        ax_vel.plot(dopplor['elapsed_time'] , dopplor['velocity'] ,  marker="s",linestyle="None",markersize=1 , color = "brack",  label="dopplor")
-        ax_vel.plot(raw_df['elapsed_time'] , raw_df['velocity'] , marker=".",linestyle="None",markersize=1, color = "red",  label="can velocity")
-        ax_vel.plot(data_df['elapsed_time'] , data_df['velocity'] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
-        ax_vel.plot(ref_df['elapsed_time'] , ref_df['velocity'] ,  marker="s",linestyle="None",markersize=1 , color = "green",  label=ref_data_name)
-        ax_vel.set_xlabel('Time [s]')
-        ax_vel.set_ylabel('Velocity [m/s]')
-        ax_vel.legend(loc='upper right')
-        ax_vel.grid() 
-
-        eagleye_error_velocity = util_calc.calc_velocity_error(data_df['velocity'],ref_df['velocity'])
-        raw_error_velocity = util_calc.calc_velocity_error(raw_df['velocity'],ref_df['velocity'])
-        ax_err_vel = fig1.add_subplot(2, 1, 2)
-        fig1.suptitle(ref_data_name + ' - eagleye Error')
-        util_plot.plot_two(ax_err_vel, raw_error_velocity, eagleye_error_velocity, 'elapsed_time', 'velocity', 'Velocity Error', 'time [s]', 'Velocity error[m/s]', 'None', "can twist")
-
-
-    if 'yaw' in ref_df.columns and 'x' in ref_df.columns and 'y' in ref_df.columns and 'velocity' in ref_df.columns:
-        print("calc dr")
+    if 'x' in ref_df.columns and 'y' in ref_df.columns and 'yaw' in ref_df.columns and 'velocity' in data_df and 'angular_z' in data_df:
+        print('calc dr')
         ref_xyz = pd.concat([ref_df['x'],ref_df['y']],axis=1)
-        if 'angular_z' in data_df and 'angular_z' in ref_df:
+        if 'yawrate_offset_stop' in data_df and'yawrate_offset' in data_df and 'slip' in data_df and 'distance' in data_df:
+            eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
+            distance = util_calc.calc_distance_xy(ref_xyz)
+            dr_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],distance["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step)
+
+        else:
             twist_data = pd.concat([data_df['angular_z'],data_df['velocity']],axis=1)
-            ref_twist = pd.concat([ref_df['angular_z'],ref_df['velocity']],axis=1)
-            eagleye_angular_velocity, eagleye_angular, eagleye_velocity, ref_enu_vel = util_calc.calc_enu_vel(ref_df["TimeStamp"],twist_data,ref_twist,np.deg2rad(ref_df["yaw"]))
-            
-        elif 'yawrate' in raw_df and 'angular_z' in ref_df and 'yawrate_offset_stop' in data_df and'yawrate_offset' in data_df and 'slip' in data_df and 'distance' in ref_df:
-            ref_twist = pd.concat([ref_df['angular_z'],ref_df['velocity']],axis=1)
-            # eagleye_angular_velocity, heading_angular_velocity = util_calc.calc_enu_vel_eagleye(ref_df["TimeStamp"],raw_df['yawrate'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['slip'],data_df['velocity'],ref_twist['velocity'],np.deg2rad(ref_df["yaw"]))
-            eagleye_angular, heading_angular = util_calc.calc_enu_vel_eagleye(ref_df["TimeStamp"],raw_df['yawrate'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['slip'],ref_twist['velocity'],ref_twist['velocity'],np.deg2rad(ref_df["yaw"]))
-            if 'angular_z' in ref_twist.columns: # angular: ref , velocity: twist
-                twist_velocity = util_calc.calc_enu_vel_each(ref_df["TimeStamp"],ref_twist["angular_z"],data_df["velocity"],ref_twist["velocity"],np.deg2rad(ref_df["yaw"]))
-            
-            if 'angular_z' in ref_twist.columns: # angular: ref , velocity: ref
-                ref_enu_vel = util_calc.calc_enu_vel_each(ref_df["TimeStamp"],ref_twist["angular_z"],ref_twist["velocity"],ref_twist["velocity"],np.deg2rad(ref_df["yaw"]))
-
-        eagleye_angular_velocity_error = util_calc.calc_dr(ref_df["TimeStamp"],ref_df["distance"],eagleye_angular_velocity,ref_xyz,distance_length,distance_step)
-        eagleye_angular_error = util_calc.calc_dr(ref_df["TimeStamp"],ref_df["distance"],eagleye_angular,ref_xyz,distance_length,distance_step)
-        eagleye_velocity_error = util_calc.calc_dr(ref_df["TimeStamp"],ref_df["distance"],eagleye_velocity,ref_xyz,distance_length,distance_step)
+            distance = util_calc.calc_distance_xy(ref_xyz)
+            dr_error, dr_trajcetory = util_calc.calc_dr_twist(ref_df["TimeStamp"],distance["distance"],twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step)
 
         fig2 = plt.figure()
         ax_dr = fig2.add_subplot(2, 1, 1)
-        util_plot.plot_one(ax_dr, eagleye_angular_velocity_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
-        util_plot.plot_one(ax_dr, eagleye_angular_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
-        util_plot.plot_one(ax_dr, eagleye_velocity_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
+        util_plot.plot_one(ax_dr, dr_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
+        ax_dr.set_ylim([0.0,dr_error_ylim])
 
-        eagleye_angular_velocity_ErrTra = util_calc.calc_TraRate(eagleye_angular_velocity_error["error_2d"] , eval_step_max)
-        eagleye_angular_ErrTra = util_calc.calc_TraRate(eagleye_angular_error["error_2d"] , eval_step_max)
-        eagleye_velocity_ErrTra = util_calc.calc_TraRate(eagleye_velocity_error["error_2d"] , eval_step_max)
+        dr_ErrTra = util_calc.calc_TraRate(dr_error["error_2d"] , eval_step_max)
 
         ax_trarate_dr = fig2.add_subplot(2, 1, 2)
-        util_plot.plot_one(ax_trarate_dr, eagleye_angular_velocity_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
-        util_plot.plot_one(ax_trarate_dr, eagleye_angular_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
-        util_plot.plot_one(ax_trarate_dr, eagleye_velocity_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
+        util_plot.plot_one(ax_trarate_dr, dr_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
         ax_trarate_dr.set_xscale('log') 
         ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
+        ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1.0, 3.0])
 
-
-    if 'x' in ref_df.columns and 'y' in ref_df.columns and 'yaw' in ref_df.columns and'angular_z' in data_df and 'yawrate_offset_stop' in data_df and'yawrate_offset' in data_df and 'slip' in data_df and 'distance' in data_df and 'velocity' in data_df:
-        ref_xyz = pd.concat([ref_df['x'],ref_df['y']],axis=1)
-        eagleye_angular_velocity, heading_angular_velocity = util_calc.calc_enu_vel_eagleye(ref_df["TimeStamp"],data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['slip'],data_df['velocity'],data_df['velocity'],np.deg2rad(ref_df["yaw"]))
-        eagleye_angular_velocity_error = util_calc.calc_dr(ref_df["TimeStamp"],data_df["distance"],eagleye_angular_velocity,ref_xyz,distance_length,distance_step)
-
-        fig2 = plt.figure()
-        ax_dr = fig2.add_subplot(2, 1, 1)
-        util_plot.plot_one(ax_dr, eagleye_angular_velocity_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
-
-        eagleye_angular_velocity_ErrTra = util_calc.calc_TraRate(eagleye_angular_velocity_error["error_2d"] , eval_step_max)
-
-        ax_trarate_dr = fig2.add_subplot(2, 1, 2)
-        util_plot.plot_one(ax_trarate_dr, eagleye_angular_velocity_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
-        ax_trarate_dr.set_xscale('log') 
-        ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
-        ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
-
-        correct_heading = pd.concat([heading_angular_velocity,ref_df['elapsed_time']],axis=1)
-        correct_heading['yaw'] = np.rad2deg(correct_heading['yaw'])
-
-        fig3 = plt.figure()
-        ax_heading = fig3.add_subplot(1, 1, 1)
-        util_plot.plot_three(ax_heading, ref_df, data_df, correct_heading, 'elapsed_time', 'yaw', 'heading', 'time[s]',  'heading [deg]', '-', ref_data_name)
+        util_plot.plot_traj(ref_xyz, dr_trajcetory,ref_data_name)
 
         
     plt.show()

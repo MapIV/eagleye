@@ -108,10 +108,10 @@ def set_ref_data(input_path,config): # Creation of dataset with reference to col
     return set_ref_df
 
 def set_csv_data(input_path,config): # Creation of dataset with reference to column number
-    use_separate_time_stamp = config["ref_index"]["separate_time_stamp"]
+    use_separate_time_stamp = config["data_index"]["separate_time_stamp"]
     index_time_unit = config["data_index"]["time_unit"]
-    index_time_sec = config["ref_index"]["time_sec"]
-    index_time_nsec = config["ref_index"]["time_nsec"]
+    index_time_sec = config["data_index"]["time_sec"]
+    index_time_nsec = config["data_index"]["time_nsec"]
     index_time = config["data_index"]["time"]
     index_x = config["data_index"]["x"]
     index_y = config["data_index"]["y"]
@@ -138,7 +138,10 @@ def set_csv_data(input_path,config): # Creation of dataset with reference to col
     return set_df
 
 def set_twist_data(input_path,config): # Creation of dataset with reference to column number
+    use_separate_time_stamp = config["twist_index"]["separate_time_stamp"]
     index_time_unit = config["twist_index"]["time_unit"]
+    index_time_sec = config["twist_index"]["time_sec"]
+    index_time_nsec = config["twist_index"]["time_nsec"]
     index_time = config["twist_index"]["time"]
     index_linear_x = config["twist_index"]["linear_x"]
     index_linear_y = config["twist_index"]["linear_y"]
@@ -147,11 +150,12 @@ def set_twist_data(input_path,config): # Creation of dataset with reference to c
     index_angular_y = config["twist_index"]["angular_y"]
     index_angular_z = config["twist_index"]["angular_z"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
-    if index_time_unit == 1:
+    if use_separate_time_stamp == True:
+        data_time = pd.Series(tmp_df.iloc[:,index_time_sec] + tmp_df.iloc[:,index_time_nsec] * 10 ** (-9), name='TimeStamp')
+    elif index_time_unit == 1:
         data_time = pd.Series(tmp_df.iloc[:,index_time] * 10 ** (-9), name='TimeStamp')
     else:
         data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
-    data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
     data_linear_x = pd.Series(tmp_df.iloc[:,index_linear_x], name='velocity')
     data_linear_y = pd.Series(tmp_df.iloc[:,index_linear_y], name='linear_y')
     data_linear_z = pd.Series(tmp_df.iloc[:,index_linear_z], name='linear_z')
