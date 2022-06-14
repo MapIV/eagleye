@@ -93,10 +93,6 @@ int main(int argc, char *argv[])
       std::cerr << "\033[1;31mError: Cannot find the topic for Velocity Estimate mode: " << rtklib_nav_topic << "\033[0m" << std::endl;
       exit(1);
     }
-    else
-    {
-
-    }
   }
   else
   {
