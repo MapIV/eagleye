@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistStamped velocity,
   const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,
   const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,
   eagleye_msgs::Heading* heading_interpolate)
@@ -45,7 +45,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
 
   yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset.yawrate_offset;
   }
@@ -74,7 +74,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const eagleye_msgs
     heading_estimate_status = false;
   }
 
-  if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) >
+  if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) >
     heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle +

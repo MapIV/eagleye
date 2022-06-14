@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,SmoothingParameter smoothing_parameter,
+void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistStamped velocity,SmoothingParameter smoothing_parameter,
   SmoothingStatus* smoothing_status,eagleye_msgs::Position* gnss_smooth_pos_enu)
 {
 
@@ -90,7 +90,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, eagleye_msgs::Velocit
     smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
     smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
     smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
-    smoothing_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    smoothing_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
 
     time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 

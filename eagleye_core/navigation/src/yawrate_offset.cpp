@@ -31,7 +31,7 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,
+void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const eagleye_msgs::YawrateOffset yawrate_offset_stop,
   const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter,
   YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
 {
@@ -70,7 +70,7 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
   yawrate_offset_status->time_buffer.push_back(imu.header.stamp.toSec());
   yawrate_offset_status->yawrate_buffer.push_back(yawrate);
   yawrate_offset_status->heading_angle_buffer.push_back(heading_interpolate.heading_angle);
-  yawrate_offset_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+  yawrate_offset_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
   yawrate_offset_status->heading_estimate_status_buffer.push_back(heading_interpolate.status.estimate_status);
   yawrate_offset_status->yawrate_offset_stop_buffer.push_back(yawrate_offset_stop.yawrate_offset);
 

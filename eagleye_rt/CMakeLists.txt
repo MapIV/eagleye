@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
 project(eagleye_rt)
 
 set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
+set(CMAKE_CXX_STANDARD 14)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -45,6 +49,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
 add_executable(velocity_scale_factor src/velocity_scale_factor_node.cpp)

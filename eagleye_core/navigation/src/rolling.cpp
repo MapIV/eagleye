@@ -33,7 +33,7 @@
 
 #define g 9.80665
 
-void rolling_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor velocity_scale_factor,
+void rolling_estimate(sensor_msgs::Imu imu, geometry_msgs::TwistStamped correction_velocity,
                       eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset,
                       RollingParameter rolling_parameter, RollingStatus* rolling_status, eagleye_msgs::Rolling* rolling)
 {
@@ -51,7 +51,7 @@ void rolling_estimate(sensor_msgs::Imu imu, eagleye_msgs::VelocityScaleFactor ve
 
   // Input data setup
   acceleration_y = imu.linear_acceleration.y;
-  velocity = velocity_scale_factor.correction_velocity.linear.x;
+  velocity = correction_velocity.twist.linear.x;
 
   if (std::abs(velocity) > rolling_parameter.stop_judgment_velocity_threshold)
   {
