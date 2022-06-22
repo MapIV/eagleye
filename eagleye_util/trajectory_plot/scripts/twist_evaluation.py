@@ -69,6 +69,8 @@ if __name__ == "__main__":
     distance_step = config["param"]["distance_step_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
     dr_error_ylim = config["twist_evaluation"]["dr_error_ylim"]
+    plot_text_data = config["twist_evaluation"]["plot_text_data"]
+    plot_text_step = config["twist_evaluation"]["plot_text_step"]
     ref_data_name = config["param"]["ref_data_name_param"]
     data_name = config["param"]["data_name_param"]
     
@@ -84,7 +86,12 @@ if __name__ == "__main__":
     print('reverse_imu',reverse_imu)
     print('distance_length',distance_length)
     print('distance_step',distance_step)
+    print('eval_step_max',eval_step_max)
+    print('dr_error_ylim',dr_error_ylim)
+    print('plot_text_data',plot_text_data)
+    print('plot_text_step',plot_text_step)
     print('ref_data_name',ref_data_name)
+    print('data_name',data_name)
 
     # set data
     if args.ref != None:
@@ -174,7 +181,7 @@ if __name__ == "__main__":
         ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1.0, 3.0])
 
-        util_plot.plot_traj_text(ref_xyz, dr_trajcetory,ref_df["distance"], distance_step, data_name, ref_data_name)
+        util_plot.plot_traj_text('DR Trajectory', ref_xyz, dr_trajcetory,ref_df[plot_text_data], plot_text_step, data_name, ref_data_name)
 
         
     plt.show()

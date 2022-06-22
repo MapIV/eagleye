@@ -72,7 +72,6 @@ def set_ref_data(input_path,config): # Creation of dataset with reference to col
     ref_data_y = pd.Series(tmp_df.iloc[:,index_y], name='y')
     ref_data_z = pd.Series(tmp_df.iloc[:,index_z], name='z')
     ref_data_xyz = pd.concat([ref_data_x,ref_data_y,ref_data_z],axis=1)
-    distance = util_calc.calc_distance_xy(ref_data_xyz)
     if use_quaternion_flag == True:
         ref_data_ori_x = pd.Series(tmp_df.iloc[:,index_ori_x], name='ori_x')
         ref_data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
@@ -98,8 +97,10 @@ def set_ref_data(input_path,config): # Creation of dataset with reference to col
         ref_data_vel_z = pd.Series(tmp_df.iloc[:,index_vel_z], name='vel_z')
         set_ref_vel_tmp = pd.concat([ref_data_vel_x, ref_data_vel_y, ref_data_vel_z],axis=1)
         ref_velocity = util_calc.calc_velocity(set_ref_vel_tmp)
-        distance = util_calc.calc_distance(ref_velocity,ref_data_time)
+        distance = util_calc.calc_distance_vel(ref_velocity["velocity"],ref_data_time)
         set_ref_vel = pd.concat([set_ref_vel_tmp, ref_velocity],axis=1)
+    else:
+        distance = util_calc.calc_distance_xy(ref_data_xyz)
     set_ref_angular = pd.DataFrame()
     if use_angular_flag == True:
         ref_data_angular_x = pd.Series(tmp_df.iloc[:,index_angular_x], name='angular_x')

@@ -216,7 +216,7 @@ def plot_traj(ref_data, data,data_name, ref_data_name):
     ax.set_aspect('equal')
     ax.axis('square')
 
-def plot_traj_text(ref_data, data, text, step, data_name, ref_data_name):
+def plot_traj_text(title, ref_data, data, text, step, data_name, ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=3, color = "red",  label=ref_data_name)
@@ -228,7 +228,7 @@ def plot_traj_text(ref_data, data, text, step, data_name, ref_data_name):
             cnt = cnt + 1
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
-    ax.set_title('2D Trajectory')
+    ax.set_title(title)
     ax.legend(loc='upper right')
     ax.grid()
     ax.set_aspect('equal')

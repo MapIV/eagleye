@@ -6,9 +6,9 @@ ref_index:
   use_vel: False # Use enu velocity
   use_angular: False #
   use_qual: False # Use GNSS quality
-  time_sec: 1
-  time_nsec: 2
-  time: 2
+  time_sec: 1 # separate_time_stamp:[True]
+  time_nsec: 2 # separate_time_stamp:[True]
+  time: 2 # separate_time_stamp:[False]
   x: 4
   y: 5
   z: 6
@@ -33,9 +33,9 @@ target_data_index:
   use_quaternion: True # [True]:Set Quaternion / [False]:Set Euler
   use_radian: True # [True]:radian / [False]:degree
   use_qual: False # Use GNSS quality
-  time_sec: 1
-  time_nsec: 2
-  time: 2
+  time_sec: 1 # separate_time_stamp:[True]
+  time_nsec: 2 # separate_time_stamp:[True]
+  time: 2 # separate_time_stamp:[False]
   x: 4
   y: 5
   z: 6
@@ -49,8 +49,11 @@ target_data_index:
   qual: 10
 
 twist_index:
+  separate_time_stamp: False #[True]:Set time_sec and time_nsec / [False]:Set time
   time_unit: 0 # 0:[s], 1:[ns]
-  time: 2
+  time_sec: 1 # separate_time_stamp:[True]
+  time_nsec: 2 # separate_time_stamp:[True]
+  time: 2 # separate_time_stamp:[False]
   linear_x: 4
   linear_y: 5
   linear_z: 6
@@ -81,8 +84,12 @@ param:
 
 evaluation_plot:
   dr_error_ylim: 1.0 # ylabel data lim
+  plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
+  plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 
 twist_evaluation:
   dr_error_ylim: 1.0 # ylabel data lim
+  plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
+  plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 
   

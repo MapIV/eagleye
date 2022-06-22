@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import math
 import mgrs
+import sys
 
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
@@ -174,14 +175,10 @@ def calc_distance_vel(velocity, time):
     set_distance: List[float] = []
     for i in range(len(time)):
         if i == 0:
-            print(time[i])
-            last_time = time[i]
+            last_time = time.iloc[i]
             continue
-        print(last_time)
-        print(velocity[i])
-        distance = last_distance + velocity[i] * (time[i] - last_time)
-        print(distance)
-        last_time = time[i]
+        distance = last_distance + velocity.iloc[i] * (time.iloc[i] - last_time)
+        last_time = time.iloc[i]
         last_distance = distance
         set_distance.append([distance])
     distance = pd.DataFrame(set_distance,columns=['distance'])
@@ -328,6 +325,9 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
                 set_ref_yawrate_offset_stop.append([ref_yareta_offset_stop_tmp,ref_yawrate_offset_tmp,ref_slip_tmp])
 
 
+    if not set_data_df:
+        print("Time sync Error")
+        sys.exit(1)
     data_xyz = pd.DataFrame()
     data_ori = pd.DataFrame()
     data_rpy = pd.DataFrame()
