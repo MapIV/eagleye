@@ -44,12 +44,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-ref", "--ref", help="Path to the ref data(POSLV csv)")
     parser.add_argument("-ref_twist", "--ref_twist", help="Path to the ref twist data")
-    parser.add_argument("-df_ref_ros", "--input_df_ref", help="Path to the ref data by df")
     parser.add_argument("-twist", "--input_twist", help="Path to the twist csv")
-    parser.add_argument("-df_csv", "--input_df_csv", help="Path to the csv by df")
     parser.add_argument("-log", "--input_log_csv", help="Path to the csv by df")
     parser.add_argument("-ref_log", "--input_ref_log", help="Path to the csv by df")
-    parser.add_argument("-y", "--yaml_path",help="yaml name")
+    parser.add_argument("-yaml", "--yaml_path",help="yaml name")
     args = parser.parse_args()
 
     yaml_path_str: str = args.yaml_path
@@ -69,9 +67,10 @@ if __name__ == "__main__":
     tf_yaw = config["param"]["tf_yaw_param"]
     distance_length = config["param"]["distance_length_param"]
     distance_step = config["param"]["distance_step_param"]
-    ref_data_name = config["param"]["ref_data_name_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
     dr_error_ylim = config["twist_evaluation"]["dr_error_ylim"]
+    ref_data_name = config["param"]["ref_data_name_param"]
+    data_name = config["param"]["data_name_param"]
     
     print('plane',plane)
     print('sync_threshold_time',sync_threshold_time)
@@ -175,7 +174,7 @@ if __name__ == "__main__":
         ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1.0, 3.0])
 
-        util_plot.plot_traj(ref_xyz, dr_trajcetory,ref_data_name)
+        util_plot.plot_traj_text(ref_xyz, dr_trajcetory,ref_df["distance"], distance_step, data_name, ref_data_name)
 
         
     plt.show()

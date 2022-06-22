@@ -54,6 +54,7 @@ if __name__ == "__main__":
     # set param
     reverse_imu = config["param"]["reverse_imu_flag"]
     plane = config["param"]["plane_num"]
+    data_name = config["param"]["data_name_param"]
 
     print('plane',plane)
 
@@ -80,7 +81,8 @@ if __name__ == "__main__":
 
     raw_xyz_vel = pd.concat([raw_df['vel_x'],raw_df['vel_y'],raw_df['vel_z']],axis=1)
     vel = util_calc.xyz2enu_vel(raw_xyz_vel,org_xyz)
-    dopplor = pd.concat([raw_df['elapsed_time'],vel],axis=1)
+    dopplor_heading = util_calc.calc_dopplor_heading(vel)
+    dopplor = pd.concat([raw_df['elapsed_time'],vel, dopplor_heading],axis=1)
 
     eagleye_rpy = pd.concat([eagleye_df['heading_1st'],eagleye_df['heading_2nd'],eagleye_df['yaw_rad'],eagleye_df['roll_rad'],eagleye_df['pitch_rad']],axis=1)
     eagleye_df_tmp = util_calc.get_heading_deg(eagleye_rpy)
@@ -92,7 +94,7 @@ if __name__ == "__main__":
     eagleye_df['pitch'] = eagleye_df_tmp['pitch']
 
     eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading']],axis=1)
-    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy)
+    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor)
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
@@ -108,11 +110,11 @@ if __name__ == "__main__":
     ax_vel.legend(loc='upper right')
     ax_vel.grid()
 
-    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
+    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
 
     util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'])
 
-    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
+    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
 
     plt.show()
     

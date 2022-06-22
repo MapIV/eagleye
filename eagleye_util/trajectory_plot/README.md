@@ -4,64 +4,62 @@
 ```
 pip3 install scipy
 pip3 install open3d
+pip3 install mgrs
 ```
 
 ## Usage
 ### eagleye_pp_single_evaluation
 ```
-python3 eagleye_pp_single_evaluation.py <eagleye_log.csv>
+python3 eagleye_pp_single_evaluation.py <eagleye_log.csv> <trajectory_plot.yaml>
 ```
 
 ex)
 ```
-python3 scripts/eagleye_pp_single_evaluation.py sample_data/eagleye_log.csv
+python3 scripts/eagleye_pp_single_evaluation.py eagleye_log.csv trajectory_plot.yaml
 ```
 
 ### evaluation_plot
 ```
-python3 scripts/evaluation_plot.py [ref_data_input_option] <ref_data.csv> [eagleye_data_input_option] <eagleye_data.csv>
+python3 scripts/evaluation_plot.py [ref_data_input_option] <ref_data.csv> [target data input option] <target.csv> -yaml <trajectory_plot.yaml>
 ```
 
-ex1)(recommendation)
+ex1)(evaluation eagleye_log.csv)
 ```
-python3 scripts/evaluation_plot.py [-df_ref] <ref_data.csv> [-log] <eagleye_log.csv>
+python3 scripts/evaluation_plot.py [-ref] <ref_data.csv> [-log] <eagleye_log.csv> -yaml <trajectory_plot.yaml>
 ```
 
-ex2)(geometry_msgs/PoseStamped)
+ex2)(evaluation target.csv)
 ```
-python3 scripts/evaluation_plot.py [-df_ref_ros] <ref_data.csv> [-df_csv] <eagleye.csv>
+python3 scripts/evaluation_plot.py [-ref] <ref_data.csv> [-target] <target.csv> -yaml <trajectory_plot.yaml>
+```
+
+### twist_evaluation
+```
+python3 scripts/twist_evaluation.py [ref_data_input_option] <ref_data.csv> [twist data input option] <twist.csv> -yaml <trajectory_plot.yaml>
+```
+
+ex1)(evaluation eagleye_log.csv)
+```
+python3 scripts/twist_evaluation.py [-ref] <ref_data.csv> [-log] <eagleye_log.csv> -yaml <trajectory_plot.yaml>
+```
+
+ex2)(evaluation twist.csv)
+```
+python3 scripts/evaluation_plot.py [-ref] <ref_data.csv> [-twist] <twist.csv> -yaml <trajectory_plot.yaml>
 ```
 
 ref data input options
 * [`-ref`]: Import reference data referenced by column count
-* [`-y`]: Import yaml file specifying reference columns
-* [`-df_ref`]: Import reference data by reference with the name of the HEADER(POSLV csv)
-* [`-df_ref_ros`]: Import reference data of type geometry_msgs/PoseStamped with reference to the name of the HEADER
 * [`-ref_log`]: Import eagleye_pp data by reference with the name of the HEADER(eagleye_log.csv)
 
-eagleye data input options
-* [`-csv`]: Import eagleye data referenced by column count
-* [`-y`]: Import yaml file specifying reference columns
-* [`-df_csv`]: Import eagleye data by reference with the name of the HEADER(/eagleye/pose)
+target data input options
 * [`-log`]: Import eagleye_pp data by reference with the name of the HEADER(eagleye_log.csv)
-* [`-p`]: Plane Cartesian coordinate system number
-* [`-r`]: reverse imu angular_velocity.z
+* [`-target`]: Import target data referenced by column count
 
-Time synchronization options
-* [`-s`]: Gap time to be regarded as synchronous[s]
-* [`-l`]: Offset time between reference data and eagleye data[s]
+twist data input options
+* [`-log`]: Import eagleye_pp data by reference with the name of the HEADER(eagleye_log.csv)
+* [`-twist`]: Import target twist data referenced by column count
 
-Position correction options for reference and eagleye data
-* [`-tf_x`]: Correction amount in East-West direction[m]
-* [`-tf_y`]: Correction amount in North-South direction[m]
-* [`-tf_across`]: Correction amount in vehicle orthogonal direction[m]
-* [`-tf_along`]: Correction amount in the direction of vehicle travel[m]
-* [`-tf_height`]: Correction amount in height direction[m]
-* [`-tf_yaw`]: Correction amount in yaw[deg]
+Common Options
+* [`-yaml`]: Import yaml file
 
-Options for relative positional accuracy evaluation
-* [`-dr_l`]: Length of distance to evaluate relative position[m]
-* [`-dr_s`]: Start distance interval to evaluate relative position[m]
-
-plot options
-* [`-ref_name`]: Name of reference data in graph legend

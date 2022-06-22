@@ -152,6 +152,11 @@ def xyz2enu_vel(vel,org_xyz):
     df = pd.DataFrame(set_vel_data,columns=['east_vel','north_vel','up_vel','velocity'])
     return df
 
+def calc_dopplor_heading(vel):
+    heading = np.degrees(np.arctan2(vel['east_vel'], vel['north_vel']))
+    df = pd.DataFrame(heading,columns=['heading'])
+    return df
+
 def ll2mgrs(llh):
     set_mgrs: List[float] = []
     m = mgrs.MGRS()
@@ -189,7 +194,7 @@ def calc_distance_xy(xy):
         if i == 0: 
             distance = 0
         else:
-            distance = last_distance + (((xy.iloc[i]['x']-xy.iloc[i-1]['x']) ** 2) + (xy.iloc[i]['x']-xy.iloc[i-1]['x']) ** 2)** 0.5
+            distance = last_distance + (((xy.iloc[i]['x']-xy.iloc[i-1]['x']) ** 2) + (xy.iloc[i]['y']-xy.iloc[i-1]['y']) ** 2)** 0.5
             last_distance = distance
         set_distance.append([distance])
     distance = pd.DataFrame(set_distance,columns=['distance'])

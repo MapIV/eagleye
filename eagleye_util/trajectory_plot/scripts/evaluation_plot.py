@@ -32,6 +32,7 @@ import math
 import yaml
 from typing import List
 import pandas as pd
+import numpy as np
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
@@ -49,20 +50,7 @@ if __name__ == "__main__":
     parser.add_argument("-df_csv", "--input_df_csv", help="Path to the csv by df")
     parser.add_argument("-log", "--input_log_csv", help="Path to the csv by df")
     parser.add_argument("-ref_log", "--input_ref_log", help="Path to the csv by df")
-    parser.add_argument("-p", "--plane_num",help="Plane Cartesian coordinate system number")
-    parser.add_argument("-s", "--sync_threshold_time_data_param",help="Gap time to be regarded as synchronous")
-    parser.add_argument("-l", "--leap_time_param",help="Time offset correction")
-    parser.add_argument("-tf_x", "--tf_x_param",help="tf offset correction")
-    parser.add_argument("-tf_y", "--tf_y_param",help="tf offset correction")
-    parser.add_argument("-tf_across", "--tf_across_param",help="tf offset correction")
-    parser.add_argument("-tf_along", "--tf_along_param",help="tf offset correction")
-    parser.add_argument("-tf_height", "--tf_height_param",help="tf offset correction")
-    parser.add_argument("-tf_yaw", "--tf_yaw_param",help="tf offset correction")
-    parser.add_argument("-r", "--reverse_imu", action="store_true",help="change reverse_imu true")
-    parser.add_argument("-dr_l", "--distance_length_param",help="tf offset correction")
-    parser.add_argument("-dr_s", "--distance_step_param",help="tf offset correction")
-    parser.add_argument("-ref_name", "--ref_data_name_param",help="ref data name")
-    parser.add_argument("-y", "--yaml_path",help="yaml name")
+    parser.add_argument("-yaml", "--yaml_path",help="yaml name")
     args = parser.parse_args()
 
     yaml_path_str: str = args.yaml_path
@@ -82,8 +70,9 @@ if __name__ == "__main__":
     tf_yaw = config["param"]["tf_yaw_param"]
     distance_length = config["param"]["distance_length_param"]
     distance_step = config["param"]["distance_step_param"]
-    ref_data_name = config["param"]["ref_data_name_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
+    ref_data_name = config["param"]["ref_data_name_param"]
+    data_name = config["param"]["data_name_param"]
     
     print('plane',plane)
     print('sync_threshold_time',sync_threshold_time)
@@ -98,6 +87,7 @@ if __name__ == "__main__":
     print('distance_length',distance_length)
     print('distance_step',distance_step)
     print('ref_data_name',ref_data_name)
+    print('data_name',data_name)
 
     # set data
     if args.ref != None:
@@ -105,7 +95,7 @@ if __name__ == "__main__":
         print("set ref_data")
 
     if args.input_csv != None:
-        csv_data_df = util_prepro.set_csv_data(args.input_csv,config)
+        csv_data_df = util_prepro.set_target_data(args.input_csv,config)
         print("set csv_data")
         
     if args.df_ref != None:
@@ -185,7 +175,7 @@ if __name__ == "__main__":
     eagleye_xyz = pd.concat([data_df['x'],data_df['y'],data_df['z']],axis=1)
     eaegleye_6dof = pd.concat([eagleye_xyz,eagleye_rpy],axis=1)
     ref_6dof = pd.concat([ref_data_xyz,ref_rpy],axis=1)
-    util_plot.plot_6DoF(ref_df['elapsed_time'], eaegleye_6dof, ref_6dof,ref_data_name)
+    util_plot.plot_6DoF(ref_df['elapsed_time'], eaegleye_6dof, ref_6dof,data_name, ref_data_name)
     
 
     # calc 6dof error
@@ -221,11 +211,12 @@ if __name__ == "__main__":
         ax1.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
 
     # twist Performance Evaluation
-    if 'vel_x' in data_df.columns and 'vel_y' in data_df.columns and 'distance' in data_df.columns:
+    if 'vel_x' in data_df.columns and 'vel_y' in data_df.columns and 'yawrate_offset_stop' in data_df.columns and 'yawrate_offset' in data_df.columns and 'slip' in data_df.columns:
         print("start calc relative position")
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
-        calc_error,dr_trajcetory = util_calc.calc_dr(data_df['TimeStamp'],data_df['distance'],eagleye_vel_xyz,ref_xyz,distance_length,distance_step)
+        eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
+        calc_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],data_df["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step)
         print("finished calc relative position")
 
         dr_error_2d = calc_error['error_2d'].values.tolist()
@@ -245,7 +236,7 @@ if __name__ == "__main__":
     if 'velocity' in ref_velocity.columns and 'velocity' in data_df.columns:
         fig11 = plt.figure()
         ax_vel = fig11.add_subplot(2, 1, 1)
-        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
+        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',data_name, ref_data_name)
 
         ax_err_vel = fig11.add_subplot(2, 1, 2)
         fig11.suptitle(ref_data_name + ' - eagleye Error')
@@ -254,16 +245,19 @@ if __name__ == "__main__":
     elif 'velocity' in ref_velocity.columns or 'velocity' in data_df.columns:
         fig11 = plt.figure()
         ax_vel = fig11.add_subplot(1, 1, 1)
-        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',ref_data_name)
+        util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_velocity, 'velocity', 'Velocity', 'Velocity [m/s]',data_name,ref_data_name)
 
     # plot 2D trajectory
-    util_plot.plot_traj(ref_data_xyz, eagleye_xyz, ref_data_name)
+    util_plot.plot_traj(ref_data_xyz, eagleye_xyz, data_name, ref_data_name)
 
     if 'qual' in data_df.columns:
         util_plot.plot_traj_qual(eagleye_xyz,data_df['qual'])
+    elif 'qual' in ref_df.columns:
+        util_plot.plot_traj_qual(ref_data_xyz,ref_df['qual'])
+
 
     # plot 3d trajectory
-    util_plot.plot_traj_3d( ref_df, data_df, ref_data_name)
+    util_plot.plot_traj_3d( ref_df, data_df, data_name, ref_data_name)
 
     print(error_table)
 

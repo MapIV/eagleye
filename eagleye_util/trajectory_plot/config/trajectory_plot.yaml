@@ -3,8 +3,9 @@ ref_index:
   time_unit: 1 # 0:[s], 1:[ns]
   use_quaternion: True # [True]:Set Quaternion / [False]:Set Euler
   use_radian: True # [True]:radian / [False]:degree
-  use_vel: False #
+  use_vel: False # Use enu velocity
   use_angular: False #
+  use_qual: False # Use GNSS quality
   time_sec: 1
   time_nsec: 2
   time: 2
@@ -24,12 +25,14 @@ ref_index:
   angular_x: 0
   angular_y: 0
   angular_z: 0
+  qual: 10
 
-data_index:
+target_data_index:
   separate_time_stamp: False #[True]:Set time_sec and time_nsec / [False]:Set time
   time_unit: 0 # 0:[s], 1:[ns]
   use_quaternion: True # [True]:Set Quaternion / [False]:Set Euler
   use_radian: True # [True]:radian / [False]:degree
+  use_qual: False # Use GNSS quality
   time_sec: 1
   time_nsec: 2
   time: 2
@@ -43,6 +46,7 @@ data_index:
   roll: 7
   pitch: 8
   yaw: 9
+  qual: 10
 
 twist_index:
   time_unit: 0 # 0:[s], 1:[ns]
@@ -63,16 +67,20 @@ param:
   plane_num: 7 # Plane Cartesian coordinate system number (default:7 = 7)
   sync_threshold_time_data_param: 0.01 # Time threshold for judgment at synchronized. (default:0.01 = 0.01[s])
   leap_time_param: 0.0 # Offset correction for time synchronization. (default:0.0 = 0.0[s])
-  tf_x_param: 0.0
-  tf_y_param: 0.0
-  tf_across_param: 0.0
-  tf_along_param: 0.0
-  tf_height_param: 0.0
-  tf_yaw_param: 0.0
+  tf_x_param: 0.0 # Correction amount in East-West direction[m]
+  tf_y_param: 0.0 # Correction amount in North-South direction[m]
+  tf_across_param: 0.0 # Correction amount in vehicle orthogonal direction[m]
+  tf_along_param: 0.0 # Correction amount in the direction of vehicle travel[m]
+  tf_height_param: 0.0 # Correction amount in height direction[m]
+  tf_yaw_param: 0.0 # Correction amount in yaw[deg]
   distance_length_param: 100 # Distance to calculate relative trajectory. (default:100 = 100[m])
   distance_step_param: 50 # Calculate relative trajectories step (default:50 = 50[m])
-  ref_data_name_param: 'ref data' # Reference Legend Name. (default:'ref data')
   eval_step_max_param: 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
+  ref_data_name_param: 'ref data' # Reference Legend Name. (default:'ref data')
+  data_name_param: 'eagleye' # Target Legend Name. (default:'eagleye')
+
+evaluation_plot:
+  dr_error_ylim: 1.0 # ylabel data lim
 
 twist_evaluation:
   dr_error_ylim: 1.0 # ylabel data lim
