@@ -160,11 +160,15 @@ if __name__ == "__main__":
             eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
             distance = util_calc.calc_distance_xy(ref_xyz)
             dr_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],distance["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
+            calc_error_csv = pd.concat([dr_error['start_distance'],dr_error['error_2d']],axis=1)
+            calc_error_csv.to_csv("eagleye_dr_error.csv", header=True, index=False,float_format='%.9f')
 
         else:
             twist_data = pd.concat([data_df['angular_z'],data_df['velocity']],axis=1)
             distance = util_calc.calc_distance_xy(ref_xyz)
             dr_error, dr_trajcetory = util_calc.calc_dr_twist(ref_df["TimeStamp"],distance["distance"],twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
+            calc_error_csv = pd.concat([dr_error['start_distance'],dr_error['error_2d']],axis=1)
+            calc_error_csv.to_csv("target_dr_error.csv", header=True, index=False,float_format='%.9f')
 
         fig2 = plt.figure()
         ax_dr = fig2.add_subplot(2, 1, 1)
