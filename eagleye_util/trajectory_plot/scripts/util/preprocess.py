@@ -82,13 +82,15 @@ def set_ref_data(input_path,config): # Creation of dataset with reference to col
     elif use_quaternion_flag == False and use_radian_flag == True:
         ref_data_roll = pd.Series(tmp_df.iloc[:,index_roll], name='roll')
         ref_data_pitch = pd.Series(tmp_df.iloc[:,index_pitch], name='pitch')
-        ref_data_yaw = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
+        ref_data_yaw_tmp = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
+        ref_data_yaw = util_calc.change_anglel_limit(ref_data_yaw_tmp)
         ref_rpy = pd.concat([np.rad2deg(ref_data_roll),np.rad2deg(ref_data_pitch),np.rad2deg(ref_data_yaw)],axis=1)
     elif use_quaternion_flag == False and use_radian_flag == False:
         ref_data_roll = pd.Series(tmp_df.iloc[:,index_roll], name='roll')
         ref_data_pitch = pd.Series(tmp_df.iloc[:,index_pitch], name='pitch')
-        ref_data_yaw = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
-        ref_rpy = pd.concat([ref_data_roll,ref_data_pitch,ref_data_yaw],axis=1)
+        ref_data_yaw_tmp = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
+        ref_data_yaw = util_calc.change_anglel_limit(np.deg2rad(ref_data_yaw_tmp))
+        ref_rpy = pd.concat([ref_data_roll,ref_data_pitch,np.rad2deg(ref_data_yaw)],axis=1)
 
     set_ref_vel = pd.DataFrame()
     if use_vel_flag == True:
@@ -185,6 +187,7 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
     df = pd.read_csv(input,delimiter=None, header='infer',  index_col=None, usecols=None)
     index_time_unit = config["eagleye_log"]["time_unit"]
     tf_num = config["eagleye_log"]["tf_num"]
+    ros_reverse_imu = config["eagleye_log"]["ros_reverse_imu"]
     eagleye_df = df[["timestamp",
              "rtklib_nav.tow",
              "velocity_scale_factor.scale_factor",
@@ -302,13 +305,20 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
         raw_df['TimeStamp'] = raw_df['TimeStamp_tmp']
     eagleye_df['elapsed_time'] = eagleye_df['TimeStamp'] - raw_df['TimeStamp'][0]
     raw_df['elapsed_time'] = raw_df['TimeStamp'] - raw_df['TimeStamp'][0]
-    rpy_df = get_rpy_deg(eagleye_df)
+    eagleye_df['yaw'] = np.rad2deg(util_calc.change_anglel_limit(eagleye_df['yaw_rad']))
+    eagleye_df['roll'] = np.rad2deg(eagleye_df['roll_rad'])
+    eagleye_df['pitch'] = np.rad2deg(eagleye_df['pitch_rad'])
     llh = pd.concat([eagleye_df['latitude'],eagleye_df['longitude'],eagleye_df['altitude']],axis=1)
     if tf_num == 0:
         xyz = latlon_to_19(llh,plane)
     elif tf_num == 1:
         xyz = util_calc.ll2mgrs(llh)
-    set_eagleye_df = pd.concat([eagleye_df, xyz, rpy_df],axis=1)
+    if ros_reverse_imu == True:
+        eagleye_df['angular_z'] = -1 * eagleye_df['angular_z']
+        eagleye_df['yawrate_offset_stop'] = -1 * eagleye_df['yawrate_offset_stop']
+        eagleye_df['yawrate_offset'] = -1 * eagleye_df['yawrate_offset']
+        eagleye_df['slip'] = -1 * eagleye_df['slip']
+    set_eagleye_df = pd.concat([eagleye_df, xyz],axis=1)
     return set_eagleye_df, raw_df
 
 def set_tf_xy(xy,tf_x,tf_y):
@@ -327,19 +337,6 @@ def correct_anntenapos(eagleye_df,ref_yaw,tf_across,tf_along,tf_height):
         eagleye_df['y'][i] = eagleye_df['y'][i] + diff[1]
     eagleye_df['z'] = eagleye_df['z'] + tf_height
     return eagleye_df
-
-def get_rpy_deg(rpy_rad):
-    set_heading_data: List[float] = []
-    for i in range(len(rpy_rad)):
-        roll_tmp = rpy_rad['roll_rad'][i]
-        pitch_tmp = rpy_rad['pitch_rad'][i]
-        yaw_tmp = util_calc.change_anglel_limit_pi(rpy_rad['yaw_rad'][i])
-        roll = math.degrees(roll_tmp)
-        pitch = math.degrees(pitch_tmp)
-        yaw = math.degrees(yaw_tmp)
-        set_heading_data.append([roll,pitch,yaw])
-    df = pd.DataFrame(set_heading_data,columns=['roll','pitch','yaw'])
-    return df
 
 def latlon_to_19(llh,plane):
     phi0_deg , lambda0_deg = plane_table(plane)

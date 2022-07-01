@@ -105,28 +105,14 @@ def llh2xyz(llh):
     set_xyz = pd.DataFrame(set_xyz_data,columns=['ecef_x','ecef_y','ecef_z'])
     return set_xyz
 
-def change_anglel_limit_pi(heading):
-    while heading < -math.pi or math.pi < heading:
-        if heading < -math.pi:
-            heading += math.pi * 2
-        else:
-            heading -= math.pi * 2
+def change_anglel_limit(heading):
+    for i in range(len(heading)):
+        while heading[i] < -math.pi or math.pi < heading[i]:
+            if heading[i] < -math.pi:
+                heading[i] += math.pi * 2
+            else:
+                heading[i] -= math.pi * 2
     return heading
-
-def get_heading_deg(eagleye_df):
-    set_heading_data: List[float] = []
-    for i in range(len(eagleye_df)):
-        heading_1st_deg_tmp = change_anglel_limit_pi(eagleye_df['heading_1st'][i])
-        heading_2nd_deg_tmp = change_anglel_limit_pi(eagleye_df['heading_2nd'][i])
-        heading_3rd_deg_tmp = change_anglel_limit_pi(eagleye_df['yaw_rad'][i])
-        heading_1st_deg = math.degrees(heading_1st_deg_tmp)
-        heading_2nd_deg = math.degrees(heading_2nd_deg_tmp)
-        heading_3rd_deg = math.degrees(heading_3rd_deg_tmp)
-        rolling = math.degrees(eagleye_df['roll_rad'][i])
-        pitching = math.degrees(eagleye_df['pitch_rad'][i])
-        set_heading_data.append([heading_1st_deg,heading_2nd_deg,heading_3rd_deg,rolling,pitching])
-    df = pd.DataFrame(set_heading_data,columns=['heading_1st_deg','heading_2nd_deg','heading_3rd_deg','roll','pitch'])
-    return df
 
 def xyz2enu_vel(vel,org_xyz):
     set_vel_data: List[float] = []
@@ -155,7 +141,7 @@ def xyz2enu_vel(vel,org_xyz):
 
 def calc_dopplor_heading(vel):
     heading = np.degrees(np.arctan2(vel['east_vel'], vel['north_vel']))
-    df = pd.DataFrame(heading,columns=['heading'])
+    df = pd.DataFrame(heading,columns=['yaw'])
     return df
 
 def ll2mgrs(llh):
@@ -521,7 +507,7 @@ def calc_dr(TimeStamp,distance,eagleye_vel_xyz,ref_xyz,distance_length,distance_
     dr_trajcetory = pd.DataFrame(set_dr_trajcetory,columns=['x','y'])
     return calc_error,dr_trajcetory
 
-def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_length,distance_step):
+def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_length,distance_step,based_heaing_angle):
     last_distance = 0
     last_heading_integtation = 0
     set_dr_trajcetory: List[float] = []
@@ -549,8 +535,12 @@ def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_len
                     continue
                 else:
                     heading_integtation = last_heading_integtation + twist_data['angular_z'][j] * (TimeStamp[j] - last_time)
-                    usr_vel_x = math.cos(heading_integtation) * twist_data['velocity'][j]
-                    usr_vel_y = math.sin(heading_integtation) * twist_data['velocity'][j]
+                    if based_heaing_angle == True:
+                        usr_vel_x = math.sin(heading_integtation) * twist_data['velocity'][j]
+                        usr_vel_y = math.cos(heading_integtation) * twist_data['velocity'][j]
+                    else:
+                        usr_vel_x = math.cos(heading_integtation) * twist_data['velocity'][j]
+                        usr_vel_y = math.sin(heading_integtation) * twist_data['velocity'][j]
                 if distance[j] - start_distance < distance_length:
                     dr_pos_x = previous_pos_x + usr_vel_x * (TimeStamp[j] - last_time)
                     dr_pos_y = previous_pos_y + usr_vel_y * (TimeStamp[j] - last_time)
@@ -575,7 +565,7 @@ def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_len
     dr_trajcetory = pd.DataFrame(set_dr_trajcetory,columns=['x','y'])
     return calc_error,dr_trajcetory
 
-def calc_dr_eagleye(TimeStamp,distance,eagleye_twist_data,ref_heading,ref_xyz,distance_length,distance_step):
+def calc_dr_eagleye(TimeStamp,distance,eagleye_twist_data,ref_heading,ref_xyz,distance_length,distance_step,based_heaing_angle):
     last_distance = 0
     last_heading_integtation = 0
     velocity_stop_threshold = 0.01
@@ -611,8 +601,12 @@ def calc_dr_eagleye(TimeStamp,distance,eagleye_twist_data,ref_heading,ref_xyz,di
                 else:
                     heading_correction_slip = heading_integtation
                 if distance[j] - start_distance < distance_length:
-                    usr_vel_x = math.cos(heading_correction_slip) * eagleye_twist_data['velocity'][j]
-                    usr_vel_y = math.sin(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                    if based_heaing_angle == True:
+                        usr_vel_x = math.sin(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                        usr_vel_y = math.cos(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                    else:
+                        usr_vel_x = math.cos(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                        usr_vel_y = math.sin(heading_correction_slip) * eagleye_twist_data['velocity'][j]
                     dr_pos_x = previous_pos_x + usr_vel_x * (TimeStamp[j] - last_time)
                     dr_pos_y = previous_pos_y + usr_vel_y * (TimeStamp[j] - last_time)
                     last_heading_integtation = heading_correction_slip

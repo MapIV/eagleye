@@ -64,6 +64,7 @@ twist_index:
 eagleye_log:
   tf_num: 0 # 0:plane, 1:mgrs
   time_unit: 1 # 0:[s], 1:[ns]
+  ros_reverse_imu: False # [True]:Use reverse_imu in ros
 
 param:
   reverse_imu_flag: False
@@ -76,6 +77,7 @@ param:
   tf_along_param: 0.0 # Correction amount in the direction of vehicle travel[m]
   tf_height_param: 0.0 # Correction amount in height direction[m]
   tf_yaw_param: 0.0 # Correction amount in yaw[deg]
+  based_heaing_angle: False # [True]:The heading angle is based on North /[False]:The heading angle is based on East (ros data)
   distance_length_param: 100 # Distance to calculate relative trajectory. (default:100 = 100[m])
   distance_step_param: 50 # Calculate relative trajectories step (default:50 = 50[m])
   eval_step_max_param: 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
@@ -83,12 +85,12 @@ param:
   data_name_param: 'eagleye' # Target Legend Name. (default:'eagleye')
 
 evaluation_plot:
-  dr_error_ylim: 1.0 # ylabel data lim
+  dr_error_ylim: 3.0 # ylabel data lim
   plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
   plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 
 twist_evaluation:
-  dr_error_ylim: 1.0 # ylabel data lim
+  dr_error_ylim: 3.0 # ylabel data lim
   plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
   plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 

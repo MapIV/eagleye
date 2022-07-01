@@ -84,16 +84,7 @@ if __name__ == "__main__":
     dopplor_heading = util_calc.calc_dopplor_heading(vel)
     dopplor = pd.concat([raw_df['elapsed_time'],vel, dopplor_heading],axis=1)
 
-    eagleye_rpy = pd.concat([eagleye_df['heading_1st'],eagleye_df['heading_2nd'],eagleye_df['yaw_rad'],eagleye_df['roll_rad'],eagleye_df['pitch_rad']],axis=1)
-    eagleye_df_tmp = util_calc.get_heading_deg(eagleye_rpy)
-    eagleye_df['heading_1st_deg'] = eagleye_df_tmp['heading_1st_deg']
-    eagleye_df['heading_2nd_deg'] = eagleye_df_tmp['heading_2nd_deg']
-    eagleye_df['heading_3rd_deg'] = eagleye_df_tmp['heading_3rd_deg']
-    eagleye_df['heading'] = eagleye_df_tmp['heading_3rd_deg']
-    eagleye_df['roll'] = eagleye_df_tmp['roll']
-    eagleye_df['pitch'] = eagleye_df_tmp['pitch']
-
-    eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading']],axis=1)
+    eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['yaw']],axis=1)
     util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor)
 
     fig2 = plt.figure()

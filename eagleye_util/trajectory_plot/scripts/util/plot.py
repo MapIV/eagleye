@@ -59,10 +59,10 @@ def plot_xyz(ax, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, r
     ax.grid()
 
 def plot_rpy(ax, x_data, eagleye_plot_rpy, dopplor, elem, title, y_label):
-    if elem in eagleye_plot_rpy.columns:
-        ax.plot(x_data , eagleye_plot_rpy[elem] , marker="s", linestyle="None",markersize=1, color = "blue",  label="eagleye")
     if elem in dopplor.columns:
         ax.plot(x_data , dopplor[elem] , marker="o", linestyle="None",markersize=1, color = "green",  label="dopplor")
+    if elem in eagleye_plot_rpy.columns:
+        ax.plot(x_data , eagleye_plot_rpy[elem] , marker="s", linestyle="None",markersize=1, color = "blue",  label="eagleye")
     ax.set_xlabel('time [s]')
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -93,7 +93,7 @@ def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xy
     plot_xyz(ax_z,eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'z', 'Z (Height)','Height [m]')
     plot_rpy(ax_roll, eagleye_x_data, eagleye_plot_rpy, dopplor, 'roll', 'Roll' , 'Roll [deg]')
     plot_rpy(ax_pitch, eagleye_x_data, eagleye_plot_rpy, dopplor, 'pitch', 'Pitch', 'Pitch [deg]')
-    plot_rpy(ax_yaw, eagleye_x_data, eagleye_plot_rpy, dopplor, 'heading', 'Yaw', 'Yaw [deg]')
+    plot_rpy(ax_yaw, eagleye_x_data, eagleye_plot_rpy, dopplor, 'yaw', 'Yaw', 'Yaw [deg]')
 
 def plot_6DoF(x_data,eagleye, ref,data_name, ref_data_name):
     fig1 = plt.figure()

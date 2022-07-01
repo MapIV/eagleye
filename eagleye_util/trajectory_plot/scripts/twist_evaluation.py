@@ -65,6 +65,7 @@ if __name__ == "__main__":
     tf_along = config["param"]["tf_along_param"]
     tf_height = config["param"]["tf_height_param"]
     tf_yaw = config["param"]["tf_yaw_param"]
+    based_heaing_angle = config["param"]["based_heaing_angle"]
     distance_length = config["param"]["distance_length_param"]
     distance_step = config["param"]["distance_step_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     print('tf_along',tf_along)
     print('tf_height',tf_height)
     print('tf_yaw',tf_yaw)
+    print('based_heaing_angle',based_heaing_angle)
     print('reverse_imu',reverse_imu)
     print('distance_length',distance_length)
     print('distance_step',distance_step)
@@ -144,16 +146,12 @@ if __name__ == "__main__":
     if reverse_imu == True:
         if 'angular_z' in data_df.columns:
             data_df['angular_z'] = -1 * data_df['angular_z']
-        if 'yaw' in data_df.columns:
-            data_df['yaw'] = -1 * data_df['yaw']
-        if 'yawrate_offset_stop' in data_df.columns:
-            data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
-        if 'yawrate_offset' in data_df.columns:
-            data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
-        if 'slip' in data_df.columns:
-            data_df['slip'] = -1 * data_df['slip']
-    if not tf_yaw == 0:
-        data_df['yaw'] = data_df['yaw'] + tf_yaw
+            if 'yawrate_offset_stop' in data_df.columns:
+                data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
+            if 'yawrate_offset' in data_df.columns:
+                data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
+            if 'slip' in data_df.columns:
+                data_df['slip'] = -1 * data_df['slip']
 
     if 'x' in ref_df.columns and 'y' in ref_df.columns and 'yaw' in ref_df.columns and 'velocity' in data_df and 'angular_z' in data_df:
         print('calc dr')
@@ -161,12 +159,12 @@ if __name__ == "__main__":
         if 'yawrate_offset_stop' in data_df and'yawrate_offset' in data_df and 'slip' in data_df and 'distance' in data_df:
             eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
             distance = util_calc.calc_distance_xy(ref_xyz)
-            dr_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],distance["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step)
+            dr_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],distance["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
 
         else:
             twist_data = pd.concat([data_df['angular_z'],data_df['velocity']],axis=1)
             distance = util_calc.calc_distance_xy(ref_xyz)
-            dr_error, dr_trajcetory = util_calc.calc_dr_twist(ref_df["TimeStamp"],distance["distance"],twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step)
+            dr_error, dr_trajcetory = util_calc.calc_dr_twist(ref_df["TimeStamp"],distance["distance"],twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
 
         fig2 = plt.figure()
         ax_dr = fig2.add_subplot(2, 1, 1)

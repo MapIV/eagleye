@@ -65,6 +65,7 @@ if __name__ == "__main__":
     tf_along = config["param"]["tf_along_param"]
     tf_height = config["param"]["tf_height_param"]
     tf_yaw = config["param"]["tf_yaw_param"]
+    based_heaing_angle = config["param"]["based_heaing_angle"]
     distance_length = config["param"]["distance_length_param"]
     distance_step = config["param"]["distance_step_param"]
     eval_step_max = config["param"]["eval_step_max_param"]
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     print('tf_along',tf_along)
     print('tf_height',tf_height)
     print('tf_yaw',tf_yaw)
+    print('based_heaing_angle',based_heaing_angle)
     print('reverse_imu',reverse_imu)
     print('distance_length',distance_length)
     print('distance_step',distance_step)
@@ -130,23 +132,18 @@ if __name__ == "__main__":
 
     if tf_yaw != 0 or reverse_imu == True :
         print("set eagleye yaw data")
-        set_heading_data: List[float] = []
         if reverse_imu == True:
             eagleye_rpy['yaw'] = -1 * eagleye_rpy['yaw']
-        if 'angular_z' in data_df.columns:
-            data_df['angular_z'] = -1 * data_df['angular_z']
-        if 'yawrate_offset_stop' in data_df.columns:
-            data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
-        if 'yawrate_offset' in data_df.columns:
-            data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
-        if 'slip' in data_df.columns:
-            data_df['slip'] = -1 * data_df['slip']
+            if 'angular_z' in data_df.columns:
+                data_df['angular_z'] = -1 * data_df['angular_z']
+            if 'yawrate_offset_stop' in data_df.columns:
+                data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
+            if 'yawrate_offset' in data_df.columns:
+                data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
+            if 'slip' in data_df.columns:
+                data_df['slip'] = -1 * data_df['slip']
         eagleye_rpy['yaw'] = eagleye_rpy['yaw'] + tf_yaw
-        for i in range(len(eagleye_rpy)):
-            yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(eagleye_rpy['yaw'][i]))
-            yaw = math.degrees(yaw_tmp)
-            set_heading_data.append([yaw])
-        eagleye_rpy['yaw'] = pd.DataFrame(set_heading_data,columns=['yaw'])
+        eagleye_rpy['yaw'] = np.rad2deg(util_calc.change_anglel_limit(np.deg2rad(eagleye_rpy['yaw'])))
 
     # correct anntena position
     ref_rpy = pd.concat([ref_df['roll'],ref_df['pitch'],ref_df['yaw']],axis=1)
@@ -199,7 +196,7 @@ if __name__ == "__main__":
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
         eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
-        calc_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],data_df["distance"],eagleye_twist_data,np.deg2rad(ref_rpy["yaw"]),ref_xyz,distance_length,distance_step)
+        calc_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],data_df["distance"],eagleye_twist_data,np.deg2rad(ref_rpy["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
         print("finished calc relative position")
 
         dr_error_2d = calc_error['error_2d'].values.tolist()
