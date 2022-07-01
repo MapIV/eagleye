@@ -86,12 +86,12 @@ param:
 
 evaluation_plot:
   dr_error_ylim: 3.0 # ylabel data lim
-  plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
+  plot_text_data: 'elapsed_time' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
   plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 
 twist_evaluation:
   dr_error_ylim: 3.0 # ylabel data lim
-  plot_text_data: 'distance' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
+  plot_text_data: 'elapsed_time' # Text data to be displayed in the graph of trajectory(distance or elapsed_time)
   plot_text_step: 50 # Text data step to be displayed in the graph of trajectory(default:50 = 50[m])
 
   

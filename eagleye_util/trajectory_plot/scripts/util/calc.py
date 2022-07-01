@@ -106,13 +106,17 @@ def llh2xyz(llh):
     return set_xyz
 
 def change_anglel_limit(heading):
+    set_output: List[float] = []
     for i in range(len(heading)):
-        while heading[i] < -math.pi or math.pi < heading[i]:
-            if heading[i] < -math.pi:
-                heading[i] += math.pi * 2
+        heading_tmp = heading[i]
+        while heading_tmp < -math.pi or math.pi < heading_tmp:
+            if heading_tmp < -math.pi:
+                heading_tmp += math.pi * 2
             else:
-                heading[i] -= math.pi * 2
-    return heading
+                heading_tmp -= math.pi * 2
+        set_output.append(heading_tmp)
+    output = pd.DataFrame(set_output,columns=['yaw'])
+    return output
 
 def xyz2enu_vel(vel,org_xyz):
     set_vel_data: List[float] = []
@@ -517,7 +521,6 @@ def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_len
         if last_distance + distance_step < distance[i]:
             data_set_flag = True
             start_distance = distance[i]
-            # heading_integtation = ref_heading[i]
             start_pos_x = ref_xyz['x'][i]
             start_pos_y = ref_xyz['y'][i]
             previous_pos_x = 0

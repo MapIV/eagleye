@@ -101,16 +101,16 @@ if __name__ == "__main__":
         print("set ref_data")
 
     if args.input_target != None:
-        csv_data_df = util_prepro.set_target_data(args.input_target,config)
-        print("set csv_data")
+        target_data_df = util_prepro.set_target_data(args.input_target,config)
+        print("set target_data")
 
     if args.input_ref_log != None:
         ref_data_df, ref_raw_df = util_prepro.set_log_df(args.input_ref_log,plane,config)
         print("set ref_data")
 
     if args.input_log_csv != None:
-        csv_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane,config)
-        print("set csv_data")
+        target_data_df, raw_df = util_prepro.set_log_df(args.input_log_csv,plane,config)
+        print("set target_data")
     
     if tf_x != 0 or tf_y != 0:
         ref_data_df = util_prepro.set_tf_xy(ref_data_df,tf_x,tf_y)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     # syne time
     print("start sync_time")
-    ref_df , data_df = util_calc.sync_time(ref_data_df,csv_data_df,sync_threshold_time,leap_time)
+    ref_df , data_df = util_calc.sync_time(ref_data_df,target_data_df,sync_threshold_time,leap_time)
     print("finished sync_time")
 
     # Quaternion to Euler conversion
@@ -202,32 +202,34 @@ if __name__ == "__main__":
         dr_error_2d = calc_error['error_2d'].values.tolist()
         ErrTra_dr_df = util_calc.calc_TraRate(dr_error_2d , eval_step_max)
 
-        fig15 = plt.figure()
-        ax_dr = fig15.add_subplot(2, 1, 1)
+        fig2 = plt.figure()
+        ax_dr = fig2.add_subplot(2, 1, 1)
         util_plot.plot_one(ax_dr, calc_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
         ax_dr.set_ylim([0.0,dr_error_ylim])
         
-        ax_trarate_dr = fig15.add_subplot(2, 1, 2)
+        ax_trarate_dr = fig2.add_subplot(2, 1, 2)
         util_plot.plot_one(ax_trarate_dr, ErrTra_dr_df, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
         ax_trarate_dr.set_xscale('log') 
         ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
 
         util_plot.plot_traj_text('DR Trajectory', ref_xyz, dr_trajcetory,ref_df[plot_text_data], plot_text_step, data_name, ref_data_name)
+        calc_error_csv = pd.concat([calc_error['start_distance'],calc_error['error_2d']],axis=1)
+        calc_error_csv.to_csv("eagleye_dr_error.csv", header=True, index=False,float_format='%.9f')
 
     #  plot velocity
     if 'velocity' in ref_df.columns and 'velocity' in data_df.columns:
-        fig11 = plt.figure()
-        ax_vel = fig11.add_subplot(2, 1, 1)
+        fig3 = plt.figure()
+        ax_vel = fig3.add_subplot(2, 1, 1)
         util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_df, 'velocity', 'Velocity', 'Velocity [m/s]',data_name, ref_data_name)
 
-        ax_err_vel = fig11.add_subplot(2, 1, 2)
-        fig11.suptitle(ref_data_name + ' - eagleye Error')
+        ax_err_vel = fig3.add_subplot(2, 1, 2)
+        fig3.suptitle(ref_data_name + ' - eagleye Error')
         util_plot.plot_one(ax_err_vel, error_plot_df, 'elapsed_time', 'velocity', 'Velocity Error', 'time [s]', 'Velocity error[m/s]', 'None', 1)
 
     elif 'velocity' in ref_df.columns or 'velocity' in data_df.columns:
-        fig11 = plt.figure()
-        ax_vel = fig11.add_subplot(1, 1, 1)
+        fig3 = plt.figure()
+        ax_vel = fig3.add_subplot(1, 1, 1)
         util_plot.plot_each(ax_vel, ref_df['elapsed_time'], data_df, ref_df, 'velocity', 'Velocity', 'Velocity [m/s]',data_name,ref_data_name)
 
     # plot 2D trajectory
