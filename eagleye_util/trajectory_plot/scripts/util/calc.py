@@ -5,6 +5,8 @@ from typing import List
 import pandas as pd
 import numpy as np
 import math
+import mgrs
+import sys
 
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
@@ -103,28 +105,18 @@ def llh2xyz(llh):
     set_xyz = pd.DataFrame(set_xyz_data,columns=['ecef_x','ecef_y','ecef_z'])
     return set_xyz
 
-def change_anglel_limit_pi(heading):
-    while heading < -math.pi or math.pi < heading:
-        if heading < -math.pi:
-            heading += math.pi * 2
-        else:
-            heading -= math.pi * 2
-    return heading
-
-def get_heading_deg(eagleye_df):
-    set_heading_data: List[float] = []
-    for i in range(len(eagleye_df)):
-        heading_1st_deg_tmp = change_anglel_limit_pi(eagleye_df['heading_1st'][i])
-        heading_2nd_deg_tmp = change_anglel_limit_pi(eagleye_df['heading_2nd'][i])
-        heading_3rd_deg_tmp = change_anglel_limit_pi(eagleye_df['yaw_rad'][i])
-        heading_1st_deg = math.degrees(heading_1st_deg_tmp)
-        heading_2nd_deg = math.degrees(heading_2nd_deg_tmp)
-        heading_3rd_deg = math.degrees(heading_3rd_deg_tmp)
-        rolling = math.degrees(eagleye_df['roll_rad'][i])
-        pitching = math.degrees(eagleye_df['pitch_rad'][i])
-        set_heading_data.append([heading_1st_deg,heading_2nd_deg,heading_3rd_deg,rolling,pitching])
-    df = pd.DataFrame(set_heading_data,columns=['heading_1st_deg','heading_2nd_deg','heading_3rd_deg','roll','pitch'])
-    return df
+def change_anglel_limit(heading):
+    set_output: List[float] = []
+    for i in range(len(heading)):
+        heading_tmp = heading[i]
+        while heading_tmp < -math.pi or math.pi < heading_tmp:
+            if heading_tmp < -math.pi:
+                heading_tmp += math.pi * 2
+            else:
+                heading_tmp -= math.pi * 2
+        set_output.append(heading_tmp)
+    output = pd.DataFrame(set_output,columns=['yaw'])
+    return output
 
 def xyz2enu_vel(vel,org_xyz):
     set_vel_data: List[float] = []
@@ -151,25 +143,75 @@ def xyz2enu_vel(vel,org_xyz):
     df = pd.DataFrame(set_vel_data,columns=['east_vel','north_vel','up_vel','velocity'])
     return df
 
+def calc_dopplor_heading(vel):
+    heading = np.degrees(np.arctan2(vel['east_vel'], vel['north_vel']))
+    df = pd.DataFrame(heading,columns=['yaw'])
+    return df
+
+def ll2mgrs(llh):
+    set_mgrs: List[float] = []
+    m = mgrs.MGRS()
+    for i in range(len(llh)):
+        ll = (llh['latitude'][i], llh['longitude'][i] , 4)
+        coords = m.toMGRS(*ll)
+        zone, x, y = coords[:5], float(coords[5:10]), float(coords[10:])
+        height = llh['altitude'][i]
+        set_mgrs.append([x,y,height])
+    xyz = pd.DataFrame(set_mgrs,columns=['x','y','z'])
+    return xyz
+
+def calc_distance_vel(velocity, time):
+    last_distance = 0
+    set_distance: List[float] = []
+    for i in range(len(time)):
+        if i == 0:
+            last_time = time.iloc[i]
+            continue
+        distance = last_distance + velocity.iloc[i] * (time.iloc[i] - last_time)
+        last_time = time.iloc[i]
+        last_distance = distance
+        set_distance.append([distance])
+    distance = pd.DataFrame(set_distance,columns=['distance'])
+    return distance
+
+def calc_distance_xy(xy):
+    last_distance = 0
+    set_distance: List[float] = []
+    for i in range(len(xy)):
+        if i == 0: 
+            distance = 0
+        else:
+            distance = last_distance + (((xy.iloc[i]['x']-xy.iloc[i-1]['x']) ** 2) + (xy.iloc[i]['y']-xy.iloc[i-1]['y']) ** 2)** 0.5
+            last_distance = distance
+        set_distance.append([distance])
+    distance = pd.DataFrame(set_distance,columns=['distance'])
+    return distance
+
 def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchronization
     sync_index = np.zeros(len(csv_data['TimeStamp']))
 
     first_flag_data = 0
     set_data_df: List[float] = []
+    set_data_xyz: List[float] = []
     set_data_ori: List[float] = []
     set_data_rpy: List[float] = []
     set_data_velocity: List[float] = []
     set_data_vel: List[float] = []
+    set_data_angular: List[float] = []
     set_data_distance: List[float] = []
     set_data_qual: List[float] = []
+    set_data_yawrate_offset_stop: List[float] = []
     first_flag_ref = 0
     set_ref_data_df: List[float] = []
+    set_ref_data_xyz: List[float] = []
     set_ref_data_ori: List[float] = []
     set_ref_data_rpy: List[float] = []
     set_ref_data_velocity: List[float] = []
     set_ref_data_vel: List[float] = []
+    set_ref_data_angular: List[float] = []
     set_ref_data_distance: List[float] = []
     set_ref_data_qual: List[float] = []
+    set_ref_yawrate_offset_stop: List[float] = []
     for i in range(len(csv_data)):
         if i == 0: continue
         time_tmp: List[float] = []
@@ -179,14 +221,16 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
         if sync_time_tmp < sync_threshold_time:
             num = int(sync_index[i])
             data_time_tmp = csv_data.iloc[i]['TimeStamp']
-            data_x_tmp = csv_data.iloc[i]['x']
-            data_y_tmp = csv_data.iloc[i]['y']
-            data_z_tmp = csv_data.iloc[i]['z']
             if (first_flag_data == 0):
                 first_time_data = csv_data.iloc[i]['TimeStamp']
                 first_flag_data = 1
             data_elapsed_time_tmp = csv_data.iloc[i]['TimeStamp'] - first_time_data
-            set_data_df.append([data_elapsed_time_tmp,data_time_tmp,data_x_tmp,data_y_tmp,data_z_tmp])
+            set_data_df.append([data_elapsed_time_tmp,data_time_tmp])
+            if 'x' in csv_data.columns:
+                data_x_tmp = csv_data.iloc[i]['x']
+                data_y_tmp = csv_data.iloc[i]['y']
+                data_z_tmp = csv_data.iloc[i]['z']
+                set_data_xyz.append([data_x_tmp,data_y_tmp,data_z_tmp])
             if 'ori_x' in csv_data.columns:
                 data_ori_x_tmp = csv_data.iloc[i]['ori_x']
                 data_ori_y_tmp = csv_data.iloc[i]['ori_y']
@@ -206,22 +250,34 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
                 data_vel_y_tmp = csv_data.iloc[i]['vel_y']
                 data_vel_z_tmp = csv_data.iloc[i]['vel_z']
                 set_data_vel.append([data_vel_x_tmp,data_vel_y_tmp,data_vel_z_tmp])
+            if 'angular_x' in csv_data.columns:
+                data_angular_x_tmp = csv_data.iloc[i]['angular_x']
+                data_angular_y_tmp = csv_data.iloc[i]['angular_y']
+                data_angular_z_tmp = csv_data.iloc[i]['angular_z']
+                set_data_angular.append([data_angular_x_tmp,data_angular_y_tmp,data_angular_z_tmp])
             if 'distance' in csv_data.columns:
                 data_distance_tmp = csv_data.iloc[i]['distance']
                 set_data_distance.append([data_distance_tmp])
             if 'qual' in csv_data.columns:
                 data_qual_tmp = csv_data.iloc[i]['qual']
                 set_data_qual.append([data_qual_tmp])
+            if 'vel_x' in csv_data.columns:
+                data_yawrate_offset_stop_tmp = csv_data.iloc[i]['yawrate_offset_stop']
+                data_yawrate_offset_tmp = csv_data.iloc[i]['yawrate_offset']
+                data_slip_tmp = csv_data.iloc[i]['slip']
+                set_data_yawrate_offset_stop.append([data_yawrate_offset_stop_tmp,data_yawrate_offset_tmp,data_slip_tmp])
 
             ref_time_tmp = ref_data.iloc[num]['TimeStamp']
-            ref_x_tmp = ref_data.iloc[num]['x']
-            ref_y_tmp = ref_data.iloc[num]['y']
-            ref_z_tmp = ref_data.iloc[num]['z']
             if (first_flag_ref == 0):
                 first_time_ref = ref_data.iloc[num]['TimeStamp']
                 first_flag_ref = 1
             ref_elapsed_time_tmp = ref_data.iloc[num]['TimeStamp'] - first_time_ref
-            set_ref_data_df.append([ref_elapsed_time_tmp,ref_time_tmp,ref_x_tmp,ref_y_tmp,ref_z_tmp])
+            set_ref_data_df.append([ref_elapsed_time_tmp,ref_time_tmp])
+            if 'x' in ref_data.columns:
+                ref_x_tmp = ref_data.iloc[num]['x']
+                ref_y_tmp = ref_data.iloc[num]['y']
+                ref_z_tmp = ref_data.iloc[num]['z']
+                set_ref_data_xyz.append([ref_x_tmp,ref_y_tmp,ref_z_tmp])
             if 'ori_x' in ref_data.columns:
                 ref_ori_x_tmp = ref_data.iloc[num]['ori_x']
                 ref_ori_y_tmp = ref_data.iloc[num]['ori_y']
@@ -241,21 +297,39 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
                 ref_vel_y_tmp = ref_data.iloc[num]['vel_y']
                 ref_vel_z_tmp = ref_data.iloc[num]['vel_z']
                 set_ref_data_vel.append([ref_vel_x_tmp,ref_vel_y_tmp,ref_vel_z_tmp])
+            if 'angular_x' in ref_data.columns:
+                ref_angular_x_tmp = ref_data.iloc[num]['angular_x']
+                ref_angular_y_tmp = ref_data.iloc[num]['angular_y']
+                ref_angular_z_tmp = ref_data.iloc[num]['angular_z']
+                set_ref_data_angular.append([ref_angular_x_tmp,ref_angular_y_tmp,ref_angular_z_tmp])
             if 'distance' in ref_data.columns:
                 ref_distance_tmp = ref_data.iloc[num]['distance']
                 set_ref_data_distance.append([ref_distance_tmp])
             if 'qual' in ref_data.columns:
                 ref_qual_tmp = ref_data.iloc[num]['qual']
                 set_ref_data_qual.append([ref_qual_tmp])
+            if 'yawrate_offset_stop' in ref_data.columns:
+                ref_yareta_offset_stop_tmp = ref_data.iloc[num]['yawrate_offset_stop']
+                ref_yawrate_offset_tmp = ref_data.iloc[num]['yawrate_offset']
+                ref_slip_tmp = ref_data.iloc[num]['slip']
+                set_ref_yawrate_offset_stop.append([ref_yareta_offset_stop_tmp,ref_yawrate_offset_tmp,ref_slip_tmp])
 
 
+    if not set_data_df:
+        print("Time sync Error")
+        sys.exit(1)
+    data_xyz = pd.DataFrame()
     data_ori = pd.DataFrame()
     data_rpy = pd.DataFrame()
     data_velocity = pd.DataFrame()
     data_vel = pd.DataFrame()
+    data_angular = pd.DataFrame()
     data_distance = pd.DataFrame()
     data_qual = pd.DataFrame()
-    data_df = pd.DataFrame(set_data_df,columns=['elapsed_time','TimeStamp', 'x', 'y', 'z'])
+    data_yawrate_offset_stop = pd.DataFrame()
+    data_df = pd.DataFrame(set_data_df,columns=['elapsed_time','TimeStamp'])
+    if 'x' in csv_data.columns:
+        data_xyz = pd.DataFrame(set_data_xyz,columns=['x', 'y', 'z'])
     if 'ori_x' in csv_data.columns:
         data_ori = pd.DataFrame(set_data_ori,columns=['ori_x', 'ori_y', 'ori_z', 'ori_w'])
     if 'roll' in csv_data.columns:
@@ -264,19 +338,30 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
         data_velocity = pd.DataFrame(set_data_velocity,columns=['velocity'])
     if 'vel_x' in csv_data.columns:
         data_vel = pd.DataFrame(set_data_vel,columns=['vel_x', 'vel_y', 'vel_z'])
+    if 'angular_x' in csv_data.columns:
+        data_angular = pd.DataFrame(set_data_angular,columns=['angular_x', 'angular_y', 'angular_z'])
     if 'distance' in csv_data.columns:
         data_distance = pd.DataFrame(set_data_distance,columns=['distance'])
     if 'qual' in csv_data.columns:
         data_qual = pd.DataFrame(set_data_qual,columns=['qual'])
-    data_df_output = pd.concat([data_df,data_ori,data_rpy,data_velocity,data_vel,data_distance,data_qual],axis=1)
+    if 'yawrate_offset_stop' in csv_data.columns:
+        data_yawrate_offset_stop = pd.DataFrame(set_data_yawrate_offset_stop,columns=['yawrate_offset_stop','yawrate_offset','slip'])
+    data_df_output = pd.concat([data_df,data_xyz,data_ori,data_rpy,data_velocity,data_vel,data_angular,data_distance,data_qual,data_yawrate_offset_stop],axis=1)
 
+    ref_xyz = pd.DataFrame()
     ref_ori = pd.DataFrame()
     ref_rpy = pd.DataFrame()
     ref_velocity = pd.DataFrame()
     ref_vel = pd.DataFrame()
+    ref_angular = pd.DataFrame()
     ref_distance = pd.DataFrame()
     ref_qual = pd.DataFrame()
-    ref_df = pd.DataFrame(set_ref_data_df,columns=['elapsed_time','TimeStamp', 'x', 'y', 'z'])
+    ref_yawrate_offset_stop = pd.DataFrame()
+    ref_qual = pd.DataFrame()
+    ref_qual = pd.DataFrame()
+    ref_df = pd.DataFrame(set_ref_data_df,columns=['elapsed_time','TimeStamp'])
+    if 'x' in ref_data.columns:
+        ref_xyz = pd.DataFrame(set_ref_data_xyz,columns=['x', 'y', 'z'])
     if 'ori_x' in ref_data.columns:
         ref_ori = pd.DataFrame(set_ref_data_ori,columns=['ori_x', 'ori_y', 'ori_z', 'ori_w'])
     if 'roll' in ref_data.columns:
@@ -285,12 +370,16 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
         ref_velocity = pd.DataFrame(set_ref_data_velocity,columns=['velocity'])
     if 'vel_x' in ref_data.columns:
         ref_vel = pd.DataFrame(set_ref_data_vel,columns=['vel_x', 'vel_y', 'vel_z'])
+    if 'angular_x' in ref_data.columns:
+        ref_angular = pd.DataFrame(set_ref_data_angular,columns=['angular_x', 'angular_y', 'angular_z'])
     if 'distance' in ref_data.columns:
         ref_distance = pd.DataFrame(set_ref_data_distance,columns=['distance'])
     if 'qual' in ref_data.columns:
         ref_qual = pd.DataFrame(set_ref_data_qual,columns=['qual'])
+    if 'yawrate_offset_stop' in ref_data.columns:
+        ref_yawrate_offset_stop = pd.DataFrame(set_ref_yawrate_offset_stop,columns=['yawrate_offset_stop','qual','qual'])
     
-    ref_df_output = pd.concat([ref_df,ref_ori,ref_rpy,ref_velocity,ref_vel,ref_distance,ref_qual],axis=1)
+    ref_df_output = pd.concat([ref_df,ref_xyz,ref_ori,ref_rpy,ref_velocity,ref_vel,ref_angular,ref_distance,ref_qual,ref_yawrate_offset_stop],axis=1)
     return ref_df_output , data_df_output
 
 def calc_error_xyz(elapsed_time,ref_time,eagleye_time,ref_xyz,data_xyz,ref_yaw):
@@ -378,8 +467,9 @@ def calc_velocity_error(eagleye_velocity,ref_velocity):
     error_velocity['velocity'] = eagleye_velocity - ref_velocity
     return error_velocity
 
-def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_length,distance_step):
+def calc_dr(TimeStamp,distance,eagleye_vel_xyz,ref_xyz,distance_length,distance_step):
     last_distance = 0
+    set_dr_trajcetory: List[float] = []
     set_calc_error: List[float] = []
     for i in range(len(TimeStamp)):
         if i == 0: continue
@@ -392,7 +482,12 @@ def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_leng
             last_distance = start_distance
             last_time = TimeStamp[i]
             for j in range(i,len(TimeStamp)):
-                if eagleye_xyz['x'][j] == 0 and eagleye_xyz['y'][j] == 0: break
+                if eagleye_vel_xyz['vel_x'][j] == 0 and eagleye_vel_xyz['vel_y'][j] == 0:
+                    last_time = TimeStamp[j]
+                    distance_data = distance[j] - start_distance
+                    absolute_pos_x = ref_xyz['x'][j] - start_pos_x
+                    absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    continue
                 if distance[j] - start_distance < distance_length:
                     dr_pos_x = previous_pos_x + eagleye_vel_xyz['vel_x'][j] * (TimeStamp[j] - last_time)
                     dr_pos_y = previous_pos_y + eagleye_vel_xyz['vel_y'][j] * (TimeStamp[j] - last_time)
@@ -402,6 +497,9 @@ def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_leng
                     distance_data = distance[j] - start_distance
                     absolute_pos_x = ref_xyz['x'][j] - start_pos_x
                     absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    absolute_dr_pos_x = start_pos_x + dr_pos_x
+                    absolute_dr_pos_y = start_pos_y + dr_pos_y
+                    set_dr_trajcetory.append([absolute_dr_pos_x,absolute_dr_pos_y])
                 else:
                     error_x = absolute_pos_x - dr_pos_x
                     error_y = absolute_pos_y - dr_pos_y
@@ -410,7 +508,130 @@ def clac_dr(TimeStamp,distance,eagleye_xyz,eagleye_vel_xyz,ref_xyz,distance_leng
                     set_calc_error.append([start_distance,distance_data,absolute_pos_x,dr_pos_x,absolute_pos_y,dr_pos_y,error_x,error_y,error_2d])
                     break
     calc_error = pd.DataFrame(set_calc_error,columns=['start_distance','distance','absolute_pos_x','absolute_pos_y','dr_pos_x','dr_pos_y','error_x','error_y','error_2d'])
-    return calc_error
+    dr_trajcetory = pd.DataFrame(set_dr_trajcetory,columns=['x','y'])
+    return calc_error,dr_trajcetory
+
+def calc_dr_twist(TimeStamp,distance,twist_data,ref_heading,ref_xyz,distance_length,distance_step,based_heaing_angle):
+    last_distance = 0
+    last_heading_integtation = 0
+    set_dr_trajcetory: List[float] = []
+    set_calc_error: List[float] = []
+    for i in range(len(TimeStamp)):
+        if i == 0: continue
+        if last_distance + distance_step < distance[i]:
+            data_set_flag = True
+            start_distance = distance[i]
+            start_pos_x = ref_xyz['x'][i]
+            start_pos_y = ref_xyz['y'][i]
+            previous_pos_x = 0
+            previous_pos_y = 0
+            last_distance = start_distance
+            last_time = TimeStamp[i]
+            for j in range(i,len(TimeStamp)):
+                if data_set_flag == True:
+                    last_time = TimeStamp[j]
+                    last_heading_integtation = ref_heading[j]
+                    distance_data = distance[j] - start_distance
+                    absolute_pos_x = ref_xyz['x'][j] - start_pos_x
+                    absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    data_set_flag = False
+                    continue
+                else:
+                    heading_integtation = last_heading_integtation + twist_data['angular_z'][j] * (TimeStamp[j] - last_time)
+                    if based_heaing_angle == True:
+                        usr_vel_x = math.sin(heading_integtation) * twist_data['velocity'][j]
+                        usr_vel_y = math.cos(heading_integtation) * twist_data['velocity'][j]
+                    else:
+                        usr_vel_x = math.cos(heading_integtation) * twist_data['velocity'][j]
+                        usr_vel_y = math.sin(heading_integtation) * twist_data['velocity'][j]
+                if distance[j] - start_distance < distance_length:
+                    dr_pos_x = previous_pos_x + usr_vel_x * (TimeStamp[j] - last_time)
+                    dr_pos_y = previous_pos_y + usr_vel_y * (TimeStamp[j] - last_time)
+                    last_heading_integtation = heading_integtation
+                    previous_pos_x = dr_pos_x
+                    previous_pos_y = dr_pos_y
+                    last_time = TimeStamp[j]
+                    distance_data = distance[j] - start_distance
+                    absolute_pos_x = ref_xyz['x'][j] - start_pos_x
+                    absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    absolute_dr_pos_x = start_pos_x + dr_pos_x
+                    absolute_dr_pos_y = start_pos_y + dr_pos_y
+                    set_dr_trajcetory.append([absolute_dr_pos_x,absolute_dr_pos_y])
+                else:
+                    error_x = absolute_pos_x - dr_pos_x
+                    error_y = absolute_pos_y - dr_pos_y
+                    error_2d_fabs = math.fabs(error_x ** 2 + error_y ** 2)
+                    error_2d= math.sqrt(error_2d_fabs)
+                    set_calc_error.append([start_distance,distance_data,absolute_pos_x,dr_pos_x,absolute_pos_y,dr_pos_y,error_x,error_y,error_2d])
+                    break
+    calc_error = pd.DataFrame(set_calc_error,columns=['start_distance','distance','absolute_pos_x','absolute_pos_y','dr_pos_x','dr_pos_y','error_x','error_y','error_2d'])
+    dr_trajcetory = pd.DataFrame(set_dr_trajcetory,columns=['x','y'])
+    return calc_error,dr_trajcetory
+
+def calc_dr_eagleye(TimeStamp,distance,eagleye_twist_data,ref_heading,ref_xyz,distance_length,distance_step,based_heaing_angle):
+    last_distance = 0
+    last_heading_integtation = 0
+    velocity_stop_threshold = 0.01
+    velocity_slip_threshold = 1
+    set_dr_trajcetory: List[float] = []
+    set_calc_error: List[float] = []
+    for i in range(len(TimeStamp)):
+        if i == 0: continue
+        if last_distance + distance_step < distance[i]:
+            data_set_flag = True
+            start_distance = distance[i]
+            start_pos_x = ref_xyz['x'][i]
+            start_pos_y = ref_xyz['y'][i]
+            previous_pos_x = 0
+            previous_pos_y = 0
+            last_distance = start_distance
+            last_time = TimeStamp[i]
+            for j in range(i,len(TimeStamp)):
+                if data_set_flag == True:
+                    last_time = TimeStamp[j]
+                    last_heading_integtation = ref_heading[j]
+                    distance_data = distance[j] - start_distance
+                    absolute_pos_x = ref_xyz['x'][j] - start_pos_x
+                    absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    data_set_flag = False
+                    continue
+                if eagleye_twist_data['velocity'][j] > velocity_stop_threshold:
+                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yawrate_offset'][j]) * (TimeStamp[j] - last_time)
+                else:
+                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yawrate_offset_stop'][j]) * (TimeStamp[j] - last_time)
+                if eagleye_twist_data['velocity'][j] > velocity_slip_threshold:
+                    heading_correction_slip = heading_integtation + eagleye_twist_data['slip'][j]
+                else:
+                    heading_correction_slip = heading_integtation
+                if distance[j] - start_distance < distance_length:
+                    if based_heaing_angle == True:
+                        usr_vel_x = math.sin(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                        usr_vel_y = math.cos(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                    else:
+                        usr_vel_x = math.cos(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                        usr_vel_y = math.sin(heading_correction_slip) * eagleye_twist_data['velocity'][j]
+                    dr_pos_x = previous_pos_x + usr_vel_x * (TimeStamp[j] - last_time)
+                    dr_pos_y = previous_pos_y + usr_vel_y * (TimeStamp[j] - last_time)
+                    last_heading_integtation = heading_correction_slip
+                    previous_pos_x = dr_pos_x
+                    previous_pos_y = dr_pos_y
+                    last_time = TimeStamp[j]
+                    distance_data = distance[j] - start_distance
+                    absolute_pos_x = ref_xyz['x'][j] - start_pos_x
+                    absolute_pos_y = ref_xyz['y'][j] - start_pos_y
+                    absolute_dr_pos_x = start_pos_x + dr_pos_x
+                    absolute_dr_pos_y = start_pos_y + dr_pos_y
+                    set_dr_trajcetory.append([absolute_dr_pos_x,absolute_dr_pos_y])
+                else:
+                    error_x = absolute_pos_x - dr_pos_x
+                    error_y = absolute_pos_y - dr_pos_y
+                    error_2d_fabs = math.fabs(error_x ** 2 + error_y ** 2)
+                    error_2d= math.sqrt(error_2d_fabs)
+                    set_calc_error.append([start_distance,distance_data,absolute_pos_x,dr_pos_x,absolute_pos_y,dr_pos_y,error_x,error_y,error_2d])
+                    break
+    calc_error = pd.DataFrame(set_calc_error,columns=['start_distance','distance','absolute_pos_x','absolute_pos_y','dr_pos_x','dr_pos_y','error_x','error_y','error_2d'])
+    dr_trajcetory = pd.DataFrame(set_dr_trajcetory,columns=['x','y'])
+    return calc_error,dr_trajcetory
 
 def error_evaluation_each(error, elem):
     data_max = max(error[elem])

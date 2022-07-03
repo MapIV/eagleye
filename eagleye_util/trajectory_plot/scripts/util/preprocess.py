@@ -34,10 +34,16 @@ import yaml
 
 import util.calc as util_calc
 
-def set_ref_data(input_path,yaml_path): # Creation of dataset with reference to column number
-    yaml_path_str: str = yaml_path
-    with open(yaml_path_str,"r") as yml:
-        config = yaml.safe_load(yml)
+def set_ref_data(input_path,config): # Creation of dataset with reference to column number
+    use_separate_time_stamp = config["ref_index"]["separate_time_stamp"]
+    index_time_unit = config["ref_index"]["time_unit"]
+    use_quaternion_flag = config["ref_index"]["use_quaternion"]
+    use_radian_flag = config["ref_index"]["use_radian"]
+    use_vel_flag = config["ref_index"]["use_vel"]
+    use_angular_flag = config["ref_index"]["use_angular"]
+    use_qual_flag = config["ref_index"]["use_qual"]
+    index_time_sec = config["ref_index"]["time_sec"]
+    index_time_nsec = config["ref_index"]["time_nsec"]
     index_time = config["ref_index"]["time"]
     index_x = config["ref_index"]["x"]
     index_y = config["ref_index"]["y"]
@@ -46,33 +52,93 @@ def set_ref_data(input_path,yaml_path): # Creation of dataset with reference to 
     index_ori_y = config["ref_index"]["ori_y"]
     index_ori_z = config["ref_index"]["ori_z"]
     index_ori_w = config["ref_index"]["ori_w"]
+    index_roll = config["ref_index"]["roll"]
+    index_pitch = config["ref_index"]["pitch"]
+    index_yaw = config["ref_index"]["yaw"]
+    index_vel_x = config["ref_index"]["vel_x"]
+    index_vel_y = config["ref_index"]["vel_y"]
+    index_vel_z = config["ref_index"]["vel_z"]
+    index_angular_x = config["ref_index"]["angular_x"]
+    index_angular_y = config["ref_index"]["angular_y"]
+    index_angular_z = config["ref_index"]["angular_z"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
-    ref_data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
+    if use_separate_time_stamp == True:
+        ref_data_time = pd.Series(tmp_df.iloc[:,index_time_sec] + tmp_df.iloc[:,index_time_nsec] * 10 ** (-9), name='TimeStamp')
+    elif index_time_unit == 1:
+        ref_data_time = pd.Series(tmp_df.iloc[:,index_time] * 10 ** (-9), name='TimeStamp')
+    else:
+        ref_data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
     ref_data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
     ref_data_y = pd.Series(tmp_df.iloc[:,index_y], name='y')
     ref_data_z = pd.Series(tmp_df.iloc[:,index_z], name='z')
-    ref_data_ori_x = pd.Series(tmp_df.iloc[:,index_ori_x], name='ori_x')
-    ref_data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
-    ref_data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
-    ref_data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
-    set_ref_df = pd.concat([ref_data_time, ref_data_x, ref_data_y, ref_data_z, ref_data_ori_x, ref_data_ori_y, ref_data_ori_z, ref_data_ori_w],axis=1)
-    set_ref_df['TimeStamp'] = set_ref_df['TimeStamp'] * 10 ** (-9)
+    ref_data_xyz = pd.concat([ref_data_x,ref_data_y,ref_data_z],axis=1)
+    if use_quaternion_flag == True:
+        ref_data_ori_x = pd.Series(tmp_df.iloc[:,index_ori_x], name='ori_x')
+        ref_data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
+        ref_data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
+        ref_data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
+        ref_data_ori = pd.concat([ref_data_ori_x,ref_data_ori_y,ref_data_ori_z,ref_data_ori_w],axis=1)
+        ref_rpy = util_calc.quaternion_to_euler_zyx(ref_data_ori)
+    elif use_quaternion_flag == False and use_radian_flag == True:
+        ref_data_roll = pd.Series(tmp_df.iloc[:,index_roll], name='roll')
+        ref_data_pitch = pd.Series(tmp_df.iloc[:,index_pitch], name='pitch')
+        ref_data_yaw_tmp = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
+        ref_data_yaw = util_calc.change_anglel_limit(ref_data_yaw_tmp)
+        ref_rpy = pd.concat([np.rad2deg(ref_data_roll),np.rad2deg(ref_data_pitch),np.rad2deg(ref_data_yaw)],axis=1)
+    elif use_quaternion_flag == False and use_radian_flag == False:
+        ref_data_roll = pd.Series(tmp_df.iloc[:,index_roll], name='roll')
+        ref_data_pitch = pd.Series(tmp_df.iloc[:,index_pitch], name='pitch')
+        ref_data_yaw_tmp = pd.Series(tmp_df.iloc[:,index_yaw], name='yaw')
+        ref_data_yaw = util_calc.change_anglel_limit(np.deg2rad(ref_data_yaw_tmp))
+        ref_rpy = pd.concat([ref_data_roll,ref_data_pitch,np.rad2deg(ref_data_yaw)],axis=1)
+
+    set_ref_vel = pd.DataFrame()
+    if use_vel_flag == True:
+        ref_data_vel_x = pd.Series(tmp_df.iloc[:,index_vel_x], name='vel_x')
+        ref_data_vel_y = pd.Series(tmp_df.iloc[:,index_vel_y], name='vel_y')
+        ref_data_vel_z = pd.Series(tmp_df.iloc[:,index_vel_z], name='vel_z')
+        set_ref_vel_tmp = pd.concat([ref_data_vel_x, ref_data_vel_y, ref_data_vel_z],axis=1)
+        ref_velocity = util_calc.calc_velocity(set_ref_vel_tmp)
+        distance = util_calc.calc_distance_vel(ref_velocity["velocity"],ref_data_time)
+        set_ref_vel = pd.concat([set_ref_vel_tmp, ref_velocity],axis=1)
+    else:
+        distance = util_calc.calc_distance_xy(ref_data_xyz)
+    set_ref_angular = pd.DataFrame()
+    if use_angular_flag == True:
+        ref_data_angular_x = pd.Series(tmp_df.iloc[:,index_angular_x], name='angular_x')
+        ref_data_angular_y = pd.Series(tmp_df.iloc[:,index_angular_y], name='angular_y')
+        ref_data_angular_z = pd.Series(tmp_df.iloc[:,index_angular_z], name='angular_z')
+        set_ref_angular = pd.concat([ref_data_angular_x, ref_data_angular_y, ref_data_angular_z],axis=1)
+    if use_qual_flag == True:
+        index_qual = config["ref_index"]["qual"]
+        ref_data_qual = pd.Series(tmp_df.iloc[:,index_qual], name='qual')
+    else:
+        index_qual = config["ref_index"]["qual"]
+        ref_data_qual = pd.Series(tmp_df.iloc[:,index_qual], name='qual_not_set')
+    set_ref_df = pd.concat([ref_data_time, ref_data_xyz, ref_rpy, set_ref_vel, set_ref_angular, distance, ref_data_qual],axis=1)
     return set_ref_df
 
-def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to column number
-    yaml_path_str: str = yaml_path
-    with open(yaml_path_str,"r") as yml:
-        config = yaml.safe_load(yml)
-    index_time = config["data_index"]["time"]
-    index_x = config["data_index"]["x"]
-    index_y = config["data_index"]["y"]
-    index_z = config["data_index"]["z"]
-    index_ori_x = config["data_index"]["ori_x"]
-    index_ori_y = config["data_index"]["ori_y"]
-    index_ori_z = config["data_index"]["ori_z"]
-    index_ori_w = config["data_index"]["ori_w"]
+def set_target_data(input_path,config): # Creation of dataset with reference to column number
+    use_separate_time_stamp = config["target_data_index"]["separate_time_stamp"]
+    index_time_unit = config["target_data_index"]["time_unit"]
+    use_qual_flag = config["target_data_index"]["use_qual"]
+    index_time_sec = config["target_data_index"]["time_sec"]
+    index_time_nsec = config["target_data_index"]["time_nsec"]
+    index_time = config["target_data_index"]["time"]
+    index_x = config["target_data_index"]["x"]
+    index_y = config["target_data_index"]["y"]
+    index_z = config["target_data_index"]["z"]
+    index_ori_x = config["target_data_index"]["ori_x"]
+    index_ori_y = config["target_data_index"]["ori_y"]
+    index_ori_z = config["target_data_index"]["ori_z"]
+    index_ori_w = config["target_data_index"]["ori_w"]
     tmp_df = pd.read_csv(input_path,header=0, index_col=None)
-    data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
+    if use_separate_time_stamp == True:
+        data_time = pd.Series(tmp_df.iloc[:,index_time_sec] + tmp_df.iloc[:,index_time_nsec] * 10 ** (-9), name='TimeStamp')
+    elif index_time_unit == 1:
+        data_time = pd.Series(tmp_df.iloc[:,index_time] * 10 ** (-9), name='TimeStamp')
+    else:
+        data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
     data_x = pd.Series(tmp_df.iloc[:,index_x], name='x')
     data_y = pd.Series(tmp_df.iloc[:,index_y], name='y')
     data_z = pd.Series(tmp_df.iloc[:,index_z], name='z')
@@ -80,59 +146,48 @@ def set_csv_data(input_path,yaml_path): # Creation of dataset with reference to 
     data_ori_y = pd.Series(tmp_df.iloc[:,index_ori_y], name='ori_y')
     data_ori_z = pd.Series(tmp_df.iloc[:,index_ori_z], name='ori_z')
     data_ori_w = pd.Series(tmp_df.iloc[:,index_ori_w], name='ori_w')
-    set_df = pd.concat([data_time, data_x, data_y, data_z, data_ori_x, data_ori_y, data_ori_z, data_ori_w],axis=1)
-    set_df['TimeStamp'] = set_df['TimeStamp'] * 10 ** (-9)
+    if use_qual_flag == True:
+        index_qual = config["target_data_index"]["qual"]
+        data_qual = pd.Series(tmp_df.iloc[:,index_qual], name='qual')
+    else:
+        index_qual = config["target_data_index"]["qual"]
+        data_qual = pd.Series(tmp_df.iloc[:,index_qual], name='qual_not_set')
+    set_df = pd.concat([data_time, data_x, data_y, data_z, data_ori_x, data_ori_y, data_ori_z, data_ori_w, data_qual],axis=1)
     return set_df
 
-def set_df(input): # Creation of dataset with reference to labels in df
-    df = pd.read_csv(input)
-    df = df[["field.header.stamp",
-             "field.pose.position.x",
-             "field.pose.position.y",
-             "field.pose.position.z",
-             "field.pose.orientation.x",
-             "field.pose.orientation.y",
-             "field.pose.orientation.z",
-             "field.pose.orientation.w",
-             ]]
-    df = df.rename(columns={'field.header.stamp': 'TimeStamp_tmp',
-                            'field.pose.position.x': 'x',
-                            'field.pose.position.y': 'y',
-                            'field.pose.position.z': 'z',
-                            'field.pose.orientation.x': 'ori_x',
-                            'field.pose.orientation.y': 'ori_y',
-                            'field.pose.orientation.z': 'ori_z',
-                            'field.pose.orientation.w': 'ori_w',
-                            })
-    df['TimeStamp'] = df['TimeStamp_tmp'] * 1e-9
-    df = df.reindex(columns=['TimeStamp', 'x', 'y', 'z', 'ori_x', 'ori_y', 'ori_z', 'ori_w'])
-    return df
+def set_twist_data(input_path,config): # Creation of dataset with reference to column number
+    use_separate_time_stamp = config["twist_index"]["separate_time_stamp"]
+    index_time_unit = config["twist_index"]["time_unit"]
+    index_time_sec = config["twist_index"]["time_sec"]
+    index_time_nsec = config["twist_index"]["time_nsec"]
+    index_time = config["twist_index"]["time"]
+    index_linear_x = config["twist_index"]["linear_x"]
+    index_linear_y = config["twist_index"]["linear_y"]
+    index_linear_z = config["twist_index"]["linear_z"]
+    index_angular_x = config["twist_index"]["angular_x"]
+    index_angular_y = config["twist_index"]["angular_y"]
+    index_angular_z = config["twist_index"]["angular_z"]
+    tmp_df = pd.read_csv(input_path,header=0, index_col=None)
+    if use_separate_time_stamp == True:
+        data_time = pd.Series(tmp_df.iloc[:,index_time_sec] + tmp_df.iloc[:,index_time_nsec] * 10 ** (-9), name='TimeStamp')
+    elif index_time_unit == 1:
+        data_time = pd.Series(tmp_df.iloc[:,index_time] * 10 ** (-9), name='TimeStamp')
+    else:
+        data_time = pd.Series(tmp_df.iloc[:,index_time], name='TimeStamp')
+    data_linear_x = pd.Series(tmp_df.iloc[:,index_linear_x], name='velocity')
+    data_linear_y = pd.Series(tmp_df.iloc[:,index_linear_y], name='linear_y')
+    data_linear_z = pd.Series(tmp_df.iloc[:,index_linear_z], name='linear_z')
+    data_angular_x = pd.Series(tmp_df.iloc[:,index_angular_x], name='angular_x')
+    data_angular_y = pd.Series(tmp_df.iloc[:,index_angular_y], name='angular_y')
+    data_angular_z = pd.Series(tmp_df.iloc[:,index_angular_z], name='angular_z')
+    set_df = pd.concat([data_time, data_linear_x, data_linear_y, data_linear_z, data_angular_x, data_angular_y, data_angular_z],axis=1)
+    return set_df
 
-def set_ref_df(input): # Creation of dataset with reference to labels in df
-    df = pd.read_csv(input)
-    df = df[["TimeStamp_sec",
-             "TimeStamp_nsec",
-             "x",
-             "y",
-             "z",
-             "roll",
-             "pitch",
-             "yaw",
-             "vel_x",
-             "vel_y",
-             "vel_z",
-             ]]
-    df['TimeStamp'] = df['TimeStamp_sec'] + df['TimeStamp_nsec'] * 1e-9
-    set_heading_data: List[float] = []
-    for i in range(len(df)):
-        yaw_tmp = util_calc.change_anglel_limit_pi(math.radians(df['yaw'][i]))
-        yaw = math.degrees(yaw_tmp)
-        set_heading_data.append([yaw])
-    df['yaw'] = pd.DataFrame(set_heading_data,columns=['yaw'])
-    return df
-
-def set_log_df(input,plane): # Creation of dataset with reference to labels in df
+def set_log_df(input,plane,config): # Creation of dataset with reference to labels in df
     df = pd.read_csv(input,delimiter=None, header='infer',  index_col=None, usecols=None)
+    index_time_unit = config["eagleye_log"]["time_unit"]
+    tf_num = config["eagleye_log"]["tf_num"]
+    ros_reverse_imu = config["eagleye_log"]["ros_reverse_imu"]
     eagleye_df = df[["timestamp",
              "rtklib_nav.tow",
              "velocity_scale_factor.scale_factor",
@@ -149,12 +204,18 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
              "heading_interpolate_1st.heading_angle",
              "heading_interpolate_2nd.heading_angle",
              "heading_interpolate_3rd.heading_angle",
+             "yawrate_offset_stop.yawrate_offset",
+             "yawrate_offset_2nd.yawrate_offset",
+             "slip_angle.slip_angle",
              "enu_vel.vector.x",
              "enu_vel.vector.y",
              "enu_vel.vector.z",
              "eagleye_pp_llh.latitude",
              "eagleye_pp_llh.longitude",
              "eagleye_pp_llh.altitude",
+            "imu.angular_velocity.x",
+            "imu.angular_velocity.y",
+            "imu.angular_velocity.z",
              'gga_llh.gps_qual',
              ]]
 
@@ -171,12 +232,18 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
                             'heading_interpolate_1st.heading_angle': 'heading_1st',
                             'heading_interpolate_2nd.heading_angle': 'heading_2nd',
                             'heading_interpolate_3rd.heading_angle': 'yaw_rad',
+                            'yawrate_offset_stop.yawrate_offset': 'yawrate_offset_stop',
+                            'yawrate_offset_2nd.yawrate_offset': 'yawrate_offset',
+                            'slip_angle.slip_angle': 'slip',
                             'enu_vel.vector.x': 'vel_x',
                             'enu_vel.vector.y': 'vel_y',
                             'enu_vel.vector.z': 'vel_z',
                             'eagleye_pp_llh.latitude': 'latitude',
                             'eagleye_pp_llh.longitude': 'longitude',
                             'eagleye_pp_llh.altitude': 'altitude',
+                            "imu.angular_velocity.x":'angular_x',
+                            "imu.angular_velocity.y":'angular_y',
+                            "imu.angular_velocity.z":'angular_z',
                             'gga_llh.gps_qual': 'qual',
                             })
 
@@ -230,13 +297,28 @@ def set_log_df(input,plane): # Creation of dataset with reference to labels in d
         raw_df = raw_df.drop(rtk_index)
     raw_df = raw_df.reset_index()
 
-    eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)
-    raw_df['TimeStamp'] = raw_df['TimeStamp_tmp'] * 10 ** (-9)
+    if index_time_unit == 1:
+        eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)
+        raw_df['TimeStamp'] = raw_df['TimeStamp_tmp'] * 10 ** (-9)
+    elif index_time_unit == 0:
+        eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp']
+        raw_df['TimeStamp'] = raw_df['TimeStamp_tmp']
     eagleye_df['elapsed_time'] = eagleye_df['TimeStamp'] - raw_df['TimeStamp'][0]
     raw_df['elapsed_time'] = raw_df['TimeStamp'] - raw_df['TimeStamp'][0]
-    rpy_df = get_rpy_deg(eagleye_df)
-    xyz = latlon_to_19(eagleye_df,plane)
-    set_eagleye_df = pd.concat([eagleye_df,xyz, rpy_df],axis=1)
+    eagleye_df['yaw'] = np.rad2deg(util_calc.change_anglel_limit(eagleye_df['yaw_rad']))
+    eagleye_df['roll'] = np.rad2deg(eagleye_df['roll_rad'])
+    eagleye_df['pitch'] = np.rad2deg(eagleye_df['pitch_rad'])
+    llh = pd.concat([eagleye_df['latitude'],eagleye_df['longitude'],eagleye_df['altitude']],axis=1)
+    if tf_num == 0:
+        xyz = latlon_to_19(llh,plane)
+    elif tf_num == 1:
+        xyz = util_calc.ll2mgrs(llh)
+    if ros_reverse_imu == True:
+        eagleye_df['angular_z'] = -1 * eagleye_df['angular_z']
+        eagleye_df['yawrate_offset_stop'] = -1 * eagleye_df['yawrate_offset_stop']
+        eagleye_df['yawrate_offset'] = -1 * eagleye_df['yawrate_offset']
+        eagleye_df['slip'] = -1 * eagleye_df['slip']
+    set_eagleye_df = pd.concat([eagleye_df, xyz],axis=1)
     return set_eagleye_df, raw_df
 
 def set_tf_xy(xy,tf_x,tf_y):
@@ -255,19 +337,6 @@ def correct_anntenapos(eagleye_df,ref_yaw,tf_across,tf_along,tf_height):
         eagleye_df['y'][i] = eagleye_df['y'][i] + diff[1]
     eagleye_df['z'] = eagleye_df['z'] + tf_height
     return eagleye_df
-
-def get_rpy_deg(rpy_rad):
-    set_heading_data: List[float] = []
-    for i in range(len(rpy_rad)):
-        roll_tmp = rpy_rad['roll_rad'][i]
-        pitch_tmp = rpy_rad['pitch_rad'][i]
-        yaw_tmp = util_calc.change_anglel_limit_pi(rpy_rad['yaw_rad'][i])
-        roll = math.degrees(roll_tmp)
-        pitch = math.degrees(pitch_tmp)
-        yaw = math.degrees(yaw_tmp)
-        set_heading_data.append([roll,pitch,yaw])
-    df = pd.DataFrame(set_heading_data,columns=['roll','pitch','yaw'])
-    return df
 
 def latlon_to_19(llh,plane):
     phi0_deg , lambda0_deg = plane_table(plane)

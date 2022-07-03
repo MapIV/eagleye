@@ -28,6 +28,8 @@
 
 from typing import List
 import pandas as pd
+import numpy as np
+from math import log10 , floor
 
 import matplotlib.pyplot as plt
 
@@ -56,7 +58,9 @@ def plot_xyz(ax, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, r
     ax.legend(loc='upper right')
     ax.grid()
 
-def plot_rpy(ax, x_data, eagleye_plot_rpy, elem, title, y_label):
+def plot_rpy(ax, x_data, eagleye_plot_rpy, dopplor, elem, title, y_label):
+    if elem in dopplor.columns:
+        ax.plot(x_data , dopplor[elem] , marker="o", linestyle="None",markersize=1, color = "green",  label="dopplor")
     if elem in eagleye_plot_rpy.columns:
         ax.plot(x_data , eagleye_plot_rpy[elem] , marker="s", linestyle="None",markersize=1, color = "blue",  label="eagleye")
     ax.set_xlabel('time [s]')
@@ -65,18 +69,18 @@ def plot_rpy(ax, x_data, eagleye_plot_rpy, elem, title, y_label):
     ax.legend(loc='upper right')
     ax.grid()
 
-def plot_each(ax, x_data , eagleye, ref, y_data, title, y_label,ref_data_name):
+def plot_each(ax, x_data , eagleye, ref, y_data, title, y_label,data_name, ref_data_name):
     if y_data in ref.columns:
         ax.plot(x_data, ref[y_data] , marker="o", linestyle="None",markersize=1, color = "green",  label=ref_data_name)
     if y_data in eagleye.columns:
-        ax.plot(x_data , eagleye[y_data] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue",  label="eagleye")
+        ax.plot(x_data , eagleye[y_data] , marker="s", linestyle="None",markersize=1, alpha=0.3, color = "blue",  label=data_name)
     ax.set_xlabel('time [s]')
     ax.set_ylabel(y_label)
     ax.set_title(title)
     ax.legend(loc='upper right')
     ax.grid()
 
-def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy):
+def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor):
     fig1 = plt.figure()
     ax_x = fig1.add_subplot(2, 3, 1)
     ax_y = fig1.add_subplot(2, 3, 2)
@@ -87,11 +91,11 @@ def plot_6DoF_single(eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xy
     plot_xyz(ax_x, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'x', 'X (East-West)','East [m]')
     plot_xyz(ax_y, eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'y', 'Y (North-South)','North [m]')
     plot_xyz(ax_z,eagleye_x_data, rtk_x_data, raw_x_data, eagleye_xyz, rtk_xyz, raw_xyz, 'z', 'Z (Height)','Height [m]')
-    plot_rpy(ax_roll, eagleye_x_data, eagleye_plot_rpy, 'roll', 'Roll' , 'Roll [deg]')
-    plot_rpy(ax_pitch, eagleye_x_data, eagleye_plot_rpy, 'pitch', 'Pitch', 'Pitch [deg]')
-    plot_rpy(ax_yaw, eagleye_x_data, eagleye_plot_rpy, 'heading', 'Yaw', 'Yaw [deg]')
+    plot_rpy(ax_roll, eagleye_x_data, eagleye_plot_rpy, dopplor, 'roll', 'Roll' , 'Roll [deg]')
+    plot_rpy(ax_pitch, eagleye_x_data, eagleye_plot_rpy, dopplor, 'pitch', 'Pitch', 'Pitch [deg]')
+    plot_rpy(ax_yaw, eagleye_x_data, eagleye_plot_rpy, dopplor, 'yaw', 'Yaw', 'Yaw [deg]')
 
-def plot_6DoF(x_data,eagleye, ref,ref_data_name):
+def plot_6DoF(x_data,eagleye, ref,data_name, ref_data_name):
     fig1 = plt.figure()
     ax_x = fig1.add_subplot(2, 3, 1)
     ax_y = fig1.add_subplot(2, 3, 2)
@@ -99,12 +103,12 @@ def plot_6DoF(x_data,eagleye, ref,ref_data_name):
     ax_roll = fig1.add_subplot(2, 3, 4)
     ax_pitch = fig1.add_subplot(2, 3, 5)
     ax_yaw = fig1.add_subplot(2, 3, 6)
-    plot_each(ax_x, x_data, eagleye, ref, 'x', 'X (East-West)','East [m]',ref_data_name)
-    plot_each(ax_y, x_data ,eagleye, ref, 'y', 'Y (North-South)','North [m]',ref_data_name)
-    plot_each(ax_z, x_data , eagleye, ref, 'z', 'Z (Height)','Height [m]',ref_data_name)
-    plot_each(ax_roll, x_data , eagleye, ref, 'roll', 'Roll' , 'Roll [deg]',ref_data_name)
-    plot_each(ax_pitch, x_data , eagleye, ref, 'pitch', 'Pitch', 'Pitch [deg]',ref_data_name)
-    plot_each(ax_yaw, x_data , eagleye, ref, 'yaw', 'Yaw', 'Yaw [deg]',ref_data_name)
+    plot_each(ax_x, x_data, eagleye, ref, 'x', 'X (East-West)','East [m]',data_name, ref_data_name)
+    plot_each(ax_y, x_data ,eagleye, ref, 'y', 'Y (North-South)','North [m]',data_name, ref_data_name)
+    plot_each(ax_z, x_data , eagleye, ref, 'z', 'Z (Height)','Height [m]',data_name, ref_data_name)
+    plot_each(ax_roll, x_data , eagleye, ref, 'roll', 'Roll' , 'Roll [deg]',data_name, ref_data_name)
+    plot_each(ax_pitch, x_data , eagleye, ref, 'pitch', 'Pitch', 'Pitch [deg]',data_name, ref_data_name)
+    plot_each(ax_yaw, x_data , eagleye, ref, 'yaw', 'Yaw', 'Yaw [deg]',data_name, ref_data_name)
 
 def plot_each_error(ax, error_data, y_data, title, y_label):
     ax.plot(error_data['elapsed_time'] , error_data[y_data] , marker="s", linestyle="None",markersize=1, color = "blue")
@@ -120,9 +124,19 @@ def plot_one(ax, error_data, x_data, y_data, title, x_label, y_label, line_style
     ax.set_title(title)
     ax.grid()
 
-def plot_two(ax, ref, eagleye, x_data, y_data, title, x_label, y_label, line_style, ref_data_name):
+def plot_two(ax, ref, eagleye, x_data, y_data, title, x_label, y_label, line_style, data_name, ref_data_name):
     ax.plot(ref[x_data] , ref[y_data] , marker=".", linestyle=line_style, markersize=1, color = "red", label=ref_data_name)
-    ax.plot(eagleye[x_data] , eagleye[y_data] , marker="s", linestyle=line_style, markersize=1, alpha=0.3, color = "blue", label="eagleye")
+    ax.plot(eagleye[x_data] , eagleye[y_data] , marker="s", linestyle=line_style, markersize=1, alpha=0.3, color = "blue", label=data_name)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.set_title(title)
+    ax.legend(loc='upper right')
+    ax.grid()
+
+def plot_three(ax, ref, eagleye, raw, x_data, y_data, title, x_label, y_label, line_style, data_name, ref_data_name):
+    ax.plot(ref[x_data] , ref[y_data] , marker=".", linestyle=line_style, markersize=1, color = "red", label=ref_data_name)
+    ax.plot(raw[x_data] , raw[y_data] , marker="o", linestyle=line_style, markersize=1, color = "green", label="initial ref heading")
+    ax.plot(eagleye[x_data] , eagleye[y_data] , marker="s", linestyle=line_style, markersize=1, alpha=0.3, color = "blue", label=data_name)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.set_title(title)
@@ -189,11 +203,11 @@ def plot_error_distributiln(error_data,ref_data_name):
     ax_aa.set_aspect('equal')
     ax_aa.axis('square')
 
-def plot_traj(ref_data, data,ref_data_name):
+def plot_traj(ref_data, data,data_name, ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=1, color = "red",  label=ref_data_name)
-    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
+    ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=3, color = "red",  label=ref_data_name)
+    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=3,alpha=0.3 , color = "blue",  label=data_name)
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
     ax.set_title('2D Trajectory')
@@ -202,12 +216,30 @@ def plot_traj(ref_data, data,ref_data_name):
     ax.set_aspect('equal')
     ax.axis('square')
 
-def plot_traj_three(raw_data, ref_data, data, ref_data_name):
+def plot_traj_text(title, ref_data, data, text, step, data_name, ref_data_name):
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=3, color = "red",  label=ref_data_name)
+    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=3,alpha=0.3 , color = "blue",  label=data_name)
+    cnt = 0
+    for i in np.arange(0, len(text.index), step):
+        if text[i] >= cnt * step:
+            ax.text(ref_data['x'][i] - ref_data['x'][0] , ref_data['y'][i] - ref_data['y'][0] , int(text[i]), size=16)
+            cnt = cnt + 1
+    ax.set_xlabel('East [m]')
+    ax.set_ylabel('North [m]')
+    ax.set_title(title)
+    ax.legend(loc='upper right')
+    ax.grid()
+    ax.set_aspect('equal')
+    ax.axis('square')
+
+def plot_traj_three(raw_data, ref_data, data, data_name, ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
     ax.plot(raw_data['x']-ref_data['x'][0] , raw_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=1, color = "red",  label="gnss raw data(rtklib)")
     ax.plot(ref_data['x']-ref_data['x'][0] , ref_data['y']-ref_data['y'][0] , marker=".",linestyle="None",markersize=1, color = "green",  label=ref_data_name)
-    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label="eagleye")
+    ax.plot(data['x']-ref_data['x'][0] , data['y']-ref_data['y'][0] ,  marker="s",linestyle="None",markersize=1,alpha=0.3 , color = "blue",  label=data_name)
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
     ax.set_title('2D Trajectory')
@@ -216,25 +248,25 @@ def plot_traj_three(raw_data, ref_data, data, ref_data_name):
     ax.set_aspect('equal')
     ax.axis('square')
 
-def plot_traj_3d(ref_data, data, ref_data_name):
+def plot_traj_3d(ref_data, data, data_name, ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_title('3D Trajectory')
     ax.plot3D(ref_data['x'] - ref_data['x'][0] , ref_data['y'] - ref_data['y'][0] ,ref_data['z'] - ref_data['z'][0] , marker=".",linestyle="None",markersize=1, color = "red",label=ref_data_name)
-    ax.plot3D(data['x'] - ref_data['x'][0] , data['y'] - ref_data['y'][0] ,data['z'] - ref_data['z'][0] , marker="s",linestyle="None",markersize=1, alpha=0.3, color = "blue",label="eagleye")
+    ax.plot3D(data['x'] - ref_data['x'][0] , data['y'] - ref_data['y'][0] ,data['z'] - ref_data['z'][0] , marker="s",linestyle="None",markersize=1, alpha=0.3, color = "blue",label=data_name)
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
     ax.set_zlabel('Height [m]')
     ax.legend(loc='upper right')
     ax.grid()
 
-def plot_traj_3d_three(raw_data, ref_data, data, ref_data_name):
+def plot_traj_3d_three(raw_data, ref_data, data, data_name, ref_data_name):
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
     ax.set_title('3D Trajectory')
     ax.plot3D(raw_data['x'] - ref_data['x'][0] , raw_data['y'] - ref_data['y'][0] ,raw_data['z'] - ref_data['z'][0] , marker=".",linestyle="None",markersize=1, color = "red",label="gnss raw data(rtklib)")
     ax.plot3D(ref_data['x'] - ref_data['x'][0] , ref_data['y'] - ref_data['y'][0] ,ref_data['z'] - ref_data['z'][0] , marker=".",linestyle="None",markersize=1, color = "green",label=ref_data_name)
-    ax.plot3D(data['x'] - ref_data['x'][0] , data['y'] - ref_data['y'][0] ,data['z'] - ref_data['z'][0] , marker="s",linestyle="None",markersize=1, alpha=0.3, color = "blue",label="eagleye")
+    ax.plot3D(data['x'] - ref_data['x'][0] , data['y'] - ref_data['y'][0] ,data['z'] - ref_data['z'][0] , marker="s",linestyle="None",markersize=1, alpha=0.3, color = "blue",label=data_name)
     ax.set_xlabel('East [m]')
     ax.set_ylabel('North [m]')
     ax.set_zlabel('Height [m]')

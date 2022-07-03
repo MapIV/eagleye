@@ -27,6 +27,7 @@
 # Author MapIV Hoda
 
 import argparse
+import yaml
 from re import X
 from typing import List
 import pandas as pd
@@ -40,22 +41,24 @@ import util.plot as util_plot
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", action="store")
-    parser.add_argument("-r", "--reverse_imu", action="store_true",help="change reverse_imu true")
-    parser.add_argument("-p", "--plane_num",help="Plane Cartesian coordinate system number")
+    parser.add_argument("input_yaml", action="store")
     args= parser.parse_args()
     print(args)
     input_ref_path=sys.argv[1]
-    reverse_imu: bool = args.reverse_imu
+    yaml_path=sys.argv[2]
 
-    plane = 7 # Plane Cartesian coordinate system number (default:7 = 7)
+    yaml_path_str: str = yaml_path
+    with open(yaml_path_str,"r") as yml:
+        config = yaml.safe_load(yml)
 
     # set param
-    if args.plane_num != None:
-        plane = float(args.plane_num)
+    reverse_imu = config["param"]["reverse_imu_flag"]
+    plane = config["param"]["plane_num"]
+    data_name = config["param"]["data_name_param"]
 
     print('plane',plane)
 
-    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane)
+    eagleye_df,raw_df = util_prepro.set_log_df(input_ref_path,plane,config)
     print("set eagleye_data")
 
     eagleye_ecef_base = pd.concat([eagleye_df['ecef_base_x'],eagleye_df['ecef_base_y'],eagleye_df['ecef_base_z']],axis=1)
@@ -78,19 +81,11 @@ if __name__ == "__main__":
 
     raw_xyz_vel = pd.concat([raw_df['vel_x'],raw_df['vel_y'],raw_df['vel_z']],axis=1)
     vel = util_calc.xyz2enu_vel(raw_xyz_vel,org_xyz)
-    dopplor = pd.concat([raw_df['elapsed_time'],vel],axis=1)
+    dopplor_heading = util_calc.calc_dopplor_heading(vel)
+    dopplor = pd.concat([raw_df['elapsed_time'],vel, dopplor_heading],axis=1)
 
-    eagleye_rpy = pd.concat([eagleye_df['heading_1st'],eagleye_df['heading_2nd'],eagleye_df['yaw_rad'],eagleye_df['roll_rad'],eagleye_df['pitch_rad']],axis=1)
-    eagleye_df_tmp = util_calc.get_heading_deg(eagleye_rpy)
-    eagleye_df['heading_1st_deg'] = eagleye_df_tmp['heading_1st_deg']
-    eagleye_df['heading_2nd_deg'] = eagleye_df_tmp['heading_2nd_deg']
-    eagleye_df['heading_3rd_deg'] = eagleye_df_tmp['heading_3rd_deg']
-    eagleye_df['heading'] = eagleye_df_tmp['heading_3rd_deg']
-    eagleye_df['roll'] = eagleye_df_tmp['roll']
-    eagleye_df['pitch'] = eagleye_df_tmp['pitch']
-
-    eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['heading']],axis=1)
-    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy)
+    eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['yaw']],axis=1)
+    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor)
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
@@ -106,11 +101,11 @@ if __name__ == "__main__":
     ax_vel.legend(loc='upper right')
     ax_vel.grid()
 
-    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
+    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
 
     util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'])
 
-    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, "gnss rtk data(nmea)")
+    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
 
     plt.show()
     
