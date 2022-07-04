@@ -322,7 +322,7 @@ void distance_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_distance._distance)) {
+  else if (!std::isfinite(_distance.distance)) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
