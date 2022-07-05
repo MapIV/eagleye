@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5)
 project(eagleye_navigation)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
   set(CMAKE_C_STANDARD 99)
@@ -42,6 +45,7 @@ ament_auto_add_library(eagleye_navigation SHARED
   src/yawrate_offset.cpp
   src/rtk_deadreckoning.cpp
   src/rtk_heading.cpp
+  src/velocity_estimator.cpp
   include/eagleye_navigation/eagleye_navigation.hpp
 )
 
