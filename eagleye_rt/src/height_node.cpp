@@ -34,7 +34,8 @@
 
  static sensor_msgs::msg::Imu imu;
  static nmea_msgs::msg::Gpgga gga;
- static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+ static geometry_msgs::msg::TwistStamped velocity;
+ static eagleye_msgs::msg::StatusStamped velocity_status;
  static eagleye_msgs::msg::Distance distance;
 
  rclcpp::Publisher<eagleye_msgs::msg::Height>::SharedPtr pub1;
@@ -50,14 +51,21 @@
  struct HeightParameter height_parameter;
  struct HeightStatus height_status;
 
+ static bool use_canless_mode;
+
 void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
   gga = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity_scale_factor = *msg;
+  velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+{
+  velocity_status = *msg;
 }
 
 void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
@@ -67,6 +75,8 @@ void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
   imu = *msg;
   height.header = msg->header;
   height.header.frame_id = "base_link";
@@ -74,7 +84,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   pitching.header.frame_id = "base_link";
   acc_x_offset.header = msg->header;
   acc_x_scale_factor.header = msg->header;
-  pitching_estimate(imu,gga,velocity_scale_factor,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
+  pitching_estimate(imu,gga,velocity,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
   pub1->publish(height);
   pub2->publish(pitching);
   pub3->publish(acc_x_offset);
@@ -110,6 +120,7 @@ int main(int argc, char** argv)
   node->declare_parameter("height.estimated_height_coefficient",height_parameter.estimated_height_coefficient);
   node->declare_parameter("height.outlier_threshold",height_parameter.outlier_threshold);
   node->declare_parameter("height.average_num",height_parameter.average_num);
+  node->declare_parameter("use_canless_mode",use_canless_mode);
 
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
@@ -121,6 +132,7 @@ int main(int argc, char** argv)
   node->get_parameter("height.estimated_height_coefficient",height_parameter.estimated_height_coefficient);
   node->get_parameter("height.outlier_threshold",height_parameter.outlier_threshold);
   node->get_parameter("height.average_num",height_parameter.average_num);
+  node->get_parameter("use_canless_mode",use_canless_mode);
 
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -133,10 +145,11 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<height_parameter.outlier_threshold<<std::endl;
   std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback); //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
+  auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback);
 
   std::string publish_height_topic_name = "height";
   std::string publish_pitching_topic_name = "pitching";

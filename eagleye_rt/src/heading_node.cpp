@@ -35,7 +35,8 @@
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static nmea_msgs::msg::Gprmc nmea_rmc;
 static sensor_msgs::msg::Imu imu;
-static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset;
 static eagleye_msgs::msg::SlipAngle slip_angle;
@@ -48,6 +49,7 @@ struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
 std::string use_gnss_mode;
+static bool use_canless_mode;
 
 bool is_first_correction_velocity = false;
 
@@ -56,13 +58,18 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
   rtklib_nav = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity_scale_factor = *msg;
-  if (is_first_correction_velocity == false && msg->correction_velocity.linear.x > heading_parameter.estimated_velocity_threshold)
+  velocity = *msg;
+  if (is_first_correction_velocity == false && msg->twist.linear.x > heading_parameter.estimated_velocity_threshold)
   {
     is_first_correction_velocity = true;
   }
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+{
+  velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
@@ -92,17 +99,16 @@ void rmc_callback(const nmea_msgs::msg::Gprmc::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if (is_first_correction_velocity == false)
-  {
-    return;
-  }
+  if (!is_first_correction_velocity) return;
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
   imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    heading_estimate(rtklib_nav,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+    heading_estimate(rtklib_nav,imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    heading_estimate(nmea_rmc,imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+    heading_estimate(nmea_rmc,imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
   if (heading.status.estimate_status == true)
   {
     pub->publish(heading);
@@ -131,6 +137,7 @@ int main(int argc, char** argv)
   node->declare_parameter("heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
   node->declare_parameter("use_gnss_mode",use_gnss_mode);
+  node->declare_parameter("use_canless_mode",use_canless_mode);
 
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
@@ -144,6 +151,7 @@ int main(int argc, char** argv)
   node->get_parameter("heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
   node->get_parameter("use_gnss_mode",use_gnss_mode);
+  node->get_parameter("use_canless_mode",use_canless_mode);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
@@ -157,6 +165,7 @@ int main(int argc, char** argv)
   std::cout<< "stop_judgment_velocity_threshold "<<heading_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_yawrate_threshold "<<heading_parameter.estimated_yawrate_threshold<<std::endl;
   std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
+  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -194,14 +203,15 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub3 = node->create_subscription<nmea_msgs::msg::Gprmc>(subscribe_rmc_topic_name, 1000, rmc_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub7 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2 , 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);
+  auto sub8 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);
+  auto sub9 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2 , 1000, heading_interpolate_callback);
   pub = node->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, rclcpp::QoS(10));
 
   rclcpp::spin(node);

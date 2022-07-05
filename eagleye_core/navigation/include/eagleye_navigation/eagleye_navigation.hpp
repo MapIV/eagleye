@@ -526,8 +526,9 @@ extern void rtk_deadreckoning_estimate(const geometry_msgs::msg::Vector3Stamped,
 extern void rtk_heading_estimate(const nmea_msgs::msg::Gpgga, const sensor_msgs::msg::Imu, const geometry_msgs::msg::TwistStamped,
   const eagleye_msgs::msg::Distance,const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle,
   const eagleye_msgs::msg::Heading, const RtkHeadingParameter, RtkHeadingStatus*,eagleye_msgs::msg::Heading*);
-extern void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped, const eagleye_msgs::msg::YawrateOffset ,const eagleye_msgs::msg::YawrateOffset,
-  const eagleye_msgs::msg::Distance,const sensor_msgs::msg::Imu,const geometry_msgs::msg::PoseStamped,const eagleye_msgs::msg::AngularVelocityOffset,
+extern void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped, const eagleye_msgs::msg::StatusStamped,
+  const eagleye_msgs::msg::YawrateOffset ,const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::Distance,
+  const sensor_msgs::msg::Imu,const geometry_msgs::msg::PoseStamped,const eagleye_msgs::msg::AngularVelocityOffset,
   const EnableAdditionalRollingParameter,EnableAdditionalRollingStatus*,eagleye_msgs::msg::Rolling*,eagleye_msgs::msg::AccYOffset*);
 extern void rolling_estimate(const sensor_msgs::msg::Imu,const geometry_msgs::msg::TwistStamped,const eagleye_msgs::msg::YawrateOffset ,const eagleye_msgs::msg::YawrateOffset,
   const RollingParameter,RollingStatus*,eagleye_msgs::msg::Rolling*);

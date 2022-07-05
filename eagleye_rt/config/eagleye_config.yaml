@@ -138,5 +138,29 @@
       filter_process_noise: 0.01
       filter_observation_noise: 1.0
 
+    velocity_estimator:
+      gga_downsample_time: 1.0
+      stop_judgment_velocity_threshold: 0.2
+      stop_judgment_buffer_maxnum: 50.0
+      variance_threshold: 0.000025
+      pitchrate_offset:
+        buffer_count_max: 400
+      pitching:
+        buffer_max: 250.0
+        outlier_threshold: 0.0174
+        estimated_velocity_threshold: 0.3
+        estimated_gnss_coefficient: 0.02
+        estimated_coefficient: 0.0125
+      acceleration_offset:
+        buffer_min: 1500.0
+        buffer_max: 25000.0
+        filter_process_noise: 0.01
+        filter_observation_noise: 1.0
+      doppler_fusion:
+        buffer_max: 200.0
+        estimated_gnss_coefficient: 0.02
+        estimated_coefficient: 0.01
+        outlier_threshold: 0.1
+
     monitor:
       print_status: true

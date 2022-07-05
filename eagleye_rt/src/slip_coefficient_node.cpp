@@ -38,7 +38,8 @@
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static sensor_msgs::msg::Imu imu;
-static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
 static eagleye_msgs::msg::Heading heading_interpolate_3rd;
@@ -49,19 +50,25 @@ struct SlipCoefficientStatus slip_coefficient_status;
 static double estimate_coefficient;
 
 bool is_first_correction_velocity = false;
+static bool use_canless_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity_scale_factor = *msg;
-  if (is_first_correction_velocity == false && msg->correction_velocity.linear.x > slip_coefficient_parameter.estimated_velocity_threshold)
+  velocity = *msg;
+  if (is_first_correction_velocity == false && msg->twist.linear.x > slip_coefficient_parameter.estimated_velocity_threshold)
   {
     is_first_correction_velocity = true;
   }
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+{
+  velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
@@ -81,12 +88,11 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSha
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if (is_first_correction_velocity == false)
-  {
-    return;
-  }
+  if (is_first_correction_velocity == false) return;
+  if (use_canless_mode && !velocity_status.status.enabled_status) return;
+
   imu = *msg;
-  slip_coefficient_estimate(imu,rtklib_nav,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,heading_interpolate_3rd,slip_coefficient_parameter,&slip_coefficient_status,&estimate_coefficient);
+  slip_coefficient_estimate(imu,rtklib_nav,velocity,yawrate_offset_stop,yawrate_offset_2nd,heading_interpolate_3rd,slip_coefficient_parameter,&slip_coefficient_status,&estimate_coefficient);
 
   std::cout << "--- \033[1;34m slip_coefficient \033[m ------------------------------"<< std::endl;
   std::cout<<"\033[1m estimate_coefficient \033[m "<<estimate_coefficient<<std::endl;
@@ -111,6 +117,7 @@ int main(int argc, char** argv)
   node->declare_parameter("slip_coefficient.estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
   node->declare_parameter("slip_coefficient.lever_arm", slip_coefficient_parameter.lever_arm);
   node->declare_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
+  node->declare_parameter("use_canless_mode", use_canless_mode);
 
   node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
@@ -121,6 +128,7 @@ int main(int argc, char** argv)
   node->get_parameter("slip_coefficient.estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
   node->get_parameter("slip_coefficient.lever_arm", slip_coefficient_parameter.lever_arm);
   node->get_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
+  node->get_parameter("use_canless_mode", use_canless_mode);
 
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
@@ -134,10 +142,11 @@ int main(int argc, char** argv)
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);
+  auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);
 
   rclcpp::spin(node);
 
