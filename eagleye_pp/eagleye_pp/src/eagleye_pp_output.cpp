@@ -237,7 +237,7 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[6]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_posture.orientation_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << std_dev_yaw * std_dev_yaw << ","; // eagleye_posture.orientation_covariance[8]
-    double navsat_lat, navsat_lon;
+    double navsat_lat = 0.0, navsat_lon = 0.0;
     if (gga_[i].lat_dir == "N") {
       navsat_lat = gga_[i].lat;
     } else if (gga_[i].lat_dir == "S") {
@@ -441,7 +441,7 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << (eagleye_state.rolling[i].status.enabled_status ? "1" : "0") << ",";
       *output_log_csv_file << (eagleye_state.rolling[i].status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<int>::max_digits10) << gga_[i].header.stamp.toNSec() << ","; // timestamp
-      double navsat_lat, navsat_lon;
+      double navsat_lat = 0.0, navsat_lon = 0.0;
       if (gga_[i].lat_dir == "N") {
         navsat_lat = gga_[i].lat;
       } else if (gga_[i].lat_dir == "S") {
