@@ -52,7 +52,7 @@ void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mPitchrateOffsetStopEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -115,7 +115,7 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mPitchingEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -242,7 +242,7 @@ void VelocityEstimator::AccelerationOffsetEstimator::setParam(std::string yaml_f
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mAccelerationOffsetEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -399,7 +399,7 @@ void VelocityEstimator::setParam(std::string yaml_file)
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mVelocityEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }

@@ -64,7 +64,7 @@ void setParam(std::string yaml_file)
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mVelocityEstimatorNode YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
