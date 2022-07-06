@@ -140,6 +140,10 @@ add_executable(tf_converted_imu src/tf_converted_imu.cpp)
 target_link_libraries(tf_converted_imu ${catkin_LIBRARIES})
 add_dependencies(tf_converted_imu ${catkin_EXPORTED_TARGETS})
 
+add_executable(velocity_estimator src/velocity_estimator_node.cpp)
+target_link_libraries(velocity_estimator ${catkin_LIBRARIES})
+add_dependencies(velocity_estimator ${catkin_EXPORTED_TARGETS})
+
 install(TARGETS
   velocity_scale_factor
   yawrate_offset_stop
@@ -163,6 +167,7 @@ install(TARGETS
   rolling
   navpvt2rtk
   tf_converted_imu
+  velocity_estimator
   DESTINATION lib/${PROJECT_NAME}
 )
 
