@@ -33,7 +33,7 @@
 
 #define g 9.80665
 
-void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpgga gga,const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,
+void pitching_estimate(const sensor_msgs::msg::Imu imu, const nmea_msgs::msg::Gpgga gga, const geometry_msgs::msg::TwistStamped velocity,
   const eagleye_msgs::msg::Distance distance,const HeightParameter height_parameter,HeightStatus* height_status,eagleye_msgs::msg::Height* height,
   eagleye_msgs::msg::Pitching* pitching,eagleye_msgs::msg::AccXOffset* acc_x_offset,eagleye_msgs::msg::AccXScaleFactor* acc_x_scale_factor)
 {
@@ -90,11 +90,11 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpg
   height_status->flag_reliability = false;
 
 ///  relative_height  ///
-  if (velocity_scale_factor.correction_velocity.linear.x > 0 && height_status->time_last != 0)
+  if (velocity.twist.linear.x > 0 && height_status->time_last != 0)
   {
-    height_status->relative_height_G += imu.linear_acceleration.x * velocity_scale_factor.correction_velocity.linear.x*(imu_time-height_status->time_last)/g;
-    height_status->relative_height_diffvel += - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last) * velocity_scale_factor.correction_velocity.linear.x/g;
-    height_status->relative_height_offset += velocity_scale_factor.correction_velocity.linear.x*(imu_time-height_status->time_last)/g;
+    height_status->relative_height_G += imu.linear_acceleration.x * velocity.twist.linear.x*(imu_time-height_status->time_last)/g;
+    height_status->relative_height_diffvel += - (velocity.twist.linear.x-height_status->correction_velocity_x_last) * velocity.twist.linear.x/g;
+    height_status->relative_height_offset += velocity.twist.linear.x*(imu_time-height_status->time_last)/g;
     correction_relative_height = height_status->relative_height_G + height_status->relative_height_offset + height_status->relative_height_diffvel;
   }
 
@@ -106,7 +106,7 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpg
     height_status->relative_height_diffvel_buffer.push_back(height_status->relative_height_diffvel);
     height_status->relative_height_offset_buffer.push_back(height_status->relative_height_offset);
     height_status->correction_relative_height_buffer.push_back(correction_relative_height);
-    height_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    height_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
     height_status->distance_buffer.push_back(distance.distance);
     data_status = true;
 
@@ -200,7 +200,7 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpg
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality == 4 && data_status == true && velocity_scale_factor.correction_velocity.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality == 4 && data_status == true && velocity.twist.linear.x > height_parameter.estimated_velocity_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
@@ -362,8 +362,8 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpg
     else
     {
       height_status->height_last += ((imu.linear_acceleration.x * height_status->acceleration_SF_linear_x_last + height_status->acceleration_offset_linear_x_last)
-      - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu_time-height_status->time_last))
-      * velocity_scale_factor.correction_velocity.linear.x*(imu_time-height_status->time_last)/g;
+      - (velocity.twist.linear.x-height_status->correction_velocity_x_last)/(imu_time-height_status->time_last))
+      * velocity.twist.linear.x*(imu_time-height_status->time_last)/g;
       height->status.enabled_status = true;
       height->status.estimate_status = false;
     }
@@ -371,7 +371,7 @@ void pitching_estimate(const sensor_msgs::msg::Imu imu,const nmea_msgs::msg::Gpg
 
 ///  pitch  ///
   correction_acceleration_linear_x = imu.linear_acceleration.x * height_status->acceleration_SF_linear_x_last + height_status->acceleration_offset_linear_x_last;
-  height_status->acc_buffer.push_back((correction_acceleration_linear_x - (velocity_scale_factor.correction_velocity.linear.x-height_status->correction_velocity_x_last)/(imu_time-height_status->time_last)));
+  height_status->acc_buffer.push_back((correction_acceleration_linear_x - (velocity.twist.linear.x-height_status->correction_velocity_x_last)/(imu_time-height_status->time_last)));
   data_num_acc = height_status->acc_buffer.size();
 
   if (data_num_acc > height_parameter.average_num)
@@ -416,6 +416,6 @@ if (data_num_acc >= height_parameter.average_num && height_status->estimate_star
   pitching->pitching_angle = tmp_pitch;
 
   height_status->time_last = imu_time;
-  height_status->correction_velocity_x_last = velocity_scale_factor.correction_velocity.linear.x;
+  height_status->correction_velocity_x_last = velocity.twist.linear.x;
   height_status->pitching_angle_last = tmp_pitch;
 }

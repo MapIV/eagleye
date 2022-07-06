@@ -34,7 +34,8 @@
 #define knot2mps 0.51477
 
 void velocity_scale_factor_estimate_(const geometry_msgs::msg::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter,
-  VelocityScaleFactorStatus* velocity_scale_factor_status, eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
+  VelocityScaleFactorStatus* velocity_scale_factor_status, geometry_msgs::msg::TwistStamped* correction_velocity,
+  eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
 { 
     int i;
     double initial_velocity_scale_factor = 1.0;
@@ -146,20 +147,22 @@ void velocity_scale_factor_estimate_(const geometry_msgs::msg::TwistStamped velo
   if (velocity_scale_factor_status->estimate_start_status == true)
   {
     velocity_scale_factor->status.enabled_status = true;
-    velocity_scale_factor->correction_velocity.linear.x = velocity.twist.linear.x * velocity_scale_factor->scale_factor;
+    correction_velocity->twist.linear.x = velocity.twist.linear.x * velocity_scale_factor->scale_factor;
   }
   else
   {
     velocity_scale_factor->status.enabled_status = false;
     velocity_scale_factor->scale_factor = initial_velocity_scale_factor;
-    velocity_scale_factor->correction_velocity.linear.x = velocity.twist.linear.x * initial_velocity_scale_factor;
+    correction_velocity->twist.linear.x = velocity.twist.linear.x * initial_velocity_scale_factor;
   }
 
   velocity_scale_factor_status->velocity_scale_factor_last = velocity_scale_factor->scale_factor;
 
 }
 
-void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav, const geometry_msgs::msg::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
+void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav, const geometry_msgs::msg::TwistStamped velocity,
+  const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,
+  geometry_msgs::msg::TwistStamped* correction_velocity, eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
 {
 
     double ecef_vel[3];
@@ -209,10 +212,12 @@ void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav rtklib_nav
   velocity_scale_factor_status->doppler_velocity_buffer.push_back(doppler_velocity);
   velocity_scale_factor_status->velocity_buffer.push_back(velocity.twist.linear.x);
 
-  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, velocity_scale_factor);
+  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, correction_velocity, velocity_scale_factor);
 }
 
-void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc nmea_rmc, const geometry_msgs::msg::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
+void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc nmea_rmc, const geometry_msgs::msg::TwistStamped velocity,
+  const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,
+  geometry_msgs::msg::TwistStamped* correction_velocity, eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
 {
   bool gnss_status;
   double doppler_velocity = 0.0;
@@ -234,5 +239,5 @@ void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc nmea_rmc, const 
   velocity_scale_factor_status->doppler_velocity_buffer.push_back(doppler_velocity);
   velocity_scale_factor_status->velocity_buffer.push_back(velocity.twist.linear.x);
 
-  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, velocity_scale_factor);
+  velocity_scale_factor_estimate_(velocity, velocity_scale_factor_parameter, velocity_scale_factor_status, correction_velocity, velocity_scale_factor);
 } 

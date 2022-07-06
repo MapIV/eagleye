@@ -33,6 +33,8 @@
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
 static sensor_msgs::msg::Imu imu;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
@@ -42,6 +44,17 @@ static eagleye_msgs::msg::SlipAngle slip_angle;
 
 struct SlipangleParameter slip_angle_parameter;
 
+static bool use_canless_mode;
+
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
+{
+  velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+{
+  velocity_status = *msg;
+}
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
@@ -60,10 +73,23 @@ void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSh
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
+  eagleye_msgs::msg::StatusStamped velocity_enable_status;
+  if(use_canless_mode)
+  {
+    velocity_enable_status = velocity_status;
+  }
+  else
+  {
+    velocity_enable_status.header = velocity_scale_factor.header;
+    velocity_enable_status.status = velocity_scale_factor.status;
+  }
+
   imu = *msg;
   slip_angle.header = msg->header;
   slip_angle.header.frame_id = "base_link";
-  slip_angle_estimate(imu,velocity_scale_factor,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
+  slip_angle_estimate(imu,velocity,velocity_enable_status,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
   pub->publish(slip_angle);
   slip_angle.status.estimate_status = false;
 }
