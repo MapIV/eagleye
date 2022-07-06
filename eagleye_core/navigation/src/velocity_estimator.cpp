@@ -47,12 +47,12 @@ void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_count_max = conf["velocity_estimator"]["pitchrate_offset"]["buffer_count_max"].as<double>();
+    param.buffer_count_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitchrate_offset"]["buffer_count_max"].as<double>();
     // std::cout<< "buffer_count_max "<<param.buffer_count_max<<std::endl;
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mPitchrateOffsetStopEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -102,11 +102,11 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_max = conf["velocity_estimator"]["pitching"]["buffer_max"].as<int>();
-    param.outlier_threshold = conf["velocity_estimator"]["pitching"]["outlier_threshold"].as<double>();
-    param.estimated_velocity_threshold = conf["velocity_estimator"]["pitching"]["estimated_velocity_threshold"].as<double>();
-    param.estimated_gnss_coefficient = conf["velocity_estimator"]["pitching"]["estimated_gnss_coefficient"].as<double>();
-    param.estimated_coefficient = conf["velocity_estimator"]["pitching"]["estimated_coefficient"].as<double>();
+    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["buffer_max"].as<int>();
+    param.outlier_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["outlier_threshold"].as<double>();
+    param.estimated_velocity_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_velocity_threshold"].as<double>();
+    param.estimated_gnss_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_gnss_coefficient"].as<double>();
+    param.estimated_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_coefficient"].as<double>();
     // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
     // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
     // std::cout<< "estimated_velocity_threshold "<<param.estimated_velocity_threshold<<std::endl;
@@ -115,7 +115,7 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mPitchingEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -231,10 +231,10 @@ void VelocityEstimator::AccelerationOffsetEstimator::setParam(std::string yaml_f
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_min = conf["velocity_estimator"]["acceleration_offset"]["buffer_min"].as<int>();
-    param.buffer_max = conf["velocity_estimator"]["acceleration_offset"]["buffer_max"].as<double>();
-    param.filter_process_noise = conf["velocity_estimator"]["acceleration_offset"]["filter_process_noise"].as<double>();
-    param.filter_observation_noise = conf["velocity_estimator"]["acceleration_offset"]["filter_observation_noise"].as<double>();
+    param.buffer_min = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["buffer_min"].as<double>();
+    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["buffer_max"].as<double>();
+    param.filter_process_noise = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["filter_process_noise"].as<double>();
+    param.filter_observation_noise = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["filter_observation_noise"].as<double>();
     // std::cout<< "buffer_min "<<param.buffer_min<<std::endl;
     // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
     // std::cout<< "filter_process_noise "<<param.filter_process_noise<<std::endl;
@@ -242,7 +242,7 @@ void VelocityEstimator::AccelerationOffsetEstimator::setParam(std::string yaml_f
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mAccelerationOffsetEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -363,21 +363,21 @@ void VelocityEstimator::setParam(std::string yaml_file)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    param.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
-    param.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
-    param.ecef_base_pos_z = conf["ecef_base_pos"]["z"].as<double>();
-    param.use_ecef_base_position = conf["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
+    param.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    param.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    param.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+    param.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
 
-    param.gga_downsample_time = conf["velocity_estimator"]["gga_downsample_time"].as<double>();
-    param.stop_judgment_velocity_threshold = conf["velocity_estimator"]["stop_judgment_velocity_threshold"].as<double>();
-    param.stop_judgment_buffer_maxnum = conf["velocity_estimator"]["stop_judgment_buffer_maxnum"].as<double>();
-    param.variance_threshold = conf["velocity_estimator"]["variance_threshold"].as<double>();
+    param.gga_downsample_time = conf["/**"]["ros__parameters"]["velocity_estimator"]["gga_downsample_time"].as<double>();
+    param.stop_judgment_velocity_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["stop_judgment_velocity_threshold"].as<double>();
+    param.stop_judgment_buffer_maxnum = conf["/**"]["ros__parameters"]["velocity_estimator"]["stop_judgment_buffer_maxnum"].as<double>();
+    param.variance_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["variance_threshold"].as<double>();
 
     // doppler fusion parameter
-    param.buffer_max = conf["velocity_estimator"]["doppler_fusion"]["buffer_max"].as<double>();
-    param.estimated_gnss_coefficient = conf["velocity_estimator"]["doppler_fusion"]["estimated_gnss_coefficient"].as<double>();
-    param.estimated_coefficient = conf["velocity_estimator"]["doppler_fusion"]["estimated_coefficient"].as<double>();
-    param.outlier_threshold = conf["velocity_estimator"]["doppler_fusion"]["outlier_threshold"].as<double>();
+    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["buffer_max"].as<double>();
+    param.estimated_gnss_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["estimated_gnss_coefficient"].as<double>();
+    param.estimated_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["estimated_coefficient"].as<double>();
+    param.outlier_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["outlier_threshold"].as<double>();
 
     // std::cout<< "ecef_base_pos_x "<<param.ecef_base_pos_x<<std::endl;
     // std::cout<< "ecef_base_pos_y "<<param.ecef_base_pos_y<<std::endl;
@@ -400,7 +400,7 @@ void VelocityEstimator::setParam(std::string yaml_file)
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mVelocityEstimator YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }

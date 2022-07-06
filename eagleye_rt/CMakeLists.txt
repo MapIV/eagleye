@@ -103,6 +103,10 @@ ament_auto_add_executable(navpvt2rtk
   src/navpvt2rtk_node.cpp
 )
 
+ament_auto_add_executable(velocity_estimator
+  src/velocity_estimator_node.cpp
+)
+
 install(TARGETS 
   navpvt2rtk
   correction_imu

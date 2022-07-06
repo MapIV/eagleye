@@ -69,13 +69,13 @@
     <node pkg="eagleye_rt" name="enable_additional_rolling" exec="enable_additional_rolling" if="$(eval &quot;'$(var enable_additional_rolling)'=='true'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="monitor" exec="monitor" output="screen">
+    <node pkg="eagleye_rt" name="monitor" exec="monitor">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
 
     <!-- CANLess Options -->
-    <node pkg="eagleye_rt" name="velocity_estimator" exec="velocity_estimator" if="$(eval &quot;'$(var use_canless_mode)'=='true'&quot;)">
-            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+    <node pkg="eagleye_rt" name="velocity_estimator" exec="velocity_estimator" if="$(eval &quot;'$(var use_canless_mode)'=='true'&quot;)"  output="screen">
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
 
     <!-- RTK Options -->

@@ -32,10 +32,10 @@
 #include <yaml-cpp/yaml.h>
 
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
-#include "eagleye_navigation/eagleye_navigation.hpp
+#include "eagleye_navigation/eagleye_navigation.hpp"
 
 rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_pub;
-rclcpp::Publisher<eagleye_msgs::msg::StatusStamped>::SharedPtr  velocity_status_pub;
+rclcpp::Publisher<eagleye_msgs::msg::StatusStamped>::SharedPtr velocity_status_pub;
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav_msg;
 static nmea_msgs::msg::Gpgga gga_msg;
@@ -55,16 +55,16 @@ void setParam(std::string yaml_file)
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
-    subscribe_gga_topic_name = conf["gga_topic"].as<std::string>();
+    subscribe_imu_topic_name = conf["/**"]["ros__parameters"]["imu_topic"].as<std::string>();
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
+    subscribe_gga_topic_name = conf["/**"]["ros__parameters"]["gga_topic"].as<std::string>();
     std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
     std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
     std::cout << "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mYAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mVelocityEstimatorNode YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 }
@@ -106,11 +106,11 @@ void velocity_estimator_node(rclcpp::Node::SharedPtr node)
   velocity_estimator.setParam(yaml_file);
 
   auto rtklib_sub =
-      ode->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
+      node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto gga_sub = 
-      ode->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
+      node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto imu_sub =
-      ode->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+      node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
 
   velocity_pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("velocity", 1000);
   velocity_status_pub = node->create_publisher<eagleye_msgs::msg::StatusStamped>("velocity_status", 1000);
