@@ -13,7 +13,6 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 ament_auto_find_build_dependencies()
 
