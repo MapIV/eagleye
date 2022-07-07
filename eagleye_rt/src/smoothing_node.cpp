@@ -34,23 +34,33 @@
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static eagleye_msgs::msg::Position enu_absolute_pos,gnss_smooth_pos_enu;
-static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub;
 
 struct SmoothingParameter smoothing_parameter;
 struct SmoothingStatus smoothing_status;
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
+static bool use_canless_mode;
+
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity_scale_factor = *msg;
+  velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+{
+  velocity_status = *msg;
 }
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
   rtklib_nav = *msg;
   gnss_smooth_pos_enu.header = msg->header;
   gnss_smooth_pos_enu.header.frame_id = "base_link";
-  smoothing_estimate(rtklib_nav,velocity_scale_factor,smoothing_parameter,&smoothing_status,&gnss_smooth_pos_enu);
+  smoothing_estimate(rtklib_nav,velocity,smoothing_parameter,&smoothing_status,&gnss_smooth_pos_enu);
   pub->publish(gnss_smooth_pos_enu);
 }
 
@@ -68,6 +78,7 @@ int main(int argc, char** argv)
   node->declare_parameter("smoothing.estimated_number_max",smoothing_parameter.estimated_number_max);
   node->declare_parameter("smoothing.estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
   node->declare_parameter("smoothing.estimated_threshold",smoothing_parameter.estimated_threshold);
+  node->declare_parameter("use_canless_mode",use_canless_mode);
 
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
@@ -76,6 +87,7 @@ int main(int argc, char** argv)
   node->get_parameter("smoothing.estimated_number_max",smoothing_parameter.estimated_number_max);
   node->get_parameter("smoothing.estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
   node->get_parameter("smoothing.estimated_threshold",smoothing_parameter.estimated_threshold);
+  node->get_parameter("use_canless_mode",use_canless_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "ecef_base_pos_x "<<smoothing_parameter.ecef_base_pos_x<<std::endl;
@@ -85,8 +97,9 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<smoothing_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "estimated_threshold "<<smoothing_parameter.estimated_threshold<<std::endl;
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   pub = node->create_publisher<eagleye_msgs::msg::Position>("gnss_smooth_pos_enu", rclcpp::QoS(10));
 
   rclcpp::spin(node);

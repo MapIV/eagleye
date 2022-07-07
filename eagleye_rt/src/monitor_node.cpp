@@ -123,6 +123,11 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
   _velocity = *msg;
 }
 
+void correction_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+{
+  correction_velocity = *msg;
+}
+
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
 {
   _velocity_scale_factor = *msg;
@@ -770,8 +775,8 @@ void printStatus(void)
 
   std::cout << "--- \033[1;34m velocity SF\033[m -----------------------------"<< std::endl;
   std::cout<<"\033[1m scale factor \033[m "<<std::setprecision(4)<<_velocity_scale_factor.scale_factor<<std::endl;
-  std::cout<<"\033[1m correction velocity \033[m "<<std::setprecision(4)<<_velocity_scale_factor.correction_velocity.linear.x * 3.6<<" [km/h]"<<std::endl;
   std::cout<< "\033[1m status enable \033[m "<<(_velocity_scale_factor.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
@@ -1118,6 +1123,7 @@ int main(int argc, char** argv)
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
 
   double delta_time = 1.0 / static_cast<double>(_update_rate);
+
   auto timer_callback = std::bind(on_timer);
   const auto period_ns =
     std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));

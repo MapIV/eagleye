@@ -12,6 +12,7 @@ endif()
 
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
+find_package(PkgConfig REQUIRED)
 
 ament_auto_find_build_dependencies()
 
@@ -99,6 +100,10 @@ ament_auto_add_executable(rtk_heading
 
 ament_auto_add_executable(navpvt2rtk
   src/navpvt2rtk_node.cpp
+)
+
+ament_auto_add_executable(velocity_estimator
+  src/velocity_estimator_node.cpp
 )
 
 install(TARGETS 

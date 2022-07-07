@@ -18,6 +18,7 @@ endif()
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(eagleye_coordinate REQUIRED)
+find_package(PkgConfig REQUIRED)
 
 ament_auto_find_build_dependencies()
 
@@ -42,6 +43,7 @@ ament_auto_add_library(eagleye_navigation SHARED
   src/yawrate_offset.cpp
   src/rtk_deadreckoning.cpp
   src/rtk_heading.cpp
+  src/velocity_estimator.cpp
   include/eagleye_navigation/eagleye_navigation.hpp
 )
 
