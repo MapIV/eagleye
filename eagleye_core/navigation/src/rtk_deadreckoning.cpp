@@ -121,6 +121,10 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nme
     eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
     eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
     eagleye_fix->altitude = llh_pos[2];
+    // TODO(Map IV): temporary covariance value
+    eagleye_fix->position_covariance[0] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[4] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[8] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
 
     enu_absolute_rtk_deadreckoning->enu_pos.x = enu_pos[0];
     enu_absolute_rtk_deadreckoning->enu_pos.y = enu_pos[1];
