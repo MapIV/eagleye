@@ -40,6 +40,7 @@ static rtklib_msgs::msg::RtklibNav _rtklib_nav;
 static sensor_msgs::msg::NavSatFix _rtklib_fix;
 static nmea_msgs::msg::Gpgga _gga;
 static geometry_msgs::msg::TwistStamped _velocity;
+static geometry_msgs::msg::TwistStamped _correction_velocity;
 static eagleye_msgs::msg::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::msg::Distance _distance;
 static eagleye_msgs::msg::Heading _heading_1st;
@@ -125,7 +126,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 
 void correction_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  correction_velocity = *msg;
+  _correction_velocity = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
@@ -890,12 +891,12 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.y << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity.twist.angular.z << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.scale_factor << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.x << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.y << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.linear.z << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.x << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.y << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _velocity_scale_factor.correction_velocity.angular.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.linear.z << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.x << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.y << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.z << ",";
   output_log_file << (_velocity_scale_factor.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_velocity_scale_factor.status.estimate_status ? "1" : "0") << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance.distance << ",";
