@@ -96,6 +96,8 @@
 
     trajectory:
       stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+      timer_updata_rate: 10.0                              #Period of timer to detect the absence of input twist (default:10 hz)
+      th_deadlock_time: 1.0                                 #Time to allow input twist not to come (default:1s)
 
     position:
       estimated_distance: 300.0                             #Vehicle trajectory length used for estimation. (default:300 m)
