@@ -165,3 +165,4 @@
 
     monitor:
       print_status: true
+      log_output_status: false
