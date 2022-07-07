@@ -30,7 +30,7 @@
 #include <ublox_msgs/msg/nav_pvt.hpp>
 
 rclcpp::Publisher<rtklib_msgs::msg::RtklibNav>::SharedPtr _pub_rtk;
-sensor_msgs::msg::NavSatFix::ConstPtr _nav_msg_ptr;
+sensor_msgs::msg::NavSatFix::ConstSharedPtr _nav_msg_ptr;
 
 void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { _nav_msg_ptr = msg; }
 
