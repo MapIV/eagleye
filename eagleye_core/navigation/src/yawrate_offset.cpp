@@ -67,14 +67,7 @@ void yawrate_offset_estimate(const geometry_msgs::msg::TwistStamped velocity, co
     yawrate_offset_status->estimated_number = estimated_number_cur;
   }
 
-  if (yawrate_offset_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (yawrate_offset_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // data buffer generate
   yawrate_offset_status->time_buffer.push_back(imu_time);

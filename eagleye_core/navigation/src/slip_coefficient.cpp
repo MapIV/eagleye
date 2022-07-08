@@ -70,14 +70,7 @@ void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::Rtkli
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
   }
 
-  if (slip_coefficient_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_coefficient_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgment_velocity_threshold)
   {

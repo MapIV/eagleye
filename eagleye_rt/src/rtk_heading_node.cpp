@@ -111,12 +111,11 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("rtk_heading");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->declare_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->declare_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
   node->declare_parameter("rtk_heading.estimated_number_min",heading_parameter.estimated_number_min);
@@ -129,9 +128,7 @@ int main(int argc, char** argv)
   node->declare_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
   node->declare_parameter("use_canless_mode",use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->get_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->get_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
   node->get_parameter("rtk_heading.estimated_number_min",heading_parameter.estimated_number_min);
@@ -144,9 +141,7 @@ int main(int argc, char** argv)
   node->get_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
   node->get_parameter("use_canless_moded",use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
   std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
@@ -195,7 +190,7 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);

@@ -57,14 +57,7 @@ void heading_estimate_(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamp
     heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
-  if (heading_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // data buffer generate
   heading_status->time_buffer .push_back(imu_time);

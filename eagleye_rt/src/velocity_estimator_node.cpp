@@ -45,7 +45,6 @@ VelocityEstimator velocity_estimator;
 static geometry_msgs::msg::TwistStamped velocity_msg;
 
 static std::string yaml_file;
-static std::string subscribe_imu_topic_name;
 static std::string subscribe_rtklib_nav_topic_name;
 static std::string subscribe_gga_topic_name;
 
@@ -55,10 +54,8 @@ void setParam(std::string yaml_file)
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    subscribe_imu_topic_name = conf["/**"]["ros__parameters"]["imu_topic"].as<std::string>();
     subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
     subscribe_gga_topic_name = conf["/**"]["ros__parameters"]["gga_topic"].as<std::string>();
-    std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
     std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
     std::cout << "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
   }
@@ -110,7 +107,7 @@ void velocity_estimator_node(rclcpp::Node::SharedPtr node)
   auto gga_sub = 
       node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto imu_sub =
-      node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+      node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
 
   velocity_pub = node->create_publisher<geometry_msgs::msg::TwistStamped>("velocity", 1000);
   velocity_status_pub = node->create_publisher<eagleye_msgs::msg::StatusStamped>("velocity_status", 1000);

@@ -18,6 +18,10 @@ ament_auto_find_build_dependencies()
 
 include_directories(include)
 
+ament_auto_add_executable(tf_converted_imu
+  src/tf_converted_imu.cpp
+)
+
 ament_auto_add_executable(correction_imu
   src/correction_imu.cpp
 )
@@ -108,6 +112,7 @@ ament_auto_add_executable(velocity_estimator
 
 install(TARGETS 
   navpvt2rtk
+  tf_converted_imu
   correction_imu
   distance
   heading_interpolate

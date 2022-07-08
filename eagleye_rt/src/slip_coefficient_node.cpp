@@ -105,12 +105,11 @@ int main(int argc, char** argv)
   auto node = rclcpp::Node::make_shared("slip_coefficient");
 
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("reverse_imu", slip_coefficient_parameter.reverse_imu);
   node->declare_parameter("slip_coefficient.estimated_number_min", slip_coefficient_parameter.estimated_number_min);
   node->declare_parameter("slip_coefficient.estimated_number_max", slip_coefficient_parameter.estimated_number_max);
   node->declare_parameter("slip_coefficient.estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
@@ -119,9 +118,7 @@ int main(int argc, char** argv)
   node->declare_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("use_canless_mode", use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("reverse_imu", slip_coefficient_parameter.reverse_imu);
   node->get_parameter("slip_coefficient.estimated_number_min", slip_coefficient_parameter.estimated_number_min);
   node->get_parameter("slip_coefficient.estimated_number_max", slip_coefficient_parameter.estimated_number_max);
   node->get_parameter("slip_coefficient.estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
@@ -130,9 +127,7 @@ int main(int argc, char** argv)
   node->get_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("use_canless_mode", use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<slip_coefficient_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<slip_coefficient_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_number_max "<<slip_coefficient_parameter.estimated_number_max<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<slip_coefficient_parameter.estimated_velocity_threshold<<std::endl;
@@ -140,7 +135,7 @@ int main(int argc, char** argv)
   std::cout<< "lever_arm "<<slip_coefficient_parameter.lever_arm<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<slip_coefficient_parameter.stop_judgment_velocity_threshold<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);

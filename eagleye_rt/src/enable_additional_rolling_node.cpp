@@ -123,14 +123,9 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("enable_additional_rolling");
 
-  std::string subscribe_imu_topic_name;
   std::string subscribe_localization_pose_topic_name;
 
   node->declare_parameter("localization_pose_topic",subscribe_localization_pose_topic_name);
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu",_rolling_parameter.reverse_imu);
-  node->declare_parameter("reverse_imu_angular_velocity_x",_rolling_parameter.reverse_imu_angular_velocity_x);
-  node->declare_parameter("reverse_imu_linear_acceleration_y",_rolling_parameter.reverse_imu_linear_acceleration_y);
   node->declare_parameter("enable_additional_rolling.matching_update_distance",_rolling_parameter.matching_update_distance);
   node->declare_parameter("enable_additional_rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("enable_additional_rolling.rolling_buffer_num",_rolling_parameter.rolling_buffer_num);
@@ -139,10 +134,6 @@ int main(int argc, char** argv)
   node->declare_parameter("use_canless_mode",_use_canless_mode);
 
   node->get_parameter("localization_pose_topic",subscribe_localization_pose_topic_name);
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu",_rolling_parameter.reverse_imu);
-  node->get_parameter("reverse_imu_angular_velocity_x",_rolling_parameter.reverse_imu_angular_velocity_x);
-  node->get_parameter("reverse_imu_linear_acceleration_y",_rolling_parameter.reverse_imu_linear_acceleration_y);
   node->get_parameter("enable_additional_rolling.matching_update_distance",_rolling_parameter.matching_update_distance);
   node->get_parameter("enable_additional_rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("enable_additional_rolling.rolling_buffer_num",_rolling_parameter.rolling_buffer_num);
@@ -151,10 +142,6 @@ int main(int argc, char** argv)
   node->get_parameter("use_canless_modeum",_use_canless_mode);
 
   std::cout<< "subscribe_localization_pose_topic_name: " << subscribe_localization_pose_topic_name << std::endl;
-  std::cout<< "subscribe_imu_topic_name: " <<  subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " <<  _rolling_parameter.reverse_imu << std::endl;
-  std::cout<< "reverse_imu_angular_velocity_x: " << _rolling_parameter.reverse_imu_angular_velocity_x << std::endl;
-  std::cout<< "reverse_imu_linear_acceleration_y: " << _rolling_parameter.reverse_imu_linear_acceleration_y << std::endl;
   std::cout<< "matching_update_distance: " << _rolling_parameter.matching_update_distance << std::endl;
   std::cout<< "stop_judgment_velocity_threshold: " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "rolling_buffer_num: " << _rolling_parameter.rolling_buffer_num << std::endl;
@@ -167,7 +154,7 @@ int main(int argc, char** argv)
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
   auto sub5 = node->create_subscription<geometry_msgs::msg::PoseStamped>(subscribe_localization_pose_topic_name, 1000, localization_pose_callback);
   auto sub6 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback);
-  auto sub7 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub7 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
 
   _pub1 = node->create_publisher<eagleye_msgs::msg::AccYOffset>("acc_y_offset_additional_rolling", 1000);
   _pub2 = node->create_publisher<eagleye_msgs::msg::Rolling>("enable_additional_rolling", 1000);

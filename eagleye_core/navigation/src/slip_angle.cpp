@@ -41,14 +41,7 @@ void slip_angle_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistSta
   double yawrate;
   double acceleration_y;
 
-  if (slip_angle_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_angle_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   if (std::abs(velocity.twist.linear.x) > slip_angle_parameter.stop_judgment_velocity_threshold)
   {

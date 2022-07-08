@@ -87,26 +87,21 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("yawrate_offset");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu", yawrate_offset_parameter.reverse_imu);
+
+
   node->declare_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
   node->declare_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
   node->declare_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
   node->declare_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
   node->declare_parameter("use_canless_mode",use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu", yawrate_offset_parameter.reverse_imu);
   node->get_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
   node->get_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
   node->get_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
   node->get_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
   node->get_parameter("use_canless_mode",use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<yawrate_offset_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<yawrate_offset_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_coefficient "<<yawrate_offset_parameter.estimated_coefficient<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
@@ -150,7 +145,7 @@ int main(int argc, char** argv)
   auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity", rclcpp::QoS(10), velocity_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>(publish_topic_name, rclcpp::QoS(10));
 
   rclcpp::spin(node);
