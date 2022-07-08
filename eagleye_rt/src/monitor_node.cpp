@@ -1038,26 +1038,24 @@ int main(int argc, char** argv)
   updater_ = std::make_shared<diagnostic_updater::Updater>(node);
 
   std::string subscribe_twist_topic_name = "/can_twist";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
@@ -1096,7 +1094,7 @@ int main(int argc, char** argv)
   _output_log_dir = ament_index_cpp::get_package_share_directory("eagleye_rt") + "/log/eagleye_log_" + time_str + ".csv";
   if(_log_output_status) std::cout << _output_log_dir << std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("rtklib/fix", rclcpp::QoS(10), rtklib_fix_callback);
   auto sub4 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, navsatfix_gga_callback);

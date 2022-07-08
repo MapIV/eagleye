@@ -60,14 +60,7 @@ void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,ge
     heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
-  if (heading_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // heading set //
   double enu_pos[3];

@@ -169,12 +169,12 @@ int main(int argc, char** argv)
   double velocity_scale_factor_save_duration = 100.0;
 
   std::string subscribe_twist_topic_name = "/can_twist";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
   node->declare_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
@@ -186,7 +186,6 @@ int main(int argc, char** argv)
   node->declare_parameter("use_gnss_mode",use_gnss_mode);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("velocity_scale_factor.estimated_number_min",velocity_scale_factor_parameter.estimated_number_min);
   node->get_parameter("velocity_scale_factor.estimated_number_max",velocity_scale_factor_parameter.estimated_number_max);
@@ -198,7 +197,6 @@ int main(int argc, char** argv)
   node->get_parameter("use_gnss_mode",use_gnss_mode);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_rmc_topic_name "<<subscribe_rmc_topic_name<<std::endl;
   std::cout<< "estimated_number_min "<<velocity_scale_factor_parameter.estimated_number_min<<std::endl;
@@ -210,7 +208,7 @@ int main(int argc, char** argv)
   std::cout<< "velocity_scale_factor_save_duration "<<velocity_scale_factor_save_duration<<std::endl;
   std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
   auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub4 = node->create_subscription<nmea_msgs::msg::Gprmc>(subscribe_rmc_topic_name, 1000, rmc_callback);

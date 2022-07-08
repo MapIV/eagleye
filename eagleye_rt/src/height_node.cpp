@@ -108,10 +108,9 @@ int main(int argc, char** argv)
   auto node = rclcpp::Node::make_shared("height");
 
   std::string subscribe_gga_topic_name = "/navsat/gga";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
 
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
   node->declare_parameter("height.estimated_distance",height_parameter.estimated_distance);
   node->declare_parameter("height.estimated_distance_max",height_parameter.estimated_distance_max);
   node->declare_parameter("height.separation_distance",height_parameter.separation_distance);
@@ -123,7 +122,6 @@ int main(int argc, char** argv)
   node->declare_parameter("use_canless_mode",use_canless_mode);
 
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("height.estimated_distance",height_parameter.estimated_distance);
   node->get_parameter("height.estimated_distance_max",height_parameter.estimated_distance_max);
   node->get_parameter("height.separation_distance",height_parameter.separation_distance);
@@ -135,7 +133,6 @@ int main(int argc, char** argv)
   node->get_parameter("use_canless_mode",use_canless_mode);
 
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "estimated_distance "<<height_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_distance_max "<<height_parameter.estimated_distance_max<<std::endl;
   std::cout<< "separation_distance "<<height_parameter.separation_distance<<std::endl;
@@ -145,7 +142,7 @@ int main(int argc, char** argv)
   std::cout<< "outlier_threshold "<<height_parameter.outlier_threshold<<std::endl;
   std::cout<< "average_num "<<height_parameter.average_num<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);

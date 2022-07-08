@@ -57,33 +57,26 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("yawrate_offset_stop");
-
   std::string subscribe_twist_topic_name = "/can_twist";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu", yawrate_offset_stop_parameter.reverse_imu);
   node->declare_parameter("yawrate_offset_stop.stop_judgment_velocity_threshold",yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("yawrate_offset_stop.estimated_number",yawrate_offset_stop_parameter.estimated_number);
   node->declare_parameter("yawrate_offset_stop.outlier_threshold",yawrate_offset_stop_parameter.outlier_threshold);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu", yawrate_offset_stop_parameter.reverse_imu);
   node->get_parameter("yawrate_offset_stop.stop_judgment_velocity_threshold",yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("yawrate_offset_stop.estimated_number",yawrate_offset_stop_parameter.estimated_number);
   node->get_parameter("yawrate_offset_stop.outlier_threshold",yawrate_offset_stop_parameter.outlier_threshold);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<yawrate_offset_stop_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<yawrate_offset_stop_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_number "<<yawrate_offset_stop_parameter.estimated_number<<std::endl;
   std::cout<< "outlier_threshold "<<yawrate_offset_stop_parameter.outlier_threshold<<std::endl;
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10));
 
   rclcpp::spin(node);

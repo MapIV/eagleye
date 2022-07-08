@@ -95,19 +95,12 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("heading_interpolate");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu", heading_interpolate_parameter.reverse_imu);
   node->declare_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu", heading_interpolate_parameter.reverse_imu);
   node->get_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<heading_interpolate_parameter.reverse_imu<<std::endl;
+
   std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "number_buffer_max "<<heading_interpolate_parameter.number_buffer_max<<std::endl;
 
@@ -147,7 +140,7 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub3 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);

@@ -121,13 +121,12 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("heading");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->declare_parameter("heading.estimated_number_min",heading_parameter.estimated_number_min);
   node->declare_parameter("heading.estimated_number_max",heading_parameter.estimated_number_max);
   node->declare_parameter("heading.estimated_gnss_coefficient",heading_parameter.estimated_gnss_coefficient);
@@ -139,9 +138,7 @@ int main(int argc, char** argv)
   node->declare_parameter("use_gnss_mode",use_gnss_mode);
   node->declare_parameter("use_canless_mode",use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->get_parameter("heading.estimated_number_min",heading_parameter.estimated_number_min);
   node->get_parameter("heading.estimated_number_max",heading_parameter.estimated_number_max);
   node->get_parameter("heading.estimated_gnss_coefficient",heading_parameter.estimated_gnss_coefficient);
@@ -153,9 +150,7 @@ int main(int argc, char** argv)
   node->get_parameter("use_gnss_mode",use_gnss_mode);
   node->get_parameter("use_canless_mode",use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_number_max "<<heading_parameter.estimated_number_max<<std::endl;
   std::cout<< "estimated_gnss_coefficient "<<heading_parameter.estimated_gnss_coefficient<<std::endl;
@@ -203,7 +198,7 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub3 = node->create_subscription<nmea_msgs::msg::Gprmc>(subscribe_rmc_topic_name, 1000, rmc_callback);
   auto sub4 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);

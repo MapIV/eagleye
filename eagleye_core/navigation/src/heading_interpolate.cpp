@@ -48,14 +48,7 @@ void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const geometr
   auto heading_time = ros_clock.seconds();
   auto imu_time = ros_clock2.seconds();
 
-  if (heading_interpolate_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_interpolate_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {

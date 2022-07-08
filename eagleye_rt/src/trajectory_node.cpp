@@ -179,33 +179,25 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("trajectory");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu", trajectory_parameter.reverse_imu);
   node->declare_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
   node->declare_parameter("timer_updata_rate",timer_updata_rate);
   node->declare_parameter("th_deadlock_time",th_deadlock_time);
   node->declare_parameter("use_canless_mode",use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu", trajectory_parameter.reverse_imu);
   node->get_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
   node->get_parameter("timer_updata_rate",timer_updata_rate);
   node->get_parameter("th_deadlock_time",th_deadlock_time);
   node->get_parameter("use_canless_mode",use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<trajectory_parameter.reverse_imu<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<trajectory_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "stop_judgment_yawrate_threshold "<<trajectory_parameter.stop_judgment_yawrate_threshold<<std::endl;
   std::cout<< "timer_updata_rate "<<timer_updata_rate<<std::endl;
   std::cout<< "th_deadlock_time "<<th_deadlock_time<<std::endl;
   std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub3 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
