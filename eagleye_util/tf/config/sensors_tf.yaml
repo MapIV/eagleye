@@ -1,5 +1,5 @@
 
-basic_parent_flame: "base_link"
+basic_parent_frame: "base_link"
 
 base_link2imu:
   x: 0.0

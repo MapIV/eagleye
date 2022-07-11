@@ -9,14 +9,12 @@ twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 nmea_sentence_topic: /nmea_sentence
+gga_topic: /navsat/gga
 localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
-reverse_imu: false                                    # reverse imu angular_velocity.z
-reverse_imu_angular_velocity_x: true                  # reverse imu angular_velocity.x
-reverse_imu_linear_acceleration_y: false              # reverse imu linear_acceleration.y
 
-tf_gnss_flame:
+tf_gnss_frame:
   parent: "base_link"
   child: "gnss"
 
@@ -139,5 +137,37 @@ rolling:
   filter_process_noise: 0.01
   filter_observation_noise: 1
 
+velocity_estimator:
+  gga_downsample_time: 1
+  stop_judgment_velocity_threshold: 0.2
+  stop_judgment_buffer_maxnum: 50
+  variance_threshold: 0.000025
+  pitchrate_offset:
+    buffer_count_max: 400
+  pitching:
+    buffer_max: 250
+    outlier_threshold: 0.0174
+    estimated_velocity_threshold: 0.3
+    estimated_gnss_coefficient: 0.02
+    estimated_coefficient: 0.0125
+  acceleration_offset:
+    buffer_min: 1500
+    buffer_max: 25000
+    filter_process_noise: 0.01
+    filter_observation_noise: 1
+  doppler_fusion:
+    buffer_max: 200
+    estimated_gnss_coefficient: 0.02
+    estimated_coefficient: 0.01
+    outlier_threshold: 0.1
+
 monitor:
   print_status: true
+  log_output_status: false
+  update_rate: 10.0
+  th_gnss_deadrock_time: 10.0
+  th_velocity_scale_factor_percent: 10.0 
+  use_compare_yawrate: false                        #Whether to compare the yaw rate with the yaw rate calculated from the vehicle speed model
+  comparison_twist_topic: /calculated_twist
+  th_diff_rad_per_sec: 0.17453                      #Threshold of difference from comparison twist yaw rate(0.17453 rad/s = 10 degree/s)
+  th_num_continuous_abnormal_yawrate: 25            #Threshold for consecutive abnormal values in comparison twist

@@ -7,7 +7,7 @@
   <xacro:property name="size" value="1" />
 
   <!-- base_link -->
-  <link name="${calibration['basic_parent_flame']}">
+  <link name="${calibration['basic_parent_frame']}">
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
@@ -30,7 +30,7 @@
     </link>
   </xacro:macro>
 
-  <xacro:imu parent="${calibration['basic_parent_flame']}" x="${calibration['base_link2imu']['x']}" y="${calibration['base_link2imu']['y']}" z="${calibration['base_link2imu']['z']}" roll="${calibration['base_link2imu']['roll']}" pitch="${calibration['base_link2imu']['pitch']}" yaw="${calibration['base_link2imu']['yaw']}" />
+  <xacro:imu parent="${calibration['basic_parent_frame']}" x="${calibration['base_link2imu']['x']}" y="${calibration['base_link2imu']['y']}" z="${calibration['base_link2imu']['z']}" roll="${calibration['base_link2imu']['roll']}" pitch="${calibration['base_link2imu']['pitch']}" yaw="${calibration['base_link2imu']['yaw']}" />
 
   <!-- gnss -->
   <xacro:macro name="gnss" params="parent x y z roll pitch yaw">
@@ -46,7 +46,7 @@
     </link>
   </xacro:macro>
 
-  <xacro:gnss parent="${calibration['basic_parent_flame']}" x="${calibration['base_link2gnss']['x']}" y="${calibration['base_link2gnss']['y']}" z="${calibration['base_link2gnss']['z']}" roll="${calibration['base_link2gnss']['roll']}" pitch="${calibration['base_link2gnss']['pitch']}" yaw="${calibration['base_link2gnss']['yaw']}" />
+  <xacro:gnss parent="${calibration['basic_parent_frame']}" x="${calibration['base_link2gnss']['x']}" y="${calibration['base_link2gnss']['y']}" z="${calibration['base_link2gnss']['z']}" roll="${calibration['base_link2gnss']['roll']}" pitch="${calibration['base_link2gnss']['pitch']}" yaw="${calibration['base_link2gnss']['yaw']}" />
 
 
 </robot>

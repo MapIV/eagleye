@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(eagleye_navigation)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
@@ -20,6 +23,7 @@ include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
 add_library(navigation
@@ -41,10 +45,12 @@ add_library(navigation
   src/rtk_heading.cpp
   src/enable_additional_rolling.cpp
   src/rolling.cpp
+  src/velocity_estimator.cpp
 )
 
 target_link_libraries(navigation
   ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
 )
 add_dependencies(navigation ${catkin_EXPORTED_TARGETS})
 

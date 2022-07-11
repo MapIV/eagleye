@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::Distance distance,eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::Heading* heading)
+void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,eagleye_msgs::Distance distance,
+  eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
+  eagleye_msgs::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
 
   int i,index_max;
@@ -53,14 +55,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
     heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
-  if (heading_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // heading set //
   double enu_pos[3];
@@ -96,7 +91,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
   double gga_length;
   gga_length = std::distance(heading_status->gga_status_buffer.begin(), heading_status->gga_status_buffer.end());
 
-  if (heading_status->gga_status_buffer[0] == 0 && heading_status->gga_status_buffer[gga_length-1] == 0 && abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
+  if (heading_status->gga_status_buffer[0] == 4 && heading_status->gga_status_buffer[gga_length-1] == 4 &&
+    abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
   {
     tmp_llh[0] = heading_status->latitude_buffer[0] *M_PI/180;
     tmp_llh[1] = heading_status->longitude_buffer[0]*M_PI/180;
@@ -118,8 +114,9 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
     rtk_heading_angle = rtk_heading_angle + 2*M_PI;
   }
 
-  if (heading_status->tow_last  == gga.header.stamp.toSec() || gga.header.stamp.toSec() == 0 || rtk_heading_angle == 0
-    || heading_status->last_rtk_heading_angle == rtk_heading_angle || velocity_scale_factor.correction_velocity.linear.x < heading_parameter.stop_judgment_velocity_threshold)
+  if (heading_status->tow_last  == gga.header.stamp.toSec() || gga.header.stamp.toSec() == 0 || rtk_heading_angle == 0 ||
+      heading_status->last_rtk_heading_angle == rtk_heading_angle ||
+      velocity.twist.linear.x < heading_parameter.stop_judgment_velocity_threshold)
   {
     gnss_status = false;
     rtk_heading_angle = 0;
@@ -137,7 +134,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
   heading_status->time_buffer .push_back(imu.header.stamp.toSec());
   heading_status->heading_angle_buffer .push_back(rtk_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
-  heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
+  heading_status->correction_velocity_buffer .push_back(velocity.twist.linear.x);
   heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
   heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);
@@ -161,7 +158,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_parameter.estimated_number_min && heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
+  if (heading_status->estimated_number  > heading_parameter.estimated_number_min &&
+    heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
     heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold &&
     fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
   {
@@ -201,12 +199,14 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
         {
           if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.stop_judgment_velocity_threshold)
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) *
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +
+              ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) *
               (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
           else
           {
-            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) *
+            provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +
+              ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) *
               (heading_status->time_buffer [i] - heading_status->time_buffer [i-1]));
           }
         }
@@ -230,7 +230,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
 
       for (i = 0; i < heading_status->estimated_number ; i++)
       {
-        base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+        base_heading_angle_buffer.push_back(heading_interpolate.heading_angle - provisional_heading_angle_buffer[index[index_length-1]] +
+          provisional_heading_angle_buffer[i]);
       }
 
       for (i = 0; i < index_length; i++)
@@ -247,7 +248,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
         base_heading_angle_buffer.clear();
         for (i = 0; i < heading_status->estimated_number ; i++)
         {
-          base_heading_angle_buffer.push_back(heading_angle_buffer2[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+          base_heading_angle_buffer.push_back(heading_angle_buffer2[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] +
+            provisional_heading_angle_buffer[i]);
         }
 
         diff_buffer.clear();
@@ -262,7 +264,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
         base_heading_angle_buffer2.clear();
         for (i = 0; i < heading_status->estimated_number ; i++)
         {
-          base_heading_angle_buffer2.push_back(tmp_heading_angle - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+          base_heading_angle_buffer2.push_back(tmp_heading_angle - provisional_heading_angle_buffer[index[index_length-1]] +
+            provisional_heading_angle_buffer[i]);
         }
 
         diff_buffer.clear();
@@ -299,7 +302,8 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,eagleye_msgs
         }
         else
         {
-          heading->heading_angle = tmp_heading_angle + (provisional_heading_angle_buffer[heading_status->estimated_number -1] - provisional_heading_angle_buffer[index[index_length-1]]);
+          heading->heading_angle = tmp_heading_angle + (provisional_heading_angle_buffer[heading_status->estimated_number -1] -
+            provisional_heading_angle_buffer[index[index_length-1]]);
         }
         heading->status.estimate_status = true;
       }

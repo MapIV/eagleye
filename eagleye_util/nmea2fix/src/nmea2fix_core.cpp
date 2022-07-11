@@ -98,8 +98,16 @@ void nmea2fix_converter(const nmea_msgs::Sentence sentence, sensor_msgs::NavSatF
         gga->station_id = nmea_data[14].substr(0, nmea_data[14].find("*"));
 
         fix->header = sentence.header;
-        fix->latitude = gga->lat;
-        fix->longitude = gga->lon;
+        if (gga->lat_dir == "N") {
+          fix->latitude = gga->lat;
+        } else if (gga->lat_dir == "S") {
+          fix->latitude = -gga->lat;
+        }
+        if (gga->lon_dir == "E") {
+          fix->longitude = gga->lon;
+        } else if (gga->lon_dir == "W") {
+          fix->longitude = -gga->lon;
+        }
         fix->altitude = gga->alt + gga->undulation;
         fix->status.service = 1;
 

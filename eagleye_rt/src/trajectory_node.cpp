@@ -34,6 +34,8 @@
 
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
+static geometry_msgs::TwistStamped _correction_velocity;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
 static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
@@ -55,6 +57,19 @@ static double _th_deadlock_time = 1;
 
 static double _imu_time_last, _velocity_time_last;
 static bool _input_status;
+
+static bool _use_canless_mode;
+
+
+void correction_velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
+{
+  _correction_velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
+{
+  _velocity_status = *msg;
+}
 
 void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::ConstPtr& msg)
 {
@@ -106,6 +121,19 @@ void timer_callback(const ros::TimerEvent& e)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+
+  eagleye_msgs::StatusStamped velocity_enable_status;
+  if(_use_canless_mode)
+  {
+    velocity_enable_status = _velocity_status;
+  }
+  else
+  {
+    velocity_enable_status.header = _velocity_scale_factor.header;
+    velocity_enable_status.status = _velocity_scale_factor.status;
+  }
+
   _imu = *msg;
   if(_input_status)
   {
@@ -115,8 +143,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _enu_relative_pos.header.frame_id = "base_link";
     _eagleye_twist.header = msg->header;
     _eagleye_twist.header.frame_id = "base_link";
-    trajectory3d_estimate(_imu, _velocity_scale_factor, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd,
-      _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+    trajectory3d_estimate(_imu, _correction_velocity, velocity_enable_status, _heading_interpolate_3rd, _yawrate_offset_stop, 
+      _yawrate_offset_2nd, _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
 
     if(_heading_interpolate_3rd.status.enabled_status)
     {
@@ -136,29 +164,28 @@ int main(int argc, char** argv)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("imu_topic" , subscribe_imu_topic_name);
   nh.getParam("twist_topic",subscribe_twist_topic_name);
-  nh.getParam("reverse_imu", _trajectory_parameter.reverse_imu);
   nh.getParam("trajectory/stop_judgment_velocity_threshold",_trajectory_parameter.stop_judgment_velocity_threshold);
   nh.getParam("trajectory/stop_judgment_yawrate_threshold",_trajectory_parameter.stop_judgment_yawrate_threshold);
   nh.getParam("trajectory/timer_updata_rate",_update_rate);
   nh.getParam("trajectory/th_deadlock_time",_th_deadlock_time);
+  nh.getParam("use_canless_mode",_use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
   std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "reverse_imu " << _trajectory_parameter.reverse_imu << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _trajectory_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "stop_judgment_yawrate_threshold " << _trajectory_parameter.stop_judgment_yawrate_threshold << std::endl;
   std::cout<< "timer_updata_rate " << _update_rate << std::endl;
   std::cout<< "th_deadlock_time " << _th_deadlock_time << std::endl;
 
-  ros::Subscriber sub1 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("velocity", 1000, correction_velocity_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = nh.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
   _pub1 = nh.advertise<geometry_msgs::Vector3Stamped>("enu_vel", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);
   _pub3 = nh.advertise<geometry_msgs::TwistStamped>("twist", 1000);

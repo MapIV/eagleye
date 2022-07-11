@@ -1,0 +1,7 @@
+[submodule "eagleye_util/kml_generator"]
+	path = eagleye_util/kml_generator
+	url = https://github.com/MapIV/kml_generator
+[submodule "eagleye_pp/common/multi_rosbag_controller"]
+	path = eagleye_pp/common/multi_rosbag_controller
+	url = https://github.com/MapIV/multi_rosbag_controller.git
+

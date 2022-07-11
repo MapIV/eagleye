@@ -24,11 +24,11 @@ The input topics can be changed in `config/eagleye_pp.config`.
 ### Output
 The output file will be created in the log directory, which is created in the same directory as the rosbag used.
 
- - <ROSBAG_NAME>_eagleye.csv  
+ - eagleye.csv  
 	Position and orientation file.  
 	eagleye_pp_llh.status indicates the status of the result: status 0 is 2D error less than 0.3m, status 1 is 2D error less than 1.5m, and status 2 is 2D error greater than 1.5m.  
 	eagleye_pp_llh.height_status indicates whether flag is true or false for pitching estimation.  
- - <ROSBAG_NAME>_eagleye.kml  
+ - eagleye.kml  
 	・RTKLIB section in the CAR Tragectory  
 	  The magenta point plot is the positioning solution for rtklib.  
 	  The square plot is the fix solution, and the circle plot is the float solution or the single positioning solution.  
@@ -41,11 +41,11 @@ The output file will be created in the log directory, which is created in the sa
 	  Green line plot of the trajectory of the eagleye turned in the opposite direction in time.  
 	・EAGLEYE_PP_LINE  
 	  Blue line plot of a trajectory that combines Forward and Backward processing.
- - <ROSBAG_NAME>_eagleye_line.kml  
- 　Only line plots are extracted from the plots in <ROSBAG_NAME>_eagleye.kml.  
- - <ROSBAG_NAME>_eagleye_log.csv  
+ - eagleye_line.kml  
+ 　Only line plots are extracted from the plots in eagleye.kml.  
+ - eagleye_log.csv  
  　Log files of observables and internal states in forward processing.  
- - <ROSBAG_NAME>_eagleye_log_back.csv  
+ - eagleye_log_back.csv  
  　Log files of observables and internal states in backward processing. 
 
 ## Parameter

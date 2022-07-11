@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
+void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading,
+  RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
+  eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   double enu_pos[3],enu_rtk[3];
@@ -103,6 +105,10 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
     eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
     eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
     eagleye_fix->altitude = llh_pos[2];
+    // TODO(Map IV): temporary covariance value
+    eagleye_fix->position_covariance[0] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[4] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[8] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
 
     enu_absolute_rtk_deadreckoning->enu_pos.x = enu_pos[0];
     enu_absolute_rtk_deadreckoning->enu_pos.y = enu_pos[1];

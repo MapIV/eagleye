@@ -33,15 +33,34 @@ gnss:
   use_nmea_downsample: true
   nmea_downsample_freq: 5
 
+imu:
+  base_link2imu:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    roll: 0 # [rad]
+    pitch: 0 # [rad]
+    yaw: 0 # [rad]
+
+use_canless_mode: false  #Estimate mode
+
 # Using Topic Name
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 ## If RTK positioning is not used, the following topic settings are not necessary.
+## Forward/backward smoothing is not possible without nmea_msgs/Sentence.
 nmea_sentence_topic: /nmea_sentence
+gga_topic: /navsat/gga
+
 
 #Parameter settings for Eagleye
-reverse_imu: false
+
+ecef_base_pos:                                        #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
+  x : 0.0                               
+  y : 0.0
+  z : 0.0
+  use_ecef_base_position : false
 
 velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
   estimated_number_min: 1000                           #Minimum number of data used for estimation. (default:1000 = 20s)
@@ -125,6 +144,9 @@ position_interpolate:
   number_buffer_max: 100
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
 
+rtk_deadreckoning:
+  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+  
 smoothing:
   estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
   estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
@@ -144,3 +166,27 @@ rolling:
   stop_judgment_velocity_threshold: 0.01
   filter_process_noise: 0.01
   filter_observation_noise: 1
+
+velocity_estimator:
+  gga_downsample_time: 1
+  stop_judgment_velocity_threshold: 0.2
+  stop_judgment_buffer_maxnum: 50
+  variance_threshold: 0.000025
+  pitchrate_offset:
+    buffer_count_max: 400
+  pitching:
+    buffer_max: 250
+    outlier_threshold: 0.0174
+    estimated_velocity_threshold: 0.3
+    estimated_gnss_coefficient: 0.02
+    estimated_coefficient: 0.0125
+  acceleration_offset:
+    buffer_min: 1500
+    buffer_max: 25000
+    filter_process_noise: 0.01
+    filter_observation_noise: 1
+  doppler_fusion:
+    buffer_max: 200
+    estimated_gnss_coefficient: 0.02
+    estimated_coefficient: 0.01
+    outlier_threshold: 0.1

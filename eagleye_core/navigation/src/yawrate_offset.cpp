@@ -31,7 +31,9 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter, YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
+void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const eagleye_msgs::YawrateOffset yawrate_offset_stop,
+  const eagleye_msgs::Heading heading_interpolate,const sensor_msgs::Imu imu, const YawrateOffsetParameter yawrate_offset_parameter,
+  YawrateOffsetStatus* yawrate_offset_status, eagleye_msgs::YawrateOffset* yawrate_offset)
 {
   int i;
   double yawrate = 0.0;
@@ -62,20 +64,13 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
     yawrate_offset_status->estimated_number = estimated_number_cur;
   }
 
-  if (yawrate_offset_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (yawrate_offset_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // data buffer generate
   yawrate_offset_status->time_buffer.push_back(imu.header.stamp.toSec());
   yawrate_offset_status->yawrate_buffer.push_back(yawrate);
   yawrate_offset_status->heading_angle_buffer.push_back(heading_interpolate.heading_angle);
-  yawrate_offset_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+  yawrate_offset_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
   yawrate_offset_status->heading_estimate_status_buffer.push_back(heading_interpolate.status.estimate_status);
   yawrate_offset_status->yawrate_offset_stop_buffer.push_back(yawrate_offset_stop.yawrate_offset);
 
@@ -91,7 +86,8 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
     yawrate_offset_status->yawrate_offset_stop_buffer.erase(yawrate_offset_status->yawrate_offset_stop_buffer.begin());
   }
 
-  if (yawrate_offset_status->estimated_preparation_conditions == 0 && yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number - 1] == true)
+  if (yawrate_offset_status->estimated_preparation_conditions == 0 &&
+    yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number - 1] == true)
   {
     yawrate_offset_status->estimated_preparation_conditions = 1;
   }
@@ -107,7 +103,9 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
     }
   }
 
-  if (yawrate_offset_status->estimated_preparation_conditions == 2 && yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.estimated_velocity_threshold && yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number-1] == true)
+  if (yawrate_offset_status->estimated_preparation_conditions == 2 &&
+    yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.estimated_velocity_threshold &&
+    yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number-1] == true)
   {
     estimated_condition_status = true;
   }
@@ -147,7 +145,8 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
       {
         if (i > 0)
         {
-          provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + yawrate_offset_status->yawrate_buffer[i] * (yawrate_offset_status->time_buffer[i] - yawrate_offset_status->time_buffer[i-1]);
+          provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] + yawrate_offset_status->yawrate_buffer[i] *
+            (yawrate_offset_status->time_buffer[i] - yawrate_offset_status->time_buffer[i-1]);
         }
       }
 
@@ -162,15 +161,17 @@ void yawrate_offset_estimate(const eagleye_msgs::VelocityScaleFactor velocity_sc
       //base_heading_angle_buffer.clear();
       for (i = 0; i < yawrate_offset_status->estimated_number; i++)
       {
-        base_heading_angle_buffer.push_back(yawrate_offset_status->heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
+        base_heading_angle_buffer.push_back(yawrate_offset_status->heading_angle_buffer[index[index_length-1]] -
+          provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[i]);
       }
 
       //diff_buffer.clear();
       for (i = 0; i < index_length; i++)
       {
         // diff_buffer.push_back(base_heading_angle_buffer[index[i]] - heading_angle_buffer[index[i]]);
-        diff_buffer.push_back(yawrate_offset_status->heading_angle_buffer[index[index_length-1]] - provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[index[i]] -
-                        yawrate_offset_status->heading_angle_buffer[index[i]]);
+        diff_buffer.push_back(yawrate_offset_status->heading_angle_buffer[index[index_length-1]] -
+          provisional_heading_angle_buffer[index[index_length-1]] + provisional_heading_angle_buffer[index[i]] -
+          yawrate_offset_status->heading_angle_buffer[index[i]]);
       }
 
       time_buffer2.clear();

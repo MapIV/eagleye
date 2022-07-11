@@ -32,8 +32,6 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-static bool _reverse_imu;
-
 static ros::Publisher _pub;
 static eagleye_msgs::YawrateOffset _yawrate_offset;
 static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
@@ -86,18 +84,9 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _correction_imu.linear_acceleration.z = _imu.linear_acceleration.z;
   }
 
-  if (!_reverse_imu)
-  {
-    _correction_imu.angular_velocity.x = _imu.angular_velocity.x + _angular_velocity_offset_stop.angular_velocity_offset.x;
-    _correction_imu.angular_velocity.y = _imu.angular_velocity.y + _angular_velocity_offset_stop.angular_velocity_offset.y;
-    _correction_imu.angular_velocity.z = -1 * (_imu.angular_velocity.z + _angular_velocity_offset_stop.angular_velocity_offset.z);
-  }
-  else
-  {
-    _correction_imu.angular_velocity.x = _imu.angular_velocity.x + _angular_velocity_offset_stop.angular_velocity_offset.x;
-    _correction_imu.angular_velocity.y = _imu.angular_velocity.y + _angular_velocity_offset_stop.angular_velocity_offset.y;
-    _correction_imu.angular_velocity.z = -1 * (-1 * (_imu.angular_velocity.z + _angular_velocity_offset_stop.angular_velocity_offset.z));
-  }
+  _correction_imu.angular_velocity.x = _imu.angular_velocity.x + _angular_velocity_offset_stop.angular_velocity_offset.x;
+  _correction_imu.angular_velocity.y = _imu.angular_velocity.y + _angular_velocity_offset_stop.angular_velocity_offset.y;
+  _correction_imu.angular_velocity.z = -1 * (_imu.angular_velocity.z + _angular_velocity_offset_stop.angular_velocity_offset.z);
 
   _pub.publish(_correction_imu);
 }
@@ -106,18 +95,12 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "correction_imu");
   ros::NodeHandle nh;
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("reverse_imu", _reverse_imu);
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "reverse_imu: " << _reverse_imu << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe(subscribe_imu_topic_name, 1000, imu_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<sensor_msgs::Imu>("imu/data_corrected", 1000);
 
   ros::spin();

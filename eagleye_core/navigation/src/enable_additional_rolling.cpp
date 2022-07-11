@@ -33,7 +33,11 @@
 
 #define g 9.80665
 
-void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor velocity_scale_factor,const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,const sensor_msgs::Imu imu,const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,eagleye_msgs::Rolling* rolling_angle,eagleye_msgs::AccYOffset* acc_y_offset)
+void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped velocity,const eagleye_msgs::StatusStamped velocity_status,
+  const eagleye_msgs::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::Distance distance,
+  const sensor_msgs::Imu imu, const geometry_msgs::PoseStamped localization_pose,const eagleye_msgs::AngularVelocityOffset angular_velocity_offset_stop,
+  const EnableAdditionalRollingParameter rolling_parameter,EnableAdditionalRollingStatus* rolling_status,
+  eagleye_msgs::Rolling* rolling_angle,eagleye_msgs::AccYOffset* acc_y_offset)
 {
   bool acc_offset_status = false;
   bool rolling_buffer_status = false;
@@ -47,50 +51,25 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   double rolling_interpolate = 0.0;
   double rolling_offset_buffer_num = rolling_parameter.rolling_buffer_num / 2; // Parameter to correct for time delay caused by moving average.
 
-  /// reverse_imu ///
-  if (!rolling_parameter.reverse_imu)
-  {
-    rolling_status->yawrate = imu.angular_velocity.z;
-  }
-  else
-  {
-    rolling_status->yawrate = -1 * imu.angular_velocity.z;
-  }
+  rolling_status->yawrate = imu.angular_velocity.z;
 
-  /// reverse_imu rollrate ///
-  if (!rolling_parameter.reverse_imu_angular_velocity_x)
-  {
-    rolling_status->rollrate = imu.angular_velocity.x;
-    rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
-  }
-  else
-  {
-    rolling_status->rollrate = -1* imu.angular_velocity.x;
-    rolling_status->rollrate_offset_stop = -1 * angular_velocity_offset_stop.angular_velocity_offset.x;
-  }
 
-  /// reverse_imu y acc ///
-  if (!rolling_parameter.reverse_imu_linear_acceleration_y)
-  {
-    rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
-  }
-  else
-  {
-    rolling_status->imu_acceleration_y = -1* imu.linear_acceleration.y;
-  }
+  rolling_status->rollrate = imu.angular_velocity.x;
+  rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
 
+  rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
 
   // data buffer 
-  if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_scale_factor.status.enabled_status)
+  if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
-    rolling_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    rolling_status->velocity_buffer.push_back(velocity.twist.linear.x);
     rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
     rolling_status->acceleration_y_buffer.push_back(rolling_status->imu_acceleration_y);
     rolling_status->distance_buffer.push_back(distance.distance);
   }
-  else if (velocity_scale_factor.status.enabled_status)
+  else if (velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.erase(rolling_status->imu_time_buffer.begin());
     rolling_status->yawrate_buffer.erase(rolling_status->yawrate_buffer.begin());
@@ -101,7 +80,7 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
     
     rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
-    rolling_status->velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    rolling_status->velocity_buffer.push_back(velocity.twist.linear.x);
     rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
     rolling_status->acceleration_y_buffer.push_back(rolling_status->imu_acceleration_y);
     rolling_status->distance_buffer.push_back(distance.distance);
@@ -130,7 +109,8 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
           quaternionMsgToTF(localization_pose.pose.orientation, localization_quat);
           tf::Matrix3x3(localization_quat).getRPY(additional_angle[0], additional_angle[1], additional_angle[2]);
 
-          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
+          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-
+            rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
           rolling_status->acc_offset_sum = rolling_status->acc_offset_sum + acc_y_offset_tmp;
           rolling_status->acc_offset_data_count ++;
           acc_y_offset->acc_y_offset = rolling_status->acc_offset_sum/rolling_status->acc_offset_data_count;
@@ -154,13 +134,15 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   /// estimated rolling angle ///
   if (acc_y_offset->status.enabled_status)
   {
-    if (velocity_scale_factor.correction_velocity.linear.x > rolling_parameter.stop_judgment_velocity_threshold)
+    if (velocity.twist.linear.x > rolling_parameter.stop_judgment_velocity_threshold)
     {
-      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-(rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
+      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-
+        (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
     else
     {
-      rolling_estimated_tmp = std::asin((velocity_scale_factor.correction_velocity.linear.x*(rolling_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-(rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
+      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-
+        (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
   }
 
@@ -185,7 +167,7 @@ void enable_additional_rolling_estimate(const eagleye_msgs::VelocityScaleFactor 
   {
     rolling_status->rolling_estimated_buffer.push_back(rolling_estimated_tmp);
   }
-  else if (velocity_scale_factor.status.enabled_status && acc_y_offset->status.enabled_status)
+  else if (velocity_status.status.enabled_status && acc_y_offset->status.enabled_status)
   {
     rolling_status->rolling_estimated_buffer.erase(rolling_status->rolling_estimated_buffer.begin());
     rolling_status->rolling_estimated_buffer.push_back(rolling_estimated_tmp);

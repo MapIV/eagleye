@@ -67,21 +67,21 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 }
 
 
-void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tfListener_, tf2_ros::Buffer* tfBuffer_)
+void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tf_listener, tf2_ros::Buffer* tf_buffer)
 {
-  geometry_msgs::TransformStamped transformStamped;
+  geometry_msgs::TransformStamped transform_stamped;
   try
   {
-    transformStamped = tfBuffer_->lookupTransform(_rtk_deadreckoning_parameter.tf_gnss_parent_flame,
-                                                  _rtk_deadreckoning_parameter.tf_gnss_child_flame, ros::Time(0));
+    transform_stamped = tf_buffer->lookupTransform(_rtk_deadreckoning_parameter.tf_gnss_parent_frame,
+                                                  _rtk_deadreckoning_parameter.tf_gnss_child_frame, ros::Time(0));
 
-    _rtk_deadreckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
-    _rtk_deadreckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
-    _rtk_deadreckoning_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
-    _rtk_deadreckoning_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
-    _rtk_deadreckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
-    _rtk_deadreckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
-    _rtk_deadreckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_x = transform_stamped.transform.translation.x;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_y = transform_stamped.transform.translation.y;
+    _rtk_deadreckoning_parameter.tf_gnss_translation_z = transform_stamped.transform.translation.z;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_x = transform_stamped.transform.rotation.x;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_y = transform_stamped.transform.rotation.y;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_z = transform_stamped.transform.rotation.z;
+    _rtk_deadreckoning_parameter.tf_gnss_rotation_w = transform_stamped.transform.rotation.w;
   }
   catch (tf2::TransformException& ex)
   {
@@ -136,8 +136,8 @@ int main(int argc, char** argv)
   nh.getParam("ecef_base_pos/z", _rtk_deadreckoning_parameter.ecef_base_pos_z);
   nh.getParam("ecef_base_pos/use_ecef_base_position", _rtk_deadreckoning_parameter.use_ecef_base_position);
   nh.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("tf_gnss_flame/parent", _rtk_deadreckoning_parameter.tf_gnss_parent_flame);
-  nh.getParam("tf_gnss_flame/child", _rtk_deadreckoning_parameter.tf_gnss_child_flame);
+  nh.getParam("tf_gnss_frame/parent", _rtk_deadreckoning_parameter.tf_gnss_parent_frame);
+  nh.getParam("tf_gnss_frame/child", _rtk_deadreckoning_parameter.tf_gnss_child_frame);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
@@ -147,8 +147,8 @@ int main(int argc, char** argv)
   std::cout<< "ecef_base_pos_z " << _rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
   std::cout<< "use_ecef_base_position " << _rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
   std::cout<< "stop_judgment_velocity_threshold " << _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "tf_gnss_flame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_flame << std::endl;
-  std::cout<< "tf_gnss_flame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_flame << std::endl;
+  std::cout<< "tf_gnss_frame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
+  std::cout<< "tf_gnss_frame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
   std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
@@ -159,9 +159,9 @@ int main(int argc, char** argv)
   _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
   _pub2 = nh.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
 
-  tf2_ros::Buffer tfBuffer_;
-  tf2_ros::TransformListener tfListener_(tfBuffer_);
-  ros::Timer timer = nh.createTimer(ros::Duration(0.5), boost::bind(timer_callback,_1, &tfListener_, &tfBuffer_));
+  tf2_ros::Buffer tf_buffer;
+  tf2_ros::TransformListener tf_listener(tf_buffer);
+  ros::Timer timer = nh.createTimer(ros::Duration(0.5), boost::bind(timer_callback,_1, &tf_listener, &tf_buffer));
 
   ros::spin();
 

@@ -70,10 +70,8 @@ int main(int argc, char *argv[])
   bool nmea_data_flag = false;
   bool use_rtk_navsatfix_topic = false;
   bool use_rtklib_topic = false;
-
-  YAML::Node conf = YAML::LoadFile(config_file);
     
-  eagleye_pp.setParam(conf, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
+  eagleye_pp.setParam(config_file, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
   std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
 
@@ -82,6 +80,19 @@ int main(int argc, char *argv[])
   if (rosbag_controller.setTopic(std::string(twist_topic)))
   {
     std::cout << "TwistStamped topic: " << twist_topic << std::endl;
+  }
+  else if(eagleye_pp.getUseCanlessMode())
+  {
+    std::cout << "Velocity Estimate mode" << std::endl;
+    if(!rosbag_controller.findTopic(std::string(nmea_sentence_topic)))
+    {
+      std::cerr << "\033[1;31mError: Cannot find the topic for Velocity Estimate mode: " << nmea_sentence_topic << "\033[0m" << std::endl;
+      exit(1);
+    } else if (!rosbag_controller.findTopic(std::string(rtklib_nav_topic)))
+    {
+      std::cerr << "\033[1;31mError: Cannot find the topic for Velocity Estimate mode: " << rtklib_nav_topic << "\033[0m" << std::endl;
+      exit(1);
+    }
   }
   else
   {
@@ -164,12 +175,8 @@ int main(int argc, char *argv[])
   eagleye_pp.convertHeight();
 
   //　output process
-  std::string s_eagleye_line;
-  std::string s_eagleye_back_line;
-  std::string s_eagleye_pp_line;
-
-  eagleye_pp.writeLineKML(use_rtk_navsatfix_topic, &s_eagleye_line, &s_eagleye_back_line, &s_eagleye_pp_line);
-  eagleye_pp.writePointKML(use_rtk_navsatfix_topic, &s_eagleye_line, &s_eagleye_back_line, &s_eagleye_pp_line);
+  eagleye_pp.writeLineKML(use_rtk_navsatfix_topic);
+  eagleye_pp.writePointKML(use_rtk_navsatfix_topic);
   eagleye_pp.writeSimpleCSV();
   eagleye_pp.writeDetailCSV();
   return 0;

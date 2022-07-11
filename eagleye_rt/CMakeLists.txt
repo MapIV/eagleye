@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 2.8.3)
 project(eagleye_rt)
 
 set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
+set(CMAKE_CXX_STANDARD 14)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -18,6 +22,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_ros
   tf2_geometry_msgs
+  tf2_sensor_msgs
+  tf2_eigen
 )
 
 catkin_package(
@@ -36,11 +42,14 @@ catkin_package(
   tf2
   tf2_ros
   tf2_geometry_msgs
+  tf2_sensor_msgs
+  tf2_eigen
 )
 
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
 add_executable(velocity_scale_factor src/velocity_scale_factor_node.cpp)
@@ -123,6 +132,18 @@ add_executable(rolling src/rolling_node.cpp)
 target_link_libraries(rolling ${catkin_LIBRARIES})
 add_dependencies(rolling ${catkin_EXPORTED_TARGETS})
 
+add_executable(navpvt2rtk src/navpvt2rtk_node.cpp)
+target_link_libraries(navpvt2rtk ${catkin_LIBRARIES})
+add_dependencies(navpvt2rtk ${catkin_EXPORTED_TARGETS})
+
+add_executable(tf_converted_imu src/tf_converted_imu.cpp)
+target_link_libraries(tf_converted_imu ${catkin_LIBRARIES})
+add_dependencies(tf_converted_imu ${catkin_EXPORTED_TARGETS})
+
+add_executable(velocity_estimator src/velocity_estimator_node.cpp)
+target_link_libraries(velocity_estimator ${catkin_LIBRARIES})
+add_dependencies(velocity_estimator ${catkin_EXPORTED_TARGETS})
+
 install(TARGETS
   velocity_scale_factor
   yawrate_offset_stop
@@ -144,6 +165,9 @@ install(TARGETS
   rtk_heading
   enable_additional_rolling
   rolling
+  navpvt2rtk
+  tf_converted_imu
+  velocity_estimator
   DESTINATION lib/${PROJECT_NAME}
 )
 

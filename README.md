@@ -40,10 +40,10 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 
 	sudo apt-get install gfortran
 	cd $HOME
-	git clone -b rtklib_ros_bridge https://github.com/MapIV/RTKLIB.git
+	git clone -b rtklib_ros_bridge_b34 https://github.com/MapIV/RTKLIB.git
 	cd $HOME/RTKLIB/lib/iers/gcc/
 	make
-	cd $HOME/RTKLIB/app
+	cd $HOME/RTKLIB/app/consapp
 	make 
 
 ### ROS Packages
@@ -51,10 +51,11 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 Clone and build the necessary packages for Eagleye. 
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git
+	git clone --recursive https://github.com/MapIV/eagleye.git
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git
 	git clone https://github.com/MapIV/nmea_comms.git
 	git clone https://github.com/MapIV/nmea_ros_bridge.git
+	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	catkin_make -DCMAKE_BUILD_TYPE=Release
 
@@ -72,9 +73,9 @@ Clone and build the necessary packages for Eagleye.
 
 * Output rate 50Hz
 
-2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set "reverse_imu" to `true` in `eagleye/eagleye_rt/config/eagleye_config.yaml`.
+2. Check the rotation direction of z axis of IMU being used. If you look from the top of the vehicle, if the left turn is positive, set `pitch` to `3.14159` in `eagleye/eagleye_util/tf/config/sensors_tf.yaml`.
 
-		 reverse_imu: true
+		 pitch: 3.14159
 
 ## Start each sensor driver
 
@@ -110,7 +111,7 @@ Clone and build the necessary packages for Eagleye.
 
 		roslaunch nmea_comms f9p_nmea_sentence.launch
 
-or
+   or
 
 		roslaunch nmea_ros_bridge nmea_udp.launch
 
@@ -134,6 +135,9 @@ or
 The 3D maps (point cloud and vector data) of the route is also available from [Autoware sample data](https://drive.google.com/file/d/1Uwp9vwvcZwaoZi4kdjJaY55-LEXIzSxf/view).
 
 ## Research Papers for Citation
+
+1. A. Takanose, et., al., "Eagleye: A Lane-Level Localization Using Low-Cost GNSS/IMU", Intelligent Vehicles (IV) workshop, 2021 [Link](https://www.autoware.org/iv2021video-workshoppapers3)
+
 1. J Meguro, T Arakawa, S Mizutani, A Takanose, "Low-cost Lane-level Positioning in Urban Area Using Optimized Long Time Series GNSS and IMU Data", International Conference on Intelligent Transportation Systems(ITSC), 2018 [Link](https://www.researchgate.net/publication/329619280_Low-cost_Lane-level_Positioning_in_Urban_Area_Using_Optimized_Long_Time_Series_GNSS_and_IMU_Data)
 
 1. Takeyama Kojiro, Kojima Yoshiko, Meguro Jun-ichi, Iwase Tatsuya, Teramoto Eiji, "Trajectory Estimation Based on Tightly Coupled Integration of GPS Doppler and INS" -Improvement of Trajectory Estimation in Urban Area-, Transactions of Society of Automotive Engineers of Japan   44(1) 199-204, 2013 [Link](https://www.jstage.jst.go.jp/article/jsaeronbun/44/1/44_20134048/_article/-char/en)
@@ -145,8 +149,6 @@ The 3D maps (point cloud and vector data) of the route is also available from [A
 1. Junichi Meguro, Yoshiko Kojima, Noriyoshi Suzuki, Eiji Teramoto, "Automotive Positioning Based on Bundle Adjustment of GPS Raw Data and Vehicle Trajectory", International Technical Meeting of the Satellite Division of the Institute of Navigation (ION), 2011 [Link](https://www.researchgate.net/publication/290751834_Automotive_positioning_based_on_bundle_adjustment_of_GPS_raw_data_and_vehicle_trajectory)
 
 1. Yoshiko Kojima, et., al., "Precise Localization using Tightly Coupled Integration based on Trajectory estimated from GPS Doppler", International Symposium on Advanced Vehicle Control(AVEC), 2010 [Link](https://ci.nii.ac.jp/naid/10029931657/)
-
-1. A. Takanose, et., al., "Eagleye: A Lane-Level Localization Using Low-Cost GNSS/IMU", Intelligent Vehicles (IV) workshop, 2021 [Link](https://www.autoware.org/iv2021video-workshoppapers3)
 
 ## License
 Eagleye is provided under the [BSD 3-Clause](https://github.com/MapIV/eagleye/blob/master/LICENSE) License.

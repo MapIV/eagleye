@@ -86,6 +86,10 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
     fix.latitude = _gga.lat;
     fix.longitude = _gga.lon;
     fix.altitude = _gga.alt + _gga.undulation;
+    // TODO(Map IV): temporary covariance value
+    fix.position_covariance[0] = 1.5 * 1.5; // [m^2]
+    fix.position_covariance[4] = 1.5 * 1.5; // [m^2]
+    fix.position_covariance[8] = 1.5 * 1.5; // [m^2]
     _pub2.publish(fix);
   }
 }
