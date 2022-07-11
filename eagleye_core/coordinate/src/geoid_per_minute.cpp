@@ -35,7 +35,6 @@
 
 #include <string>
 #include <fstream>
-//#include <ros/package.h>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 
@@ -44,7 +43,6 @@ double** read_geoid_map()
 
   double** data;
 
-  // std::string path = ros::package::getPath("eagleye_coordinate") + "/data/";
   std::string path = ament_index_cpp::get_package_share_directory("eagleye_coordinate") + "/data/";
   std::string file_name = "gsigeo2011_ver2.asc";
   std::ifstream ifs(path+file_name);

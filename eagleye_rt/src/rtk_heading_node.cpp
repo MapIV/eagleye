@@ -34,7 +34,8 @@
 
 static nmea_msgs::msg::Gpgga gga;
 static sensor_msgs::msg::Imu imu;
-static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::Distance distance;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset;
@@ -47,14 +48,21 @@ static eagleye_msgs::msg::Heading heading;
 struct RtkHeadingParameter heading_parameter;
 struct RtkHeadingStatus heading_status;
 
+static bool use_canless_mode;
+
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
+{
+  velocity = *msg;
+}
+
 void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
   gga = *msg;
 }
 
-void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
 {
-  velocity_scale_factor = *msg;
+  velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
@@ -84,10 +92,12 @@ void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
   imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
-  rtk_heading_estimate(gga,imu,velocity_scale_factor,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+  rtk_heading_estimate(gga,imu,velocity,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)
   {
@@ -101,12 +111,11 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("rtk_heading");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
+
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
+
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->declare_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->declare_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
   node->declare_parameter("rtk_heading.estimated_number_min",heading_parameter.estimated_number_min);
@@ -117,10 +126,9 @@ int main(int argc, char** argv)
   node->declare_parameter("rtk_heading.estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
   node->declare_parameter("rtk_heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->declare_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  node->declare_parameter("use_canless_mode",use_canless_mode);
 
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("reverse_imu", heading_parameter.reverse_imu);
   node->get_parameter("rtk_heading.estimated_distance",heading_parameter.estimated_distance);
   node->get_parameter("rtk_heading.estimated_heading_buffer_min",heading_parameter.estimated_heading_buffer_min);
   node->get_parameter("rtk_heading.estimated_number_min",heading_parameter.estimated_number_min);
@@ -131,10 +139,9 @@ int main(int argc, char** argv)
   node->get_parameter("rtk_heading.estimated_velocity_threshold",heading_parameter.estimated_velocity_threshold);
   node->get_parameter("rtk_heading.stop_judgment_velocity_threshold",heading_parameter.stop_judgment_velocity_threshold);
   node->get_parameter("rtk_heading.estimated_yawrate_threshold",heading_parameter.estimated_yawrate_threshold);
+  node->get_parameter("use_canless_moded",use_canless_mode);
 
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<heading_parameter.reverse_imu<<std::endl;
   std::cout<< "estimated_distance "<<heading_parameter.estimated_distance<<std::endl;
   std::cout<< "estimated_heading_buffer_min "<<heading_parameter.estimated_heading_buffer_min<<std::endl;
   std::cout<< "estimated_number_min "<<heading_parameter.estimated_number_min<<std::endl;
@@ -145,6 +152,7 @@ int main(int argc, char** argv)
   std::cout<< "estimated_velocity_threshold "<<heading_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "stop_judgment_velocity_threshold "<<heading_parameter.stop_judgment_velocity_threshold<<std::endl;
   std::cout<< "estimated_yawrate_threshold "<<heading_parameter.estimated_yawrate_threshold<<std::endl;
+  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -182,14 +190,15 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", 1000, slip_angle_callback);
-  auto sub7 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2, 1000, heading_interpolate_callback);
-  auto sub8 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
+  auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", 1000, slip_angle_callback);
+  auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2, 1000, heading_interpolate_callback);
+  auto sub9 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
 
   pub = node->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, 1000);
 

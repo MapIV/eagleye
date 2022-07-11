@@ -28,26 +28,25 @@
  * Author MapIV Sekino
  */
 
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "eagleye_msgs/msg/distance.hpp"
 #include "fix2kml/KmlGenerator.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/nav_sat_fix.hpp"
 
-static double interval = 0.2; //m
+static double interval = 0.2;  //m
 static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
-static std::string filename, kmlname;
+static std::string filename, kmlname, fixname, color = "ff0000ff";
 
 void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 {
   driving_distance = msg->distance;
 }
 
-void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGenerator *kmlfile)
+void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGenerator* kmlfile)
 {
-  if( (driving_distance - driving_distance_last) > interval)
-  {
-    kmlfile->addPoint(msg->longitude,msg->latitude,msg->altitude);
+  if ((driving_distance - driving_distance_last) > interval) {
+    kmlfile->addPoint(msg->longitude, msg->latitude, msg->altitude);
     kmlfile->KmlGenerate(filename);
     driving_distance_last = driving_distance;
   }
@@ -55,22 +54,28 @@ void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGene
 
 int main(int argc, char** argv)
 {
-rclcpp::init(argc, argv);
+  rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("fix2kml");
 
-  node->declare_parameter("filename",filename);
-  node->declare_parameter("kmlname",kmlname);
+  node->declare_parameter("filename", filename);
+  node->declare_parameter("kmlname", kmlname);
+  node->declare_parameter("fixname", fixname);
+  node->declare_parameter("color", color);
 
-  node->get_parameter("filename",filename);
-  node->get_parameter("kmlname",kmlname);
+  node->get_parameter("filename", filename);
+  node->get_parameter("kmlname", kmlname);
+  node->get_parameter("fixname", fixname);
+  node->get_parameter("color", color);
 
-  std::cout<< "filename: "<<filename<<std::endl;
-  std::cout<< "kmlname: "<<kmlname<<std::endl;
+  std::cout << "filename: " << filename << std::endl;
+  std::cout << "kmlname: " << kmlname << std::endl;
+  std::cout << "fixname: " << fixname << std::endl;
+  std::cout << "color: " << color << std::endl;
 
-  KmlGenerator kmlfile(kmlname);
+  KmlGenerator kmlfile(kmlname,color);
 
   std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc = std::bind(&receive_data, std::placeholders::_1, &kmlfile);
-  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", rclcpp::QoS(10), sub1_fnc);
+  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>(fixname, rclcpp::QoS(10), sub1_fnc);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback);
   rclcpp::spin(node);
 

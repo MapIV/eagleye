@@ -35,6 +35,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/Rolling.msg"
   "msg/SlipAngle.msg"
   "msg/Status.msg"
+  "msg/StatusStamped.msg"
   "msg/VelocityScaleFactor.msg"
   "msg/YawrateOffset.msg"
   DEPENDENCIES std_msgs

@@ -32,8 +32,6 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-static bool reverse_imu;
-
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub;
 static eagleye_msgs::msg::YawrateOffset yawrate_offset;
 static eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop;
@@ -87,18 +85,9 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     correction_imu.linear_acceleration.z = imu.linear_acceleration.z;
   }
 
-  if (reverse_imu == false)
-  {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
-    correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z);
-  }
-  else if (reverse_imu == true)
-  {
-    correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
-    correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
-    correction_imu.angular_velocity.z = -1 * (-1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z));
-  }
+  correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
+  correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
+  correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z);
 
   pub->publish(correction_imu);
 }
@@ -108,21 +97,11 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("correction_imu");
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
-
-  node->declare_parameter("imu_topic",subscribe_imu_topic_name);
-  node->declare_parameter("reverse_imu", reverse_imu);
-
-  node->get_parameter("imu_topic",subscribe_imu_topic_name);
-  node->get_parameter("reverse_imu", reverse_imu);
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "reverse_imu "<<reverse_imu<<std::endl;
-
   auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("angular_velocity_offset_stop", rclcpp::QoS(10), angular_velocity_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::AccXOffset>("acc_x_offset", rclcpp::QoS(10), acc_x_offset_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<eagleye_msgs::msg::AccXScaleFactor>("acc_x_scale_factor", rclcpp::QoS(10), acc_x_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub5 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   pub = node->create_publisher<sensor_msgs::msg::Imu>("imu/data_corrected", rclcpp::QoS(10));
 
   rclcpp::spin(node);

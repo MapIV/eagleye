@@ -37,6 +37,8 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
+static geometry_msgs::msg::TwistStamped velocity;
+static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::msg::Distance distance;
 static eagleye_msgs::msg::Heading heading_interpolate_3rd;
@@ -49,6 +51,7 @@ struct PositionParameter position_parameter;
 struct PositionStatus position_status;
 
 std::string use_gnss_mode;
+static bool use_canless_mode;
 
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
@@ -56,6 +59,16 @@ tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
+}
+
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+{
+  velocity = *msg;
+}
+
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+{
+  velocity_status = *msg;
 }
 
 void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor::ConstSharedPtr msg)
@@ -103,13 +116,28 @@ void on_timer()
 
 void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
+  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+
+  eagleye_msgs::msg::StatusStamped velocity_enable_status;
+  if(use_canless_mode)
+  {
+    velocity_enable_status = velocity_status;
+  }
+  else
+  {
+    velocity_enable_status.header = velocity_scale_factor.header;
+    velocity_enable_status.status = velocity_scale_factor.status;
+  }
+
   enu_vel = *msg;
   enu_absolute_pos.header = msg->header;
   enu_absolute_pos.header.frame_id = "base_link";
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    position_estimate(rtklib_nav, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+    position_estimate(rtklib_nav, velocity, velocity_enable_status, distance, heading_interpolate_3rd, enu_vel,
+      position_parameter, &position_status, &enu_absolute_pos);
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    position_estimate(gga, velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, &position_status, &enu_absolute_pos);
+    position_estimate(gga, velocity, velocity_enable_status, distance, heading_interpolate_3rd, enu_vel,
+      position_parameter, &position_status, &enu_absolute_pos);
   if (enu_absolute_pos.status.estimate_status == true)
   {
     pub->publish(enu_absolute_pos);
@@ -141,6 +169,7 @@ int main(int argc, char** argv)
   node->declare_parameter("tf_gnss_flame.parent", position_parameter.tf_gnss_parent_flame);
   node->declare_parameter("tf_gnss_flame.child", position_parameter.tf_gnss_child_flame);
   node->declare_parameter("use_gnss_mode",use_gnss_mode);
+  node->declare_parameter("use_canless_mode",use_canless_mode);
 
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
@@ -156,6 +185,7 @@ int main(int argc, char** argv)
   node->get_parameter("tf_gnss_flame.parent", position_parameter.tf_gnss_parent_flame);
   node->get_parameter("tf_gnss_flame.child", position_parameter.tf_gnss_child_flame);
   node->get_parameter("use_gnss_mode",use_gnss_mode);
+  node->get_parameter("use_canless_mode",use_canless_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
@@ -168,14 +198,17 @@ int main(int argc, char** argv)
   std::cout<< "tf_gnss_flame.parent "<<position_parameter.tf_gnss_parent_flame<<std::endl;
   std::cout<< "tf_gnss_flame.child "<<position_parameter.tf_gnss_child_flame<<std::endl;
   std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
+  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000, enu_vel_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
-  auto sub6 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
-  
+  auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+  auto sub8 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
+
   pub = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos", 1000);
 
   const auto period_ns =

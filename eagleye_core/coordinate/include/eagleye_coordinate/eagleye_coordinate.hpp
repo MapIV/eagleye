@@ -28,7 +28,6 @@
 
 #include <cmath>
 #include <geodesy/utm.h>
-//#include "geographic_msgs/GeoPoint.h"
 #include "geographic_msgs/msg/geo_point.hpp"
 #include <GeographicLib/Geoid.hpp>
 #include <GeographicLib/MGRS.hpp>
@@ -43,7 +42,7 @@ public:
   double convert2ellipsoid();
   double getGeoidPerMinute();
   double getGeoidPerDegree();
-  void setLLH(double,double,double);
+  void setLLH(double, double, double);
 
 private:
   double _latitude;
@@ -58,11 +57,12 @@ extern void ll2xy(int, double*, double*);
 extern void ll2xy_mgrs(double*, double*);
 extern void ecef2llh(double*, double*);
 extern void enu2llh(double*, double*, double*);
+extern void enu2xyz_vel(double*, double*, double*);
 extern void llh2xyz(double*, double*);
 extern void xyz2enu(double*, double*, double*);
 extern void xyz2enu_vel(double*, double*, double*);
-extern double geoid_per_degree(double,double);
-extern double geoid_per_minute(double,double,double**);
+extern double geoid_per_degree(double, double);
+extern double geoid_per_minute(double, double, double**);
 extern double** read_geoid_map();
 
 

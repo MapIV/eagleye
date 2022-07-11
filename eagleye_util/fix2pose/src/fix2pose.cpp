@@ -31,6 +31,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "geometry_msgs/msg/point_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
 #include "eagleye_msgs/msg/rolling.hpp"
 #include "eagleye_msgs/msg/pitching.hpp"
@@ -47,9 +48,11 @@ static eagleye_msgs::msg::Position eagleye_position;
 static geometry_msgs::msg::Quaternion _quat;
 
 rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub;
+rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub2;
 std::shared_ptr<tf2_ros::TransformBroadcaster> br;
 std::shared_ptr<tf2_ros::TransformBroadcaster> br2;
 static geometry_msgs::msg::PoseStamped pose;
+static geometry_msgs::msg::PoseWithCovarianceStamped pose_with_covariance;
 
 static int convert_height_num = 0;
 static int plane = 7;
@@ -111,7 +114,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   if (eagleye_heading.status.enabled_status)
   {
     eagleye_heading.heading_angle = fmod(eagleye_heading.heading_angle,2*M_PI);
-    tf2::Matrix3x3(localization_quat).setRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
+    localization_quat.setRPY(eagleye_rolling.rolling_angle,eagleye_pitching.pitching_angle,(90* M_PI / 180)-eagleye_heading.heading_angle);
   }
   else
   {
@@ -127,6 +130,23 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   pose.pose.position.z = xyz[2];
   pose.pose.orientation = _quat;
   pub->publish(pose);
+
+  pose_with_covariance.header = pose.header;
+  pose_with_covariance.pose.pose = pose.pose;
+  // TODO(Map IV): temporary value
+  double std_dev_roll = 100; // [rad]
+  double std_dev_pitch = 100; // [rad]
+  double std_dev_yaw = 100; // [rad]
+  if(eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
+  if(eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
+  if(eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
+  pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
+  pose_with_covariance.pose.covariance[7] = msg->position_covariance[4];
+  pose_with_covariance.pose.covariance[14] = msg->position_covariance[8];
+  pose_with_covariance.pose.covariance[21] = std_dev_roll * std_dev_roll;
+  pose_with_covariance.pose.covariance[28] = std_dev_pitch * std_dev_pitch;
+  pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
+  pub2->publish(pose_with_covariance);
   
   tf2::Transform transform;
   tf2::Quaternion q;
@@ -171,6 +191,7 @@ int main(int argc, char** argv)
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("/eagleye/rolling", 1000, rolling_callback);
   auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", 1000, pitching_callback);
   pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
+  pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/eagleye/pose_with_covariance", 1000);
   br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   rclcpp::spin(node);

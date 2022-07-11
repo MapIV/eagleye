@@ -31,7 +31,9 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void slip_angle_estimate(sensor_msgs::msg::Imu imu, eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,eagleye_msgs::msg::SlipAngle* slip_angle)
+void slip_angle_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamped velocity, eagleye_msgs::msg::StatusStamped velocity_status,
+  eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,
+  eagleye_msgs::msg::SlipAngle* slip_angle)
 {
 
   int i;
@@ -39,16 +41,9 @@ void slip_angle_estimate(sensor_msgs::msg::Imu imu, eagleye_msgs::msg::VelocityS
   double yawrate;
   double acceleration_y;
 
-  if (slip_angle_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_angle_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > slip_angle_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > slip_angle_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
@@ -57,9 +52,9 @@ void slip_angle_estimate(sensor_msgs::msg::Imu imu, eagleye_msgs::msg::VelocityS
     yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
   }
 
-  acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
+  acceleration_y = velocity.twist.linear.x * yawrate;
 
-  if (velocity_scale_factor.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
+  if (velocity_status.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true && yawrate_offset_2nd.status.enabled_status == true)
   {
       slip_angle->coefficient = slip_angle_parameter.manual_coefficient;
       slip_angle->slip_angle = slip_angle_parameter.manual_coefficient * acceleration_y;

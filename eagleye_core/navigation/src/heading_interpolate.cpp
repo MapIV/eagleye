@@ -31,7 +31,10 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor, const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,const eagleye_msgs::msg::YawrateOffset yawrate_offset,const eagleye_msgs::msg::Heading heading,const eagleye_msgs::msg::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,eagleye_msgs::msg::Heading* heading_interpolate)
+void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const geometry_msgs::msg::TwistStamped velocity,
+  const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, const eagleye_msgs::msg::YawrateOffset yawrate_offset, const eagleye_msgs::msg::Heading heading,
+  const eagleye_msgs::msg::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,
+  eagleye_msgs::msg::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
@@ -45,16 +48,9 @@ void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const eagleye
   auto heading_time = ros_clock.seconds();
   auto imu_time = ros_clock2.seconds();
 
-  if (heading_interpolate_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_interpolate_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset.yawrate_offset;
   }
@@ -83,7 +79,7 @@ void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const eagleye
     heading_estimate_status = false;
   }
 
-  if(heading_interpolate_status->time_last != 0 && std::abs(velocity_scale_factor.correction_velocity.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
   {
     heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu_time - heading_interpolate_status->time_last));
   }

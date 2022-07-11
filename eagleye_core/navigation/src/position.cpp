@@ -31,13 +31,13 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void position_estimate_(eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::Distance distance,
+void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::msg::StatusStamped velocity_status,eagleye_msgs::msg::Distance distance,
   eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,PositionParameter position_parameter,
   PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
 {
 
   int i;
-  int estimated_number_max = position_parameter.estimated_distance/position_parameter.separation_distance;
+  int estimated_number_max = position_parameter.estimated_distance / position_parameter.separation_distance;
   int max_x_index, max_y_index;
   double enu_pos[3];
   double avg_x, avg_y, avg_z;
@@ -94,7 +94,7 @@ void position_estimate_(eagleye_msgs::msg::VelocityScaleFactor velocity_scale_fa
     gnss_status = false;
   }
 
-  if (heading_interpolate_3rd.status.estimate_status == true && velocity_scale_factor.status.enabled_status == true)
+  if (heading_interpolate_3rd.status.estimate_status == true && velocity_status.status.enabled_status == true)
   {
     heading_interpolate_3rd.status.estimate_status = false; //in order to prevent being judged many times
     ++position_status->heading_estimate_status_count;
@@ -125,7 +125,7 @@ void position_estimate_(eagleye_msgs::msg::VelocityScaleFactor velocity_scale_fa
     position_status->enu_pos_y_buffer.push_back(enu_pos[1]);
     //enu_pos_z_buffer.push_back(enu_pos[2]);
     position_status->enu_pos_z_buffer.push_back(0);
-    position_status->correction_velocity_buffer.push_back(velocity_scale_factor.correction_velocity.linear.x);
+    position_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
     position_status->enu_relative_pos_x_buffer.push_back(position_status->enu_relative_pos_x);
     position_status->enu_relative_pos_y_buffer.push_back(position_status->enu_relative_pos_y);
     //position_status->enu_relative_pos_z_buffer.push_back(position_status->enu_relative_pos_z);
@@ -148,11 +148,11 @@ void position_estimate_(eagleye_msgs::msg::VelocityScaleFactor velocity_scale_fa
     position_status->distance_last = distance.distance;
   }
 
-  if (data_status == true)
+  if (data_status)
   {
 
-    if (distance.distance > position_parameter.estimated_distance && gnss_status == true &&
-      velocity_scale_factor.correction_velocity.linear.x > position_parameter.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
+    if (distance.distance > position_parameter.estimated_distance && gnss_status &&
+      velocity.twist.linear.x > position_parameter.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
       std::vector<int> velocity_index;
@@ -306,7 +306,9 @@ void position_estimate_(eagleye_msgs::msg::VelocityScaleFactor velocity_scale_fa
   data_status = false;
 }
 
-void position_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::Distance distance,eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
+void position_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::msg::StatusStamped velocity_status,
+  eagleye_msgs::msg::Distance distance,eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,
+  PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
 {
   double enu_pos[3];
   double ecef_pos[3];
@@ -374,10 +376,10 @@ void position_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,eagleye_msgs::msg:
   position_status->gnss_update_failure = gnss_update_failure;
   position_status->tow_last = rtklib_nav.tow;
 
-  position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
+  position_estimate_(velocity, velocity_status, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }
 
-void position_estimate(nmea_msgs::msg::Gpgga gga,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,
+void position_estimate(nmea_msgs::msg::Gpgga gga,geometry_msgs::msg::TwistStamped velocity, eagleye_msgs::msg::StatusStamped velocity_status,
   eagleye_msgs::msg::Distance distance,eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,
   PositionParameter position_parameter, PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
 {
@@ -457,5 +459,5 @@ void position_estimate(nmea_msgs::msg::Gpgga gga,eagleye_msgs::msg::VelocityScal
   position_status->gnss_update_failure = gnss_update_failure;
   position_status->nmea_time_last = gga_time;
 
-  position_estimate_(velocity_scale_factor, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
+  position_estimate_(velocity, velocity_status, distance, heading_interpolate_3rd, enu_vel, position_parameter, position_status, enu_absolute_pos);
 }

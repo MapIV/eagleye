@@ -31,7 +31,9 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::Distance distance,eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset,eagleye_msgs::msg::SlipAngle slip_angle,eagleye_msgs::msg::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::msg::Heading* heading)
+void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::msg::Distance distance,
+  eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset,eagleye_msgs::msg::SlipAngle slip_angle,
+  eagleye_msgs::msg::Heading heading_interpolate,RtkHeadingParameter heading_parameter, RtkHeadingStatus* heading_status,eagleye_msgs::msg::Heading* heading)
 {
 
   int i,index_max;
@@ -58,14 +60,7 @@ void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,ea
     heading_status->estimated_number  = heading_parameter.estimated_number_max;
   }
 
-  if (heading_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (heading_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
   // heading set //
   double enu_pos[3];
@@ -124,7 +119,7 @@ void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,ea
   }
 
   if (heading_status->tow_last  == gga_time  || gga_time  == 0 || rtk_heading_angle == 0
-    || heading_status->last_rtk_heading_angle == rtk_heading_angle || velocity_scale_factor.correction_velocity.linear.x < heading_parameter.stop_judgment_velocity_threshold)
+    || heading_status->last_rtk_heading_angle == rtk_heading_angle || velocity.twist.linear.x < heading_parameter.stop_judgment_velocity_threshold)
   {
     gnss_status = false;
     rtk_heading_angle = 0;
@@ -142,7 +137,7 @@ void rtk_heading_estimate(nmea_msgs::msg::Gpgga gga,sensor_msgs::msg::Imu imu,ea
   heading_status->time_buffer .push_back(imu_time);
   heading_status->heading_angle_buffer .push_back(rtk_heading_angle);
   heading_status->yawrate_buffer .push_back(yawrate);
-  heading_status->correction_velocity_buffer .push_back(velocity_scale_factor.correction_velocity.linear.x);
+  heading_status->correction_velocity_buffer .push_back(velocity.twist.linear.x);
   heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
   heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);

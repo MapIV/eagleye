@@ -31,7 +31,9 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::RtklibNav rtklib_nav,eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor,eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd,eagleye_msgs::msg::Heading heading_interpolate_3rd,SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
+void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::msg::TwistStamped velocity,
+  eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd,eagleye_msgs::msg::Heading heading_interpolate_3rd,
+  SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
 {
 
   int i;
@@ -68,16 +70,9 @@ void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::Rtkli
     doppler_heading_angle = doppler_heading_angle + 2*M_PI;
   }
 
-  if (slip_coefficient_parameter.reverse_imu == false)
-  {
-    yawrate = imu.angular_velocity.z;
-  }
-  else if (slip_coefficient_parameter.reverse_imu == true)
-  {
-    yawrate = -1 * imu.angular_velocity.z;
-  }
+  yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity_scale_factor.correction_velocity.linear.x) > slip_coefficient_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgment_velocity_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
@@ -86,11 +81,11 @@ void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::Rtkli
     yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
   }
 
-  acceleration_y = velocity_scale_factor.correction_velocity.linear.x * yawrate;
+  acceleration_y = velocity.twist.linear.x * yawrate;
 
   if (heading_interpolate_3rd.status.estimate_status == true)
   {
-    if ((velocity_scale_factor.correction_velocity.linear.x > slip_coefficient_parameter.estimated_velocity_threshold) && (fabs(yawrate) > slip_coefficient_parameter.estimated_yawrate_threshold))
+    if ((velocity.twist.linear.x > slip_coefficient_parameter.estimated_velocity_threshold) && (fabs(yawrate) > slip_coefficient_parameter.estimated_yawrate_threshold))
     {
       double imu_heading;
 
@@ -102,7 +97,7 @@ void slip_coefficient_estimate(sensor_msgs::msg::Imu imu,rtklib_msgs::msg::Rtkli
 
       doppler_slip = (imu_heading - doppler_heading_angle);
 
-      rear_slip = doppler_slip + slip_coefficient_parameter.lever_arm*yawrate/velocity_scale_factor.correction_velocity.linear.x;
+      rear_slip = doppler_slip + slip_coefficient_parameter.lever_arm*yawrate/velocity.twist.linear.x;
 
       if(fabs(rear_slip)<(2*M_PI/180))
       {
