@@ -142,7 +142,7 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity", rclcpp::QoS(10), velocity_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
