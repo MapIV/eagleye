@@ -34,6 +34,7 @@
 
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static nmea_msgs::Gprmc _nmea_rmc;
+static eagleye_msgs::Heading _multi_antenna_heading;
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
@@ -50,6 +51,7 @@ struct HeadingStatus _heading_status;
 
 static std::string _use_gnss_mode;
 static bool _use_canless_mode;
+static bool _use_multi_antenna_mode;
 
 bool _is_first_correction_velocity = false;
 
@@ -61,6 +63,21 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
 {
   _nmea_rmc = *msg;
+}
+
+void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
+{
+  tf::Quaternion orientation;
+  tf::quaternionMsgToTF(msg->pose.orientation, orientation);
+  double roll, pitch, yaw;
+  tf::Matrix3x3(orientation).getRPY(roll, pitch, yaw);
+  double heading = - yaw + (90* M_PI / 180);
+
+  eagleye_msgs::Heading multi_antenna_heading;
+  multi_antenna_heading.header = msg->header;
+  multi_antenna_heading.heading_angle = heading;
+
+  _multi_antenna_heading = multi_antenna_heading;
 }
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
@@ -106,11 +123,16 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _heading.header = msg->header;
   _heading.header.frame_id = "base_link";
 
-  if (_use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB") // use RTKLIB mode
+  bool use_rtklib_mode = _use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB";
+  bool use_nmea_mode = _use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA";
+  if (use_rtklib_mode && !_use_multi_antenna_mode) // use RTKLIB mode
     heading_estimate(_rtklib_nav, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle, 
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
-  else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
+  else if (use_nmea_mode && !_use_multi_antenna_mode) // use NMEA mode
     heading_estimate(_nmea_rmc, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
+      _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
+  else if (_use_multi_antenna_mode)
+    heading_estimate(_multi_antenna_heading, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
   if (_heading.status.estimate_status)
@@ -140,6 +162,7 @@ int main(int argc, char** argv)
   nh.getParam("heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
   nh.getParam("use_gnss_mode",_use_gnss_mode);
   nh.getParam("use_canless_mode",_use_canless_mode);
+  nh.getParam("use_multi_antenna_mode",_use_multi_antenna_mode);
 
   std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
   std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
@@ -192,12 +215,13 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub9 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("multi_antenna_pose", 1000, pose_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub10 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
 
   _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
 
