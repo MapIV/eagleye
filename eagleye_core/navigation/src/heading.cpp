@@ -39,8 +39,6 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
   double avg = 0.0, tmp_heading_angle;
   std::size_t index_length;
   std::size_t time_buffer_length;
-  std::size_t inversion_up_index_length;
-  std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
 
   if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
@@ -49,7 +47,7 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
   }
   else
   {
-    heading_status->estimated_number  = heading_parameter.estimated_number_max;
+    heading_status->estimated_number = heading_parameter.estimated_number_max;
   }
 
   double yawrate = imu.angular_velocity.z;
