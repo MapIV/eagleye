@@ -50,8 +50,8 @@ struct HeadingParameter _heading_parameter;
 struct HeadingStatus _heading_status;
 
 static std::string _use_gnss_mode;
-static bool _use_canless_mode;
-static bool _use_multi_antenna_mode;
+static bool _use_canless_mode = false;
+static bool _use_multi_antenna_mode = false;
 
 bool _is_first_correction_velocity = false;
 
@@ -175,6 +175,8 @@ int main(int argc, char** argv)
   std::cout<< "stop_judgment_velocity_threshold " << _heading_parameter.stop_judgment_velocity_threshold << std::endl;
   std::cout<< "estimated_yawrate_threshold " << _heading_parameter.estimated_yawrate_threshold << std::endl;
   std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
+  std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+  std::cout<< "use_multi_antenna_mode " << _use_multi_antenna_mode << std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -215,7 +217,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_rmc_topic_name, 1000, rmc_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("multi_antenna_pose", 1000, pose_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("gnss_compass_pose", 1000, pose_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
