@@ -170,3 +170,5 @@ monitor:
   comparison_twist_topic: /calculated_twist
   th_diff_rad_per_sec: 0.17453                      #Threshold of difference from comparison twist yaw rate(0.17453 rad/s = 10 degree/s)
   th_num_continuous_abnormal_yawrate: 25            #Threshold for consecutive abnormal values in comparison twist
+  th_dr_distance: 50.0                              #In rtk dead reckoning mode, if the distance traveled for this parameter in RTK no fix,
+                                                    #an emergency will be output. [m]
