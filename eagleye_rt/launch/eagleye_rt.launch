@@ -11,6 +11,7 @@
     <arg name="enable_additional_rolling" default="false"/>
 
     <param name ="velocity_scale_factor_save_str" value="$(find eagleye_rt)/config/velocity_scale_factor.txt"/>
+    <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
 
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
