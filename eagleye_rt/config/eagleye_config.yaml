@@ -1,15 +1,19 @@
 #GNSS cycle 5Hz, IMU cycle 50Hz.
 
 #Estimate mode
-use_gnss_mode: RTKLIB
+use_gnss_mode: NMEA
 ## RTKLIB (rtklib) or NMEA (nmea)
 ## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
 
-twist_topic: /can_twist
-imu_topic: /imu/data_raw
+#twist_topic: /can_twist
+twist_topic: /localization/ndt_pose_twist_fusion_filter/twist
+# imu_topic: /imu/data_raw
+imu_topic: /sensing/imu/imu_data
 rtklib_nav_topic: /rtklib_nav
-nmea_sentence_topic: /nmea_sentence
-gga_topic: /navsat/gga
+#nmea_sentence_topic: /main/mosaic/nmea_sentence
+nmea_sentence_topic: /sensing/gnss/nmea_sentence
+gga_topic: /main/mosaic/gga
+rmc_topic: /main/mosaic/rmc
 localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
 
 #Parameter settings for Eagleye
@@ -27,7 +31,8 @@ ecef_base_pos:                                        #The position in the ecef 
 velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
   estimated_number_min: 1000                           #Minimum number of data used for estimation. (default:1000 = 20s)
   estimated_number_max: 20000                          #Maximum number of data used for estimation. (default:20000 = 400s)
-  estimated_velocity_threshold: 2.78                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  #estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  estimated_velocity_threshold: 0.695                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
   estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
   save_velocity_scale_factor: false                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
   velocity_scale_factor_save_duration: 100.0           #[sec]
@@ -45,7 +50,9 @@ angular_velocity_offset_stop:                         #Parameters related to est
 yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
   estimated_number_min: 1500                          #Minimum number of data used for estimation. (default:1500 = 30s)
   estimated_coefficient: 0.01                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.01 =10%)
-  estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  #estimated_coefficient: 0.1
+  #estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  estimated_velocity_threshold: 0.695 
   outlier_threshold: 0.002
   1st:
     estimated_number_max: 14000                       #Maximum number of data used for estimation. (default:14000 = 280s)
@@ -58,7 +65,8 @@ heading:                                              #Parameters for estimating
   estimated_gnss_coefficient: 0.025                   #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
   estimated_heading_coefficient: 0.0125               #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.0125 = 1.25%)
   outlier_threshold: 0.0524                           #Threshold for ending estimated outlier rejection. (default:0.0524 rad = 3 degree)
-  estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  #estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+  estimated_velocity_threshold: 0.695 
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
   estimated_yawrate_threshold: 0.0873                 #Yaw rate threshold for curve judgment. (default:0.0873 rad/s = 5 degree/s)
 
@@ -163,7 +171,7 @@ velocity_estimator:
 
 monitor:
   print_status: true
-  log_output_status: false
+  log_output_status: true
   update_rate: 10.0
   th_gnss_deadrock_time: 10.0
   th_velocity_scale_factor_percent: 10.0 

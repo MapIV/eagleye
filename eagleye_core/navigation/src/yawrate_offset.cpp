@@ -149,7 +149,6 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
 
       index_length = std::distance(index.begin(), index.end());
 
-      // diff_buffer.clear();
       for (int i = 0; i < index_length; i++)
       {
         diff_buffer.push_back(yawrate_offset_status->heading_angle_buffer[index[index_length-1]] -

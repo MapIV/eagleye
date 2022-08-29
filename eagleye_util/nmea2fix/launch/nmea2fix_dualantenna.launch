@@ -2,7 +2,8 @@
 
 <launch>
 
-  <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/>
+  <!-- <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/> -->
+  <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
   <arg name="pub_fix_topic_name1" default="/main/mosaic/fix"/>
   <arg name="pub_gga_topic_name1" default="/main/mosaic/gga"/>
   <arg name="pub_rmc_topic_name1" default="/main/mosaic/rmc"/>
@@ -18,7 +19,8 @@
     <param name="output_rmc" value="$(arg output_rmc)"/>
   </node>
 
-  <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/>
+  <!-- <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/> -->
+  <arg name="sub_topic_name2" default="/sensing/sub_gnss/nmea_sentence"/>
   <arg name="pub_fix_topic_name2" default="/sub/mosaic/fix"/>
   <arg name="pub_gga_topic_name2" default="/sub/mosaic/gga"/>
   <arg name="pub_rmc_topic_name2" default="/sub/mosaic/rmc"/>

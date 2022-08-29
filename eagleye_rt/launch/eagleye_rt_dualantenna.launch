@@ -56,13 +56,15 @@
   </group>
 
   <include file="$(find eagleye_nmea2fix)/launch/nmea2fix_dualantenna.launch">
-        <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/>
+        <!-- <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/> -->
+        <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
         <arg name="pub_fix_topic_name1" default="/main/mosaic/fix"/>
         <arg name="pub_gga_topic_name1" default="/main/mosaic/gga"/>
         <arg name="pub_rmc_topic_name1" default="/main/mosaic/rmc"/>
         <arg name="output_gga" default="true"/>
         <arg name="output_rmc" default="true"/>
-        <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/>
+        <!-- <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/> -->
+        <arg name="sub_topic_name2" default="/sensing/sub_gnss/nmea_sentence"/>
         <arg name="pub_fix_topic_name2" default="/sub/mosaic/fix"/>
         <arg name="pub_gga_topic_name2" default="/sub/mosaic/gga"/>
         <arg name="pub_rmc_topic_name2" default="/sub/mosaic/rmc"/>
