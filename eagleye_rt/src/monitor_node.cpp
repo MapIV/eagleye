@@ -917,9 +917,17 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.z << ",";
   output_log_file << (_velocity_scale_factor.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_velocity_scale_factor.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance_ptr->distance << ",";
-  output_log_file << (_distance_ptr->status.enabled_status ? "1" : "0") << ",";
-  output_log_file << (_distance_ptr->status.estimate_status ? "1" : "0") << ",";
+  if(_distance_ptr != nullptr)
+  {
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance_ptr->distance << ",";
+    output_log_file << (_distance_ptr->status.enabled_status ? "1" : "0") << ",";
+    output_log_file << (_distance_ptr->status.estimate_status ? "1" : "0") << ",";
+  } else
+  {
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ",";
+    output_log_file << 0 << ",";
+    output_log_file << 0 << ",";
+  }
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_1st.heading_angle << ",";
   output_log_file << (_heading_1st.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_heading_1st.status.estimate_status ? "1" : "0") << ",";
@@ -990,11 +998,21 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rolling.rolling_angle << ",";
   output_log_file << (_rolling.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_rolling.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _gga_ptr->header.stamp.toNSec() << ","; //timestamp
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lat << ","; //gga_llh.latitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lon << ","; //gga_llh.longitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->alt +  _gga_ptr->undulation<< ","; //gga_llh.altitude
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga_ptr->gps_qual) << ","; //gga_llh.gps_qual
+  if(_gga_ptr != nullptr)
+  {
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _gga_ptr->header.stamp.toNSec() << ","; //timestamp
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lat << ","; //gga_llh.latitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lon << ","; //gga_llh.longitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->alt +  _gga_ptr->undulation<< ","; //gga_llh.altitude
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga_ptr->gps_qual) << ","; //gga_llh.gps_qual
+  } else
+  {
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //timestamp
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //gga_llh.latitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //gga_llh.longitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0<< ","; //gga_llh.altitude
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //gga_llh.gps_qual
+  }
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.latitude << ","; //eagleye_pp_llh.latitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.longitude << ","; //eagleye_pp_llh.longitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.altitude << ","; //eagleye_pp_llh.altitude
