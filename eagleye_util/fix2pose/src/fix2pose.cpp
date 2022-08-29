@@ -55,6 +55,8 @@ static std::string _parent_frame_id, _child_frame_id;
 
 static ConvertHeight _convert_height;
 
+bool _fix_only_publish = false;
+
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
   _eagleye_heading = *msg;
@@ -72,6 +74,10 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 {
+  if(_fix_only_publish && msg->status.status != 0)
+  {
+    return;
+  }
 
   double llh[3] = {0};
   double xyz[3] = {0};
@@ -157,15 +163,26 @@ int main(int argc, char** argv)
   nh.getParam("fix2pose_node/convert_height_num", _convert_height_num);
   nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
   nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
+  nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
 
   std::cout<< "plane " << _plane << std::endl;
   std::cout<< "tf_num " << _tf_num << std::endl;
   std::cout<< "convert_height_num " << _convert_height_num << std::endl;
   std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
+  std::cout<< "fix_only_publish " << _fix_only_publish << std::endl;
+
+  std::string fix_name;
+  if(!_fix_only_publish)
+  {
+    fix_name = "eagleye/fix";
+  }
+  else {
+    fix_name = "navsat/fix";
+  }
 
   ros::Subscriber sub1 = nh.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = nh.subscribe("eagleye/fix", 1000, fix_callback);
+  ros::Subscriber sub2 = nh.subscribe(fix_name, 1000, fix_callback);
   ros::Subscriber sub3 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
   ros::Subscriber sub4 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
   _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
