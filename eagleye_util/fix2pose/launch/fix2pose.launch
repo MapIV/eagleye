@@ -12,15 +12,16 @@
 
   <arg name="parent_frame_id" default="map"/>
   <arg name="child_frame_id" default="base_link"/>
+  <arg name="fix_only_publish" default="false"/>
 
   <node pkg="eagleye_fix2pose" name="fix2pose_node" type="fix2pose">
-
+    <remap from="eagleye/fix" to="eagleye/fix"/>
     <param name="plane" value="$(arg plane)"/>
     <param name="tf_num" value="$(arg tf_num)"/>
     <param name="convert_height_num" value="$(arg convert_height_num)"/>
     <param name="parent_frame_id" value="$(arg parent_frame_id)"/>
     <param name="child_frame_id" value="$(arg child_frame_id)"/>
-
+     <param name="fix_only_publish" value="$(arg fix_only_publish)"/>
   </node>
 
 </launch>
