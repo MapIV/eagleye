@@ -12,7 +12,9 @@
 
   <arg name="parent_frame_id" default="map"/>
   <arg name="child_frame_id" default="base_link"/>
+
   <arg name="fix_only_publish" default="false"/>
+  <arg name="gnss_frame_id" default="gnss_link"/>  <!-- If fix_only_publish is true-->
 
   <node pkg="eagleye_fix2pose" name="fix2pose_node" type="fix2pose">
     <remap from="eagleye/fix" to="eagleye/fix"/>
@@ -21,7 +23,8 @@
     <param name="convert_height_num" value="$(arg convert_height_num)"/>
     <param name="parent_frame_id" value="$(arg parent_frame_id)"/>
     <param name="child_frame_id" value="$(arg child_frame_id)"/>
-     <param name="fix_only_publish" value="$(arg fix_only_publish)"/>
+    <param name="fix_only_publish" value="$(arg fix_only_publish)"/>
+    <param name="gnss_frame_id" value="$(arg gnss_frame_id)"/>
   </node>
 
 </launch>

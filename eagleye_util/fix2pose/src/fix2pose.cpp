@@ -39,6 +39,10 @@
 #include "tf/transform_broadcaster.h"
 #include "coordinate/coordinate.hpp"
 
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <boost/bind.hpp>
+
 static eagleye_msgs::Rolling _eagleye_rolling;
 static eagleye_msgs::Pitching _eagleye_pitching;
 static eagleye_msgs::Heading _eagleye_heading;
@@ -51,7 +55,7 @@ static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 static int _convert_height_num = 0;
 static int _plane = 7;
 static int _tf_num = 1;
-static std::string _parent_frame_id, _child_frame_id;
+static std::string _parent_frame_id, _child_frame_id, _gnss_frame_id;
 
 static ConvertHeight _convert_height;
 
@@ -72,7 +76,7 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
   _eagleye_pitching = *msg;
 }
 
-void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
+void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::TransformListener* tf_listener, tf2_ros::Buffer* tf_buffer)
 {
   if(_fix_only_publish && msg->status.status != 0)
   {
@@ -125,6 +129,30 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
   _pose.pose.position.y = xyz[0];
   _pose.pose.position.z = xyz[2];
   _pose.pose.orientation = _quat;
+
+  geometry_msgs::PoseStamped::Ptr transformed_pose_msg_ptr(
+    new geometry_msgs::PoseStamped);
+
+  if(_fix_only_publish)
+  {
+    geometry_msgs::TransformStamped::Ptr TF_sensor_to_base_ptr(new geometry_msgs::TransformStamped);
+    try
+    {
+      *TF_sensor_to_base_ptr = tf_buffer->lookupTransform(_child_frame_id, _gnss_frame_id, ros::Time(0));
+
+      tf2::doTransform(_pose, *transformed_pose_msg_ptr, *TF_sensor_to_base_ptr);
+      std::string map_frame = "map";
+      transformed_pose_msg_ptr->header = _pose.header;
+      transformed_pose_msg_ptr->header.frame_id = _parent_frame_id;
+      _pose = *transformed_pose_msg_ptr;
+    }
+    catch (tf2::TransformException& ex)
+    {
+      ROS_WARN("%s", ex.what());
+      return;
+    }
+  }
+
   _pose_pub.publish(_pose);
 
   _pose_with_covariance.header = _pose.header;
@@ -164,6 +192,7 @@ int main(int argc, char** argv)
   nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
   nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
   nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
+  nh.getParam("fix2pose_node/gnss_frame_id", _gnss_frame_id);
 
   std::cout<< "plane " << _plane << std::endl;
   std::cout<< "tf_num " << _tf_num << std::endl;
@@ -171,6 +200,7 @@ int main(int argc, char** argv)
   std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
   std::cout<< "fix_only_publish " << _fix_only_publish << std::endl;
+  std::cout<< "gnss_frame_id " << _gnss_frame_id << std::endl;
 
   std::string fix_name;
   if(!_fix_only_publish)
@@ -181,8 +211,10 @@ int main(int argc, char** argv)
     fix_name = "navsat/fix";
   }
 
+  tf2_ros::Buffer tf_buffer;
+  tf2_ros::TransformListener tf_listener(tf_buffer);
   ros::Subscriber sub1 = nh.subscribe("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  ros::Subscriber sub2 = nh.subscribe(fix_name, 1000, fix_callback);
+  ros::Subscriber sub2 = nh.subscribe<sensor_msgs::NavSatFix>(fix_name, 1000, boost::bind(fix_callback,_1, &tf_listener, &tf_buffer));
   ros::Subscriber sub3 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
   ros::Subscriber sub4 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
   _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
