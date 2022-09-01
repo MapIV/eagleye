@@ -55,7 +55,7 @@ static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 static int _convert_height_num = 0;
 static int _plane = 7;
 static int _tf_num = 1;
-static std::string _parent_frame_id, _child_frame_id, _gnss_frame_id;
+static std::string _parent_frame_id, _child_frame_id, _base_link_frame_id, _gnss_frame_id;
 
 static ConvertHeight _convert_height;
 
@@ -138,7 +138,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
     geometry_msgs::TransformStamped::Ptr TF_sensor_to_base_ptr(new geometry_msgs::TransformStamped);
     try
     {
-      *TF_sensor_to_base_ptr = tf_buffer->lookupTransform(_child_frame_id, _gnss_frame_id, ros::Time(0));
+      *TF_sensor_to_base_ptr = tf_buffer->lookupTransform(_base_link_frame_id, _gnss_frame_id, ros::Time(0));
 
       tf2::doTransform(_pose, *transformed_pose_msg_ptr, *TF_sensor_to_base_ptr);
       std::string map_frame = "map";
@@ -192,6 +192,7 @@ int main(int argc, char** argv)
   nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
   nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
   nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
+  nh.getParam("fix2pose_node/base_link_frame_id", _base_link_frame_id);
   nh.getParam("fix2pose_node/gnss_frame_id", _gnss_frame_id);
 
   std::cout<< "plane " << _plane << std::endl;
@@ -200,6 +201,7 @@ int main(int argc, char** argv)
   std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
   std::cout<< "fix_only_publish " << _fix_only_publish << std::endl;
+  std::cout<< "base_link_frame_id " << _base_link_frame_id << std::endl;
   std::cout<< "gnss_frame_id " << _gnss_frame_id << std::endl;
 
   std::string fix_name;
