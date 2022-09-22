@@ -145,6 +145,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub5 = nh.subscribe(subscribe_localization_pose_topic_name, 1000, localization_pose_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub9 = nh.subscribe("velocity_status", 1000, velocity_status_callback , ros::TransportHints().tcpNoDelay());
 
   _pub1 = nh.advertise<eagleye_msgs::AccYOffset>("acc_y_offset_additional_rolling", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Rolling>("enable_additional_rolling", 1000);
