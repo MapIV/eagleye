@@ -32,6 +32,13 @@ gnss:
   ## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
   use_nmea_downsample: true
   nmea_downsample_freq: 5
+  base_link2gnss:
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    roll: 0 # [rad]
+    pitch: 0 # [rad]
+    yaw: 0 # [rad]
 
 imu:
   base_link2imu:
