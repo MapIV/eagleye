@@ -30,6 +30,7 @@ velocity_scale_factor:                                #Parameters for estimating
   estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
   save_velocity_scale_factor: false                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
   velocity_scale_factor_save_duration: 100.0           #[sec]
+  th_velocity_scale_factor_percent: 10.0              #If the estimated value is too large or too small than this percentage, it is considered abnormal.
 
 yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
   stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
@@ -165,7 +166,6 @@ monitor:
   log_output_status: false
   update_rate: 10.0
   th_gnss_deadrock_time: 10.0
-  th_velocity_scale_factor_percent: 10.0 
   use_compare_yawrate: false                        #Whether to compare the yaw rate with the yaw rate calculated from the vehicle speed model
   comparison_twist_topic: /calculated_twist
   th_diff_rad_per_sec: 0.17453                      #Threshold of difference from comparison twist yaw rate(0.17453 rad/s = 10 degree/s)

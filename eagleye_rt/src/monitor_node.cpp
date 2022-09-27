@@ -1078,7 +1078,7 @@ int main(int argc, char** argv)
   n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
   n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
-  n.getParam("monitor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
+  n.getParam("velocity_scale_factor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
   n.getParam("monitor/use_compare_yawrate",_use_compare_yawrate);
   n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
   n.getParam("monitor/th_diff_rad_per_sec",_th_diff_rad_per_sec);
