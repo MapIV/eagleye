@@ -141,7 +141,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     heading_estimate(_multi_antenna_heading, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
-  if (_heading.status.estimate_status)
+  if (_heading.status.estimate_status || _use_multi_antenna_mode)
   {
     _pub.publish(_heading);
   }
@@ -183,6 +183,8 @@ int main(int argc, char** argv)
   std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
   std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
   std::cout<< "use_multi_antenna_mode " << _use_multi_antenna_mode << std::endl;
+
+  if(_use_multi_antenna_mode) _is_first_correction_velocity = true;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";

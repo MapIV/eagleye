@@ -338,4 +338,8 @@ void heading_estimate(const eagleye_msgs::Heading multi_antenna_heading,sensor_m
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
   heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+
+  if(!heading->status.estimate_status) heading->heading_angle = heading_angle;
+  if(gnss_status) heading->status.estimate_status = true;
+
 }
