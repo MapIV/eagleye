@@ -151,16 +151,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       _pub1.publish(_enu_vel);
       _pub2.publish(_enu_relative_pos);
     }
-    if (!std::isfinite(_eagleye_twist.twist.linear.x)||!std::isfinite(_eagleye_twist.twist.linear.y)||!std::isfinite(_eagleye_twist.twist.linear.z)
-      ||!std::isfinite(_eagleye_twist.twist.angular.x)||!std::isfinite(_eagleye_twist.twist.angular.y)||!std::isfinite(_eagleye_twist.twist.angular.z)) {
-      _velocity.twist.angular.z = msg->angular_velocity.z;
-      _pub3.publish(_velocity);
-      ROS_WARN("Estimated twist has NaN or infinity values.");
-    }
-    else 
-    {
-      _pub3.publish(_eagleye_twist);
-    }
+    _pub3.publish(_eagleye_twist);
   }
 }
 
