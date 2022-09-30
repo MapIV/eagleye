@@ -125,12 +125,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
   bool use_rtklib_mode = _use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB";
   bool use_nmea_mode = _use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA";
-  // RTKLIB
-  // heading_estimate(_rtklib_nav, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
-  //     _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
-  // NMEA
-  // heading_estimate(_nmea_rmc, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
-  //   _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
   if (use_rtklib_mode && !_use_multi_antenna_mode) // use RTKLIB mode
     heading_estimate(_rtklib_nav, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle, 
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
