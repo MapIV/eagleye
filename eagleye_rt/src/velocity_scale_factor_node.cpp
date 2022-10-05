@@ -99,16 +99,23 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
     velocity_scale_factor_estimate(_nmea_rmc, _velocity, _velocity_scale_factor_parameter, &_velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
 
+  _velocity_scale_factor.status.is_abnormal = false;
   if (!std::isfinite(_velocity_scale_factor.scale_factor)) {
     _correction_velocity.twist.linear.x = _velocity.twist.linear.x * _previous_velocity_scale_factor;
     _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
     ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
+    _velocity_scale_factor.status.is_abnormal = true;
   }
   else if (_th_velocity_scale_factor_percent / 100 < std::abs(1.0 - _velocity_scale_factor.scale_factor))
   {
     _correction_velocity.twist.linear.x = _velocity.twist.linear.x * _previous_velocity_scale_factor;
     _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
     ROS_WARN("Estimated velocity scale factor is too large or too small.");
+    _velocity_scale_factor.status.is_abnormal = true;
+  }
+  else
+  {
+    _previous_velocity_scale_factor = _velocity_scale_factor.scale_factor;
   }
 
   _pub1.publish(_correction_velocity);

@@ -332,6 +332,10 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
+    else if (_velocity_scale_factor.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "estimate value is abnormal";
+  }
 
   _velocity_scale_factor_time_last = _velocity_scale_factor.header.stamp.toSec();
   stat.summary(level, msg);
@@ -507,6 +511,10 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
+  else if (!_yawrate_offset_stop.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "estimate value is abnormal";
+  }
 
   _yawrate_offset_stop_time_last = _yawrate_offset_stop.header.stamp.toSec();
   stat.summary(level, msg);
@@ -529,6 +537,10 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
+  else if (!_yawrate_offset_1st.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "estimate value is abnormal";
+  }
 
   _yawrate_offset_1st_time_last = _yawrate_offset_1st.header.stamp.toSec();
   stat.summary(level, msg);
@@ -550,6 +562,10 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
   else if (!_yawrate_offset_2nd.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_2nd.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "estimate value is abnormal";
   }
 
   _yawrate_offset_2nd_time_last = _yawrate_offset_2nd.header.stamp.toSec();
