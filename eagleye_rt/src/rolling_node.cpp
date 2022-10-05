@@ -77,21 +77,37 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _rolling_pub.publish(_rolling_msg);
 }
 
-void setParam(ros::NodeHandle nh)
+void setParam(std::string yaml_file)
 {
-  nh.getParam("rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("rolling/filter_process_noise", _rolling_parameter.filter_process_noise);
-  nh.getParam("rolling/filter_observation_noise", _rolling_parameter.filter_observation_noise);
-  nh.getParam("use_canless_mode",_use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout << "stop_judgment_velocity_threshold " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
-  std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
+    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+    _rolling_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _rolling_parameter.filter_process_noise = conf["rolling"]["filter_process_noise"].as<double>();
+    _rolling_parameter.filter_observation_noise = conf["rolling"]["filter_observation_noise"].as<double>();
+
+    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
+    std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mrolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 }
 
 void rolling_node(ros::NodeHandle nh)
 {
-  setParam(nh);
+  
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
+
+  setParam(yaml_file);
 
   ros::Subscriber imu_sub =
       nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());

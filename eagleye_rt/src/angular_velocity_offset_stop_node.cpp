@@ -61,15 +61,32 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("twist_topic", subscribe_twist_topic_name);
-  nh.getParam("angular_velocity_offset_stop/stop_judgment_velocity_threshold", _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("angular_velocity_offset_stop/estimated_number", _angular_velocity_offset_stop_parameter.estimated_number);
-  nh.getParam("angular_velocity_offset_stop/outlier_threshold", _angular_velocity_offset_stop_parameter.outlier_threshold);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _angular_velocity_offset_stop_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "estimated_number: " << _angular_velocity_offset_stop_parameter.estimated_number << std::endl;
-  std::cout<< "outlier_threshold: " << _angular_velocity_offset_stop_parameter.outlier_threshold << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
+
+    _angular_velocity_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _angular_velocity_offset_stop_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _angular_velocity_offset_stop_parameter.estimated_interval = conf["angular_velocity_offset_stop"]["estimated_interval"].as<double>();
+    _angular_velocity_offset_stop_parameter.outlier_threshold = conf["angular_velocity_offset_stop"]["outlier_threshold"].as<double>();
+
+    std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+    std::cout << "imu_rate " << _angular_velocity_offset_stop_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _angular_velocity_offset_stop_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "estimated_minimum_interval " << _angular_velocity_offset_stop_parameter.estimated_interval << std::endl;
+    std::cout << "outlier_threshold " << _angular_velocity_offset_stop_parameter.outlier_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mangular_velocity_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());

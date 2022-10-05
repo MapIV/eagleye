@@ -66,7 +66,7 @@ void rmc_callback(const nmea_msgs::Gprmc::ConstPtr& msg)
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
-  if (!_is_first_correction_velocity && msg->twist.linear.x > _heading_parameter.estimated_velocity_threshold)
+  if (!_is_first_correction_velocity && msg->twist.linear.x > _heading_parameter.moving_judgment_threshold)
   {
     _is_first_correction_velocity = true;
   }
@@ -132,30 +132,51 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
-  nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  nh.getParam("rmc_topic",subscribe_rmc_topic_name);
-  nh.getParam("heading/estimated_number_min",_heading_parameter.estimated_number_min);
-  nh.getParam("heading/estimated_number_max",_heading_parameter.estimated_number_max);
-  nh.getParam("heading/estimated_gnss_coefficient",_heading_parameter.estimated_gnss_coefficient);
-  nh.getParam("heading/estimated_heading_coefficient",_heading_parameter.estimated_heading_coefficient);
-  nh.getParam("heading/outlier_threshold",_heading_parameter.outlier_threshold);
-  nh.getParam("heading/estimated_velocity_threshold",_heading_parameter.estimated_velocity_threshold);
-  nh.getParam("heading/stop_judgment_velocity_threshold",_heading_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("heading/estimated_yawrate_threshold",_heading_parameter.estimated_yawrate_threshold);
-  nh.getParam("use_gnss_mode",_use_gnss_mode);
-  nh.getParam("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
-  std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
-  std::cout<< "estimated_number_min " << _heading_parameter.estimated_number_min << std::endl;
-  std::cout<< "estimated_number_max " << _heading_parameter.estimated_number_max << std::endl;
-  std::cout<< "estimated_gnss_coefficient " << _heading_parameter.estimated_gnss_coefficient << std::endl;
-  std::cout<< "estimated_heading_coefficient " << _heading_parameter.estimated_heading_coefficient << std::endl;
-  std::cout<< "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
-  std::cout<< "estimated_velocity_threshold " << _heading_parameter.estimated_velocity_threshold << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _heading_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "estimated_yawrate_threshold " << _heading_parameter.estimated_yawrate_threshold << std::endl;
-  std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
+
+    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
+
+    _heading_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _heading_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
+    _heading_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _heading_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _heading_parameter.estimated_minimum_interval = conf["heading"]["estimated_minimum_interval"].as<double>();
+    _heading_parameter.estimated_maximum_interval = conf["heading"]["estimated_maximum_interval"].as<double>();
+    _heading_parameter.gnss_receiving_threshold = conf["heading"]["gnss_receiving_threshold"].as<double>();
+    _heading_parameter.outlier_threshold = conf["heading"]["outlier_threshold"].as<double>();
+    _heading_parameter.outlier_ratio_threshold = conf["heading"]["outlier_ratio_threshold"].as<double>();
+    _heading_parameter.curve_judgment_threshold = conf["heading"]["curve_judgment_threshold"].as<double>();
+
+    std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
+
+    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+    std::cout<< "subscribe_rmc_topic_name " << subscribe_rmc_topic_name << std::endl;
+
+    std::cout << "imu_rate " << _heading_parameter.imu_rate << std::endl;
+    std::cout << "gnss_rate " << _heading_parameter.gnss_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _heading_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "moving_judgment_threshold " << _heading_parameter.moving_judgment_threshold << std::endl;
+
+    std::cout << "estimated_minimum_interval " << _heading_parameter.estimated_minimum_interval << std::endl;
+    std::cout << "estimated_maximum_interval " << _heading_parameter.estimated_maximum_interval << std::endl;
+    std::cout << "gnss_receiving_threshold " << _heading_parameter.gnss_receiving_threshold << std::endl;
+    std::cout << "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
+    std::cout << "outlier_ratio_threshold " << _heading_parameter.outlier_ratio_threshold << std::endl;
+    std::cout << "curve_judgment_threshold " << _heading_parameter.curve_judgment_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheading Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";

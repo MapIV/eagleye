@@ -101,12 +101,27 @@ int main(int argc, char** argv)
 
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  nh.getParam("gga_topic",subscribe_gga_topic_name);
-  nh.getParam("position_interpolate/number_buffer_max", _position_interpolate_parameter.number_buffer_max);
-  nh.getParam("position_interpolate/stop_judgment_velocity_threshold", _position_interpolate_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  std::cout<< "number_buffer_max " << _position_interpolate_parameter.number_buffer_max << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _position_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
+
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _position_interpolate_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _position_interpolate_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _position_interpolate_parameter.sync_search_period = conf["position_interpolate"]["sync_search_period"].as<double>();
+
+    std::cout << "imu_rate " << _position_interpolate_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _position_interpolate_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << _position_interpolate_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("enu_absolute_pos", 1000, enu_absolute_pos_callback, ros::TransportHints().tcpNoDelay());
