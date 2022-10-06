@@ -46,6 +46,8 @@ struct YawrateOffsetStatus _yawrate_offset_status;
 bool _is_first_heading= false;
 static bool _use_canless_mode;
 
+double _previous_yawrate_offset = 0.0;
+
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
@@ -79,6 +81,18 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _yawrate_offset.header = msg->header;
   yawrate_offset_estimate(_velocity, _yawrate_offset_stop, _heading_interpolate, _imu, _yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
+
+  _yawrate_offset.status.is_abnormal = false;
+  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
+    ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
+    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset;
+    _yawrate_offset.status.is_abnormal = true;
+    _yawrate_offset.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
+  }
+  else
+  {
+    _previous_yawrate_offset = _yawrate_offset_stop.yawrate_offset;
+  }
   _pub.publish(_yawrate_offset);
   _yawrate_offset.status.estimate_status = false;
 }

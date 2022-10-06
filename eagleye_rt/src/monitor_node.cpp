@@ -97,7 +97,6 @@ static double _eagleye_twist_time_last;
 bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_velocity_scale_factor_percent = 20;
 double _th_diff_rad_per_sec = 0.17453; // [rad/sec]
 int _num_continuous_abnormal_yawrate = 0;
 int _th_num_continuous_abnormal_yawrate = 10;
@@ -320,17 +319,24 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
-  else if (_th_velocity_scale_factor_percent / 100 < std::abs(1.0 - _velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "Estimated velocity scale factor is too large or too small";
-  }
   else if (!_velocity_scale_factor.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_velocity_scale_factor.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if (_velocity_scale_factor.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "Estimated velocity scale factor is NaN or infinete";
+    }
+    else if (_velocity_scale_factor.status.error_code == eagleye_msgs::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "Estimated velocity scale factor is too large or too small";
+    }
+    else
+    {
+      msg = "abnormal error of velocity_scale_factor";
+    }
   }
 
   _velocity_scale_factor_time_last = _velocity_scale_factor.header.stamp.toSec();
@@ -499,13 +505,20 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_stop.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_stop.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_stop.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_stop";
+    }
   }
 
   _yawrate_offset_stop_time_last = _yawrate_offset_stop.header.stamp.toSec();
@@ -521,13 +534,20 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_1st.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_1st.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_1st.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_1st.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_1st";
+    }
   }
 
   _yawrate_offset_1st_time_last = _yawrate_offset_1st.header.stamp.toSec();
@@ -550,6 +570,17 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
   else if (!_yawrate_offset_2nd.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_2nd.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_2nd";
+    }
   }
 
   _yawrate_offset_2nd_time_last = _yawrate_offset_2nd.header.stamp.toSec();
@@ -1078,7 +1109,6 @@ int main(int argc, char** argv)
   n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
   n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
-  n.getParam("monitor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
   n.getParam("monitor/use_compare_yawrate",_use_compare_yawrate);
   n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
   n.getParam("monitor/th_diff_rad_per_sec",_th_diff_rad_per_sec);
@@ -1094,7 +1124,6 @@ int main(int argc, char** argv)
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
   std::cout<< "update_rate "<<_update_rate<<std::endl;
   std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
-  std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
   std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
   std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
   std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;

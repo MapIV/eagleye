@@ -52,6 +52,9 @@ bool _is_first_move = false;
 std::string _velocity_scale_factor_save_str;
 double _saved_vsf_estimater_number = 0;
 double _saved_velocity_scale_factor = 1.0;
+double _previous_velocity_scale_factor = 1.0;
+
+double _th_velocity_scale_factor_percent = 20;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -95,8 +98,31 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     velocity_scale_factor_estimate(_rtklib_nav, _velocity, _velocity_scale_factor_parameter, &_velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
   else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
     velocity_scale_factor_estimate(_nmea_rmc, _velocity, _velocity_scale_factor_parameter, &_velocity_scale_factor_status, &_correction_velocity, &_velocity_scale_factor);
+
+  _velocity_scale_factor.status.is_abnormal = false;
+  if (!std::isfinite(_velocity_scale_factor.scale_factor)) {
+    _correction_velocity.twist.linear.x = _velocity.twist.linear.x * _previous_velocity_scale_factor;
+    _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
+    ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
+    _velocity_scale_factor.status.is_abnormal = true;
+    _velocity_scale_factor.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
+  }
+  else if (_th_velocity_scale_factor_percent / 100 < std::abs(1.0 - _velocity_scale_factor.scale_factor))
+  {
+    _correction_velocity.twist.linear.x = _velocity.twist.linear.x * _previous_velocity_scale_factor;
+    _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
+    ROS_WARN("Estimated velocity scale factor is too large or too small.");
+    _velocity_scale_factor.status.is_abnormal = true;
+    _velocity_scale_factor.status.error_code = eagleye_msgs::Status::TOO_LARGE_OR_SMALL;
+  }
+  else
+  {
+    _previous_velocity_scale_factor = _velocity_scale_factor.scale_factor;
+  }
+
   _pub1.publish(_correction_velocity);
   _pub2.publish(_velocity_scale_factor);
+
 }
 
 void load_velocity_scale_factor(std::string txt_path)
@@ -125,6 +151,7 @@ void load_velocity_scale_factor(std::string txt_path)
         _velocity_scale_factor.status.enabled_status = true;
         _velocity_scale_factor.scale_factor = _saved_velocity_scale_factor;
         std::cout<< "saved_velocity_scale_factor " << _saved_velocity_scale_factor << std::endl;
+        _previous_velocity_scale_factor = _saved_velocity_scale_factor;
       }
       count++;
     }
@@ -179,6 +206,7 @@ int main(int argc, char** argv)
   nh.getParam("velocity_scale_factor_save_str", _velocity_scale_factor_save_str);
   nh.getParam("velocity_scale_factor/save_velocity_scale_factor", _velocity_scale_factor_parameter.save_velocity_scale_factor);
   nh.getParam("velocity_scale_factor/velocity_scale_factor_save_duration", velocity_scale_factor_save_duration);
+  nh.getParam("velocity_scale_factor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
 
   std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
   std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
@@ -192,6 +220,7 @@ int main(int argc, char** argv)
   std::cout<< "velocity_scale_factor_save_str " << _velocity_scale_factor_save_str << std::endl;
   std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;
   std::cout<< "velocity_scale_factor_save_duration " << velocity_scale_factor_save_duration << std::endl;
+  std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
 
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
