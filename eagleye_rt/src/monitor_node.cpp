@@ -97,7 +97,6 @@ static double _eagleye_twist_time_last;
 bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_velocity_scale_factor_percent = 20;
 double _th_diff_rad_per_sec = 0.17453; // [rad/sec]
 int _num_continuous_abnormal_yawrate = 0;
 int _th_num_continuous_abnormal_yawrate = 10;
@@ -1110,7 +1109,6 @@ int main(int argc, char** argv)
   n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
   n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
-  n.getParam("velocity_scale_factor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
   n.getParam("monitor/use_compare_yawrate",_use_compare_yawrate);
   n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
   n.getParam("monitor/th_diff_rad_per_sec",_th_diff_rad_per_sec);
@@ -1126,7 +1124,6 @@ int main(int argc, char** argv)
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
   std::cout<< "update_rate "<<_update_rate<<std::endl;
   std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
-  std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
   std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
   std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
   std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
