@@ -18,8 +18,8 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | twist_topic                   | string | Topic name to be subscribed to in node (geometry_msgs/TwistStamped.msg) | /can_twist               |
 | rtklib_nav_topic              | string | Topic name to be subscribed to in node (rtklib_msgs/RtklibNav.msg)      | /rtklib_nav_topic        |
 | nmea_sentence_topic           | string | Topic name to be subscribed to in node (nmea_msgs/Sentence.msg)         | /nmea_sentence_topic     |
-| gga_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gpgga.msg)            | /gga_topic               |
-| rmc_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gprmc.msg)            | /rmc_topic               |
+| gga_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gpgga.msg)            | /navsat/gga              |
+| rmc_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gprmc.msg)            | /navsat/rmc              |
 | localization_pose_topic       | string | Topic name to be subscribed to in node (geometry_msgs/PoseStamped.msg)  | /localization_pose_topic |
 
 
@@ -67,15 +67,15 @@ Figure shows the relationship between these parameters.
 * _outlier_threshold_  
 * _outlier_ratio_threshold_  
 
-![Parameter overview](docs/parameter_overview.png)
+![Parameter overview](../../docs/parameter_overview.png)
 
 ### Basic Navigation Functions
 ### velocity_scale_factor
 
 | Name                                | Type   | Description                                                                     | Default value       |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------ |
-| estimated_minimum_interval          | double | Minimum time of data buffering for estimation [s]                               | 50                  |
-| estimated_maximum_interval          | double | Maximum time of data buffering for estimation [s]                               | 5                   |
+| estimated_minimum_interval          | double | Minimum time of data buffering for estimation [s]                               | 20                  |
+| estimated_maximum_interval          | double | Maximum time of data buffering for estimation [s]                               | 400                 |
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                |
 | velocity_scale_factor_save_str      | double | Scale factor value storage destination                                          | /config/velocity_scale_factor.txt |
 | save_velocity_scale_factor          | bool   | Flag to select preservation of estimated scale factor                           | false               |
@@ -86,7 +86,7 @@ Figure shows the relationship between these parameters.
 ### yawrate_offset_stop
 
 | Name                                | Type   | Description                                                                     | Default value        |
-| :---------------------------------- | :----- | :-------------------------------------------------------------------------      | :------------        |
+| :---------------------------------- | :----- | :-------------------------------------------------------------------------      | :------------------- |
 | estimated_interval                  | double | Time of data buffering for estimation [s]                                       | 4                    |
 | outlier_threshold                   | double | Allowable gap between current outlier estimate and previous estimate [rad]      | 0.002                |
 
@@ -167,7 +167,7 @@ Figure shows the relationship between these parameters.
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | estimated_minimum_interval          | double | Minimum distance of data buffering for estimation [m]                           | 200                  |
 | estimated_maximum_interval          | double | Maximum distance of data buffering for estimation [m]                           | 2000                 |
-| update_distance                     | double | Distance of minimum movement to update the RTK-FIX solution [m]                 | 0.3                  |
+| update_distance                     | double | Distance of minimum movement to update the RTK-FIX solution [m]                 | 0.1                  |
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.1                  |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m]                                     | 0.3                  |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
@@ -179,7 +179,7 @@ Figure shows the relationship between these parameters.
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | estimated_interval                  | double | Distance of data buffering for estimation [m]                                   | 300                  |
-| update_distance                     | double | Distance of minimum movement to update data buffer [m]                          | 0.3                  |
+| update_distance                     | double | Distance of minimum movement to update data buffer [m]                          | 0.1                  |
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m]                                     | 3                    |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
@@ -196,7 +196,7 @@ Figure shows the relationship between these parameters.
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
-| print_status                        | bool   | Flag to output Eagleye estimates to console                                     | false                |
+| print_status                        | bool   | Flag to output Eagleye estimates to console                                     | true                 |
 | log_output_status                   | bool   | Flag to output Eagleye estimates to `log/eagleye_log_DATE.csv`                  | false                |
 | update_rate                         | double | Update cycle of Eagleye estimates [hz]                                          | 10                   |
 | th_gnss_deadrock_time               | double | Allowable communication deadlock time for error output [s]                      | 10                   |
@@ -244,7 +244,7 @@ Figure shows the relationship between these parameters.
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
-| gga_downsample_time                 | double | Minimum time to update NMEA GGA [s]                                             | 1                    |
+| gga_downsample_time                 | double | Minimum time to update NMEA GGA [s]                                             | 0.5                  |
 | stop_judgment_velocity_threshold    | double | Stop judgment velocity [m/s]                                                    | 0.2                  |
 | stop_judgment_interval              | double | Time to stop judgment [s]                                                       | 1                    |
 | variance_threshold                  | double | Angular velocity vibration variance for stop judgment [$(rad/s)^2$]             | 0.000025             |
