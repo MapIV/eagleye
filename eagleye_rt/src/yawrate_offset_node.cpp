@@ -87,6 +87,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
     _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset;
     _yawrate_offset.status.is_abnormal = true;
+    _yawrate_offset.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
   }
   else
   {

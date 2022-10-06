@@ -105,6 +105,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
     ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
     _velocity_scale_factor.status.is_abnormal = true;
+    _velocity_scale_factor.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
   }
   else if (_th_velocity_scale_factor_percent / 100 < std::abs(1.0 - _velocity_scale_factor.scale_factor))
   {
@@ -112,6 +113,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _velocity_scale_factor.scale_factor = _previous_velocity_scale_factor;
     ROS_WARN("Estimated velocity scale factor is too large or too small.");
     _velocity_scale_factor.status.is_abnormal = true;
+    _velocity_scale_factor.status.error_code = eagleye_msgs::Status::TOO_LARGE_OR_SMALL;
   }
   else
   {
