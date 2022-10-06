@@ -51,7 +51,7 @@ imu:
 
 use_canless_mode: true  #Estimate mode
 
-# Using Topic Name
+# Topic
 twist_topic: /can_twist
 imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
@@ -61,38 +61,35 @@ nmea_sentence_topic: /nmea_sentence
 gga_topic: /navsat/gga
 rmc_topic: /navsat/rmc
 
-#Parameter settings for Eagleye
-
-ecef_base_pos:                                        #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
+# Origin of GNSS coordinates (ECEF to ENU)
+ecef_base_pos:
   x : 0.0                               
   y : 0.0
   z : 0.0
   use_ecef_base_position : false
 
+# Eagleye Navigation Parameters
+# Basic Navigation Functions
 common:
   imu_rate: 50
   gnss_rate: 5
   stop_judgment_threshold: 0.01
   slow_judgment_threshold: 0.278
   moving_judgment_threshold: 2.78
-
-velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
+  
+  velocity_scale_factor:                                
   estimated_minimum_interval: 20
   estimated_maximum_interval: 400
   gnss_receiving_threshold: 0.25
   velocity_scale_factor_save_str: /config/velocity_scale_factor.txt
-  save_velocity_scale_factor: false                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
-  velocity_scale_factor_save_duration: 100.0           #[sec]
+  save_velocity_scale_factor: false                    
+  velocity_scale_factor_save_duration: 100.0          
 
-yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
+yawrate_offset_stop:                                  
   estimated_interval: 4
   outlier_threshold: 0.002
 
-angular_velocity_offset_stop:                         #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
-  estimated_interval: 4
-  outlier_threshold: 0.002
-
-yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
+yawrate_offset:                                       
   estimated_minimum_interval: 30
   gnss_receiving_threshold: 0.25
   outlier_threshold: 0.002
@@ -101,20 +98,11 @@ yawrate_offset:                                       #Parameters related to est
   2nd:
     estimated_maximum_interval: 500
 
-heading:                                              #Parameters for estimating the azimuth of a car
+heading:                                             
   estimated_minimum_interval: 10
   estimated_maximum_interval: 30
   gnss_receiving_threshold: 0.25
-  outlier_threshold: 0.0524                           #Threshold for ending estimated outlier rejection. (default:0.0524 rad = 3 degree)
-  outlier_ratio_threshold: 0.5
-  curve_judgment_threshold: 0.0873
-
-rtk_heading:                                          #Parameters for estimating the azimuth of a car
-  update_distance: 0.3
-  estimated_minimum_interval: 10
-  estimated_maximum_interval: 30
-  gnss_receiving_threshold: 0.25
-  outlier_threshold: 0.0524
+  outlier_threshold: 0.0524                         
   outlier_ratio_threshold: 0.5
   curve_judgment_threshold: 0.0873
 
@@ -122,30 +110,23 @@ heading_interpolate:
   sync_search_period: 2
 
 slip_angle:
-  manual_coefficient: 0.0                             #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
-  stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+  manual_coefficient: 0.0                             
 
 slip_coefficient:
   estimated_minimum_interval: 2
   estimated_maximum_interval: 100
   curve_judgment_threshold: 0.017453
-  lever_arm: 0.26                                     #Distance from center of rear wheel axle to GNSS antenna. (m)
+  lever_arm: 0.26                                     
+
+rolling:
+  filter_process_noise: 0.01
+  filter_observation_noise: 1
 
 trajectory:
-  deadlock_threshold: 1
-  timer_updata_rate: 10                               #default:10 hz
   curve_judgment_threshold: 0.017453
+  timer_updata_rate: 10       
+  deadlock_threshold: 1
 
-position:
-  estimated_interval: 300
-  update_distance: 0.1
-  outlier_threshold: 3.0
-  gnss_receiving_threshold: 0.25
-  outlier_ratio_threshold: 0.5
-
-position_interpolate:
-  sync_search_period: 2
-  
 smoothing:
   moving_average_time: 3
   moving_ratio_threshold: 0.1
@@ -156,15 +137,41 @@ height:
   update_distance: 0.1
   gnss_receiving_threshold: 0.1
   outlier_threshold: 0.3
-  outlier_ratio_threshold: 50
+  outlier_ratio_threshold: 0.5
   moving_average_time: 1
 
-rolling:
-  filter_process_noise: 0.01
-  filter_observation_noise: 1
+position:
+  estimated_interval: 300
+  update_distance: 0.1
+  outlier_threshold: 3.0
+  gnss_receiving_threshold: 0.25
+  outlier_ratio_threshold: 0.5
+
+position_interpolate:
+  sync_search_period: 2
+
+# Optional Navigation Functions
+angular_velocity_offset_stop:                         
+  estimated_interval: 4
+  outlier_threshold: 0.002
+
+rtk_heading:                                          
+  update_distance: 0.3
+  estimated_minimum_interval: 10
+  estimated_maximum_interval: 30
+  gnss_receiving_threshold: 0.25
+  outlier_threshold: 0.0524
+  outlier_ratio_threshold: 0.5
+  curve_judgment_threshold: 0.0873
+
+enable_additional_rolling:
+  update_distance: 0.3
+  moving_average_time: 1
+  sync_judgment_threshold: 0.01
+  sync_search_period: 1
 
 velocity_estimator:
-  gga_downsample_time: 0.5
+  gga_downsample_time: 1
   stop_judgment_velocity_threshold: 0.2 
   stop_judgment_interval: 1
   variance_threshold: 0.000025
@@ -175,12 +182,6 @@ velocity_estimator:
     outlier_threshold: 0.0174
     gnss_receiving_threshold: 0.2
     outlier_ratio_threshold: 0.5
-
-    buffer_max: 250
-    outlier_threshold: 0.0174
-    estimated_velocity_threshold: 0.3
-    estimated_gnss_coefficient: 0.02
-    estimated_coefficient: 0.0125
   acceleration_offset:
     estimated_minimum_interval: 30
     estimated_maximum_interval: 500
