@@ -53,6 +53,8 @@ static bool use_canless_mode;
 
 bool is_first_correction_velocity = false;
 
+std::string node_name = "heading";
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
@@ -101,6 +103,11 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   if (!is_first_correction_velocity) return;
   if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(!velocity_status.status.enabled_status)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "RHeading estimation is not started because the stop calibration is not yet completed.");
+    return;
+  }
 
   imu = *msg;
   heading.header = msg->header;
@@ -119,7 +126,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("heading");
+  auto node = rclcpp::Node::make_shared(node_name);
 
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
