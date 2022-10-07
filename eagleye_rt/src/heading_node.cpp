@@ -101,6 +101,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   if (!_is_first_correction_velocity) return;
   if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(!_yawrate_offset_stop.status.enabled_status) return;
 
   _imu = *msg;
   _heading.header = msg->header;
