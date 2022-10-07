@@ -32,54 +32,68 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-static geometry_msgs::msg::TwistStamped velocity;
-static eagleye_msgs::msg::StatusStamped velocity_status;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::msg::Heading heading_interpolate;
-static sensor_msgs::msg::Imu imu;
-rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr pub;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset;
+static geometry_msgs::msg::TwistStamped _velocity;
+static eagleye_msgs::msg::StatusStamped _velocity_status;
+static eagleye_msgs::msg::YawrateOffset _yawrate_offset_stop;
+static eagleye_msgs::msg::Heading _heading_interpolate;
+static sensor_msgs::msg::Imu _imu;
+rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr _pub;
+static eagleye_msgs::msg::YawrateOffset _yawrate_offset;
 
-struct YawrateOffsetParameter yawrate_offset_parameter;
-struct YawrateOffsetStatus yawrate_offset_status;
+struct YawrateOffsetParameter _yawrate_offset_parameter;
+struct YawrateOffsetStatus _yawrate_offset_status;
 
-bool is_first_heading = false;
-static bool use_canless_mode = false;
+bool _is_first_heading = false;
+static bool _use_canless_mode = false;
+
+double _previous_yawrate_offset = 0.0;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  velocity = *msg;
+  _velocity = *msg;
 }
 
 void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
 {
-  velocity_status = *msg;
+  _velocity_status = *msg;
 }
 
 void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop = *msg;
+  _yawrate_offset_stop = *msg;
 }
 
 void heading_interpolate_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
-  heading_interpolate = *msg;
-  if (is_first_heading == false && heading_interpolate.status.enabled_status == true)
+  _heading_interpolate = *msg;
+  if (_is_first_heading == false && _heading_interpolate.status.enabled_status == true)
   {
-    is_first_heading = true;
+    _is_first_heading = true;
   }
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if (is_first_heading == false) return;
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if (_is_first_heading == false) return;
+  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
 
-  imu = *msg;
-  yawrate_offset.header = msg->header;
-  yawrate_offset_estimate(velocity,yawrate_offset_stop,heading_interpolate,imu, yawrate_offset_parameter, &yawrate_offset_status, &yawrate_offset);
-  pub->publish(yawrate_offset);
-  yawrate_offset.status.estimate_status = false;
+  _imu = *msg;
+  _yawrate_offset.header = msg->header;
+  yawrate_offset_estimate(_velocity,_yawrate_offset_stop,_heading_interpolate,_imu,_yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
+
+  _yawrate_offset.status.is_abnormal = false;
+  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
+    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset;
+    _yawrate_offset.status.is_abnormal = true;
+    _yawrate_offset.status.error_code = eagleye_msgs::msg::Status::NAN_OR_INFINITE;
+  }
+  else
+  {
+    _previous_yawrate_offset = _yawrate_offset_stop.yawrate_offset;
+  }
+
+  _pub->publish(_yawrate_offset);
+  _yawrate_offset.status.estimate_status = false;
 }
 
 int main(int argc, char** argv)
@@ -90,23 +104,23 @@ int main(int argc, char** argv)
 
 
 
-  node->declare_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
-  node->declare_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
-  node->declare_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
-  node->declare_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
-  node->declare_parameter("use_canless_mode",use_canless_mode);
+  node->declare_parameter("yawrate_offset.estimated_number_min",_yawrate_offset_parameter.estimated_number_min);
+  node->declare_parameter("yawrate_offset.estimated_coefficient",_yawrate_offset_parameter.estimated_coefficient);
+  node->declare_parameter("yawrate_offset.estimated_velocity_threshold",_yawrate_offset_parameter.estimated_velocity_threshold);
+  node->declare_parameter("yawrate_offset.outlier_threshold",_yawrate_offset_parameter.outlier_threshold);
+  node->declare_parameter("use_canless_mode",_use_canless_mode);
 
-  node->get_parameter("yawrate_offset.estimated_number_min",yawrate_offset_parameter.estimated_number_min);
-  node->get_parameter("yawrate_offset.estimated_coefficient",yawrate_offset_parameter.estimated_coefficient);
-  node->get_parameter("yawrate_offset.estimated_velocity_threshold",yawrate_offset_parameter.estimated_velocity_threshold);
-  node->get_parameter("yawrate_offset.outlier_threshold",yawrate_offset_parameter.outlier_threshold);
-  node->get_parameter("use_canless_mode",use_canless_mode);
+  node->get_parameter("yawrate_offset.estimated_number_min",_yawrate_offset_parameter.estimated_number_min);
+  node->get_parameter("yawrate_offset.estimated_coefficient",_yawrate_offset_parameter.estimated_coefficient);
+  node->get_parameter("yawrate_offset.estimated_velocity_threshold",_yawrate_offset_parameter.estimated_velocity_threshold);
+  node->get_parameter("yawrate_offset.outlier_threshold",_yawrate_offset_parameter.outlier_threshold);
+  node->get_parameter("use_canless_mode",_use_canless_mode);
 
-  std::cout<< "estimated_number_min "<<yawrate_offset_parameter.estimated_number_min<<std::endl;
-  std::cout<< "estimated_coefficient "<<yawrate_offset_parameter.estimated_coefficient<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "outlier_threshold "<<yawrate_offset_parameter.outlier_threshold<<std::endl;
-  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
+  std::cout<< "estimated_number_min "<<_yawrate_offset_parameter.estimated_number_min<<std::endl;
+  std::cout<< "estimated_coefficient "<<_yawrate_offset_parameter.estimated_coefficient<<std::endl;
+  std::cout<< "estimated_velocity_threshold "<<_yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
+  std::cout<< "outlier_threshold "<<_yawrate_offset_parameter.outlier_threshold<<std::endl;
+  std::cout<< "use_canless_mode "<<_use_canless_mode<<std::endl;
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -117,17 +131,17 @@ int main(int argc, char** argv)
     {
       publish_topic_name = "yawrate_offset_1st";
       subscribe_topic_name = "heading_interpolate_1st";
-      node->declare_parameter("yawrate_offset.1st.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
-      node->get_parameter("yawrate_offset.1st.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
-      std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
+      node->declare_parameter("yawrate_offset.1st.estimated_number_max",_yawrate_offset_parameter.estimated_number_max);
+      node->get_parameter("yawrate_offset.1st.estimated_number_max",_yawrate_offset_parameter.estimated_number_max);
+      std::cout<< "estimated_number_max "<<_yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "yawrate_offset_2nd";
       subscribe_topic_name = "heading_interpolate_2nd";
-      node->declare_parameter("yawrate_offset.2nd.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
-      node->get_parameter("yawrate_offset.2nd.estimated_number_max",yawrate_offset_parameter.estimated_number_max);
-      std::cout<< "estimated_number_max "<<yawrate_offset_parameter.estimated_number_max<<std::endl;
+      node->declare_parameter("yawrate_offset.2nd.estimated_number_max",_yawrate_offset_parameter.estimated_number_max);
+      node->get_parameter("yawrate_offset.2nd.estimated_number_max",_yawrate_offset_parameter.estimated_number_max);
+      std::cout<< "estimated_number_max "<<_yawrate_offset_parameter.estimated_number_max<<std::endl;
     }
     else
     {
@@ -146,7 +160,7 @@ int main(int argc, char** argv)
   auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>(publish_topic_name, rclcpp::QoS(10));
+  _pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>(publish_topic_name, rclcpp::QoS(10));
 
   rclcpp::spin(node);
 
