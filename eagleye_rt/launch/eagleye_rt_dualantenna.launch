@@ -2,7 +2,7 @@
 
 <launch>
 
-  <arg name="use_tf" default="false"/>
+  <arg name="use_tf" default="true"/>
 
   <group ns="eagleye">
 
@@ -48,19 +48,14 @@
 
     <!-- Multi Antennas Options -->
     <include file="$(find gnss_compass)/launch/gnss_compass.launch">
-        <arg name="input_main_gnss_topic" default="/main/mosaic/gga" doc="Main gnss topic"/>
-        <arg name="input_sub_gnss_topic" default="/sub/mosaic/gga" doc="Sub gnss topic"/>
-        <arg name="output_pose_topic" default="gnss_compass_pose" doc="Estimated self position" />
     </include>
 
   </group>
 
   <include file="$(find eagleye_nmea2fix)/launch/nmea2fix_dualantenna.launch">
-        <!-- <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/> -->
         <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
         <arg name="output_gga" default="true"/>
         <arg name="output_rmc" default="true"/>
-        <!-- <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/> -->
         <arg name="sub_topic_name2" default="/sensing/sub_gnss/nmea_sentence"/>
   </include>
 
