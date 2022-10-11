@@ -2,36 +2,36 @@
 
 <launch>
 
-  <!-- <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/> -->
-  <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
-  <arg name="pub_fix_topic_name1" default="/main/mosaic/fix"/>
-  <arg name="pub_gga_topic_name1" default="/main/mosaic/gga"/>
-  <arg name="pub_rmc_topic_name1" default="/main/mosaic/rmc"/>
+  <arg name="pub_fix_topic_name" default="navsat/fix"/>
+  <arg name="pub_gga_topic_name" default="navsat/gga"/>
+  <arg name="pub_rmc_topic_name" default="navsat/rmc"/>
   <arg name="output_gga" default="true"/>
   <arg name="output_rmc" default="true"/>
 
-  <node pkg="eagleye_nmea2fix" name="nmea2fix_node1" type="nmea2fix_node">
-    <param name="nmea_sentence_topic" value="$(arg sub_topic_name1)"/>
-    <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name1)"/>
-    <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name1)"/>
-    <param name="pub_rmc_topic_name" value="$(arg pub_rmc_topic_name1)"/>
-    <param name="output_gga" value="$(arg output_gga)"/>
-    <param name="output_rmc" value="$(arg output_rmc)"/>
-  </node>
+  <!-- <arg name="sub_topic_name1" default="/main/mosaic/nmea_sentence"/> -->
+  <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
+  <group ns="main">
+    <node pkg="eagleye_nmea2fix" name="nmea2fix_node1" type="nmea2fix_node">
+      <param name="nmea_sentence_topic" value="$(arg sub_topic_name1)"/>
+      <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name)"/>
+      <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name)"/>
+      <param name="pub_rmc_topic_name" value="$(arg pub_rmc_topic_name)"/>
+      <param name="output_gga" value="$(arg output_gga)"/>
+      <param name="output_rmc" value="$(arg output_rmc)"/>
+    </node>
+  </group>
 
   <!-- <arg name="sub_topic_name2" default="/sub/mosaic/nmea_sentence"/> -->
   <arg name="sub_topic_name2" default="/sensing/sub_gnss/nmea_sentence"/>
-  <arg name="pub_fix_topic_name2" default="/sub/mosaic/fix"/>
-  <arg name="pub_gga_topic_name2" default="/sub/mosaic/gga"/>
-  <arg name="pub_rmc_topic_name2" default="/sub/mosaic/rmc"/>
-
-  <node pkg="eagleye_nmea2fix" name="nmea2fix_node2" type="nmea2fix_node">
-    <param name="nmea_sentence_topic" value="$(arg sub_topic_name2)"/>
-    <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name2)"/>
-    <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name2)"/>
-    <param name="pub_rmc_topic_name" value="$(arg pub_rmc_topic_name2)"/>
-    <param name="output_gga" value="$(arg output_gga)"/>
-    <param name="output_rmc" value="$(arg output_rmc)"/>
-  </node>
+  <group ns="sub">
+    <node pkg="eagleye_nmea2fix" name="nmea2fix_node2" type="nmea2fix_node">
+      <param name="nmea_sentence_topic" value="$(arg sub_topic_name2)"/>
+      <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name)"/>
+      <param name="pub_gga_topic_name" value="$(arg pub_gga_topic_name)"/>
+      <param name="pub_rmc_topic_name" value="$(arg pub_rmc_topic_name)"/>
+      <param name="output_gga" value="$(arg output_gga)"/>
+      <param name="output_rmc" value="$(arg output_rmc)"/>
+    </node>
+  </group>
 
 </launch>

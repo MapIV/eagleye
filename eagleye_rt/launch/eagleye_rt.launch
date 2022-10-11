@@ -50,4 +50,6 @@
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>
 
+  <include file="$(find eagleye_fix2pose)/launch/fix2pose.launch"/>
+
 </launch>

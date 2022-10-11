@@ -45,7 +45,7 @@
 
 static eagleye_msgs::Rolling _eagleye_rolling;
 static eagleye_msgs::Pitching _eagleye_pitching;
-static eagleye_msgs::Heading _eagleye_heading;
+eagleye_msgs::Heading::ConstPtr _eagleye_heading_ptr;
 static geometry_msgs::Quaternion _quat;
 
 static ros::Publisher _pose_pub, _pose_with_covariance_pub;
@@ -63,7 +63,7 @@ bool _fix_only_publish = false;
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
-  _eagleye_heading = *msg;
+  _eagleye_heading_ptr = msg;
 }
 
 void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
@@ -111,11 +111,12 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
     ll2xy_mgrs(llh, xyz);
   }
 
-  if (_eagleye_heading.status.enabled_status == true)
+  double eagleye_heading = 0;
+  if (_eagleye_heading_ptr != nullptr)
   {
-    _eagleye_heading.heading_angle = fmod(_eagleye_heading.heading_angle, 2*M_PI);
+    eagleye_heading = fmod(_eagleye_heading_ptr->heading_angle, 2*M_PI);
     tf::Quaternion tf_quat = tf::createQuaternionFromRPY(_eagleye_rolling.rolling_angle,
-      _eagleye_pitching.pitching_angle, (90* M_PI / 180) - _eagleye_heading.heading_angle);
+      _eagleye_pitching.pitching_angle, (90* M_PI / 180) - eagleye_heading);
     quaternionTFToMsg(tf_quat, _quat);
   }
   else
@@ -163,7 +164,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   double std_dev_yaw = 100; // [rad]
   if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
   if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
-  if(_eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
+  if(_eagleye_heading_ptr != nullptr && _eagleye_heading_ptr->status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
   _pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
   _pose_with_covariance.pose.covariance[7] = msg->position_covariance[4];
   _pose_with_covariance.pose.covariance[14] = msg->position_covariance[8];
@@ -175,8 +176,9 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   static tf::TransformBroadcaster br;
   tf::Transform transform;
   tf::Quaternion q;
+  if(_eagleye_heading_ptr != nullptr) eagleye_heading = _eagleye_heading_ptr->heading_angle;
   transform.setOrigin(tf::Vector3(_pose.pose.position.x, _pose.pose.position.y, _pose.pose.position.z));
-  q.setRPY(0, 0, (90* M_PI / 180) - _eagleye_heading.heading_angle);
+  q.setRPY(0, 0, (90* M_PI / 180) - eagleye_heading);
   transform.setRotation(q);
   br.sendTransform(tf::StampedTransform(transform, msg->header.stamp, _parent_frame_id, _child_frame_id));
 }
@@ -186,6 +188,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle nh;
 
+  nh.getParam("fix2pose_node/plane", _plane);
   nh.getParam("fix2pose_node/plane", _plane);
   nh.getParam("fix2pose_node/tf_num", _tf_num);
   nh.getParam("fix2pose_node/convert_height_num", _convert_height_num);
@@ -207,7 +210,7 @@ int main(int argc, char** argv)
   std::string fix_name;
   if(!_fix_only_publish)
   {
-    fix_name = "eagleye/fix";
+    fix_name = "eagleye/rtk_fix";
   }
   else {
     fix_name = "navsat/fix";

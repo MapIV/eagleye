@@ -148,7 +148,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_rmc_topic_name = "/mosaic/rmc";
+  std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
   nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   nh.getParam("rmc_topic",subscribe_rmc_topic_name);

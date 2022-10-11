@@ -9,6 +9,7 @@ pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  roslib
   std_msgs
   geometry_msgs
   sensor_msgs

@@ -1081,7 +1081,7 @@ int main(int argc, char** argv)
   std::string time_str = time_ss.str();
   output_log_dir = ros::package::getPath("eagleye_rt") + "/log/eagleye_log_" + time_str + ".csv";
 
-  std::cout << output_log_dir << std::endl;
+  if(_log_output_status) std::cout << output_log_dir << std::endl;
 
   ros::Subscriber sub1 = n.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = n.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());

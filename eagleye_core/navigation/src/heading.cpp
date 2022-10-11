@@ -331,7 +331,6 @@ void heading_estimate(const eagleye_msgs::Heading multi_antenna_heading,sensor_m
     gnss_status = true;
     heading_angle = multi_antenna_heading.heading_angle;
     heading_status->ros_time_last = multi_anttena_time;
-    // std::cout << "multi_heading_angle," << heading_angle * 180 / M_PI << ",rmc_heading_angle," << _rmc_track << std::endl;
   }
 
   heading_status->heading_angle_buffer .push_back(heading_angle);
