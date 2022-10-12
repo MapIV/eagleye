@@ -15,7 +15,6 @@
   <arg name="child_frame_id" default="base_link"/>
   <arg name="fix_only_publish" default="false"/>
 
-  <arg name="fix_only_publish" default="false"/>
   <!--Parameters related to tf to be read -->
   <arg name="base_link_frame_id" default="base_link"/>
   <arg name="gnss_frame_id" default="gnss_link"/>  <!-- If fix_only_publish is true-->

@@ -82,7 +82,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   // data buffer generate
   heading_interpolate_status->provisional_heading_angle_buffer.push_back(heading_interpolate_status->provisional_heading_angle);
   heading_interpolate_status->imu_stamp_buffer.push_back(imu.header.stamp.toSec());
-  std::size_t imu_stamp_buffer_length = std::distance(heading_interpolate_status->imu_stamp_buffer.begin(), heading_interpolate_status->imu_stamp_buffer.end());
+  imu_stamp_buffer_length = std::distance(heading_interpolate_status->imu_stamp_buffer.begin(), heading_interpolate_status->imu_stamp_buffer.end());
 
   if (imu_stamp_buffer_length > search_buffer_number)
   {
