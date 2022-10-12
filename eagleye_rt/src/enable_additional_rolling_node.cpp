@@ -121,22 +121,41 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "enable_additional_rolling");
   ros::NodeHandle nh;
 
-  std::string subscribe_localization_pose_topic_name;
+  std::string subscribe_localization_pose_topic_name = "/subscribe_pose_topic_name/invalid";
 
-  nh.getParam("localization_pose_topic", subscribe_localization_pose_topic_name);
-  nh.getParam("enable_additional_rolling/matching_update_distance", _rolling_parameter.matching_update_distance);
-  nh.getParam("enable_additional_rolling/stop_judgment_velocity_threshold", _rolling_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("enable_additional_rolling/rolling_buffer_num", _rolling_parameter.rolling_buffer_num);
-  nh.getParam("enable_additional_rolling/link_Time_stamp_parameter", _rolling_parameter.link_Time_stamp_parameter);
-  nh.getParam("enable_additional_rolling/imu_buffer_num", _rolling_parameter.imu_buffer_num);
-  nh.getParam("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_localization_pose_topic_name: " << subscribe_localization_pose_topic_name << std::endl;
-  std::cout<< "matching_update_distance: " << _rolling_parameter.matching_update_distance << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "rolling_buffer_num: " << _rolling_parameter.rolling_buffer_num << std::endl;
-  std::cout<< "link_Time_stamp_parameter: " << _rolling_parameter.link_Time_stamp_parameter << std::endl;
-  std::cout<< "imu_buffer_num: " << _rolling_parameter.imu_buffer_num << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    subscribe_localization_pose_topic_name = conf["localization_pose_topic"].as<std::string>();
+
+    _rolling_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _rolling_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+
+    _rolling_parameter.update_distance = conf["enable_additional_rolling"]["update_distance"].as<double>();
+    _rolling_parameter.moving_average_time = conf["enable_additional_rolling"]["moving_average_time"].as<double>();
+    _rolling_parameter.sync_judgment_threshold = conf["enable_additional_rolling"]["sync_judgment_threshold"].as<double>();
+    _rolling_parameter.sync_search_period = conf["enable_additional_rolling"]["sync_search_period"].as<double>();
+
+    std::cout<< "subscribe_localization_pose_topic_name " << subscribe_localization_pose_topic_name << std::endl;
+
+    std::cout << "imu_rate " << _rolling_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
+
+    std::cout << "update_distance " << _rolling_parameter.update_distance << std::endl;
+    std::cout << "moving_average_time " << _rolling_parameter.moving_average_time << std::endl;
+    std::cout << "sync_judgment_threshold " << _rolling_parameter.sync_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << _rolling_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31menable_additional_rolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback , ros::TransportHints().tcpNoDelay());

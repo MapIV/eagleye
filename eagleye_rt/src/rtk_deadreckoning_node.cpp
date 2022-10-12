@@ -129,27 +129,41 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "navsat/gga";
 
-  nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  nh.getParam("gga_topic",subscribe_gga_topic_name);
-  nh.getParam("ecef_base_pos/x", _rtk_deadreckoning_parameter.ecef_base_pos_x);
-  nh.getParam("ecef_base_pos/y", _rtk_deadreckoning_parameter.ecef_base_pos_y);
-  nh.getParam("ecef_base_pos/z", _rtk_deadreckoning_parameter.ecef_base_pos_z);
-  nh.getParam("ecef_base_pos/use_ecef_base_position", _rtk_deadreckoning_parameter.use_ecef_base_position);
-  nh.getParam("rtk_deadreckoning/stop_judgment_velocity_threshold", _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("tf_gnss_frame/parent", _rtk_deadreckoning_parameter.tf_gnss_parent_frame);
-  nh.getParam("tf_gnss_frame/child", _rtk_deadreckoning_parameter.tf_gnss_child_frame);
-  nh.getParam("use_gnss_mode",_use_gnss_mode);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
-  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  std::cout<< "ecef_base_pos_x " << _rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
-  std::cout<< "ecef_base_pos_y " << _rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
-  std::cout<< "ecef_base_pos_z " << _rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
-  std::cout<< "use_ecef_base_position " << _rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _rtk_deadreckoning_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "tf_gnss_frame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
-  std::cout<< "tf_gnss_frame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
-  std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
+    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
+
+    _rtk_deadreckoning_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
+    _rtk_deadreckoning_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
+    _rtk_deadreckoning_parameter.ecef_base_pos_z = conf["ecef_base_pos"]["z"].as<double>();
+    _rtk_deadreckoning_parameter.use_ecef_base_position = conf["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
+    _rtk_deadreckoning_parameter.tf_gnss_parent_frame = conf["tf_gnss_frame"]["parent"].as<std::string>();
+    _rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
+    _rtk_deadreckoning_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+
+    std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
+    std::cout << "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout << "ecef_base_pos_x " << _rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
+    std::cout << "ecef_base_pos_y " << _rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
+    std::cout << "ecef_base_pos_z " << _rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
+    std::cout << "use_ecef_base_position " << _rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
+    std::cout << "tf_gnss_frame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
+    std::cout << "tf_gnss_frame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
+    std::cout << "stop_judgment_threshold " << _rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mrtk_deadreckoning Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());

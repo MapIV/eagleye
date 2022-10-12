@@ -49,18 +49,19 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   double rolling_estimated_sum = 0.0;
   double rolling_estimated_average = 0.0;
   double rolling_interpolate = 0.0;
-  double rolling_offset_buffer_num = rolling_parameter.rolling_buffer_num / 2; // Parameter to correct for time delay caused by moving average.
+
+  double moving_average_buffer_number = rolling_parameter.moving_average_time * rolling_parameter.imu_rate;
+  double search_buffer_number = rolling_parameter.sync_search_period * rolling_parameter.imu_rate;
+  double rolling_delay_interpolation_buffer_num = search_buffer_number / 2; // Parameter to correct for time delay caused by moving average.
 
   rolling_status->yawrate = imu.angular_velocity.z;
-
-
   rolling_status->rollrate = imu.angular_velocity.x;
   rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
 
   rolling_status->imu_acceleration_y = imu.linear_acceleration.y;
 
   // data buffer 
-  if (rolling_status->imu_time_buffer.size() < rolling_parameter.imu_buffer_num && velocity_status.status.enabled_status)
+  if (rolling_status->imu_time_buffer.size() < search_buffer_number && velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.push_back(imu.header.stamp.toSec());
     rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
@@ -90,11 +91,11 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   /// acc_y_offset ///
   if (data_buffer_status && localization_pose.header.stamp.toSec() != rolling_status->localization_time_last)
   {
-    for ( int i = 0; i < rolling_parameter.imu_buffer_num - 1; i++ )
+    for ( int i = 0; i < search_buffer_number - 1; i++ )
     {
-      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose.header.stamp.toSec()) < rolling_parameter.link_Time_stamp_parameter)
+      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose.header.stamp.toSec()) < rolling_parameter.sync_judgment_threshold)
       {
-        if (std::abs(rolling_status->distance_last - rolling_status->distance_buffer[i]) >= rolling_parameter.matching_update_distance )
+        if (std::abs(rolling_status->distance_last - rolling_status->distance_buffer[i]) >= rolling_parameter.update_distance )
         {
           acc_offset_status = true;
           rolling_status->distance_last = rolling_status->distance_buffer[i];
@@ -103,7 +104,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
 
       if (acc_offset_status)
       {
-        if (rolling_status->velocity_buffer[i] > rolling_parameter.stop_judgment_velocity_threshold)
+        if (rolling_status->velocity_buffer[i] > rolling_parameter.stop_judgment_threshold)
         {
           tf::Quaternion localization_quat;
           quaternionMsgToTF(localization_pose.pose.orientation, localization_quat);
@@ -134,7 +135,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   /// estimated rolling angle ///
   if (acc_y_offset->status.enabled_status)
   {
-    if (velocity.twist.linear.x > rolling_parameter.stop_judgment_velocity_threshold)
+    if (velocity.twist.linear.x > rolling_parameter.stop_judgment_threshold)
     {
       rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-
         (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
@@ -150,7 +151,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   double rolling_interpolate_tmp = (rolling_status->rollrate - rolling_status->rollrate_offset_stop)*diff_imu_time;
 
   /// buffering estimated rolling angle offset ///
-  if (rolling_status->roll_rate_interpolate_buffer.size() < rolling_offset_buffer_num)
+  if (rolling_status->roll_rate_interpolate_buffer.size() < rolling_delay_interpolation_buffer_num)
   {
     rolling_status->roll_rate_interpolate_buffer.push_back(rolling_interpolate_tmp);
   }
@@ -163,7 +164,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
 
 
   /// buffering estimated roll angle ///
-  if (rolling_status->rolling_estimated_buffer.size() < rolling_parameter.rolling_buffer_num && acc_y_offset->status.enabled_status)
+  if (rolling_status->rolling_estimated_buffer.size() < moving_average_buffer_number && acc_y_offset->status.enabled_status)
   {
     rolling_status->rolling_estimated_buffer.push_back(rolling_estimated_tmp);
   }
@@ -181,7 +182,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   /// buffering rolling offset ///
   if (rolling_buffer_status)
   {
-    for( int i = 0; i <rolling_offset_buffer_num - 1; i++)
+    for( int i = 0; i <rolling_delay_interpolation_buffer_num - 1; i++)
     {
       rolling_interpolate += rolling_status->roll_rate_interpolate_buffer[i];
     }
@@ -190,11 +191,11 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   /// Moving average estimation of roll angle ///
   if (rolling_estimated_buffer_status )
   {
-    for ( int i = 0; i <rolling_parameter.rolling_buffer_num - 1; i++ )
+    for ( int i = 0; i <moving_average_buffer_number - 1; i++ )
     {
       rolling_estimated_sum =rolling_estimated_sum + rolling_status->rolling_estimated_buffer[i];
     }
-    rolling_estimated_average = rolling_estimated_sum/rolling_parameter.rolling_buffer_num;
+    rolling_estimated_average = rolling_estimated_sum/moving_average_buffer_number;
     rolling_angle->rolling_angle = rolling_estimated_average + rolling_interpolate;
     rolling_angle->status.enabled_status=true;
     rolling_angle->status.estimate_status=true;

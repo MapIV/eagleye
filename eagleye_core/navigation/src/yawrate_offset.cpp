@@ -39,13 +39,17 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
   std::size_t index_length;
   double estimated_number_cur;
 
+  double estimated_buffer_number_min = yawrate_offset_parameter.estimated_minimum_interval * yawrate_offset_parameter.imu_rate;
+  double estimated_buffer_number_max = yawrate_offset_parameter.estimated_maximum_interval * yawrate_offset_parameter.imu_rate;
+  double enabled_data_ratio = yawrate_offset_parameter.gnss_rate / yawrate_offset_parameter.imu_rate * yawrate_offset_parameter.gnss_receiving_threshold;
+
   if(yawrate_offset->status.enabled_status == true)
   {
-    estimated_number_cur = yawrate_offset_parameter.estimated_number_max;
+    estimated_number_cur = estimated_buffer_number_max;
   }
   else
   {
-    estimated_number_cur = yawrate_offset_parameter.estimated_number_min;
+    estimated_number_cur = estimated_buffer_number_min;
   }
 
   if (yawrate_offset_status->estimated_number < estimated_number_cur)
@@ -84,11 +88,11 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
   }
   else if (yawrate_offset_status->estimated_preparation_conditions == 1)
   {
-    if (yawrate_offset_status->heading_estimate_status_count < yawrate_offset_parameter.estimated_number_min)
+    if (yawrate_offset_status->heading_estimate_status_count < estimated_buffer_number_min)
     {
       ++yawrate_offset_status->heading_estimate_status_count;
     }
-    else if (yawrate_offset_status->heading_estimate_status_count == yawrate_offset_parameter.estimated_number_min)
+    else if (yawrate_offset_status->heading_estimate_status_count == estimated_buffer_number_min)
     {
       yawrate_offset_status->estimated_preparation_conditions = 2;
     }
@@ -96,8 +100,8 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
 
   bool estimated_condition_status;
   if (yawrate_offset_status->estimated_preparation_conditions == 2 &&
-    yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.estimated_velocity_threshold &&
-    yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number-1])
+    yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.moving_judgment_threshold &&
+    yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number-1] == true)
   {
     estimated_condition_status = true;
   }
@@ -114,7 +118,7 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
   {
     for (int i = 0; i < yawrate_offset_status->estimated_number; i++)
     {
-      if (yawrate_offset_status->correction_velocity_buffer[i] > yawrate_offset_parameter.estimated_velocity_threshold)
+      if (yawrate_offset_status->correction_velocity_buffer[i] > yawrate_offset_parameter.moving_judgment_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -129,7 +133,7 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
 
     index_length = std::distance(index.begin(), index.end());
 
-    if (index_length > yawrate_offset_status->estimated_number * yawrate_offset_parameter.estimated_coefficient)
+    if (index_length > yawrate_offset_status->estimated_number * enabled_data_ratio)
     {
       std::vector<double> provisional_heading_angle_buffer(yawrate_offset_status->estimated_number, 0);
 

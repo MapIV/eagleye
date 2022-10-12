@@ -1101,34 +1101,50 @@ int main(int argc, char** argv)
   std::string subscribe_gga_topic_name = "navsat/gga";
   std::string comparison_twist_topic_name = "/calculated_twist";
 
-  n.getParam("twist_topic",subscribe_twist_topic_name);
-  n.getParam("imu_topic",subscribe_imu_topic_name);
-  n.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  n.getParam("gga_topic",subscribe_gga_topic_name);
-  n.getParam("monitor/print_status",_print_status);
-  n.getParam("monitor/log_output_status",_log_output_status);
-  n.getParam("monitor/update_rate",_update_rate);
-  n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
-  n.getParam("monitor/use_compare_yawrate",_use_compare_yawrate);
-  n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
-  n.getParam("monitor/th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  n.getParam("monitor/th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
-  n.getParam("use_rtk_deadreckoning",_use_rtk_deadreckoning);
-  n.getParam("monitor/th_dr_distance",_th_dr_distance);
+  std::string yaml_file;
+  n.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "print_status "<<_print_status<<std::endl;
-  std::cout<< "log_output_status "<<_log_output_status<<std::endl;
-  std::cout<< "update_rate "<<_update_rate<<std::endl;
-  std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
-  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
-  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
-  std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
-  std::cout<< "use_rtk_deadreckoning "<<_use_rtk_deadreckoning<<std::endl;
-  std::cout<< "th_dr_distance "<<_th_dr_distance<<std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    n.getParam("use_rtk_deadreckoning",_use_rtk_deadreckoning);
+
+    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
+    subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
+    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
+    comparison_twist_topic_name = conf["monitor"]["comparison_twist_topic"].as<std::string>();
+
+    _print_status = conf["monitor"]["print_status"].as<bool>();
+    _log_output_status = conf["monitor"]["log_output_status"].as<bool>();
+    _update_rate = conf["monitor"]["update_rate"].as<double>();
+    _th_gnss_deadrock_time = conf["monitor"]["th_gnss_deadrock_time"].as<double>();
+    _use_compare_yawrate = conf["monitor"]["use_compare_yawrate"].as<bool>();
+    _th_diff_rad_per_sec = conf["monitor"]["th_diff_rad_per_sec"].as<double>();
+    _th_num_continuous_abnormal_yawrate = conf["monitor"]["th_num_continuous_abnormal_yawrate"].as<double>();
+    _th_dr_distance = conf["monitor"]["th_dr_distance"].as<double>();
+
+    std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
+    std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
+    std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
+    std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
+    std::cout<< "print_status "<<_print_status<<std::endl;
+    std::cout<< "log_output_status "<<_log_output_status<<std::endl;
+    std::cout<< "update_rate "<<_update_rate<<std::endl;
+    std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
+    std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
+    std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
+    std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
+    std::cout<< "use_rtk_deadreckoning "<<_use_rtk_deadreckoning<<std::endl;
+    std::cout<< "th_dr_distance "<<_th_dr_distance<<std::endl;
+
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mmonitor Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   // // Diagnostic Updater
   diagnostic_updater::Updater updater;

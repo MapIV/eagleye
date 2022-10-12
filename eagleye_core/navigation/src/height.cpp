@@ -66,6 +66,10 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
   int buffer_erase_count = 0;
 
+  double moving_average_buffer_number = height_parameter.moving_average_time * height_parameter.imu_rate;
+  double enabled_data_ratio = height_parameter.gnss_rate / height_parameter.imu_rate * height_parameter.gnss_receiving_threshold;
+  double remain_data_ratio = enabled_data_ratio * height_parameter.outlier_ratio_threshold;
+
 /// GNSS FLAG ///
   if (height_status->gga_time_last == gga.header.stamp.toSec())
   {
@@ -96,7 +100,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
   }
 
 ///  buffering  ///
-  if (distance.distance-height_status->distance_last >= height_parameter.separation_distance && gnss_status == true && gps_quality == 4)
+  if (distance.distance-height_status->distance_last >= height_parameter.update_distance && gnss_status == true && gps_quality == 4)
   {
     height_status->height_buffer.push_back(gnss_height);
     height_status->relative_height_G_buffer.push_back(height_status->relative_height_G);
@@ -107,7 +111,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
     height_status->distance_buffer.push_back(distance.distance);
     data_status = true;
 
-    if (height_status->distance_buffer[height_status->data_number-1] - height_status->distance_buffer[0] > height_parameter.estimated_distance_max)
+    if (height_status->distance_buffer[height_status->data_number-1] - height_status->distance_buffer[0] > height_parameter.estimated_maximum_interval)
     {
       height_status->height_buffer.erase(height_status->height_buffer.begin());
       height_status->relative_height_G_buffer.erase(height_status->relative_height_G_buffer.begin());
@@ -121,7 +125,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
     height_status->data_number = height_status->distance_buffer.size();
 
-    if (height_status->distance_buffer[height_status->data_number-1]- height_status->distance_buffer[0] > height_parameter.estimated_distance)
+    if (height_status->distance_buffer[height_status->data_number-1]- height_status->distance_buffer[0] > height_parameter.estimated_minimum_interval)
     {
       height_status->estimate_start_status = true;
     }
@@ -199,8 +203,8 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 ///  height estimate  ///
   if (height_status->estimate_start_status == true)
   {
-    if (distance.distance > height_parameter.estimated_distance && gnss_status == true && gps_quality ==4 && data_status == true &&
-      velocity.twist.linear.x > height_parameter.estimated_velocity_threshold )
+    if (distance.distance > height_parameter.estimated_minimum_interval && gnss_status == true && gps_quality ==4 && data_status == true &&
+      velocity.twist.linear.x > height_parameter.moving_judgment_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
@@ -216,11 +220,11 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
 
       for (i = 0; i < height_status->data_number; i++)
       {
-        if (height_status->distance_buffer[height_status->data_number-1] - height_status->distance_buffer[i]  <= height_parameter.estimated_distance)
+        if (height_status->distance_buffer[height_status->data_number-1] - height_status->distance_buffer[i]  <= height_parameter.estimated_minimum_interval)
         {
           distance_index.push_back(i);
 
-          if (height_status->correction_velocity_buffer[i] > height_parameter.estimated_velocity_threshold)
+          if (height_status->correction_velocity_buffer[i] > height_parameter.moving_judgment_threshold)
           {
             velocity_index.push_back(i);
           }
@@ -239,9 +243,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
       std::vector<double> diff_height_buffer2;
       std::vector<int> erase_number;
 
-
-
-      if (index_length > velocity_index_length * height_parameter.estimated_velocity_coefficient)
+      if (index_length > velocity_index_length * enabled_data_ratio)
       {
 
         while (1)
@@ -312,7 +314,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
           index_length = std::distance(index.begin(), index.end());
           velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-          if (index_length < velocity_index_length * height_parameter.estimated_height_coefficient)
+          if (index_length < velocity_index_length * remain_data_ratio)
           {
             break;
           }
@@ -340,7 +342,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
         index_length = std::distance(index.begin(), index.end());
         velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-        if (index_length >= velocity_index_length * height_parameter.estimated_height_coefficient)
+        if (index_length >= velocity_index_length * remain_data_ratio)
         {
           if (index[index_length - 1] == height_status->data_number-1)
           {
@@ -375,13 +377,13 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
   height_status->acc_buffer.push_back((velocity.twist.linear.x-height_status->correction_velocity_x_last)/(imu.header.stamp.toSec()-height_status->time_last) - correction_acceleration_linear_x);
   data_num_acc = height_status->acc_buffer.size();
 
-  if (data_num_acc > height_parameter.average_num)
+  if (data_num_acc > moving_average_buffer_number)
   {
     height_status->acc_buffer.erase(height_status->acc_buffer.begin());
     data_num_acc--;
   }
 
-if (data_num_acc >= height_parameter.average_num && height_status->estimate_start_status == true)
+if (data_num_acc >= moving_average_buffer_number && height_status->estimate_start_status == true)
   {
     sum_acc = 0;
     for (i = 0; i < data_num_acc; i++)

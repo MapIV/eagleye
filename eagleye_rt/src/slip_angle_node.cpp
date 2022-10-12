@@ -97,13 +97,27 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "slip_angle");
-
   ros::NodeHandle nh;
 
-  nh.getParam("slip_angle/manual_coefficient", _slip_angle_parameter.manual_coefficient);
-  nh.getParam("slip_angle/stop_judgment_velocity_threshold", _slip_angle_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "manual_coefficient " << _slip_angle_parameter.manual_coefficient << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _slip_angle_parameter.stop_judgment_velocity_threshold << std::endl;
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
+
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _slip_angle_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _slip_angle_parameter.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
+
+    std::cout << "stop_judgment_threshold " << _slip_angle_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "manual_coefficient " << _slip_angle_parameter.manual_coefficient << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mslip_angle Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());

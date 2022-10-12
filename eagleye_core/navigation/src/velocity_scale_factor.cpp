@@ -44,6 +44,10 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
   std::size_t gnss_status_buffer_length;
   double estimated_number_cur;
 
+  double estimated_buffer_number_min = velocity_scale_factor_parameter.estimated_minimum_interval * velocity_scale_factor_parameter.imu_rate;
+  double estimated_buffer_number_max = velocity_scale_factor_parameter.estimated_maximum_interval * velocity_scale_factor_parameter.imu_rate;
+  double enabled_data_ratio = velocity_scale_factor_parameter.gnss_rate / velocity_scale_factor_parameter.imu_rate * velocity_scale_factor_parameter.gnss_receiving_threshold;
+
   if(velocity_scale_factor_parameter.save_velocity_scale_factor)
   {
     if(velocity_scale_factor->status.enabled_status)
@@ -54,11 +58,11 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
 
   if(velocity_scale_factor->status.enabled_status == true)
   {
-    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_max;
+    estimated_number_cur = estimated_buffer_number_max;
   }
   else
   {
-    estimated_number_cur = velocity_scale_factor_parameter.estimated_number_min;
+    estimated_number_cur = estimated_buffer_number_min;
   }
 
   if (velocity_scale_factor_status->estimated_number < estimated_number_cur)
@@ -84,10 +88,10 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
   std::vector<int> index;
   std::vector<double> velocity_scale_factor_buffer;
 
-  if (velocity_scale_factor_status->estimated_number >= velocity_scale_factor_parameter.estimated_number_min &&
+  if (velocity_scale_factor_status->estimated_number >= estimated_buffer_number_min &&
     velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true &&
     velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] >
-    velocity_scale_factor_parameter.estimated_velocity_threshold)
+    velocity_scale_factor_parameter.moving_judgment_threshold)
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
     {
@@ -95,7 +99,7 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
       {
         gnss_index.push_back(i);
       }
-      if (velocity_scale_factor_status->velocity_buffer[i] > velocity_scale_factor_parameter.estimated_velocity_threshold)
+      if (velocity_scale_factor_status->velocity_buffer[i] > velocity_scale_factor_parameter.moving_judgment_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -106,7 +110,7 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
 
     index_length = std::distance(index.begin(), index.end());
 
-    if (index_length > velocity_scale_factor_status->estimated_number * velocity_scale_factor_parameter.estimated_coefficient)
+    if (index_length > velocity_scale_factor_status->estimated_number * enabled_data_ratio)
     {
       for (i = 0; i < index_length; i++)
       {

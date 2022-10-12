@@ -28,26 +28,26 @@
  * Author MapIV  Takanose
  */
 
- #include "ros/ros.h"
- #include "coordinate/coordinate.hpp"
- #include "navigation/navigation.hpp"
+#include "ros/ros.h"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
- static sensor_msgs::Imu _imu;
- static nmea_msgs::Gpgga _gga;
- static geometry_msgs::TwistStamped _velocity;
- static eagleye_msgs::StatusStamped _velocity_status;
- static eagleye_msgs::Distance _distance;
+static sensor_msgs::Imu _imu;
+static nmea_msgs::Gpgga _gga;
+static geometry_msgs::TwistStamped _velocity;
+static eagleye_msgs::StatusStamped _velocity_status;
+static eagleye_msgs::Distance _distance;
 
- static ros::Publisher _pub1, _pub2, _pub3, _pub4, _pub5;
- static eagleye_msgs::Height _height;
- static eagleye_msgs::Pitching _pitching;
- static eagleye_msgs::AccXOffset _acc_x_offset;
- static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
+static ros::Publisher _pub1, _pub2, _pub3, _pub4, _pub5;
+static eagleye_msgs::Height _height;
+static eagleye_msgs::Pitching _pitching;
+static eagleye_msgs::AccXOffset _acc_x_offset;
+static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
 
- struct HeightParameter _height_parameter;
- struct HeightStatus _height_status;
+struct HeightParameter _height_parameter;
+struct HeightStatus _height_status;
 
- static bool _use_canless_mode;
+static bool _use_canless_mode;
 
 void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
@@ -105,30 +105,44 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_gga_topic_name = "/navsat/gga";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
 
-  nh.getParam("gga_topic", subscribe_gga_topic_name);
-  nh.getParam("imu_topic", subscribe_imu_topic_name);
-  nh.getParam("height/estimated_distance", _height_parameter.estimated_distance);
-  nh.getParam("height/estimated_distance_max", _height_parameter.estimated_distance_max);
-  nh.getParam("height/separation_distance", _height_parameter.separation_distance);
-  nh.getParam("height/estimated_velocity_threshold", _height_parameter.estimated_velocity_threshold);
-  nh.getParam("height/estimated_velocity_coefficient", _height_parameter.estimated_velocity_coefficient);
-  nh.getParam("height/estimated_height_coefficient", _height_parameter.estimated_height_coefficient);
-  nh.getParam("height/outlier_threshold", _height_parameter.outlier_threshold);
-  nh.getParam("height/average_num", _height_parameter.average_num);
-  nh.getParam("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  std::cout<< "subscribe_imu_topic_name " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "estimated_distance " << _height_parameter.estimated_distance << std::endl;
-  std::cout<< "estimated_distance_max " << _height_parameter.estimated_distance_max << std::endl;
-  std::cout<< "separation_distance " << _height_parameter.separation_distance << std::endl;
-  std::cout<< "estimated_velocity_threshold " << _height_parameter.estimated_velocity_threshold << std::endl;
-  std::cout<< "estimated_velocity_coefficient " << _height_parameter.estimated_velocity_coefficient << std::endl;
-  std::cout<< "estimated_height_coefficient " << _height_parameter.estimated_height_coefficient << std::endl;
-  std::cout<< "outlier_threshold " << _height_parameter.outlier_threshold << std::endl;
-  std::cout<< "average_num " << _height_parameter.average_num << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _height_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _height_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
+    _height_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+
+    _height_parameter.estimated_minimum_interval = conf["height"]["estimated_minimum_interval"].as<double>();
+    _height_parameter.estimated_maximum_interval = conf["height"]["estimated_maximum_interval"].as<double>();
+    _height_parameter.update_distance = conf["height"]["update_distance"].as<double>();
+    _height_parameter.gnss_receiving_threshold = conf["height"]["gnss_receiving_threshold"].as<double>();
+    _height_parameter.outlier_threshold = conf["height"]["outlier_threshold"].as<double>();
+    _height_parameter.outlier_ratio_threshold = conf["height"]["outlier_ratio_threshold"].as<double>();
+    _height_parameter.moving_average_time = conf["height"]["moving_average_time"].as<double>();
+
+    std::cout << "imu_rate " << _height_parameter.imu_rate << std::endl;
+    std::cout << "gnss_rate " << _height_parameter.gnss_rate << std::endl;
+    std::cout << "moving_judgment_threshold " << _height_parameter.moving_judgment_threshold << std::endl;
+
+    std::cout << "estimated_minimum_interval " << _height_parameter.estimated_minimum_interval << std::endl;
+    std::cout << "estimated_maximum_interval " << _height_parameter.estimated_maximum_interval << std::endl;
+    std::cout << "update_distance " << _height_parameter.update_distance << std::endl;
+    std::cout << "gnss_receiving_threshold " << _height_parameter.gnss_receiving_threshold << std::endl;
+    std::cout << "outlier_threshold " << _height_parameter.outlier_threshold << std::endl;
+    std::cout << "outlier_ratio_threshold " << _height_parameter.outlier_ratio_threshold << std::endl;
+    std::cout << "moving_average_time " << _height_parameter.moving_average_time << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheight Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());

@@ -58,10 +58,12 @@
 
 struct VelocityScaleFactorParameter
 {
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_velocity_threshold;
-  double estimated_coefficient;
+  double imu_rate;
+  double gnss_rate;
+  double moving_judgment_threshold;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double gnss_receiving_threshold;
   bool save_velocity_scale_factor{false};
 };
 
@@ -83,8 +85,9 @@ struct DistanceStatus
 
 struct YawrateOffsetStopParameter
 {
-  double stop_judgment_velocity_threshold;
-  double estimated_number;
+  double imu_rate;
+  double estimated_interval;
+  double stop_judgment_threshold;
   double outlier_threshold;
 };
 
@@ -98,10 +101,12 @@ struct YawrateOffsetStopStatus
 
 struct YawrateOffsetParameter
 {
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_coefficient;
-  double estimated_velocity_threshold;
+  double imu_rate;
+  double gnss_rate;
+  double moving_judgment_threshold;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double gnss_receiving_threshold;
   double outlier_threshold;
 };
 
@@ -121,15 +126,16 @@ struct YawrateOffsetStatus
 
 struct HeadingParameter
 {
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_gnss_coefficient;
-  double estimated_heading_coefficient;
+  double imu_rate;
+  double gnss_rate;
+  double stop_judgment_threshold;
+  double moving_judgment_threshold;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double gnss_receiving_threshold;
   double outlier_threshold;
-  double estimated_velocity_threshold;
-  double stop_judgment_velocity_threshold;
-  double estimated_yawrate_threshold;
-
+  double outlier_ratio_threshold;
+  double curve_judgment_threshold;
 };
 
 struct HeadingStatus
@@ -150,17 +156,17 @@ struct HeadingStatus
 
 struct RtkHeadingParameter
 {
-  double estimated_distance;
-  double estimated_heading_buffer_min;
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_gnss_coefficient;
-  double estimated_heading_coefficient;
+  double imu_rate;
+  double gnss_rate;
+  double stop_judgment_threshold;
+  double slow_judgment_threshold;
+  double update_distance;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double gnss_receiving_threshold;
   double outlier_threshold;
-  double estimated_velocity_threshold;
-  double stop_judgment_velocity_threshold;
-  double estimated_yawrate_threshold;
-
+  double outlier_ratio_threshold;
+  double curve_judgment_threshold;
 };
 
 struct RtkHeadingStatus
@@ -185,8 +191,9 @@ struct RtkHeadingStatus
 
 struct HeadingInterpolateParameter
 {
-  double stop_judgment_velocity_threshold;
-  double number_buffer_max;
+  double imu_rate;
+  double stop_judgment_threshold;
+  double sync_search_period;
 };
 
 struct HeadingInterpolateStatus
@@ -203,12 +210,6 @@ struct HeadingInterpolateStatus
 
 struct PositionParameter
 {
-  double estimated_distance;
-  double separation_distance;
-  double estimated_velocity_threshold;
-  double outlier_threshold;
-  double estimated_enu_vel_coefficient;
-  double estimated_position_coefficient;
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
@@ -221,6 +222,15 @@ struct PositionParameter
   double tf_gnss_rotation_w;
   std::string tf_gnss_parent_frame;
   std::string tf_gnss_child_frame;
+
+  double imu_rate;
+  double gnss_rate;
+  double moving_judgment_threshold;
+  double estimated_interval;
+  double update_distance;
+  double gnss_receiving_threshold;
+  double outlier_threshold;
+  double outlier_ratio_threshold;
 };
 
 struct PositionStatus
@@ -242,8 +252,9 @@ struct PositionStatus
 
 struct PositionInterpolateParameter
 {
-  double number_buffer_max;
-  double stop_judgment_velocity_threshold;
+  double imu_rate;
+  double stop_judgment_threshold;
+  double sync_search_period;
 };
 
 struct PositionInterpolateStatus
@@ -264,18 +275,19 @@ struct PositionInterpolateStatus
 
 struct SlipangleParameter
 {
-  double stop_judgment_velocity_threshold;
   double manual_coefficient;
+  double stop_judgment_threshold;
 };
 
 struct SlipCoefficientParameter
 {
-  double estimated_number_min;
-  double estimated_number_max;
-  double estimated_velocity_threshold;
-  double estimated_yawrate_threshold;
+  double imu_rate;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double stop_judgment_threshold;
+  double moving_judgment_threshold;
+  double curve_judgment_threshold;
   double lever_arm;
-  double stop_judgment_velocity_threshold;
 };
 
 struct SlipCoefficientStatus
@@ -287,12 +299,13 @@ struct SlipCoefficientStatus
 
 struct SmoothingParameter
 {
+  double gnss_rate;
+  double moving_judgment_threshold;
+  double moving_average_time;
+  double moving_ratio_threshold;
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
-  int estimated_number_max;
-  double estimated_velocity_threshold;
-  double estimated_threshold;
 };
 
 struct SmoothingStatus
@@ -306,8 +319,8 @@ struct SmoothingStatus
 
 struct TrajectoryParameter
 {
-  double stop_judgment_velocity_threshold;
-  double stop_judgment_yawrate_threshold;
+  double stop_judgment_threshold;
+  double curve_judgment_threshold;
 };
 
 struct TrajectoryStatus
@@ -319,14 +332,16 @@ struct TrajectoryStatus
 
 struct HeightParameter
 {
-  double estimated_distance;
-  double estimated_distance_max;
-  double separation_distance;
-  double estimated_velocity_threshold;
-  double estimated_velocity_coefficient;
-  double estimated_height_coefficient;
+  double imu_rate;
+  double gnss_rate;
+  double moving_judgment_threshold;
+  double estimated_minimum_interval;
+  double estimated_maximum_interval;
+  double update_distance;
+  double gnss_receiving_threshold;
   double outlier_threshold;
-  int average_num;
+  double outlier_ratio_threshold;
+  double moving_average_time;
 };
 
 struct HeightStatus
@@ -361,9 +376,11 @@ struct HeightStatus
 
 struct AngularVelocityOffsetStopParameter
 {
-  double stop_judgment_velocity_threshold;
-  double estimated_number;
+  double imu_rate;
+  double estimated_interval;
+  double stop_judgment_threshold;
   double outlier_threshold;
+
 };
 
 struct AngularVelocityOffsetStopStatus
@@ -380,7 +397,7 @@ struct AngularVelocityOffsetStopStatus
 
 struct RtkDeadreckoningParameter
 {
-  double stop_judgment_velocity_threshold;
+  double stop_judgment_threshold;
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
@@ -415,11 +432,12 @@ struct RtkDeadreckoningStatus
 
 struct EnableAdditionalRollingParameter
 {
-  double matching_update_distance;
-  double stop_judgment_velocity_threshold;
-  double rolling_buffer_num;
-  double link_Time_stamp_parameter;
-  double imu_buffer_num;
+  double imu_rate;
+  double stop_judgment_threshold;
+  double update_distance;
+  double moving_average_time;
+  double sync_judgment_threshold;
+  double sync_search_period;
 };
 
 struct EnableAdditionalRollingStatus
@@ -445,7 +463,7 @@ struct EnableAdditionalRollingStatus
 
 struct RollingParameter
 {
-  double stop_judgment_velocity_threshold;
+  double stop_judgment_threshold;
   double filter_process_noise;
   double filter_observation_noise;
 };
@@ -542,6 +560,8 @@ class VelocityEstimator
       private:
         struct Param
         {
+          int imu_rate;
+          int estimated_interval;
           int buffer_count_max;
         };
         PitchrateOffsetStopEstimator::Param param;
@@ -566,10 +586,16 @@ class VelocityEstimator
       private:
         struct Param
         {
-          int buffer_max;
+          double imu_rate;
+          double gnss_rate;
+          double estimated_interval;
+          double buffer_max;
           double outlier_threshold;
           double estimated_velocity_threshold;
+          double slow_judgment_threshold;
+          double gnss_receiving_threshold;
           double estimated_gnss_coefficient;
+          double outlier_ratio_threshold;
           double estimated_coefficient;
         };
         PitchingEstimator::Param param;
@@ -597,6 +623,10 @@ class VelocityEstimator
       private:
         struct Param
         {
+          double imu_rate;
+          double gnss_rate;
+          double estimated_minimum_interval;
+          double estimated_maximum_interval;
           double buffer_min;
           double buffer_max;
           double filter_process_noise;
@@ -621,14 +651,21 @@ class VelocityEstimator
       double ecef_base_pos_z;
       bool use_ecef_base_position;
 
+      double imu_rate;
+      double gnss_rate;
+
       double gga_downsample_time;
+      double stop_judgment_interval;
       double stop_judgment_velocity_threshold;
       double stop_judgment_buffer_maxnum;
       double variance_threshold;
 
       // doppler fusion parameter
+      double estimated_interval;
       double buffer_max;
+      double gnss_receiving_threshold;
       double estimated_gnss_coefficient;
+      double outlier_ratio_threshold;
       double estimated_coefficient;
       double outlier_threshold;
     };
@@ -640,6 +677,7 @@ class VelocityEstimator
     double imu_time_last;
 
     // rtklib_nav variables
+    double gnss_rate;
     double doppler_velocity;
     double rtklib_nav_time_last;
     bool rtklib_update_status;
