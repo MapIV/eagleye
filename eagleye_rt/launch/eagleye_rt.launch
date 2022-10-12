@@ -6,7 +6,6 @@
 
   <group ns="eagleye">
 
-    <arg name="use_canless_mode" default="false"/>
     <arg name="use_rtk_deadreckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
     <arg name="use_canless_mode" default="false"/>
@@ -14,7 +13,6 @@
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
-    <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
     <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
     <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
 

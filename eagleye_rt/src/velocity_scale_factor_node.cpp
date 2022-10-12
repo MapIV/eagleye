@@ -223,7 +223,7 @@ int main(int argc, char** argv)
     _velocity_scale_factor_save_str = package_path + conf["velocity_scale_factor"]["velocity_scale_factor_save_str"].as<std::string>();
     velocity_scale_factor_save_duration = conf["velocity_scale_factor"]["velocity_scale_factor_save_duration"].as<double>();
     _velocity_scale_factor_parameter.save_velocity_scale_factor = conf["velocity_scale_factor"]["save_velocity_scale_factor"].as<bool>();
-    _th_velocity_scale_factor_percent = conf["monitor"]["th_velocity_scale_factor_percent"].as<double>();
+    _th_velocity_scale_factor_percent = conf["velocity_scale_factor"]["th_velocity_scale_factor_percent"].as<double>();
 
     std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
 
