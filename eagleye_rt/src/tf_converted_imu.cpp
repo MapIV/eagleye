@@ -68,12 +68,27 @@ TFConvertedIMU::TFConvertedIMU() : tflistener_(tfbuffer_)
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string publish_imu_topic_name = "imu/data_tf_converted";
 
-  nh_.getParam("imu_topic", subscribe_imu_topic_name);
-  nh_.getParam("publish_imu_topic", publish_imu_topic_name);
-  nh_.getParam("tf_gnss_frame/parent", tf_base_link_frame_);
-  std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
-  std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
-  std::cout<< "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
+  std::string yaml_file;
+  nh_.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
+
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    tf_base_link_frame_ = conf["imu_topic"].as<std::string>();
+    // publish_imu_topic_name = conf["publish_imu_topic_name"].as<std::string>();
+    tf_base_link_frame_ = conf["tf_gnss_frame"]["parent"].as<std::string>();
+    std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
+    std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
+    std::cout<< "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
+
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mtf_converted_imu Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   sub_ = nh_.subscribe(subscribe_imu_topic_name, 1000, &TFConvertedIMU::imu_callback, this, ros::TransportHints().tcpNoDelay());
   pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data_tf_converted", 1000);

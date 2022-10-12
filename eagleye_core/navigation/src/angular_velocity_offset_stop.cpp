@@ -28,8 +28,8 @@
  * Author MapIV Sekino
  */
 
- #include "coordinate/coordinate.hpp"
- #include "navigation/navigation.hpp"
+#include "coordinate/coordinate.hpp"
+#include "navigation/navigation.hpp"
 
 void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu,
   const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status,
@@ -39,10 +39,12 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
   int i;
   double roll_tmp, pitch_tmp, yaw_tmp;
   double initial_angular_velocity_offset_stop = 0.0;
-  double estimated_time_buffer_num = angular_velocity_stop_parameter.estimated_number;
   std::size_t rollrate_buffer_length;
   std::size_t pitchrate_buffer_length;
   std::size_t yawrate_buffer_length;
+
+  double estimated_buffer_number = angular_velocity_stop_parameter.imu_rate * angular_velocity_stop_parameter.estimated_interval;
+  double estimated_time_buffer_number = angular_velocity_stop_parameter.imu_rate * angular_velocity_stop_parameter.estimated_interval;
 
   // data buffer generate
   if (angular_velocity_stop_status->estimate_start_status == false)
@@ -63,14 +65,14 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
   pitchrate_buffer_length = std::distance(angular_velocity_stop_status->pitchrate_buffer.begin(), angular_velocity_stop_status->pitchrate_buffer.end());
   yawrate_buffer_length = std::distance(angular_velocity_stop_status->yawrate_buffer.begin(), angular_velocity_stop_status->yawrate_buffer.end());
 
-  if (yawrate_buffer_length > angular_velocity_stop_parameter.estimated_number + estimated_time_buffer_num)
+  if (yawrate_buffer_length > estimated_buffer_number + estimated_time_buffer_number)
   {
     angular_velocity_stop_status->rollrate_buffer.erase(angular_velocity_stop_status->rollrate_buffer.begin());
     angular_velocity_stop_status->pitchrate_buffer.erase(angular_velocity_stop_status->pitchrate_buffer.begin());
     angular_velocity_stop_status->yawrate_buffer.erase(angular_velocity_stop_status->yawrate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_velocity_threshold)
+  if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_threshold)
   {
     ++angular_velocity_stop_status->stop_count;
   }
@@ -80,20 +82,20 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped vel
   }
 
   // mean
-  if (angular_velocity_stop_status->stop_count > angular_velocity_stop_parameter.estimated_number + estimated_time_buffer_num)
+  if (angular_velocity_stop_status->stop_count > estimated_buffer_number + estimated_time_buffer_number)
   {
     roll_tmp = 0.0;
     pitch_tmp = 0.0;
     yaw_tmp = 0.0;
-    for (i = 0; i < angular_velocity_stop_parameter.estimated_number; i++)
+    for (i = 0; i < estimated_buffer_number; i++)
     {
       roll_tmp += angular_velocity_stop_status->rollrate_buffer[i];
       pitch_tmp += angular_velocity_stop_status->pitchrate_buffer[i];
       yaw_tmp += angular_velocity_stop_status->yawrate_buffer[i];
     }
-    angular_velocity_offset_stop->angular_velocity_offset.x = -1 * roll_tmp / angular_velocity_stop_parameter.estimated_number;
-    angular_velocity_offset_stop->angular_velocity_offset.y = -1 * pitch_tmp / angular_velocity_stop_parameter.estimated_number;
-    angular_velocity_offset_stop->angular_velocity_offset.z = -1 * yaw_tmp / angular_velocity_stop_parameter.estimated_number;
+    angular_velocity_offset_stop->angular_velocity_offset.x = -1 * roll_tmp / estimated_buffer_number;
+    angular_velocity_offset_stop->angular_velocity_offset.y = -1 * pitch_tmp / estimated_buffer_number;
+    angular_velocity_offset_stop->angular_velocity_offset.z = -1 * yaw_tmp / estimated_buffer_number;
     angular_velocity_offset_stop->status.enabled_status = true;
     angular_velocity_offset_stop->status.estimate_status = true;
     angular_velocity_stop_status->estimate_start_status = true;

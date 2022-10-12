@@ -52,8 +52,8 @@ static ros::Publisher _pub3;
 struct TrajectoryParameter _trajectory_parameter;
 struct TrajectoryStatus _trajectory_status;
 
-static double _update_rate = 10;
-static double _th_deadlock_time = 1;
+static double _timer_updata_rate = 10;
+static double _deadlock_threshold = 1;
 
 static double _imu_time_last, _velocity_time_last;
 static bool _input_status;
@@ -103,9 +103,9 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 
 void timer_callback(const ros::TimerEvent& e)
 {
-  if (std::abs(_imu.header.stamp.toSec() - _imu_time_last) < _th_deadlock_time &&
-      std::abs(_velocity.header.stamp.toSec() - _velocity_time_last) < _th_deadlock_time &&
-      std::abs(_velocity.header.stamp.toSec() - _imu.header.stamp.toSec()) < _th_deadlock_time)
+  if (std::abs(_imu.header.stamp.toSec() - _imu_time_last) < _deadlock_threshold &&
+      std::abs(_velocity.header.stamp.toSec() - _velocity_time_last) < _deadlock_threshold &&
+      std::abs(_velocity.header.stamp.toSec() - _imu.header.stamp.toSec()) < _deadlock_threshold)
   {
     _input_status = true;
   }
@@ -161,22 +161,42 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
 
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("twist_topic",subscribe_twist_topic_name);
-  nh.getParam("trajectory/stop_judgment_velocity_threshold",_trajectory_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("trajectory/stop_judgment_yawrate_threshold",_trajectory_parameter.stop_judgment_yawrate_threshold);
-  nh.getParam("trajectory/timer_updata_rate",_update_rate);
-  nh.getParam("trajectory/th_deadlock_time",_th_deadlock_time);
-  nh.getParam("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold " << _trajectory_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "stop_judgment_yawrate_threshold " << _trajectory_parameter.stop_judgment_yawrate_threshold << std::endl;
-  std::cout<< "timer_updata_rate " << _update_rate << std::endl;
-  std::cout<< "th_deadlock_time " << _th_deadlock_time << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
+    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+
+    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
+
+    _trajectory_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+
+    _trajectory_parameter.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();
+    _timer_updata_rate = conf["trajectory"]["timer_updata_rate"].as<double>();
+    _deadlock_threshold = conf["trajectory"]["deadlock_threshold"].as<double>();
+
+    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+
+    std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+
+    std::cout << "stop_judgment_threshold " << _trajectory_parameter.stop_judgment_threshold << std::endl;
+
+    std::cout << "curve_judgment_threshold " << _trajectory_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "timer_updata_rate " << _timer_updata_rate << std::endl;
+    std::cout << "deadlock_threshold " << _deadlock_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mtrajectory Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
+  
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity", 1000, correction_velocity_callback, ros::TransportHints().tcpNoDelay());
@@ -190,7 +210,7 @@ int main(int argc, char** argv)
   _pub2 = nh.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);
   _pub3 = nh.advertise<geometry_msgs::TwistStamped>("twist", 1000);
 
-  ros::Timer timer = nh.createTimer(ros::Duration(1/_update_rate), timer_callback);
+  ros::Timer timer = nh.createTimer(ros::Duration(1/_timer_updata_rate), timer_callback);
 
   ros::spin();
 

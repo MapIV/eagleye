@@ -35,7 +35,6 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
   eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset_2nd,eagleye_msgs::Heading heading_interpolate_3rd,
   SlipCoefficientParameter slip_coefficient_parameter,SlipCoefficientStatus* slip_coefficient_status,double* estimate_coefficient)
 {
-
   int i;
   double doppler_heading_angle;
   double doppler_slip;
@@ -48,6 +47,9 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
   double enu_vel[3];
   std::size_t acceleration_y_buffer_length;
 
+  double estimated_buffer_number_min = slip_coefficient_parameter.estimated_minimum_interval * slip_coefficient_parameter.imu_rate;
+  double estimated_buffer_number_max = slip_coefficient_parameter.estimated_maximum_interval * slip_coefficient_parameter.imu_rate;
+  
   ecef_vel[0] = rtklib_nav.ecef_vel.x;
   ecef_vel[1] = rtklib_nav.ecef_vel.y;
   ecef_vel[2] = rtklib_nav.ecef_vel.z;
@@ -72,7 +74,7 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
   yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgment_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
@@ -85,8 +87,8 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
   if (heading_interpolate_3rd.status.estimate_status == true)
   {
-    if ((velocity.twist.linear.x > slip_coefficient_parameter.estimated_velocity_threshold) &&
-      (fabs(yawrate) > slip_coefficient_parameter.estimated_yawrate_threshold))
+    if ((velocity.twist.linear.x > slip_coefficient_parameter.moving_judgment_threshold) &&
+      (fabs(yawrate) > slip_coefficient_parameter.curve_judgment_threshold))
     {
       double imu_heading;
 
@@ -107,22 +109,22 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
         acceleration_y_buffer_length = std::distance(slip_coefficient_status->acceleration_y_buffer.begin(), slip_coefficient_status->acceleration_y_buffer.end());
 
-        if (acceleration_y_buffer_length > slip_coefficient_parameter.estimated_number_max)
+        if (acceleration_y_buffer_length > estimated_buffer_number_max)
         {
           slip_coefficient_status->acceleration_y_buffer.erase(slip_coefficient_status->acceleration_y_buffer.begin());
           slip_coefficient_status->doppler_slip_buffer.erase(slip_coefficient_status->doppler_slip_buffer.begin());
         }
 
-        if(slip_coefficient_status->heading_estimate_status_count < slip_coefficient_parameter.estimated_number_max)
+        if(slip_coefficient_status->heading_estimate_status_count < estimated_buffer_number_max)
         {
           ++slip_coefficient_status->heading_estimate_status_count;
         }
         else
         {
-          slip_coefficient_status->heading_estimate_status_count = slip_coefficient_parameter.estimated_number_max;
+          slip_coefficient_status->heading_estimate_status_count = estimated_buffer_number_max;
         }
 
-        if(slip_coefficient_status->heading_estimate_status_count > slip_coefficient_parameter.estimated_number_min)
+        if(slip_coefficient_status->heading_estimate_status_count > estimated_buffer_number_min)
           {
             double sum_xy_avg,sum_x_square = 0.0;
             acceleration_y_buffer_length = std::distance(slip_coefficient_status->acceleration_y_buffer.begin(), slip_coefficient_status->acceleration_y_buffer.end());

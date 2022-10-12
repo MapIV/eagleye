@@ -39,6 +39,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
   int i,index_max;
   double yawrate = 0.0 , rtk_heading_angle = 0.0;
   double avg = 0.0,tmp_heading_angle;
+  double estimated_heading_buffer = 2;
   bool gnss_status;
   std::size_t index_length;
   std::size_t time_buffer_length;
@@ -46,13 +47,18 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
   std::size_t inversion_down_index_length;
   std::vector<double>::iterator max;
 
-  if (heading_status->estimated_number  < heading_parameter.estimated_number_max)
+  double estimated_buffer_number_min = heading_parameter.estimated_minimum_interval * heading_parameter.imu_rate;
+  double estimated_buffer_number_max = heading_parameter.estimated_maximum_interval * heading_parameter.imu_rate;
+  double enabled_data_ratio = heading_parameter.gnss_rate / heading_parameter.imu_rate * heading_parameter.gnss_receiving_threshold;
+  double remain_data_ratio = enabled_data_ratio * heading_parameter.outlier_ratio_threshold;
+
+  if (heading_status->estimated_number  < estimated_buffer_number_max)
   {
     ++heading_status->estimated_number ;
   }
   else
   {
-    heading_status->estimated_number  = heading_parameter.estimated_number_max;
+    heading_status->estimated_number  = estimated_buffer_number_max;
   }
 
   yawrate = imu.angular_velocity.z;
@@ -71,9 +77,9 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
   int distance_length;
   distance_length = std::distance(heading_status->distance_buffer.begin(), heading_status->distance_buffer.end());
 
-  while (heading_status->distance_buffer[distance_length-1] - heading_status->distance_buffer[0] > heading_parameter.estimated_distance)
+  while (heading_status->distance_buffer[distance_length-1] - heading_status->distance_buffer[0] > heading_parameter.update_distance)
   {
-    if (distance_length <= heading_parameter.estimated_heading_buffer_min)
+    if (distance_length <= estimated_heading_buffer)
     {
       break;
     }
@@ -92,7 +98,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
   gga_length = std::distance(heading_status->gga_status_buffer.begin(), heading_status->gga_status_buffer.end());
 
   if (heading_status->gga_status_buffer[0] == 4 && heading_status->gga_status_buffer[gga_length-1] == 4 &&
-    abs(yawrate) < heading_parameter.estimated_yawrate_threshold)
+    abs(yawrate) < heading_parameter.curve_judgment_threshold)
   {
     tmp_llh[0] = heading_status->latitude_buffer[0] *M_PI/180;
     tmp_llh[1] = heading_status->longitude_buffer[0]*M_PI/180;
@@ -116,7 +122,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
 
   if (heading_status->tow_last  == gga.header.stamp.toSec() || gga.header.stamp.toSec() == 0 || rtk_heading_angle == 0 ||
       heading_status->last_rtk_heading_angle == rtk_heading_angle ||
-      velocity.twist.linear.x < heading_parameter.stop_judgment_velocity_threshold)
+      velocity.twist.linear.x < heading_parameter.stop_judgment_threshold)
   {
     gnss_status = false;
     rtk_heading_angle = 0;
@@ -142,7 +148,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
 
-  if (time_buffer_length > heading_parameter.estimated_number_max)
+  if (time_buffer_length > estimated_buffer_number_max)
   {
     heading_status->time_buffer .erase(heading_status->time_buffer .begin());
     heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
@@ -158,10 +164,10 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  if (heading_status->estimated_number  > heading_parameter.estimated_number_min &&
+  if (heading_status->estimated_number  > estimated_buffer_number_min &&
     heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
-    heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.estimated_velocity_threshold &&
-    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.estimated_yawrate_threshold)
+    heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.slow_judgment_threshold &&
+    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.curve_judgment_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -178,7 +184,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
       {
         gnss_index.push_back(i);
       }
-      if (heading_status->correction_velocity_buffer [i] > heading_parameter.estimated_velocity_threshold)
+      if (heading_status->correction_velocity_buffer [i] > heading_parameter.slow_judgment_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -189,7 +195,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
 
     index_length = std::distance(index.begin(), index.end());
 
-    if (index_length > heading_status->estimated_number  * heading_parameter.estimated_gnss_coefficient)
+    if (index_length > heading_status->estimated_number  * enabled_data_ratio)
     {
       std::vector<double> provisional_heading_angle_buffer(heading_status->estimated_number , 0);
 
@@ -197,7 +203,7 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
       {
         if (i > 0)
         {
-          if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.stop_judgment_velocity_threshold)
+          if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.stop_judgment_threshold)
           {
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +
               ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) *
@@ -288,13 +294,13 @@ void rtk_heading_estimate(nmea_msgs::Gpgga gga,sensor_msgs::Imu imu,geometry_msg
 
         index_length = std::distance(index.begin(), index.end());
 
-        if (index_length < heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
+        if (index_length < heading_status->estimated_number  * remain_data_ratio)
         {
           break;
         }
       }
 
-      if (index_length == 0 || index_length > heading_status->estimated_number  * heading_parameter.estimated_heading_coefficient)
+      if (index_length == 0 || index_length > heading_status->estimated_number  * remain_data_ratio)
       {
         if (index[index_length-1] == heading_status->estimated_number -1)
         {
