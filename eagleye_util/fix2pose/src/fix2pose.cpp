@@ -210,7 +210,7 @@ int main(int argc, char** argv)
   std::string fix_name;
   if(!_fix_only_publish)
   {
-    fix_name = "eagleye/rtk_fix";
+    fix_name = "eagleye/fix";
   }
   else {
     fix_name = "navsat/fix";

@@ -126,6 +126,13 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     base_link2imu_.transform.translation.y = y;
     base_link2imu_.transform.translation.z = z;
     base_link2imu_.transform.rotation = geometry_quat;
+
+    tf2::Quaternion tf2_quat_gnss;
+    double gnss_roll = conf["gnss"]["base_link2gnss"]["roll"].as<double>();
+    double gnss_pitch = conf["gnss"]["base_link2gnss"]["pitch"].as<double>();
+    double gnss_yaw = conf["gnss"]["base_link2gnss"]["yaw"].as<double>();
+    tf2_quat_gnss.setRPY(gnss_roll, gnss_pitch, gnss_yaw);
+    geometry_msgs::Quaternion geometry_quat_gnss = tf2::toMsg(tf2_quat_gnss);
   
     // eagleye_rt params
 
@@ -158,6 +165,13 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     position_parameter_.ecef_base_pos_x = conf["position"]["ecef_base_pos_x"].as<double>();
     position_parameter_.ecef_base_pos_y = conf["position"]["ecef_base_pos_y"].as<double>();
     position_parameter_.ecef_base_pos_z = conf["position"]["ecef_base_pos_z"].as<double>();
+    position_parameter_.tf_gnss_translation_x = conf["gnss"]["base_link2gnss"]["x"].as<double>();
+    position_parameter_.tf_gnss_translation_y = conf["gnss"]["base_link2gnss"]["y"].as<double>();
+    position_parameter_.tf_gnss_translation_z = conf["gnss"]["base_link2gnss"]["z"].as<double>();
+    position_parameter_.tf_gnss_rotation_x = geometry_quat_gnss.x;
+    position_parameter_.tf_gnss_rotation_y = geometry_quat_gnss.y;
+    position_parameter_.tf_gnss_rotation_z = geometry_quat_gnss.z;
+    position_parameter_.tf_gnss_rotation_w = geometry_quat_gnss.w;
 
     slip_angle_parameter_.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
     slip_angle_parameter_.stop_judgment_velocity_threshold = conf["slip_angle"]["stop_judgment_velocity_threshold"].as<double>();

@@ -14,6 +14,7 @@
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
     <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
+    <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
 
     <rosparam command="load" file="$(arg yaml_file)"/>
 

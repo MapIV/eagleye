@@ -39,11 +39,11 @@
 static sensor_msgs::Imu _imu;
 static rtklib_msgs::RtklibNav _rtklib_nav;
 static sensor_msgs::NavSatFix _rtklib_fix;
-static nmea_msgs::Gpgga _gga;
+static nmea_msgs::Gpgga::ConstPtr _gga_ptr;
 static geometry_msgs::TwistStamped _velocity;
 static geometry_msgs::TwistStamped _correction_velocity;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
-static eagleye_msgs::Distance _distance;
+eagleye_msgs::Distance::ConstPtr _distance_ptr;
 static eagleye_msgs::Heading _heading_1st;
 static eagleye_msgs::Heading _heading_interpolate_1st;
 static eagleye_msgs::Heading _heading_2nd;
@@ -97,10 +97,14 @@ static double _eagleye_twist_time_last;
 bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_velocity_scale_factor_percent = 20;
-double _th_diff_rad_per_sec = 0.17453;
+double _th_diff_rad_per_sec = 0.17453; // [rad/sec]
 int _num_continuous_abnormal_yawrate = 0;
 int _th_num_continuous_abnormal_yawrate = 10;
+
+bool _use_rtk_deadreckoning = false;
+eagleye_msgs::Distance _previous_distance;
+double _dr_distance = 0; // dead reckoning distance
+double _th_dr_distance = 100.0; // [m]
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -114,7 +118,7 @@ void rtklib_fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg)
 
 void navsatfix_gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
-  _gga = *msg;
+  _gga_ptr = msg;
   _gga_sub_status = true;
 }
 
@@ -135,7 +139,14 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
 
 void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 {
-  _distance = *msg;
+  if (_distance_ptr != nullptr && _gga_ptr != nullptr){
+    double delta_distance = _distance_ptr->distance - _previous_distance.distance;
+    _dr_distance += delta_distance;
+    if(int(_gga_ptr->gps_qual) == 4) {
+      _dr_distance = 0;
+    }
+  }
+  _distance_ptr = msg;
 }
 
 void heading_1st_callback(const eagleye_msgs::Heading::ConstPtr& msg)
@@ -276,12 +287,12 @@ void navsat_fix_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (_navsat_gga_time_last - _gga.header.stamp.toSec() > _th_gnss_deadrock_time || !_gga_sub_status) {
+  if (_gga_ptr == nullptr ||  _navsat_gga_time_last - _gga_ptr->header.stamp.toSec() > _th_gnss_deadrock_time || !_gga_sub_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
 
-  _navsat_gga_time_last = _gga.header.stamp.toSec();
+  if (_gga_ptr != nullptr)  _navsat_gga_time_last = _gga_ptr->header.stamp.toSec();
   stat.summary(level, msg);
 }
 
@@ -308,17 +319,24 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
-  else if (_th_velocity_scale_factor_percent / 100 < std::abs(1.0 - _velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "Estimated velocity scale factor is too large or too small";
-  }
   else if (!_velocity_scale_factor.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_velocity_scale_factor.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if (_velocity_scale_factor.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "Estimated velocity scale factor is NaN or infinete";
+    }
+    else if (_velocity_scale_factor.status.error_code == eagleye_msgs::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "Estimated velocity scale factor is too large or too small";
+    }
+    else
+    {
+      msg = "abnormal error of velocity_scale_factor";
+    }
   }
 
   _velocity_scale_factor_time_last = _velocity_scale_factor.header.stamp.toSec();
@@ -330,20 +348,20 @@ void distance_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (_distance_time_last == _distance.header.stamp.toSec()) {
+  if (_distance_ptr == nullptr || _distance_time_last == _distance_ptr->header.stamp.toSec()) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_distance.distance)) {
+  else if (!std::isfinite(_distance_ptr->distance)) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     msg = "invalid number";
   }
-  else if (!_distance.status.enabled_status) {
+  else if (!_distance_ptr->status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
 
-  _distance_time_last = _distance.header.stamp.toSec();
+  if (_distance_ptr != nullptr) _distance_time_last = _distance_ptr->header.stamp.toSec();
   stat.summary(level, msg);
 }
 
@@ -487,13 +505,20 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_stop.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_stop.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_stop.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_stop";
+    }
   }
 
   _yawrate_offset_stop_time_last = _yawrate_offset_stop.header.stamp.toSec();
@@ -509,13 +534,20 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_1st.yawrate_offset)) {
-    level = diagnostic_msgs::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_1st.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_1st.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_1st.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_1st";
+    }
   }
 
   _yawrate_offset_1st_time_last = _yawrate_offset_1st.header.stamp.toSec();
@@ -538,6 +570,17 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
   else if (!_yawrate_offset_2nd.status.enabled_status) {
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (!_yawrate_offset_2nd.status.is_abnormal) {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_2nd";
+    }
   }
 
   _yawrate_offset_2nd_time_last = _yawrate_offset_2nd.header.stamp.toSec();
@@ -722,6 +765,21 @@ void corrected_imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & s
   stat.summary(level, msg);
 }
 
+void dr_distance_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+{
+  int8_t level = diagnostic_msgs::DiagnosticStatus::OK;
+  std::string msg = "OK";
+
+  if(_th_dr_distance < _dr_distance)
+  {
+    level = diagnostic_msgs::DiagnosticStatus::ERROR;
+    msg = "The dead reckoning interval is too large";
+  }
+
+  stat.summary(level, msg);
+
+}
+
 void printStatus(void)
 {
   std::cout << std::endl;
@@ -753,11 +811,11 @@ void printStatus(void)
 
   if(_gga_sub_status)
   {
-    std::cout<< "\033[1m rtk status \033[m "<<int(_gga.gps_qual)<<std::endl;
-    std::cout<< "\033[1m rtk status \033[m "<<(int(_gga.gps_qual)!=4 ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
-    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<_gga.lat<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<_gga.lon<<" [deg]"<<std::endl;
-    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<_gga.alt + _gga.undulation<<" [m]"<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<int(_gga_ptr->gps_qual)<<std::endl;
+    std::cout<< "\033[1m rtk status \033[m "<<(int(_gga_ptr->gps_qual)!=4 ? "\033[1;31mNo Fix\033[m" : "\033[1;32mFix\033[m")<<std::endl;
+    std::cout<<"\033[1m latitude  \033[m"<<std::setprecision(8)<<_gga_ptr->lat<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m longitude  \033[m"<<std::setprecision(8)<<_gga_ptr->lon<<" [deg]"<<std::endl;
+    std::cout<<"\033[1m altitude  \033[m"<<std::setprecision(4)<<_gga_ptr->alt + _gga_ptr->undulation<<" [m]"<<std::endl;
     std::cout << std::endl;
   }
   else
@@ -890,9 +948,17 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _correction_velocity.twist.angular.z << ",";
   output_log_file << (_velocity_scale_factor.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_velocity_scale_factor.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance.distance << ",";
-  output_log_file << (_distance.status.enabled_status ? "1" : "0") << ",";
-  output_log_file << (_distance.status.estimate_status ? "1" : "0") << ",";
+  if(_distance_ptr != nullptr)
+  {
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _distance_ptr->distance << ",";
+    output_log_file << (_distance_ptr->status.enabled_status ? "1" : "0") << ",";
+    output_log_file << (_distance_ptr->status.estimate_status ? "1" : "0") << ",";
+  } else
+  {
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ",";
+    output_log_file << 0 << ",";
+    output_log_file << 0 << ",";
+  }
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_1st.heading_angle << ",";
   output_log_file << (_heading_1st.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_heading_1st.status.estimate_status ? "1" : "0") << ",";
@@ -963,11 +1029,21 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _rolling.rolling_angle << ",";
   output_log_file << (_rolling.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_rolling.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _gga.header.stamp.toNSec() << ","; //timestamp
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.lat << ","; //gga_llh.latitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.lon << ","; //gga_llh.longitude
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga.alt +  _gga.undulation<< ","; //gga_llh.altitude
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga.gps_qual) << ","; //gga_llh.gps_qual
+  if(_gga_ptr != nullptr)
+  {
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << _gga_ptr->header.stamp.toNSec() << ","; //timestamp
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lat << ","; //gga_llh.latitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->lon << ","; //gga_llh.longitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _gga_ptr->alt +  _gga_ptr->undulation<< ","; //gga_llh.altitude
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << int(_gga_ptr->gps_qual) << ","; //gga_llh.gps_qual
+  } else
+  {
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //timestamp
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //gga_llh.latitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; //gga_llh.longitude
+    output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0<< ","; //gga_llh.altitude
+    output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << 0 << ","; //gga_llh.gps_qual
+  }
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.latitude << ","; //eagleye_pp_llh.latitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.longitude << ","; //eagleye_pp_llh.longitude
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _eagleye_fix.altitude << ","; //eagleye_pp_llh.altitude
@@ -1033,11 +1109,12 @@ int main(int argc, char** argv)
   n.getParam("monitor/log_output_status",_log_output_status);
   n.getParam("monitor/update_rate",_update_rate);
   n.getParam("monitor/th_gnss_deadrock_time",_th_gnss_deadrock_time);
-  n.getParam("monitor/th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
   n.getParam("monitor/use_compare_yawrate",_use_compare_yawrate);
   n.getParam("monitor/comparison_twist_topic",comparison_twist_topic_name);
   n.getParam("monitor/th_diff_rad_per_sec",_th_diff_rad_per_sec);
   n.getParam("monitor/th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
+  n.getParam("use_rtk_deadreckoning",_use_rtk_deadreckoning);
+  n.getParam("monitor/th_dr_distance",_th_dr_distance);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
@@ -1047,10 +1124,11 @@ int main(int argc, char** argv)
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
   std::cout<< "update_rate "<<_update_rate<<std::endl;
   std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
-  std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
   std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
   std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
   std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
+  std::cout<< "use_rtk_deadreckoning "<<_use_rtk_deadreckoning<<std::endl;
+  std::cout<< "th_dr_distance "<<_th_dr_distance<<std::endl;
 
   // // Diagnostic Updater
   diagnostic_updater::Updater updater;
@@ -1072,7 +1150,8 @@ int main(int argc, char** argv)
   updater.add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater.add("eagleye_twist", twist_topic_checker);
-  updater.add("eagleye_corrected_imu", corrected_imu_topic_checker);
+  if(_use_compare_yawrate) updater.add("eagleye_corrected_imu", corrected_imu_topic_checker);
+  if(_use_rtk_deadreckoning) updater.add("eagleye_deadreckoning_distance", dr_distance_checker);
 
   time_t time_;
   time_ = time(NULL);
