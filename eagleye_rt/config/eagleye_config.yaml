@@ -39,7 +39,8 @@ velocity_scale_factor:
   gnss_receiving_threshold: 0.25
   velocity_scale_factor_save_str: /config/velocity_scale_factor.txt
   save_velocity_scale_factor: false                    
-  velocity_scale_factor_save_duration: 100.0          
+  velocity_scale_factor_save_duration: 100.0 
+  th_velocity_scale_factor_percent: 10.0          
 
 yawrate_offset_stop:                                  
   estimated_interval: 4
@@ -111,7 +112,6 @@ monitor:
   log_output_status: false
   update_rate: 10.0
   th_gnss_deadrock_time: 10.0
-  th_velocity_scale_factor_percent: 10.0 
   use_compare_yawrate: false                        
   comparison_twist_topic: /calculated_twist
   th_diff_rad_per_sec: 0.17453                      

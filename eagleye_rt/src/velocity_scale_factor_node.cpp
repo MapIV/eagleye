@@ -223,6 +223,7 @@ int main(int argc, char** argv)
     _velocity_scale_factor_save_str = package_path + conf["velocity_scale_factor"]["velocity_scale_factor_save_str"].as<std::string>();
     velocity_scale_factor_save_duration = conf["velocity_scale_factor"]["velocity_scale_factor_save_duration"].as<double>();
     _velocity_scale_factor_parameter.save_velocity_scale_factor = conf["velocity_scale_factor"]["save_velocity_scale_factor"].as<bool>();
+    _th_velocity_scale_factor_percent = conf["monitor"]["th_velocity_scale_factor_percent"].as<double>();
 
     std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
 
@@ -241,6 +242,7 @@ int main(int argc, char** argv)
     std::cout<< "velocity_scale_factor_save_str " << _velocity_scale_factor_save_str << std::endl;
     std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;
     std::cout<< "velocity_scale_factor_save_duration " << velocity_scale_factor_save_duration << std::endl;
+    std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
   }
   catch (YAML::Exception& e)
   {

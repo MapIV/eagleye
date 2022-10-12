@@ -1120,7 +1120,6 @@ int main(int argc, char** argv)
     _log_output_status = conf["monitor"]["log_output_status"].as<bool>();
     _update_rate = conf["monitor"]["update_rate"].as<double>();
     _th_gnss_deadrock_time = conf["monitor"]["th_gnss_deadrock_time"].as<double>();
-    _th_velocity_scale_factor_percent = conf["monitor"]["th_velocity_scale_factor_percent"].as<double>();
     _use_compare_yawrate = conf["monitor"]["use_compare_yawrate"].as<bool>();
     _th_diff_rad_per_sec = conf["monitor"]["th_diff_rad_per_sec"].as<double>();
     _th_num_continuous_abnormal_yawrate = conf["monitor"]["th_num_continuous_abnormal_yawrate"].as<double>();
@@ -1134,7 +1133,6 @@ int main(int argc, char** argv)
     std::cout<< "log_output_status "<<_log_output_status<<std::endl;
     std::cout<< "update_rate "<<_update_rate<<std::endl;
     std::cout<< "th_gnss_deadrock_time "<<_th_gnss_deadrock_time<<std::endl;
-    std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
     std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
     std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
     std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
