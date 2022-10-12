@@ -33,7 +33,7 @@ common:
   slow_judgment_threshold: 0.278
   moving_judgment_threshold: 2.78
   
-  velocity_scale_factor:                                
+velocity_scale_factor:                                
   estimated_minimum_interval: 20
   estimated_maximum_interval: 400
   gnss_receiving_threshold: 0.25
