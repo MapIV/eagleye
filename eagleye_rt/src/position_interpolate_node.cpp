@@ -99,7 +99,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "position_interpolate");
   ros::NodeHandle nh;
 
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "navsat/gga";
 
   nh.getParam("gga_topic",subscribe_gga_topic_name);
   nh.getParam("position_interpolate/number_buffer_max", _position_interpolate_parameter.number_buffer_max);

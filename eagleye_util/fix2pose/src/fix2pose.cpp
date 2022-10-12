@@ -222,8 +222,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = nh.subscribe<sensor_msgs::NavSatFix>(fix_name, 1000, boost::bind(fix_callback,_1, &tf_listener, &tf_buffer));
   ros::Subscriber sub3 = nh.subscribe("eagleye/rolling", 1000, rolling_callback);
   ros::Subscriber sub4 = nh.subscribe("eagleye/pitching", 1000, pitching_callback);
-  _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("/eagleye/pose", 1000);
-  _pose_with_covariance_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/eagleye/pose_with_covariance", 1000);
+  _pose_pub = nh.advertise<geometry_msgs::PoseStamped>("eagleye/pose", 1000);
+  _pose_with_covariance_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
   ros::spin();
 
   return 0;

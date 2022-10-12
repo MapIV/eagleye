@@ -6,7 +6,7 @@
 
   <group ns="eagleye">
 
-    <arg name="use_rtk_deadreckoning" default="false"/>
+    <arg name="use_rtk_deadreckoning" default="true"/>
     <arg name="use_rtk_heading" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
 
@@ -44,12 +44,13 @@
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="enable_additional_rolling_node" type="enable_additional_rolling" if="$(arg enable_additional_rolling)"/>
 
-  </group>
-
   <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>
+  </group>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>
 
-  <include file="$(find eagleye_fix2pose)/launch/fix2pose.launch"/>
+  <include file="$(find eagleye_fix2pose)/launch/fix2pose.launch">
+    <arg name="gnss_frame_id" default="gnss_link"/> 
+  </include>
 
 </launch>

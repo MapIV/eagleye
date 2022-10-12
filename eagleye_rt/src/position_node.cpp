@@ -148,7 +148,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "navsat/gga";
 
   nh.getParam("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   nh.getParam("gga_topic",subscribe_gga_topic_name);
