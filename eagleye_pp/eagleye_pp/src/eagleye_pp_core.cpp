@@ -257,6 +257,10 @@ void eagleye_pp::setDataLength(void)
  data_length_ = std::distance(imu_.begin(), imu_.end());
 }
 
+void eagleye_pp::setUseRTKNavsatfixTopic(bool use_rtk_navsatfix_topic)
+{
+  use_rtk_navsatfix_topic_ = use_rtk_navsatfix_topic;
+}
 
 std::size_t eagleye_pp::getDataLength(void)
 {
@@ -287,7 +291,7 @@ bool eagleye_pp::getUseBackward(void)
 
 bool eagleye_pp::getUseCombination(void)
 {
- return (output_kml_eagleye_pp_line_ || output_kml_eagleye_pp_plot_);
+ return (use_rtk_navsatfix_topic_ && (output_kml_eagleye_pp_line_ || output_kml_eagleye_pp_plot_));
 }
 
 sensor_msgs::Imu eagleye_pp::transformIMU(sensor_msgs::Imu imu_msg)

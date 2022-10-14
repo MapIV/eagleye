@@ -116,6 +116,7 @@ int main(int argc, char *argv[])
     std::cout << "\033[1;33mWarn: Cannot find the topic: " << nmea_sentence_topic  << "\033[0m" << std::endl;
     use_rtk_navsatfix_topic = false;
   }
+  eagleye_pp.setUseRTKNavsatfixTopic(use_rtk_navsatfix_topic);
 
   if (rosbag_controller.setTopic(std::string(imu_topic)))
   {

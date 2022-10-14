@@ -127,6 +127,7 @@ private:
   std::string use_gnss_mode_;
   bool use_canless_mode_;
   bool use_nmea_downsample_;
+  bool use_rtk_navsatfix_topic_;
   double nmea_downsample_freq_;
 
   struct HeadingParameter heading_parameter_;
@@ -170,6 +171,7 @@ public:
   void setParam(std::string arg_config_file, std::string *arg_twist_topic, std::string *arg_imu_topic, std::string *arg_rtklib_nav_topic,
     std::string *arg_nmea_sentence_topic);
   void setDataLength();
+  void setUseRTKNavsatfixTopic(bool use_rtk_navsatfix_topic);
   std::size_t getDataLength();
   std::string getUseGNSSMode();
   bool getUseCanlessMode();

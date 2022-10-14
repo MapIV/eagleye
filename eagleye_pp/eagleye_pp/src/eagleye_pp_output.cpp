@@ -147,7 +147,7 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
 " << std::endl;
 
   std::size_t data_length = std::distance(smoothing_trajectory_status_.begin(), smoothing_trajectory_status_.end());
-  std::cout << "data_length: " << data_length << std::endl;
+  std::cout << "smoothing_trajectory data_length: " << data_length << std::endl;
 
   // output debug file
   for(int i=0; i<data_length_; i++)
