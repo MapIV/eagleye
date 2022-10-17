@@ -40,7 +40,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   int estimate_index = 0;
   double yawrate = 0.0;
   double diff_estimate_heading_angle = 0.0;
-  bool heading_estimate_status;
+  bool heading_estimate_status = false;
   std::size_t imu_stamp_buffer_length;
 
   double search_buffer_number = heading_interpolate_parameter.sync_search_period * heading_interpolate_parameter.imu_rate;
