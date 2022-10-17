@@ -142,6 +142,7 @@ struct HeadingStatus
 {
   int tow_last;
   double rmc_time_last;
+  double ros_time_last;
   int estimated_number;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
@@ -488,6 +489,8 @@ extern void heading_estimate(const rtklib_msgs::RtklibNav, const sensor_msgs::Im
   const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter,
   HeadingStatus*,eagleye_msgs::Heading*);
 extern void heading_estimate(const nmea_msgs::Gprmc, const sensor_msgs::Imu, const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,
+  const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter, HeadingStatus*,eagleye_msgs::Heading*);
+extern void heading_estimate(const eagleye_msgs::Heading, const sensor_msgs::Imu, const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,
   const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter, HeadingStatus*,eagleye_msgs::Heading*);
 extern void position_estimate(const rtklib_msgs::RtklibNav, const geometry_msgs::TwistStamped, const eagleye_msgs::StatusStamped, const eagleye_msgs::Distance,
   const eagleye_msgs::Heading, const geometry_msgs::Vector3Stamped, const PositionParameter, PositionStatus*, eagleye_msgs::Position*);

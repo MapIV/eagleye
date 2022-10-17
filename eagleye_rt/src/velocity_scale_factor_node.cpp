@@ -193,7 +193,7 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_rmc_topic_name = "/navsat/rmc";
+  std::string subscribe_rmc_topic_name = "navsat/rmc";
 
   double velocity_scale_factor_save_duration; // [sec]
 

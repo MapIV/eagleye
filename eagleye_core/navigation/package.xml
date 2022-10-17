@@ -30,6 +30,7 @@
   <exec_depend>rtklib_msgs</exec_depend>
   <exec_depend>eagleye_msgs</exec_depend>
   <exec_depend>eagleye_coordinate</exec_depend>
+  <depend>yaml-cpp</depend>
 
   <export>
   </export>

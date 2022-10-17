@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   tf
+  tf2_ros
   eagleye_coordinate
 )
 

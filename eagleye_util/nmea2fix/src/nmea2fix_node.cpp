@@ -37,12 +37,17 @@ int main(int argc, char** argv)
 
   std::string use_gnss_mode;
 
-  n.getParam("nmea_sentence_topic",sub_topic_name);
-  n.getParam("nmea2fix_node/pub_fix_topic_name",pub_fix_topic_name);
-  n.getParam("nmea2fix_node/pub_gga_topic_name",pub_gga_topic_name);
-  n.getParam("nmea2fix_node/pub_rmc_topic_name",pub_rmc_topic_name);
-  n.getParam("nmea2fix_node/output_gga",output_gga);
-  n.getParam("nmea2fix_node/output_rmc",output_rmc);
+  std::string node_name = ros::this_node::getName();
+
+  if(!n.getParam("nmea_sentence_topic",sub_topic_name))
+  {
+    n.getParam(node_name + "/nmea_sentence_topic",sub_topic_name);
+  }
+  n.getParam(node_name + "/pub_fix_topic_name",pub_fix_topic_name);
+  n.getParam(node_name + "/pub_gga_topic_name",pub_gga_topic_name);
+  n.getParam(node_name + "/pub_rmc_topic_name",pub_rmc_topic_name);
+  n.getParam(node_name + "/output_gga",output_gga);
+  n.getParam(node_name + "/output_rmc",output_rmc);
   n.getParam("eagleye/use_gnss_mode",use_gnss_mode);
 
   if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode

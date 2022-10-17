@@ -127,7 +127,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "navsat/gga";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
