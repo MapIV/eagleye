@@ -5,3 +5,6 @@
 	path = eagleye_pp/common/multi_rosbag_controller
 	url = https://github.com/MapIV/multi_rosbag_controller.git
 
+[submodule "eagleye_util/gnss_compass_ros"]
+	path = eagleye_util/gnss_compass_ros
+	url = git@github.com:MapIV/gnss_compass_ros.git
