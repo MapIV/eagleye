@@ -89,6 +89,8 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   if (_is_first_move == false)
   {
     _velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
+    _correction_velocity.twist = _velocity.twist;
+    _pub1->publish(_correction_velocity);
     _pub2->publish(_velocity_scale_factor);
     return;
   }
