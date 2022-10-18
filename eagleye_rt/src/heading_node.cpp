@@ -103,9 +103,9 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   if (!is_first_correction_velocity) return;
   if(use_canless_mode && !velocity_status.status.enabled_status) return;
-  if(!velocity_status.status.enabled_status)
+  if(!yawrate_offset_stop.status.enabled_status)
   {
-    RCLCPP_WARN(rclcpp::get_logger(node_name), "RHeading estimation is not started because the stop calibration is not yet completed.");
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "Heading estimation is not started because the stop calibration is not yet completed.");
     return;
   }
 

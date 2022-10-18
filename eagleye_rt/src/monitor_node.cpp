@@ -516,7 +516,7 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yawrate_offset_stop.status.is_abnormal) {
+  else if (_yawrate_offset_stop.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     if(_yawrate_offset_stop.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
@@ -547,7 +547,7 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yawrate_offset_1st.status.is_abnormal) {
+  else if (_yawrate_offset_1st.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     if(_yawrate_offset_1st.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
@@ -578,7 +578,7 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yawrate_offset_2nd.status.is_abnormal) {
+  else if (_yawrate_offset_2nd.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
