@@ -164,3 +164,7 @@
     monitor:
       print_status: true
       log_output_status: false
+      use_compare_yawrate: false                        
+      comparison_twist_topic: /calculated_twist
+      th_diff_rad_per_sec: 0.17453                      
+      th_num_continuous_abnormal_yawrate: 25  
