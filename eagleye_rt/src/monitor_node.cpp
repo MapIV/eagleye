@@ -1033,13 +1033,6 @@ void outputLog(void)
   return;
 }
 
-void on_timer()
-{
-  // Diagnostic Updater
-  updater_->force_update();
-
-}
-
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   _imu.header = msg->header;
@@ -1066,7 +1059,6 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("monitor");
-  updater_ = std::make_shared<diagnostic_updater::Updater>(node);
 
   std::string subscribe_twist_topic_name = "/can_twist";
 
@@ -1093,6 +1085,9 @@ int main(int argc, char** argv)
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
 
   // // Diagnostic Updater
+  double update_time = 1.0 / _update_rate;
+  updater_ = std::make_shared<diagnostic_updater::Updater>(node, update_time);
+
   updater_->setHardwareID("eagleye_topic_checker");
   updater_->add("eagleye_input_imu", imu_topic_checker);
   updater_->add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
@@ -1152,15 +1147,6 @@ int main(int argc, char** argv)
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
 
-  double delta_time = 1.0 / static_cast<double>(_update_rate);
-
-  auto timer_callback = std::bind(on_timer);
-  const auto period_ns =
-    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));
-  auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
-    node->get_clock(), period_ns, std::move(timer_callback),
-    node->get_node_base_interface()->get_context());
-  node->get_node_timers_interface()->add_timer(timer, nullptr);
   rclcpp::spin(node);
 
   return 0;
