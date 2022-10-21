@@ -775,7 +775,8 @@ void corrected_imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & s
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if(_use_compare_yawrate && _th_diff_rad_per_sec < std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
+  if(_use_compare_yawrate && _th_diff_rad_per_sec <
+    std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
   {
     _num_continuous_abnormal_yawrate++;
   }
@@ -1198,6 +1199,7 @@ int main(int argc, char** argv)
   auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback);
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
+  auto sub27 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, 1000, comparison_velocity_callback);
 
   double delta_time = 1.0 / static_cast<double>(_update_rate);
 
