@@ -51,10 +51,6 @@
         estimated_number_max: 14000.0                       #Maximum number of data used for estimation. (default:14000 = 280s)
       2nd:
         estimated_number_max: 25000.0                       #Maximum number of data used for estimation. (default:25000 = 500s)
-      use_compare_yawrate: true
-      comparison_twist_topic: /calculated_twist
-      th_diff_rad_per_sec: 0.17453
-      th_num_continuous_abnormal_yawrate: 25
 
     heading:                                              #Parameters for estimating the azimuth of a car
       estimated_number_min: 500.0                           #Minimum number of data used for estimation. (default:500 = 10s)
