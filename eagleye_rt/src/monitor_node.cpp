@@ -63,7 +63,6 @@ static eagleye_msgs::msg::Position _enu_absolute_pos_interpolate;
 static sensor_msgs::msg::NavSatFix _eagleye_fix;
 static geometry_msgs::msg::TwistStamped _eagleye_twist;
 
-static geometry_msgs::msg::TwistStamped::ConstSharedPtr _comparison_velocity_ptr;
 static sensor_msgs::msg::Imu _corrected_imu;
 
 static bool _gga_sub_status;
@@ -93,12 +92,8 @@ static double _enu_absolute_pos_time_last;
 static double _enu_absolute_pos_interpolate_time_last;
 static double _eagleye_twist_time_last;
 
-bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_diff_rad_per_sec = 0.17453;
-int _num_continuous_abnormal_yawrate = 0;
-int _th_num_continuous_abnormal_yawrate = 10;
 
 std::shared_ptr<diagnostic_updater::Updater> updater_;
 
@@ -231,11 +226,6 @@ void eagleye_fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   _eagleye_twist = *msg;
-}
-
-void comparison_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
-{
-  _comparison_velocity_ptr = msg;
 }
 
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -558,6 +548,10 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     {
       msg = "estimate value is NaN or infinete";
     }
+    else if(_yawrate_offset_1st.status.error_code == eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "estimate value is too large or too small ";
+    }
     else
     {
       msg = "abnormal error of yawrate_offset_1st";
@@ -588,6 +582,10 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
       msg = "estimate value is NaN or infinete";
+    }
+    else if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "estimate value is too large or too small ";
     }
     else
     {
@@ -762,33 +760,6 @@ void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   }
 
   _eagleye_twist_time_last = eagleye_twist_time;
-  stat.summary(level, msg);
-}
-
-void corrected_imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
-{
-  if(_comparison_velocity_ptr == nullptr)
-  {
-    return;
-  }
-
-  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
-  std::string msg = "OK";
-
-  if(_use_compare_yawrate && _th_diff_rad_per_sec <
-    std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
-  {
-    _num_continuous_abnormal_yawrate++;
-  }
-  else
-  {
-    _num_continuous_abnormal_yawrate = 0;
-  }
-
-  if (_num_continuous_abnormal_yawrate > _th_num_continuous_abnormal_yawrate) {
-    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    msg = "Corrected yaw rate too large or too small";
-  }
   stat.summary(level, msg);
 }
 
@@ -1105,39 +1076,25 @@ int main(int argc, char** argv)
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
-  std::string comparison_twist_topic_name = "/calculated_twist";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("comparison_twist_topic",comparison_twist_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
-  node->declare_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
-  node->declare_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->declare_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
-  node->get_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
-  node->get_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->get_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
-  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
-  if(_use_compare_yawrate) {
-  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
-  std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
-  std::cout<< "th_num_continuous_abnormal_yawrate "<<_th_num_continuous_abnormal_yawrate<<std::endl;
-  }
 
   // // Diagnostic Updater
   updater_->setHardwareID("eagleye_topic_checker");
@@ -1163,7 +1120,6 @@ int main(int argc, char** argv)
   updater_->add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater_->add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_->add("eagleye_twist", twist_topic_checker);
-  if(_use_compare_yawrate) updater_->add("eagleye_corrected_imu", corrected_imu_topic_checker);
 
   time_t time_;
   time_ = time(NULL);
@@ -1199,7 +1155,6 @@ int main(int argc, char** argv)
   auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback);
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
-  auto sub27 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, 1000, comparison_velocity_callback);
 
   double delta_time = 1.0 / static_cast<double>(_update_rate);
 
