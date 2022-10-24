@@ -39,7 +39,6 @@ static eagleye_msgs::msg::Heading _heading_interpolate;
 static sensor_msgs::msg::Imu _imu;
 rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr _pub;
 static eagleye_msgs::msg::YawrateOffset _yawrate_offset;
-static geometry_msgs::msg::TwistStamped::ConstSharedPtr _comparison_velocity_ptr;
 
 struct YawrateOffsetParameter _yawrate_offset_parameter;
 struct YawrateOffsetStatus _yawrate_offset_status;
@@ -48,11 +47,6 @@ bool _is_first_heading = false;
 static bool _use_canless_mode = false;
 
 double _previous_yawrate_offset = 0.0;
-
-bool _use_compare_yawrate = false;
-double _th_diff_rad_per_sec = 0.17453;
-int _num_continuous_abnormal_yawrate = 0;
-int _th_num_continuous_abnormal_yawrate = 10;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
@@ -88,30 +82,10 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   yawrate_offset_estimate(_velocity,_yawrate_offset_stop,_heading_interpolate,_imu,_yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
 
   _yawrate_offset.status.is_abnormal = false;
-  if (!std::isfinite(_yawrate_offset.yawrate_offset))
-  {
-    _yawrate_offset.yawrate_offset =_previous_yawrate_offset;
+  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
+    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset;
     _yawrate_offset.status.is_abnormal = true;
     _yawrate_offset.status.error_code = eagleye_msgs::msg::Status::NAN_OR_INFINITE;
-  }
-  else if(_use_compare_yawrate || _comparison_velocity_ptr != nullptr)
-  {
-    double corrected_angular_velocity_z =  -1 * (_imu.angular_velocity.z + _yawrate_offset.yawrate_offset);
-          std::cout << "corrected_angular_velocity_z" << corrected_angular_velocity_z << std::endl;
-      std::cout << "_comparison_velocity_ptr->twist.angular.z" << _comparison_velocity_ptr->twist.angular.z << std::endl;
-    if(_th_diff_rad_per_sec <
-    std::abs(corrected_angular_velocity_z - _comparison_velocity_ptr->twist.angular.z))
-    {
-      _num_continuous_abnormal_yawrate++;
-    }
-    else
-    {
-      _num_continuous_abnormal_yawrate = 0;
-    }
-    if (_num_continuous_abnormal_yawrate > _th_num_continuous_abnormal_yawrate) {
-      _yawrate_offset.status.is_abnormal = true;
-      _yawrate_offset.status.error_code = eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL;
-    }
   }
   else
   {
@@ -122,51 +96,31 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   _yawrate_offset.status.estimate_status = false;
 }
 
-void comparison_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
-{
-  if(_comparison_velocity_ptr == nullptr)
-  {
-    RCLCPP_WARN(rclcpp::get_logger("yawrate_offset"), "The comparison twist is not subscribed.");
-  }
-  _comparison_velocity_ptr = msg;
-}
-
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("yawrate_offset");
 
-  std::string comparison_twist_topic_name = "/calculated_twist";
+
+
 
   node->declare_parameter("yawrate_offset.estimated_number_min",_yawrate_offset_parameter.estimated_number_min);
   node->declare_parameter("yawrate_offset.estimated_coefficient",_yawrate_offset_parameter.estimated_coefficient);
   node->declare_parameter("yawrate_offset.estimated_velocity_threshold",_yawrate_offset_parameter.estimated_velocity_threshold);
   node->declare_parameter("yawrate_offset.outlier_threshold",_yawrate_offset_parameter.outlier_threshold);
   node->declare_parameter("use_canless_mode",_use_canless_mode);
-  node->declare_parameter("yawrate_offset.use_compare_yawrate",_use_compare_yawrate);
-  node->declare_parameter("yawrate_offset.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->declare_parameter("yawrate_offset.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   node->get_parameter("yawrate_offset.estimated_number_min",_yawrate_offset_parameter.estimated_number_min);
   node->get_parameter("yawrate_offset.estimated_coefficient",_yawrate_offset_parameter.estimated_coefficient);
   node->get_parameter("yawrate_offset.estimated_velocity_threshold",_yawrate_offset_parameter.estimated_velocity_threshold);
   node->get_parameter("yawrate_offset.outlier_threshold",_yawrate_offset_parameter.outlier_threshold);
   node->get_parameter("use_canless_mode",_use_canless_mode);
-  node->get_parameter("yawrate_offset.use_compare_yawrate",_use_compare_yawrate);
-  node->get_parameter("yawrate_offset.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->get_parameter("yawrate_offset.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   std::cout<< "estimated_number_min "<<_yawrate_offset_parameter.estimated_number_min<<std::endl;
   std::cout<< "estimated_coefficient "<<_yawrate_offset_parameter.estimated_coefficient<<std::endl;
   std::cout<< "estimated_velocity_threshold "<<_yawrate_offset_parameter.estimated_velocity_threshold<<std::endl;
   std::cout<< "outlier_threshold "<<_yawrate_offset_parameter.outlier_threshold<<std::endl;
   std::cout<< "use_canless_mode "<<_use_canless_mode<<std::endl;
-  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
-  if(_use_compare_yawrate) {
-  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
-  std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
-  std::cout<< "th_num_continuous_abnormal_yawrate "<<_th_num_continuous_abnormal_yawrate<<std::endl;
-  }
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
@@ -191,7 +145,8 @@ int main(int argc, char** argv)
     }
     else
     {
-      RCLCPP_ERROR(node->get_logger(),"Invalid argument");
+      // RCLCPP_ERROR(node->get_logger(),"Invalid argument");
+      RCLCPP_ERROR(node->get_logger(), "No arguments");
       rclcpp::shutdown();
     }
   }
@@ -201,11 +156,10 @@ int main(int argc, char** argv)
     rclcpp::shutdown();
   }
 
-  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);
-  auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
-  auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, rclcpp::QoS(10), comparison_velocity_callback);
+  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name, 1000, heading_interpolate_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
   _pub = node->create_publisher<eagleye_msgs::msg::YawrateOffset>(publish_topic_name, rclcpp::QoS(10));
 
   rclcpp::spin(node);
