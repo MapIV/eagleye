@@ -63,7 +63,6 @@ static eagleye_msgs::msg::Position _enu_absolute_pos_interpolate;
 static sensor_msgs::msg::NavSatFix _eagleye_fix;
 static geometry_msgs::msg::TwistStamped _eagleye_twist;
 
-static geometry_msgs::msg::TwistStamped::ConstSharedPtr _comparison_velocity_ptr;
 static sensor_msgs::msg::Imu _corrected_imu;
 
 static bool _gga_sub_status;
@@ -93,12 +92,8 @@ static double _enu_absolute_pos_time_last;
 static double _enu_absolute_pos_interpolate_time_last;
 static double _eagleye_twist_time_last;
 
-bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_diff_rad_per_sec = 0.17453;
-int _num_continuous_abnormal_yawrate = 0;
-int _th_num_continuous_abnormal_yawrate = 10;
 
 std::shared_ptr<diagnostic_updater::Updater> updater_;
 
@@ -553,6 +548,10 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     {
       msg = "estimate value is NaN or infinete";
     }
+    else if(_yawrate_offset_1st.status.error_code == eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "estimate value is too large or too small ";
+    }
     else
     {
       msg = "abnormal error of yawrate_offset_1st";
@@ -583,6 +582,10 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
       msg = "estimate value is NaN or infinete";
+    }
+    else if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "estimate value is too large or too small ";
     }
     else
     {
@@ -737,6 +740,7 @@ void enu_absolute_pos_interpolate_topic_checker(diagnostic_updater::DiagnosticSt
   _enu_absolute_pos_interpolate_time_last = enu_absolute_pos_interpolate_time;
   stat.summary(level, msg);
 }
+
 void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   rclcpp::Time ros_clock(_eagleye_twist.header.stamp);
