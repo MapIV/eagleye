@@ -170,4 +170,4 @@ Eagleye is provided under the [BSD 3-Clause](https://github.com/MapIV/eagleye/bl
 
 ## Contacts
 
-If you have further question, email to map4@tier4.jp.
+If you have further question, email to support@map4.jp.
