@@ -233,6 +233,12 @@ void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedP
   _eagleye_twist = *msg;
 }
 
+void comparison_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+{
+  _comparison_velocity_ptr = msg;
+}
+
+
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   rclcpp::Time ros_clock(_imu.header.stamp);
@@ -759,6 +765,33 @@ void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   stat.summary(level, msg);
 }
 
+void imu_comparison_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+{
+  if(_comparison_velocity_ptr == nullptr)
+  {
+    return;
+  }
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+  std::string msg = "OK";
+
+  if(_use_compare_yawrate && _th_diff_rad_per_sec <
+    std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
+  {
+    _num_continuous_abnormal_yawrate++;
+  }
+  else
+  {
+    _num_continuous_abnormal_yawrate = 0;
+  }
+
+  if (_num_continuous_abnormal_yawrate > _th_num_continuous_abnormal_yawrate) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    msg = "IMU Yaw Rate too large or too small compared to reference twist";
+  }
+  stat.summary(level, msg);
+}
+
 void printStatus(void)
 {
   std::cout << std::endl;
@@ -1064,25 +1097,40 @@ int main(int argc, char** argv)
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string comparison_twist_topic_name = "/calculated_twist";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
+  node->declare_parameter("comparison_twist_topic",comparison_twist_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
+  node->declare_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->declare_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
+  node->declare_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
+  node->get_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->get_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
+  node->get_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
+
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
+  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
+  if(_use_compare_yawrate) {
+  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
+  std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
+  std::cout<< "th_num_continuous_abnormal_yawrate "<<_th_num_continuous_abnormal_yawrate<<std::endl;
+  }
 
   // // Diagnostic Updater
   double update_time = 1.0 / _update_rate;
@@ -1111,6 +1159,7 @@ int main(int argc, char** argv)
   updater_->add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater_->add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_->add("eagleye_twist", twist_topic_checker);
+  if(_use_compare_yawrate) updater_->add("eagleye_imu_comparison", imu_comparison_checker);
 
   time_t time_;
   time_ = time(NULL);
@@ -1146,6 +1195,7 @@ int main(int argc, char** argv)
   auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback);
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
+  auto sub27 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, 1000, comparison_velocity_callback);
 
   rclcpp::spin(node);
 
