@@ -24,8 +24,8 @@ add_library(nmea2fix
   src/nmea2fix_core.cpp
 )
 
-install(DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+install(DIRECTORY include/nmea2fix/
+  DESTINATION include/nmea2fix/
   FILES_MATCHING PATTERN "*.hpp"
 )
 
@@ -44,7 +44,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 add_executable(nmea2fix_node src/nmea2fix_node.cpp)
-target_link_libraries(nmea2fix_node ${catkin_LIBRARIES} )
+target_link_libraries(nmea2fix_node ${catkin_LIBRARIES})
 add_dependencies(nmea2fix_node ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS
