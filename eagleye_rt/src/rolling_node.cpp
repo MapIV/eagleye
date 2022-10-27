@@ -77,19 +77,30 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
 
 void setParam(rclcpp::Node::SharedPtr node)
 {
-  node->declare_parameter("rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("rolling.filter_process_noise",_rolling_parameter.filter_process_noise);
-  node->declare_parameter("rolling.filter_observation_noise",_rolling_parameter.filter_observation_noise);
-  node->declare_parameter("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("rolling.filter_process_noise",_rolling_parameter.filter_process_noise);
-  node->get_parameter("rolling.filter_observation_noise",_rolling_parameter.filter_observation_noise);
-  node->get_parameter("use_canless_mode",_use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout << "stop_judgment_velocity_threshold " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
-  std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
+    _use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    _rolling_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    _rolling_parameter.filter_process_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_process_noise"].as<double>();
+    _rolling_parameter.filter_observation_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_observation_noise"].as<double>();
+
+    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
+    std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mrolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 }
 
 void rolling_node(rclcpp::Node::SharedPtr node)

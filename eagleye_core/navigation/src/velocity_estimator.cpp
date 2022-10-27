@@ -47,8 +47,11 @@ void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_count_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitchrate_offset"]["buffer_count_max"].as<double>();
-    // std::cout<< "buffer_count_max "<<param.buffer_count_max<<std::endl;
+    param.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    param.estimated_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitchrate_offset"]["estimated_interval"].as<double>();
+    param.buffer_count_max = param.imu_rate * param.estimated_interval;
+    // std::cout<< "imu_rate "<<param.imu_rate<<std::endl;
+    // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;  
   }
   catch (YAML::Exception& e)
   {
@@ -102,15 +105,26 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["buffer_max"].as<int>();
+    param.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    param.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+    param.estimated_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_interval"].as<double>();
+    param.buffer_max = param.imu_rate * param.estimated_interval;
     param.outlier_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["outlier_threshold"].as<double>();
-    param.estimated_velocity_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_velocity_threshold"].as<double>();
-    param.estimated_gnss_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_gnss_coefficient"].as<double>();
-    param.estimated_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["estimated_coefficient"].as<double>();
+    param.slow_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["slow_judgment_threshold"].as<double>();
+    param.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["gnss_receiving_threshold"].as<double>();
+    param.estimated_gnss_coefficient = param.gnss_rate/param.imu_rate * param.gnss_receiving_threshold;
+    param.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitching"]["outlier_ratio_threshold"].as<double>();
+    param.estimated_coefficient = param.estimated_gnss_coefficient * param.outlier_ratio_threshold;
+
+    // std::cout<< "imu_rate "<<param.imu_rate<<std::endl;
+    // std::cout<< "gnss_rate "<<param.gnss_rate<<std::endl;
+    // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;
     // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
     // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
-    // std::cout<< "estimated_velocity_threshold "<<param.estimated_velocity_threshold<<std::endl;
+    // std::cout<< "slow_judgment_threshold "<<param.slow_judgment_threshold<<std::endl;
+    // std::cout<< "gnss_receiving_threshold "<<param.gnss_receiving_threshold<<std::endl;
     // std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
+    // std::cout<< "outlier_ratio_threshold "<<param.outlier_ratio_threshold<<std::endl;
     // std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
   }
   catch (YAML::Exception& e)
@@ -127,8 +141,8 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 {
   bool use_gnss_status = false;
 
-  if (doppler_velocity > param.estimated_velocity_threshold ||
-      rtkfix_velocity > param.estimated_velocity_threshold)
+  if (doppler_velocity > param.slow_judgment_threshold ||
+      rtkfix_velocity > param.slow_judgment_threshold)
   {
     use_gnss_status = true;
   }
@@ -231,12 +245,19 @@ void VelocityEstimator::AccelerationOffsetEstimator::setParam(std::string yaml_f
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-    param.buffer_min = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["buffer_min"].as<double>();
-    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["buffer_max"].as<double>();
+    param.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    param.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+    param.estimated_minimum_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["estimated_minimum_interval"].as<double>();
+    param.estimated_maximum_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["estimated_maximum_interval"].as<double>();
+    param.buffer_min = param.imu_rate * param.estimated_minimum_interval;
+    param.buffer_max = param.imu_rate * param.estimated_maximum_interval;
     param.filter_process_noise = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["filter_process_noise"].as<double>();
     param.filter_observation_noise = conf["/**"]["ros__parameters"]["velocity_estimator"]["acceleration_offset"]["filter_observation_noise"].as<double>();
-    // std::cout<< "buffer_min "<<param.buffer_min<<std::endl;
-    // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
+
+    // std::cout<< "imu_rate "<<param.imu_rate<<std::endl;
+    // std::cout<< "gnss_rate "<<param.gnss_rate<<std::endl;
+    // std::cout<< "estimated_minimum_interval "<<param.estimated_minimum_interval<<std::endl;
+    // std::cout<< "estimated_maximum_interval "<<param.estimated_maximum_interval<<std::endl;
     // std::cout<< "filter_process_noise "<<param.filter_process_noise<<std::endl;
     // std::cout<< "filter_observation_noise "<<param.filter_observation_noise<<std::endl;
   }
@@ -368,30 +389,38 @@ void VelocityEstimator::setParam(std::string yaml_file)
     param.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
     param.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
 
+    param.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    param.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+
     param.gga_downsample_time = conf["/**"]["ros__parameters"]["velocity_estimator"]["gga_downsample_time"].as<double>();
     param.stop_judgment_velocity_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["stop_judgment_velocity_threshold"].as<double>();
-    param.stop_judgment_buffer_maxnum = conf["/**"]["ros__parameters"]["velocity_estimator"]["stop_judgment_buffer_maxnum"].as<double>();
+    param.stop_judgment_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["stop_judgment_interval"].as<double>();
+    param.stop_judgment_buffer_maxnum =  param.stop_judgment_buffer_maxnum = param.imu_rate * param.stop_judgment_interval;
     param.variance_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["variance_threshold"].as<double>();
 
     // doppler fusion parameter
-    param.buffer_max = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["buffer_max"].as<double>();
-    param.estimated_gnss_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["estimated_gnss_coefficient"].as<double>();
-    param.estimated_coefficient = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["estimated_coefficient"].as<double>();
+    param.estimated_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["estimated_interval"].as<double>();
+    param.buffer_max = param.imu_rate * param.estimated_interval;
+    param.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["gnss_receiving_threshold"].as<double>();
+    param.estimated_gnss_coefficient = param.gnss_rate/param.imu_rate * param.gnss_receiving_threshold;
+    param.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["outlier_ratio_threshold"].as<double>();
+    param.estimated_coefficient = param.estimated_gnss_coefficient * param.outlier_ratio_threshold;
     param.outlier_threshold = conf["/**"]["ros__parameters"]["velocity_estimator"]["doppler_fusion"]["outlier_threshold"].as<double>();
 
+    // std::cout<< "imu_rate "<<param.imu_rate<<std::endl;
+    // std::cout<< "gnss_rate "<<param.gnss_rate<<std::endl;
     // std::cout<< "ecef_base_pos_x "<<param.ecef_base_pos_x<<std::endl;
     // std::cout<< "ecef_base_pos_y "<<param.ecef_base_pos_y<<std::endl;
     // std::cout<< "ecef_base_pos_z "<<param.ecef_base_pos_z<<std::endl;
     // std::cout<< "use_ecef_base_position "<<param.use_ecef_base_position<<std::endl;
-
     // std::cout<< "gga_downsample_time "<<param.gga_downsample_time<<std::endl;
     // std::cout<< "stop_judgment_velocity_threshold "<<param.stop_judgment_velocity_threshold<<std::endl;
+    // std::cout<< "stop_judgment_interval "<<param.stop_judgment_interval<<std::endl;
     // std::cout<< "stop_judgment_buffer_maxnum "<<param.stop_judgment_buffer_maxnum<<std::endl;
     // std::cout<< "variance_threshold "<<param.variance_threshold<<std::endl;
-
-    // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
-    // std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
-    // std::cout<< "estimated_coefficient "<<param.estimated_coefficient<<std::endl;
+    // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;
+    // std::cout<< "gnss_receiving_threshold "<<param.gnss_receiving_threshold<<std::endl;
+    // std::cout<< "outlier_ratio_threshold "<<param.outlier_ratio_threshold<<std::endl;
     // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
 
     pitchrate_offset_stop_estimator.setParam(yaml_file);

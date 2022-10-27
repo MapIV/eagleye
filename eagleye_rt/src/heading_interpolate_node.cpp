@@ -95,14 +95,28 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("heading_interpolate");
 
-  node->declare_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("heading_interpolate.stop_judgment_velocity_threshold", heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("heading_interpolate.number_buffer_max", heading_interpolate_parameter.number_buffer_max);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "stop_judgment_velocity_threshold "<<heading_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "number_buffer_max "<<heading_interpolate_parameter.number_buffer_max<<std::endl;
+    heading_interpolate_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    heading_interpolate_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    heading_interpolate_parameter.sync_search_period = conf["/**"]["ros__parameters"]["heading_interpolate"]["sync_search_period"].as<double>();
+
+    std::cout << "imu_rate " << heading_interpolate_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << heading_interpolate_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << heading_interpolate_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";

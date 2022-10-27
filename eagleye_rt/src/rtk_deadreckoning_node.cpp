@@ -76,7 +76,7 @@ void on_timer()
   geometry_msgs::msg::TransformStamped transformStamped;
   try
   {
-    transformStamped = tfBuffer_.lookupTransform(rtk_deadreckoning_parameter.tf_gnss_parent_flame, rtk_deadreckoning_parameter.tf_gnss_child_flame, tf2::TimePointZero);
+    transformStamped = tfBuffer_.lookupTransform(rtk_deadreckoning_parameter.tf_gnss_parent_frame, rtk_deadreckoning_parameter.tf_gnss_child_frame, tf2::TimePointZero);
 
     rtk_deadreckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
     rtk_deadreckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
@@ -132,38 +132,42 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("ecef_base_pos.x", rtk_deadreckoning_parameter.ecef_base_pos_x);
-  node->declare_parameter("ecef_base_pos.y", rtk_deadreckoning_parameter.ecef_base_pos_y);
-  node->declare_parameter("ecef_base_pos.z", rtk_deadreckoning_parameter.ecef_base_pos_z);
-  node->declare_parameter("ecef_base_pos.use_ecef_base_position", rtk_deadreckoning_parameter.use_ecef_base_position);
-  node->declare_parameter("rtk_deadreckoning.stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("tf_gnss_flame.parent", rtk_deadreckoning_parameter.tf_gnss_parent_flame);
-  node->declare_parameter("tf_gnss_flame.child", rtk_deadreckoning_parameter.tf_gnss_child_flame);
-  node->declare_parameter("use_gnss_mode",use_gnss_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("ecef_base_pos.x", rtk_deadreckoning_parameter.ecef_base_pos_x);
-  node->get_parameter("ecef_base_pos.y", rtk_deadreckoning_parameter.ecef_base_pos_y);
-  node->get_parameter("ecef_base_pos.z", rtk_deadreckoning_parameter.ecef_base_pos_z);
-  node->get_parameter("ecef_base_pos.use_ecef_base_position", rtk_deadreckoning_parameter.use_ecef_base_position);
-  node->get_parameter("rtk_deadreckoning.stop_judgment_velocity_threshold", rtk_deadreckoning_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("tf_gnss_flame.parent", rtk_deadreckoning_parameter.tf_gnss_parent_flame);
-  node->get_parameter("tf_gnss_flame.child", rtk_deadreckoning_parameter.tf_gnss_child_flame);
-  node->get_parameter("use_gnss_mode",use_gnss_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "ecef_base_pos_x "<<rtk_deadreckoning_parameter.ecef_base_pos_x<<std::endl;
-  std::cout<< "ecef_base_pos_y "<<rtk_deadreckoning_parameter.ecef_base_pos_y<<std::endl;
-  std::cout<< "ecef_base_pos_z "<<rtk_deadreckoning_parameter.ecef_base_pos_z<<std::endl;
-  std::cout<< "use_ecef_base_position "<<rtk_deadreckoning_parameter.use_ecef_base_position<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<rtk_deadreckoning_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "tf_gnss_flame.parent "<<rtk_deadreckoning_parameter.tf_gnss_parent_flame<<std::endl;
-  std::cout<< "tf_gnss_flame.child "<<rtk_deadreckoning_parameter.tf_gnss_child_flame<<std::endl;
-  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
+    use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
+
+    rtk_deadreckoning_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    rtk_deadreckoning_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    rtk_deadreckoning_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+    rtk_deadreckoning_parameter.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
+    rtk_deadreckoning_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
+    rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
+    rtk_deadreckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+
+    std::cout << "use_gnss_mode " << use_gnss_mode << std::endl;
+    std::cout << "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout << "ecef_base_pos_x " << rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
+    std::cout << "ecef_base_pos_y " << rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
+    std::cout << "ecef_base_pos_z " << rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
+    std::cout << "use_ecef_base_position " << rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
+    std::cout << "tf_gnss_frame/parent " << rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
+    std::cout << "tf_gnss_frame/child " << rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
+    std::cout << "stop_judgment_threshold " << rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mrtk_deadreckoning Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000, enu_vel_callback);

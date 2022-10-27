@@ -60,7 +60,7 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity = *msg;
-  if (is_first_correction_velocity == false && msg->twist.linear.x > slip_coefficient_parameter.estimated_velocity_threshold)
+  if (is_first_correction_velocity == false && msg->twist.linear.x > slip_coefficient_parameter.moving_judgment_threshold)
   {
     is_first_correction_velocity = true;
   }
@@ -104,36 +104,48 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("slip_coefficient");
 
-
-
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("slip_coefficient.estimated_number_min", slip_coefficient_parameter.estimated_number_min);
-  node->declare_parameter("slip_coefficient.estimated_number_max", slip_coefficient_parameter.estimated_number_max);
-  node->declare_parameter("slip_coefficient.estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
-  node->declare_parameter("slip_coefficient.estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
-  node->declare_parameter("slip_coefficient.lever_arm", slip_coefficient_parameter.lever_arm);
-  node->declare_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("use_canless_mode", use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("slip_coefficient.estimated_number_min", slip_coefficient_parameter.estimated_number_min);
-  node->get_parameter("slip_coefficient.estimated_number_max", slip_coefficient_parameter.estimated_number_max);
-  node->get_parameter("slip_coefficient.estimated_velocity_threshold", slip_coefficient_parameter.estimated_velocity_threshold);
-  node->get_parameter("slip_coefficient.estimated_yawrate_threshold", slip_coefficient_parameter.estimated_yawrate_threshold);
-  node->get_parameter("slip_coefficient.lever_arm", slip_coefficient_parameter.lever_arm);
-  node->get_parameter("slip_coefficient.stop_judgment_velocity_threshold", slip_coefficient_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("use_canless_mode", use_canless_mode);
+    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
 
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "estimated_number_min "<<slip_coefficient_parameter.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<slip_coefficient_parameter.estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<slip_coefficient_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_yawrate_threshold "<<slip_coefficient_parameter.estimated_yawrate_threshold<<std::endl;
-  std::cout<< "lever_arm "<<slip_coefficient_parameter.lever_arm<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<slip_coefficient_parameter.stop_judgment_velocity_threshold<<std::endl;
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
+
+    slip_coefficient_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    slip_coefficient_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    slip_coefficient_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
+
+    slip_coefficient_parameter.estimated_minimum_interval = conf["/**"]["ros__parameters"]["slip_coefficient"]["estimated_minimum_interval"].as<double>();
+    slip_coefficient_parameter.estimated_maximum_interval = conf["/**"]["ros__parameters"]["slip_coefficient"]["estimated_maximum_interval"].as<double>();
+    slip_coefficient_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["slip_coefficient"]["curve_judgment_threshold"].as<double>();
+    slip_coefficient_parameter.lever_arm = conf["/**"]["ros__parameters"]["slip_coefficient"]["lever_arm"].as<double>();
+
+    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+
+    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout << "imu_rate " << slip_coefficient_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << slip_coefficient_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "moving_judgment_threshold " << slip_coefficient_parameter.moving_judgment_threshold << std::endl;
+
+    std::cout << "estimated_minimum_interval " << slip_coefficient_parameter.estimated_minimum_interval << std::endl;
+    std::cout << "estimated_maximum_interval " << slip_coefficient_parameter.estimated_maximum_interval << std::endl;
+    std::cout << "curve_judgment_threshold " << slip_coefficient_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "lever_arm " << slip_coefficient_parameter.lever_arm << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mslip_coefficient Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);

@@ -97,7 +97,7 @@ void on_timer()
   geometry_msgs::msg::TransformStamped transformStamped;
   try
   {
-    transformStamped = tfBuffer_.lookupTransform(position_parameter.tf_gnss_parent_flame, position_parameter.tf_gnss_child_flame, tf2::TimePointZero);
+    transformStamped = tfBuffer_.lookupTransform(position_parameter.tf_gnss_parent_frame, position_parameter.tf_gnss_child_frame, tf2::TimePointZero);
 
     position_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
     position_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
@@ -155,50 +155,66 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("position.estimated_distance",position_parameter.estimated_distance);
-  node->declare_parameter("position.separation_distance",position_parameter.separation_distance);
-  node->declare_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
-  node->declare_parameter("position.outlier_threshold",position_parameter.outlier_threshold);
-  node->declare_parameter("position.estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
-  node->declare_parameter("position.estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  node->declare_parameter("ecef_base_pos.x",position_parameter.ecef_base_pos_x);
-  node->declare_parameter("ecef_base_pos.y",position_parameter.ecef_base_pos_y);
-  node->declare_parameter("ecef_base_pos.z",position_parameter.ecef_base_pos_z);
-  node->declare_parameter("tf_gnss_flame.parent", position_parameter.tf_gnss_parent_flame);
-  node->declare_parameter("tf_gnss_flame.child", position_parameter.tf_gnss_child_flame);
-  node->declare_parameter("use_gnss_mode",use_gnss_mode);
-  node->declare_parameter("use_canless_mode",use_canless_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("position.estimated_distance",position_parameter.estimated_distance);
-  node->get_parameter("position.separation_distance",position_parameter.separation_distance);
-  node->get_parameter("position.estimated_velocity_threshold",position_parameter.estimated_velocity_threshold);
-  node->get_parameter("position.outlier_threshold",position_parameter.outlier_threshold);
-  node->get_parameter("position.estimated_enu_vel_coefficient",position_parameter.estimated_enu_vel_coefficient);
-  node->get_parameter("position.estimated_position_coefficient",position_parameter.estimated_position_coefficient);
-  node->get_parameter("ecef_base_pos.x",position_parameter.ecef_base_pos_x);
-  node->get_parameter("ecef_base_pos.y",position_parameter.ecef_base_pos_y);
-  node->get_parameter("ecef_base_pos.z",position_parameter.ecef_base_pos_z);
-  node->get_parameter("tf_gnss_flame.parent", position_parameter.tf_gnss_parent_flame);
-  node->get_parameter("tf_gnss_flame.child", position_parameter.tf_gnss_child_flame);
-  node->get_parameter("use_gnss_mode",use_gnss_mode);
-  node->get_parameter("use_canless_mode",use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "estimated_distance "<<position_parameter.estimated_distance<<std::endl;
-  std::cout<< "separation_distance "<<position_parameter.separation_distance<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<position_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "outlier_threshold "<<position_parameter.outlier_threshold<<std::endl;
-  std::cout<< "estimated_enu_vel_coefficient "<<position_parameter.estimated_enu_vel_coefficient<<std::endl;
-  std::cout<< "estimated_position_coefficient "<<position_parameter.estimated_position_coefficient<<std::endl;
-  std::cout<< "tf_gnss_flame.parent "<<position_parameter.tf_gnss_parent_flame<<std::endl;
-  std::cout<< "tf_gnss_flame.child "<<position_parameter.tf_gnss_child_flame<<std::endl;
-  std::cout<< "use_gnss_mode "<<use_gnss_mode<<std::endl;
-  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
+    use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
+    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
+
+    position_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    position_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    position_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+
+    position_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
+    position_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
+
+    position_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    position_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+    position_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
+
+    position_parameter.estimated_interval = conf["/**"]["ros__parameters"]["position"]["estimated_interval"].as<double>();
+    position_parameter.update_distance = conf["/**"]["ros__parameters"]["position"]["update_distance"].as<double>();
+    position_parameter.outlier_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_threshold"].as<double>();
+
+    position_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["heading"]["gnss_receiving_threshold"].as<double>();
+    position_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_ratio_threshold"].as<double>();
+
+    std::cout<< "use_gnss_mode " << use_gnss_mode << std::endl;
+    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+
+    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout<< "ecef_base_pos_x " << position_parameter.ecef_base_pos_x << std::endl;
+    std::cout<< "ecef_base_pos_y " << position_parameter.ecef_base_pos_y << std::endl;
+    std::cout<< "ecef_base_pos_z " << position_parameter.ecef_base_pos_z << std::endl;
+
+    std::cout<< "tf_gnss_frame/parent " << position_parameter.tf_gnss_parent_frame << std::endl;
+    std::cout<< "tf_gnss_frame/child " << position_parameter.tf_gnss_child_frame << std::endl;
+
+    std::cout << "imu_rate " << position_parameter.imu_rate << std::endl;
+    std::cout << "gnss_rate " << position_parameter.gnss_rate << std::endl;
+    std::cout << "moving_judgment_threshold " << position_parameter.moving_judgment_threshold << std::endl;
+
+    std::cout << "estimated_interval " << position_parameter.estimated_interval << std::endl;
+    std::cout << "update_distance " << position_parameter.update_distance << std::endl;
+    std::cout << "outlier_threshold " << position_parameter.outlier_threshold << std::endl;
+    std::cout << "gnss_receiving_threshold " << position_parameter.gnss_receiving_threshold << std::endl;
+    std::cout << "outlier_ratio_threshold " << position_parameter.outlier_ratio_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mposition Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
+
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000, enu_vel_callback);
   auto sub2 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
