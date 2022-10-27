@@ -10,7 +10,9 @@
     <arg name="use_rtk_heading" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
     <arg name="use_multi_antenna_mode" default="true"/>
+    <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
+    <param name="yaml_file" value="$(arg yaml_file)"/>
     <param name ="velocity_scale_factor_save_str" value="$(find eagleye_rt)/config/velocity_scale_factor.txt"/>
     <param name="use_multi_antenna_mode" value="$(arg use_multi_antenna_mode)"/>
 
