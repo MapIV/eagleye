@@ -76,8 +76,7 @@ TFConvertedIMU::TFConvertedIMU() : tflistener_(tfbuffer_)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    tf_base_link_frame_ = conf["imu_topic"].as<std::string>();
-    // publish_imu_topic_name = conf["publish_imu_topic_name"].as<std::string>();
+    subscribe_imu_topic_name = conf["publish_imu_topic_name"].as<std::string>();
     tf_base_link_frame_ = conf["tf_gnss_frame"]["parent"].as<std::string>();
     std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
     std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
