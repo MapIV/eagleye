@@ -1103,7 +1103,7 @@ int main(int argc, char** argv)
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("comparison_twist_topic",comparison_twist_topic_name);
+  node->declare_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
   node->declare_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
@@ -1113,6 +1113,7 @@ int main(int argc, char** argv)
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
+  node->get_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
   node->get_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
