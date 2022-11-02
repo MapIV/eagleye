@@ -12,76 +12,99 @@
 
      <node pkg="eagleye_rt" name="tf_converted_imu" exec="tf_converted_imu">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
      </node>
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" exec="velocity_scale_factor">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="yawrate_offset_stop_node" exec="yawrate_offset_stop">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="yawrate_offset_node_1st" exec="yawrate_offset" args="1st">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" exec="yawrate_offset" args="2nd">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_node_1st" exec="heading" args="1st" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_node_2nd" exec="heading" args="2nd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_node_3rd" exec="heading" args="3rd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="slip_angle_node" exec="slip_angle">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="distance_node" exec="distance">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="trajectory_node" exec="trajectory">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="position_node" exec="position">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="position_interpolate_node" exec="position_interpolate">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="smoothing_node" exec="smoothing">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="height_node" exec="height">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" exec="angular_velocity_offset_stop">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="correction_imu" exec="correction_imu">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="monitor" exec="monitor">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
 
     <!-- RTK Options -->
     <node pkg="eagleye_rt" name="rtk_deadreckoning" exec="rtk_deadreckoning" if="$(var use_rtk_deadreckoning)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="rtk_heading_node_1st" exec="rtk_heading" args="1st" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="rtk_heading_node_2nd" exec="rtk_heading" args="2nd" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" exec="rtk_heading" args="3rd" if="$(var use_rtk_heading)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
 
     <!-- Slip Coefficient Estimate Options -->
     <node pkg="eagleye_rt" name="slip_coefficient_node" exec="slip_coefficient" output="screen">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
   </group>
 
