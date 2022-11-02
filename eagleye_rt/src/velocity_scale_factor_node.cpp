@@ -64,7 +64,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 {
   _velocity = *msg;
 
-  if (_is_first_move == false && msg->twist.linear.x > _velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (_is_first_move == false && msg->twist.linear.x > _velocity_scale_factor_parameter.moving_judgment_threshold)
   {
     _is_first_move = true;
   }
