@@ -97,7 +97,6 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
   tf_converted_imu_.header = imu_.header;
 
   try {
-    RCLCPP_WARN(rclcpp::get_logger("tf_converted_imu"), "***c.");
     const geometry_msgs::msg::TransformStamped transform = tfbuffer_.lookupTransform(
      tf_base_link_frame_, msg->header.frame_id, tf2::TimePointZero);
 
@@ -108,11 +107,9 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
     angular_velocity.vector = imu_.angular_velocity;
     linear_acceleration.header = imu_.header;
     linear_acceleration.vector = imu_.linear_acceleration;
-    RCLCPP_WARN(rclcpp::get_logger("tf_converted_imu"), "***a.");
 
     tf2::doTransform(angular_velocity, transformed_angular_velocity, transform);
     tf2::doTransform(linear_acceleration, transformed_linear_acceleration, transform);
-    RCLCPP_WARN(rclcpp::get_logger("tf_converted_imu"), "***b.");
 
     tf_converted_imu_.angular_velocity = transformed_angular_velocity.vector;
     tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
