@@ -71,31 +71,46 @@ int main(int argc, char** argv)
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
-  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
-  node->declare_parameter("ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
-  node->declare_parameter("ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
-  node->declare_parameter("smoothing.estimated_number_max",smoothing_parameter.estimated_number_max);
-  node->declare_parameter("smoothing.estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
-  node->declare_parameter("smoothing.estimated_threshold",smoothing_parameter.estimated_threshold);
-  node->declare_parameter("use_canless_mode",use_canless_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("ecef_base_pos_x",smoothing_parameter.ecef_base_pos_x);
-  node->get_parameter("ecef_base_pos_y",smoothing_parameter.ecef_base_pos_y);
-  node->get_parameter("ecef_base_pos_z",smoothing_parameter.ecef_base_pos_z);
-  node->get_parameter("smoothing.estimated_number_max",smoothing_parameter.estimated_number_max);
-  node->get_parameter("smoothing.estimated_velocity_threshold",smoothing_parameter.estimated_velocity_threshold);
-  node->get_parameter("smoothing.estimated_threshold",smoothing_parameter.estimated_threshold);
-  node->get_parameter("use_canless_mode",use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "ecef_base_pos_x "<<smoothing_parameter.ecef_base_pos_x<<std::endl;
-  std::cout<< "ecef_base_pos_y "<<smoothing_parameter.ecef_base_pos_y<<std::endl;
-  std::cout<< "ecef_base_pos_z "<<smoothing_parameter.ecef_base_pos_z<<std::endl;
-  std::cout<< "estimated_number_max "<<smoothing_parameter.estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<smoothing_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_threshold "<<smoothing_parameter.estimated_threshold<<std::endl;
+    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
+
+    smoothing_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    smoothing_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    smoothing_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+
+    smoothing_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+    smoothing_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
+    smoothing_parameter.moving_average_time = conf["/**"]["ros__parameters"]["smoothing"]["moving_average_time"].as<double>();
+    smoothing_parameter.moving_ratio_threshold = conf["/**"]["ros__parameters"]["smoothing"]["moving_ratio_threshold"].as<double>();
+
+    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+
+    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout<< "ecef_base_pos_x " << smoothing_parameter.ecef_base_pos_x << std::endl;
+    std::cout<< "ecef_base_pos_y " << smoothing_parameter.ecef_base_pos_y << std::endl;
+    std::cout<< "ecef_base_pos_z " << smoothing_parameter.ecef_base_pos_z << std::endl;
+
+    std::cout << "gnss_rate " << smoothing_parameter.gnss_rate << std::endl;
+    std::cout << "moving_judgment_threshold " << smoothing_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_average_time " << smoothing_parameter.moving_average_time << std::endl;
+    std::cout << "moving_ratio_threshold " << smoothing_parameter.moving_ratio_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31msmoothing Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);

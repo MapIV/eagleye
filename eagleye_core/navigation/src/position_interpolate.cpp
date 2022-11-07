@@ -46,6 +46,8 @@ void position_interpolate_estimate(eagleye_msgs::msg::Position enu_absolute_pos,
   bool position_estimate_status;
   std::size_t imu_stamp_buffer_length;
 
+  double search_buffer_number = position_interpolate_parameter.sync_search_period * position_interpolate_parameter.imu_rate;
+
   rclcpp::Time ros_clock(enu_absolute_pos.header.stamp);
   rclcpp::Time ros_clock2(enu_vel.header.stamp);
   auto enu_absolute_time = ros_clock.seconds();
@@ -53,13 +55,13 @@ void position_interpolate_estimate(eagleye_msgs::msg::Position enu_absolute_pos,
 
   enu_absolute_pos_interpolate->ecef_base_pos = enu_absolute_pos.ecef_base_pos;
 
-  if (position_interpolate_status->number_buffer < position_interpolate_parameter.number_buffer_max)
+  if (position_interpolate_status->number_buffer < search_buffer_number)
   {
     ++position_interpolate_status->number_buffer;
   }
   else
   {
-    position_interpolate_status->number_buffer = position_interpolate_parameter.number_buffer_max;
+    position_interpolate_status->number_buffer = search_buffer_number;
   }
 
   if (position_interpolate_status->position_stamp_last != enu_absolute_time && enu_absolute_pos.status.estimate_status == true)
@@ -73,7 +75,7 @@ void position_interpolate_estimate(eagleye_msgs::msg::Position enu_absolute_pos,
     position_estimate_status = false;
   }
 
-  if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_velocity_threshold)
+  if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_threshold)
   {
     position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x * (enu_vel_time - position_interpolate_status->time_last);
     position_interpolate_status->provisional_enu_pos_y = enu_absolute_pos_interpolate->enu_pos.y + enu_vel.vector.y * (enu_vel_time - position_interpolate_status->time_last);
@@ -87,7 +89,7 @@ void position_interpolate_estimate(eagleye_msgs::msg::Position enu_absolute_pos,
   position_interpolate_status->imu_stamp_buffer.push_back(enu_vel_time);
   imu_stamp_buffer_length = std::distance(position_interpolate_status->imu_stamp_buffer.begin(), position_interpolate_status->imu_stamp_buffer.end());
 
-  if (imu_stamp_buffer_length > position_interpolate_parameter.number_buffer_max)
+  if (imu_stamp_buffer_length > search_buffer_number)
   {
     position_interpolate_status->provisional_enu_pos_x_buffer.erase(position_interpolate_status->provisional_enu_pos_x_buffer .begin());
     position_interpolate_status->provisional_enu_pos_y_buffer.erase(position_interpolate_status->provisional_enu_pos_y_buffer .begin());

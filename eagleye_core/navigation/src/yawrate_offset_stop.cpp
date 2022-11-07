@@ -37,8 +37,10 @@ void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped velocit
   int i;
   double tmp = 0.0;
   double initial_yawrate_offset_stop = 0.0;
-  double estimated_time_buffer_num = yawrate_offset_stop_parameter.estimated_number;
   std::size_t yawrate_buffer_length;
+
+  double estimated_buffer_number = yawrate_offset_stop_parameter.imu_rate * yawrate_offset_stop_parameter.estimated_interval;
+  double estimated_time_buffer_number = estimated_buffer_number; //TODO rename
 
   // data buffer generate
   if (yawrate_offset_stop_status->estimate_start_status == false)
@@ -52,12 +54,12 @@ void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped velocit
 
   yawrate_buffer_length = std::distance(yawrate_offset_stop_status->yawrate_buffer.begin(), yawrate_offset_stop_status->yawrate_buffer.end());
 
-  if (yawrate_buffer_length > yawrate_offset_stop_parameter.estimated_number + estimated_time_buffer_num)
+  if (yawrate_buffer_length > estimated_buffer_number + estimated_time_buffer_number)
   {
     yawrate_offset_stop_status->yawrate_buffer.erase(yawrate_offset_stop_status->yawrate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < yawrate_offset_stop_parameter.stop_judgment_velocity_threshold)
+  if (velocity.twist.linear.x < yawrate_offset_stop_parameter.stop_judgment_threshold)
   {
     ++yawrate_offset_stop_status->stop_count;
   }
@@ -67,14 +69,14 @@ void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped velocit
   }
 
   // mean
-  if (yawrate_offset_stop_status->stop_count > yawrate_offset_stop_parameter.estimated_number + estimated_time_buffer_num)
+  if (yawrate_offset_stop_status->stop_count > estimated_buffer_number + estimated_time_buffer_number)
   {
     tmp = 0.0;
-    for (i = 0; i < yawrate_offset_stop_parameter.estimated_number; i++)
+    for (i = 0; i < estimated_buffer_number; i++)
     {
       tmp += yawrate_offset_stop_status->yawrate_buffer[i];
     }
-    yawrate_offset_stop->yawrate_offset = -1 * tmp / yawrate_offset_stop_parameter.estimated_number;
+    yawrate_offset_stop->yawrate_offset = -1 * tmp / estimated_buffer_number;
     yawrate_offset_stop->status.enabled_status = true;
     yawrate_offset_stop->status.estimate_status = true;
     yawrate_offset_stop_status->estimate_start_status = true;

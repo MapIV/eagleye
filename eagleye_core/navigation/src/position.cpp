@@ -35,9 +35,8 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
   eagleye_msgs::msg::Heading heading_interpolate_3rd,geometry_msgs::msg::Vector3Stamped enu_vel,PositionParameter position_parameter,
   PositionStatus* position_status, eagleye_msgs::msg::Position* enu_absolute_pos)
 {
-
   int i;
-  int estimated_number_max = position_parameter.estimated_distance / position_parameter.separation_distance;
+  int estimated_number_max = position_parameter.estimated_interval/position_parameter.update_distance;
   int max_x_index, max_y_index;
   double enu_pos[3];
   double avg_x, avg_y, avg_z;
@@ -50,6 +49,9 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
   std::vector<double> base_enu_pos_x_buffer2,  base_enu_pos_y_buffer2, base_enu_pos_z_buffer2;
   std::vector<double> diff_x_buffer, diff_y_buffer, diff_z_buffer;
   std::vector<double>::iterator max_x, max_y;
+
+  double enabled_data_ratio = position_parameter.gnss_rate / position_parameter.imu_rate * position_parameter.gnss_receiving_threshold;
+  double remain_data_ratio = enabled_data_ratio * position_parameter.outlier_ratio_threshold;
 
   rclcpp::Time ros_clock(enu_vel.header.stamp);
   auto enu_vel_time = ros_clock.seconds();
@@ -107,8 +109,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
     position_status->enu_relative_pos_z = position_status->enu_relative_pos_z + enu_vel.vector.z * (enu_vel_time - position_status->time_last);
   }
 
-
-  if (distance.distance-position_status->distance_last >= position_parameter.separation_distance && gnss_status == true &&
+  if (distance.distance-position_status->distance_last >= position_parameter.update_distance && gnss_status == true &&
     position_status->heading_estimate_status_count > 0)
   {
 
@@ -151,8 +152,8 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
   if (data_status)
   {
 
-    if (distance.distance > position_parameter.estimated_distance && gnss_status &&
-      velocity.twist.linear.x > position_parameter.estimated_velocity_threshold && position_status->heading_estimate_status_count > 0)
+    if (distance.distance > position_parameter.estimated_interval && gnss_status &&
+      velocity.twist.linear.x > position_parameter.moving_judgment_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
       std::vector<int> velocity_index;
@@ -160,11 +161,11 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
 
       for (i = 0; i < position_status->estimated_number; i++)
       {
-        if (position_status->distance_buffer[position_status->estimated_number-1] - position_status->distance_buffer[i]  <= position_parameter.estimated_distance)
+        if (position_status->distance_buffer[position_status->estimated_number-1] - position_status->distance_buffer[i]  <= position_parameter.estimated_interval)
         {
           distance_index.push_back(i);
 
-          if (position_status->correction_velocity_buffer[i] > position_parameter.estimated_velocity_threshold)
+          if (position_status->correction_velocity_buffer[i] > position_parameter.moving_judgment_threshold)
           {
             velocity_index.push_back(i);
           }
@@ -178,7 +179,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
       index_length = std::distance(index.begin(), index.end());
       velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-      if (index_length > velocity_index_length * position_parameter.estimated_enu_vel_coefficient)
+      if (index_length > velocity_index_length * enabled_data_ratio)
       {
 
         while (1)
@@ -278,7 +279,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
           index_length = std::distance(index.begin(), index.end());
           velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-          if (index_length < velocity_index_length * position_parameter.estimated_position_coefficient)
+          if (index_length < velocity_index_length * remain_data_ratio)
           {
             break;
           }
@@ -288,7 +289,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
         index_length = std::distance(index.begin(), index.end());
         velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-        if (index_length >= velocity_index_length * position_parameter.estimated_position_coefficient)
+        if (index_length >= velocity_index_length * remain_data_ratio)
         {
           if (index[index_length - 1] == position_status->estimated_number-1)
           {

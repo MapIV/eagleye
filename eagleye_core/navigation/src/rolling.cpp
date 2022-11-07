@@ -53,7 +53,7 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
   acceleration_y = imu.linear_acceleration.y;
   velocity = correction_velocity.twist.linear.x;
 
-  if (std::abs(velocity) > rolling_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity) > rolling_parameter.stop_judgment_threshold)
   {
     yawrate = imu.angular_velocity.z + yawrate_offset.yawrate_offset;
   }

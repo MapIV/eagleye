@@ -64,7 +64,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 {
   _velocity = *msg;
 
-  if (_is_first_move == false && msg->twist.linear.x > _velocity_scale_factor_parameter.estimated_velocity_threshold)
+  if (_is_first_move == false && msg->twist.linear.x > _velocity_scale_factor_parameter.moving_judgment_threshold)
   {
     _is_first_move = true;
   }
@@ -199,45 +199,55 @@ int main(int argc, char** argv)
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "/navsat/rmc";
 
-  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->declare_parameter("velocity_scale_factor.estimated_number_min",_velocity_scale_factor_parameter.estimated_number_min);
-  node->declare_parameter("velocity_scale_factor.estimated_number_max",_velocity_scale_factor_parameter.estimated_number_max);
-  node->declare_parameter("velocity_scale_factor.estimated_velocity_threshold",_velocity_scale_factor_parameter.estimated_velocity_threshold);
-  node->declare_parameter("velocity_scale_factor.estimated_coefficient",_velocity_scale_factor_parameter.estimated_coefficient);
-  node->declare_parameter("velocity_scale_factor_save_str",_velocity_scale_factor_save_str);
-  node->declare_parameter("velocity_scale_factor.save_velocity_scale_factor",_velocity_scale_factor_parameter.save_velocity_scale_factor);
-  node->declare_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
-  node->declare_parameter("use_gnss_mode",_use_gnss_mode);
-  node->declare_parameter("velocity_scale_factor.th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  node->get_parameter("twist_topic",subscribe_twist_topic_name);
-  node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
-  node->get_parameter("velocity_scale_factor.estimated_number_min",_velocity_scale_factor_parameter.estimated_number_min);
-  node->get_parameter("velocity_scale_factor.estimated_number_max",_velocity_scale_factor_parameter.estimated_number_max);
-  node->get_parameter("velocity_scale_factor.estimated_velocity_threshold",_velocity_scale_factor_parameter.estimated_velocity_threshold);
-  node->get_parameter("velocity_scale_factor.estimated_coefficient",_velocity_scale_factor_parameter.estimated_coefficient);
-  node->get_parameter("velocity_scale_factor_save_str",_velocity_scale_factor_save_str);
-  node->get_parameter("velocity_scale_factor.save_velocity_scale_factor",_velocity_scale_factor_parameter.save_velocity_scale_factor);
-  node->get_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
-  node->get_parameter("use_gnss_mode",_use_gnss_mode);
-  node->get_parameter("velocity_scale_factor.th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
+    _use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
 
+    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
+    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-  std::cout<< "subscribe_rmc_topic_name "<<subscribe_rmc_topic_name<<std::endl;
-  std::cout<< "estimated_number_min "<<_velocity_scale_factor_parameter.estimated_number_min<<std::endl;
-  std::cout<< "estimated_number_max "<<_velocity_scale_factor_parameter.estimated_number_max<<std::endl;
-  std::cout<< "estimated_velocity_threshold "<<_velocity_scale_factor_parameter.estimated_velocity_threshold<<std::endl;
-  std::cout<< "estimated_coefficient "<<_velocity_scale_factor_parameter.estimated_coefficient<<std::endl;
-  std::cout<< "velocity_scale_factor_save_str "<<_velocity_scale_factor_save_str<<std::endl;
-  std::cout<< "save_velocity_scale_factor "<<_velocity_scale_factor_parameter.save_velocity_scale_factor<<std::endl;
-  std::cout<< "velocity_scale_factor_save_duration "<<velocity_scale_factor_save_duration<<std::endl;
-  std::cout<< "use_gnss_mode "<<_use_gnss_mode<<std::endl;
-  std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
+    _velocity_scale_factor_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    _velocity_scale_factor_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+    _velocity_scale_factor_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
 
+    _velocity_scale_factor_parameter.estimated_minimum_interval = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["estimated_minimum_interval"].as<double>();
+    _velocity_scale_factor_parameter.estimated_maximum_interval = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["estimated_maximum_interval"].as<double>();
+    _velocity_scale_factor_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["gnss_receiving_threshold"].as<double>();
+
+    node->declare_parameter("velocity_scale_factor_save_str",_velocity_scale_factor_save_str);
+    node->declare_parameter("velocity_scale_factor.save_velocity_scale_factor",_velocity_scale_factor_parameter.save_velocity_scale_factor);
+    node->declare_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
+    node->declare_parameter("velocity_scale_factor.th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
+
+    std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
+
+    std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+    std::cout << "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
+
+    std::cout << "gnss_rate " << _velocity_scale_factor_parameter.gnss_rate << std::endl;
+    std::cout << "moving_judgment_threshold " << _velocity_scale_factor_parameter.moving_judgment_threshold << std::endl;
+
+    std::cout << "estimated_minimum_interval " << _velocity_scale_factor_parameter.estimated_minimum_interval << std::endl;
+    std::cout << "estimated_maximum_interval " << _velocity_scale_factor_parameter.estimated_maximum_interval << std::endl;
+    std::cout << "gnss_receiving_threshold " << _velocity_scale_factor_parameter.gnss_receiving_threshold << std::endl;
+
+    std::cout<< "velocity_scale_factor_save_str " << _velocity_scale_factor_save_str << std::endl;
+    std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;
+    std::cout<< "velocity_scale_factor_save_duration " << velocity_scale_factor_save_duration << std::endl;
+    std::cout<< "th_velocity_scale_factor_percent "<<_th_velocity_scale_factor_percent<<std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mvelocity_scale_factor Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, 1000, velocity_callback);
   auto sub3 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);

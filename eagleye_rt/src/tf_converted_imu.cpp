@@ -75,11 +75,11 @@ TFConvertedIMU::TFConvertedIMU() : Node("tf_converted_imu"),
 
   declare_parameter("imu_topic", subscribe_imu_topic_name);
   declare_parameter("publish_imu_topic", publish_imu_topic_name);
-  declare_parameter("tf_gnss_flame.parent", tf_base_link_frame_);
+  declare_parameter("tf_gnss_frame.parent", tf_base_link_frame_);
 
   get_parameter("imu_topic", subscribe_imu_topic_name);
   get_parameter("publish_imu_topic", publish_imu_topic_name);
-  get_parameter("tf_gnss_flame.parent", tf_base_link_frame_);
+  get_parameter("tf_gnss_frame.parent", tf_base_link_frame_);
 
   std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
   std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
@@ -119,6 +119,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
   catch (tf2::TransformException& ex)
   {
     std::cout << "Failed to lookup transform" << std::endl;
+    RCLCPP_WARN(rclcpp::get_logger("tf_converted_imu"), "Failed to lookup transform.");
     return;
   }
   pub_->publish(tf_converted_imu_);

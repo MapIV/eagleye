@@ -181,26 +181,40 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name;
 
-  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
-  node->declare_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
-  node->declare_parameter("timer_updata_rate",timer_updata_rate);
-  node->declare_parameter("th_deadlock_time",th_deadlock_time);
-  node->declare_parameter("use_canless_mode",use_canless_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("twist_topic",subscribe_twist_topic_name);
-  node->get_parameter("trajectory.stop_judgment_velocity_threshold",trajectory_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("trajectory.stop_judgment_yawrate_threshold",trajectory_parameter.stop_judgment_yawrate_threshold);
-  node->get_parameter("timer_updata_rate",timer_updata_rate);
-  node->get_parameter("th_deadlock_time",th_deadlock_time);
-  node->get_parameter("use_canless_mode",use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<trajectory_parameter.stop_judgment_velocity_threshold<<std::endl;
-  std::cout<< "stop_judgment_yawrate_threshold "<<trajectory_parameter.stop_judgment_yawrate_threshold<<std::endl;
-  std::cout<< "timer_updata_rate "<<timer_updata_rate<<std::endl;
-  std::cout<< "th_deadlock_time "<<th_deadlock_time<<std::endl;
-  std::cout<< "use_canless_mode "<<use_canless_mode<<std::endl;
+    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+
+    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
+
+    trajectory_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+
+    trajectory_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["trajectory"]["curve_judgment_threshold"].as<double>();
+    timer_updata_rate = conf["/**"]["ros__parameters"]["trajectory"]["timer_updata_rate"].as<double>();
+    // deadlock_threshold = conf["/**"]["ros__parameters"]["trajectory"]["deadlock_threshold"].as<double>();
+
+    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+
+    std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+
+    std::cout << "stop_judgment_threshold " << trajectory_parameter.stop_judgment_threshold << std::endl;
+
+    std::cout << "curve_judgment_threshold " << trajectory_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "timer_updata_rate " << timer_updata_rate << std::endl;
+    // std::cout << "deadlock_threshold " << deadlock_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mtrajectory Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
   auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, rclcpp::QoS(10), velocity_callback);

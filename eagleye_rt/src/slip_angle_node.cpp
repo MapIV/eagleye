@@ -99,17 +99,26 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("slip_angle");
   
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
+    slip_angle_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    slip_angle_parameter.manual_coefficient = conf["/**"]["ros__parameters"]["slip_angle"]["manual_coefficient"].as<double>();
 
-  node->declare_parameter("slip_angle.manual_coefficient", slip_angle_parameter.manual_coefficient);
-  node->declare_parameter("slip_angle.stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
-
-  node->get_parameter("slip_angle.manual_coefficient", slip_angle_parameter.manual_coefficient);
-  node->get_parameter("slip_angle.stop_judgment_velocity_threshold", slip_angle_parameter.stop_judgment_velocity_threshold);
-
-  std::cout<< "manual_coefficient "<<slip_angle_parameter.manual_coefficient<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<slip_angle_parameter.stop_judgment_velocity_threshold<<std::endl;
+    std::cout << "stop_judgment_threshold " << slip_angle_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "manual_coefficient " << slip_angle_parameter.manual_coefficient << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mslip_angle Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", rclcpp::QoS(10), imu_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()

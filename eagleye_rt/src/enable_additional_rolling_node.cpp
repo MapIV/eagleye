@@ -125,28 +125,40 @@ int main(int argc, char** argv)
 
   std::string subscribe_localization_pose_topic_name;
 
-  node->declare_parameter("localization_pose_topic",subscribe_localization_pose_topic_name);
-  node->declare_parameter("enable_additional_rolling.matching_update_distance",_rolling_parameter.matching_update_distance);
-  node->declare_parameter("enable_additional_rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
-  node->declare_parameter("enable_additional_rolling.rolling_buffer_num",_rolling_parameter.rolling_buffer_num);
-  node->declare_parameter("enable_additional_rolling.link_Time_stamp_parameter",_rolling_parameter.link_Time_stamp_parameter);
-  node->declare_parameter("enable_additional_rolling.imu_buffer_num",_rolling_parameter.imu_buffer_num);
-  node->declare_parameter("use_canless_mode",_use_canless_mode);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("localization_pose_topic",subscribe_localization_pose_topic_name);
-  node->get_parameter("enable_additional_rolling.matching_update_distance",_rolling_parameter.matching_update_distance);
-  node->get_parameter("enable_additional_rolling.stop_judgment_velocity_threshold",_rolling_parameter.stop_judgment_velocity_threshold);
-  node->get_parameter("enable_additional_rolling.rolling_buffer_num",_rolling_parameter.rolling_buffer_num);
-  node->get_parameter("enable_additional_rolling.link_Time_stamp_parameter",_rolling_parameter.link_Time_stamp_parameter);
-  node->get_parameter("enable_additional_rolling.imu_buffer_num",_rolling_parameter.imu_buffer_num);
-  node->get_parameter("use_canless_modeum",_use_canless_mode);
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
 
-  std::cout<< "subscribe_localization_pose_topic_name: " << subscribe_localization_pose_topic_name << std::endl;
-  std::cout<< "matching_update_distance: " << _rolling_parameter.matching_update_distance << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _rolling_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "rolling_buffer_num: " << _rolling_parameter.rolling_buffer_num << std::endl;
-  std::cout<< "link_Time_stamp_parameter: " << _rolling_parameter.link_Time_stamp_parameter << std::endl;
-  std::cout<< "imu_buffer_num: " << _rolling_parameter.imu_buffer_num << std::endl;
+    subscribe_localization_pose_topic_name = conf["/**"]["ros__parameters"]["localization_pose_topic"].as<std::string>();
+
+    _rolling_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    _rolling_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+
+    _rolling_parameter.update_distance = conf["/**"]["ros__parameters"]["enable_additional_rolling"]["update_distance"].as<double>();
+    _rolling_parameter.moving_average_time = conf["/**"]["ros__parameters"]["enable_additional_rolling"]["moving_average_time"].as<double>();
+    _rolling_parameter.sync_judgment_threshold = conf["/**"]["ros__parameters"]["enable_additional_rolling"]["sync_judgment_threshold"].as<double>();
+    _rolling_parameter.sync_search_period = conf["/**"]["ros__parameters"]["enable_additional_rolling"]["sync_search_period"].as<double>();
+
+    std::cout<< "subscribe_localization_pose_topic_name " << subscribe_localization_pose_topic_name << std::endl;
+
+    std::cout << "imu_rate " << _rolling_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
+
+    std::cout << "update_distance " << _rolling_parameter.update_distance << std::endl;
+    std::cout << "moving_average_time " << _rolling_parameter.moving_average_time << std::endl;
+    std::cout << "sync_judgment_threshold " << _rolling_parameter.sync_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << _rolling_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31menable_additional_rolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   auto sub1 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", 1000, velocity_scale_factor_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
