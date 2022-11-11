@@ -226,6 +226,11 @@ int main(int argc, char** argv)
     node->declare_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
     node->declare_parameter("velocity_scale_factor.th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
 
+    node->get_parameter("velocity_scale_factor_save_str",_velocity_scale_factor_save_str);
+    node->get_parameter("velocity_scale_factor.save_velocity_scale_factor",_velocity_scale_factor_parameter.save_velocity_scale_factor);
+    node->get_parameter("velocity_scale_factor.velocity_scale_factor_save_duration",velocity_scale_factor_save_duration);
+    node->get_parameter("velocity_scale_factor.th_velocity_scale_factor_percent",_th_velocity_scale_factor_percent);
+
     std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
 
     std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
