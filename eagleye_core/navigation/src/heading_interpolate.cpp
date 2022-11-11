@@ -40,45 +40,43 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   int estimate_index = 0;
   double yawrate = 0.0;
   double diff_estimate_heading_angle = 0.0;
-  bool heading_estimate_status;
+  bool heading_estimate_status = false;
   std::size_t imu_stamp_buffer_length;
+
+  double search_buffer_number = heading_interpolate_parameter.sync_search_period * heading_interpolate_parameter.imu_rate;
 
   yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_velocity_threshold)
+  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_threshold)
   {
-    yawrate = yawrate + yawrate_offset.yawrate_offset;
+    yawrate += yawrate_offset.yawrate_offset;
   }
   else
   {
-    yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
+    yawrate += yawrate_offset_stop.yawrate_offset;
   }
 
-  if (heading_interpolate_status->number_buffer < heading_interpolate_parameter.number_buffer_max)
+  if (heading_interpolate_status->number_buffer < search_buffer_number)
   {
     ++heading_interpolate_status->number_buffer;
   }
   else
   {
-    heading_interpolate_status->number_buffer = heading_interpolate_parameter.number_buffer_max;
+    heading_interpolate_status->number_buffer = search_buffer_number;
   }
 
-  if (heading_interpolate_status->heading_stamp_last != heading.header.stamp.toSec() && heading.status.estimate_status == true)
+  if (heading_interpolate_status->heading_stamp_last != heading.header.stamp.toSec() && heading.status.estimate_status)
   {
     heading_estimate_status = true;
     heading_interpolate_status->heading_estimate_start_status = true;
     ++heading_interpolate_status->heading_estimate_status_count;
   }
-  else
-  {
-    heading_estimate_status = false;
-  }
 
   if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) >
-    heading_interpolate_parameter.stop_judgment_velocity_threshold)
+    heading_interpolate_parameter.stop_judgment_threshold)
   {
-    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle +
-      (yawrate * (imu.header.stamp.toSec() - heading_interpolate_status->time_last));
+    double dt = imu.header.stamp.toSec() - heading_interpolate_status->time_last;
+    heading_interpolate_status->provisional_heading_angle += yawrate * dt;
   }
 
   // data buffer generate
@@ -86,15 +84,16 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   heading_interpolate_status->imu_stamp_buffer.push_back(imu.header.stamp.toSec());
   imu_stamp_buffer_length = std::distance(heading_interpolate_status->imu_stamp_buffer.begin(), heading_interpolate_status->imu_stamp_buffer.end());
 
-  if (imu_stamp_buffer_length > heading_interpolate_parameter.number_buffer_max)
+  if (imu_stamp_buffer_length > search_buffer_number)
   {
     heading_interpolate_status->provisional_heading_angle_buffer.erase(heading_interpolate_status->provisional_heading_angle_buffer .begin());
     heading_interpolate_status->imu_stamp_buffer.erase(heading_interpolate_status->imu_stamp_buffer .begin());
   }
 
-  if (heading_interpolate_status->heading_estimate_start_status == true)
+  if (heading_interpolate_status->heading_estimate_start_status)
   {
-    if (heading_estimate_status == true)
+    int estimate_index = 0;
+    if (heading_estimate_status)
     {
       for (estimate_index = heading_interpolate_status->number_buffer; estimate_index > 0; estimate_index--)
       {
@@ -105,14 +104,13 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
       }
     }
 
-    if (heading_estimate_status == true && estimate_index > 0 && heading_interpolate_status->number_buffer >= estimate_index &&
+    if (heading_estimate_status && estimate_index > 0 && heading_interpolate_status->number_buffer >= estimate_index &&
       heading_interpolate_status->heading_estimate_status_count > 1)
     {
-      diff_estimate_heading_angle = (heading_interpolate_status->provisional_heading_angle_buffer[estimate_index-1] - heading.heading_angle);
-      for (i = estimate_index; i <= heading_interpolate_status->number_buffer; i++)
+      double diff_estimate_heading_angle = (heading_interpolate_status->provisional_heading_angle_buffer[estimate_index-1] - heading.heading_angle);
+      for (int i = estimate_index; i <= heading_interpolate_status->number_buffer; i++)
       {
-        heading_interpolate_status->provisional_heading_angle_buffer[i-1] = heading_interpolate_status->provisional_heading_angle_buffer[i-1] -
-          diff_estimate_heading_angle;
+        heading_interpolate_status->provisional_heading_angle_buffer[i-1] -= diff_estimate_heading_angle;
       }
       heading_interpolate_status->provisional_heading_angle =
         heading_interpolate_status->provisional_heading_angle_buffer[heading_interpolate_status->number_buffer-1];
@@ -132,7 +130,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
     }
   }
 
-  if (heading_interpolate_status->heading_estimate_start_status == true)
+  if (heading_interpolate_status->heading_estimate_start_status)
   {
     heading_interpolate->heading_angle = heading_interpolate_status->provisional_heading_angle + slip_angle.slip_angle;
   }

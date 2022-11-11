@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
   std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl; 
     
-  if (rosbag_controller.setTopic(std::string(twist_topic)))
+  if (rosbag_controller.setTopic(std::string(twist_topic)) && !eagleye_pp.getUseCanlessMode())
   {
     std::cout << "TwistStamped topic: " << twist_topic << std::endl;
   }

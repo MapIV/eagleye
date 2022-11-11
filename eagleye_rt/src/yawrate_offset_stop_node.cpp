@@ -40,6 +40,8 @@ static sensor_msgs::Imu _imu;
 struct YawrateOffsetStopParameter _yawrate_offset_stop_parameter;
 struct YawrateOffsetStopStatus _yawrate_offset_stop_status;
 
+double _previous_yawrate_offset_stop = 0.0;
+
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
   _velocity = *msg;
@@ -50,6 +52,18 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _yawrate_offset_stop.header = msg->header;
   yawrate_offset_stop_estimate(_velocity, _imu, _yawrate_offset_stop_parameter, &_yawrate_offset_stop_status, &_yawrate_offset_stop);
+
+  _yawrate_offset_stop.status.is_abnormal = false;
+  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
+    ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
+    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset_stop;
+    _yawrate_offset_stop.status.is_abnormal = true;
+    _yawrate_offset_stop.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
+  }
+  else
+  {
+    _previous_yawrate_offset_stop = _yawrate_offset_stop.yawrate_offset;
+  }
   _pub.publish(_yawrate_offset_stop);
 }
 
@@ -60,15 +74,35 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name = "/can_twist";
 
-  nh.getParam("twist_topic", subscribe_twist_topic_name);
-  nh.getParam("yawrate_offset_stop/stop_judgment_velocity_threshold",  _yawrate_offset_stop_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("yawrate_offset_stop/estimated_number" , _yawrate_offset_stop_parameter.estimated_number);
-  nh.getParam("yawrate_offset_stop/outlier_threshold" , _yawrate_offset_stop_parameter.outlier_threshold);
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
-  std::cout<< "stop_judgment_velocity_threshold: " << _yawrate_offset_stop_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "estimated_number: " << _yawrate_offset_stop_parameter.estimated_number << std::endl;
-  std::cout<< "outlier_threshold: " << _yawrate_offset_stop_parameter.outlier_threshold << std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
+
+    _yawrate_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _yawrate_offset_stop_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+
+    _yawrate_offset_stop_parameter.estimated_interval = conf["yawrate_offset_stop"]["estimated_interval"].as<double>();
+    _yawrate_offset_stop_parameter.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
+
+    std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
+
+    std::cout << "imu_rate " << _yawrate_offset_stop_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _yawrate_offset_stop_parameter.stop_judgment_threshold << std::endl;
+
+    std::cout << "estimated_minimum_interval " << _yawrate_offset_stop_parameter.estimated_interval << std::endl;
+    std::cout << "outlier_threshold " << _yawrate_offset_stop_parameter.outlier_threshold << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31myawrate_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());

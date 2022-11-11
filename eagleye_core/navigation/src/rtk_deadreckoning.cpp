@@ -67,13 +67,15 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
     q.setRPY(0, 0, (90* M_PI / 180)-heading.heading_angle);
     transform.setRotation(q);
 
-    tf::Transform transform2;
-    tf::Quaternion q2(rtk_deadreckoning_parameter.tf_gnss_rotation_x,rtk_deadreckoning_parameter.tf_gnss_rotation_y,rtk_deadreckoning_parameter.tf_gnss_rotation_z,rtk_deadreckoning_parameter.tf_gnss_rotation_w);
-    transform2.setOrigin(transform*tf::Vector3(-rtk_deadreckoning_parameter.tf_gnss_translation_x, -rtk_deadreckoning_parameter.tf_gnss_translation_y,-rtk_deadreckoning_parameter.tf_gnss_translation_z));
-    transform2.setRotation(transform*q2);
-
+    tf::Transform transform2, transform3;
+    tf::Quaternion q2(rtk_deadreckoning_parameter.tf_gnss_rotation_x,rtk_deadreckoning_parameter.tf_gnss_rotation_y,
+      rtk_deadreckoning_parameter.tf_gnss_rotation_z,rtk_deadreckoning_parameter.tf_gnss_rotation_w);
+    transform2.setOrigin(tf::Vector3(rtk_deadreckoning_parameter.tf_gnss_translation_x, rtk_deadreckoning_parameter.tf_gnss_translation_y,
+      rtk_deadreckoning_parameter.tf_gnss_translation_z));
+    transform2.setRotation(q2);
+    transform3 = transform * transform2.inverse();
     tf::Vector3 tmp_pos;
-    tmp_pos = transform2.getOrigin();
+    tmp_pos = transform3.getOrigin();
 
     enu_rtk[0] = tmp_pos.getX();
     enu_rtk[1] = tmp_pos.getY();
@@ -87,7 +89,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
       enu_absolute_rtk_deadreckoning->status.enabled_status = true;
       enu_absolute_rtk_deadreckoning->status.estimate_status = true;
     }
-    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_velocity_threshold)
+    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_threshold)
     {
       rtk_deadreckoning_status->provisional_enu_pos_x = enu_absolute_rtk_deadreckoning->enu_pos.x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);
       rtk_deadreckoning_status->provisional_enu_pos_y = enu_absolute_rtk_deadreckoning->enu_pos.y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);

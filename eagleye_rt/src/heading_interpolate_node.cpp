@@ -96,10 +96,27 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading_interpolate");
   ros::NodeHandle nh;
 
-  nh.getParam("heading_interpolate/stop_judgment_velocity_threshold", _heading_interpolate_parameter.stop_judgment_velocity_threshold);
-  nh.getParam("heading_interpolate/number_buffer_max", _heading_interpolate_parameter.number_buffer_max);
-  std::cout<< "stop_judgment_velocity_threshold: " << _heading_interpolate_parameter.stop_judgment_velocity_threshold << std::endl;
-  std::cout<< "number_buffer_max: " << _heading_interpolate_parameter.number_buffer_max << std::endl;
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
+
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    _heading_interpolate_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _heading_interpolate_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _heading_interpolate_parameter.sync_search_period = conf["heading_interpolate"]["sync_search_period"].as<double>();
+
+    std::cout << "imu_rate " << _heading_interpolate_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << _heading_interpolate_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << _heading_interpolate_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";

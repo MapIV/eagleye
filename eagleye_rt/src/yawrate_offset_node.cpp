@@ -46,6 +46,8 @@ struct YawrateOffsetStatus _yawrate_offset_status;
 bool _is_first_heading= false;
 static bool _use_canless_mode;
 
+double _previous_yawrate_offset = 0.0;
+
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
@@ -79,6 +81,18 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _yawrate_offset.header = msg->header;
   yawrate_offset_estimate(_velocity, _yawrate_offset_stop, _heading_interpolate, _imu, _yawrate_offset_parameter, &_yawrate_offset_status, &_yawrate_offset);
+
+  _yawrate_offset.status.is_abnormal = false;
+  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
+    ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
+    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset;
+    _yawrate_offset.status.is_abnormal = true;
+    _yawrate_offset.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
+  }
+  else
+  {
+    _previous_yawrate_offset = _yawrate_offset_stop.yawrate_offset;
+  }
   _pub.publish(_yawrate_offset);
   _yawrate_offset.status.estimate_status = false;
 }
@@ -88,19 +102,12 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "yawrate_offset");
   ros::NodeHandle nh;
 
-  nh.getParam("yawrate_offset/estimated_number_min", _yawrate_offset_parameter.estimated_number_min);
-  nh.getParam("yawrate_offset/estimated_coefficient", _yawrate_offset_parameter.estimated_coefficient);
-  nh.getParam("yawrate_offset/estimated_velocity_threshold" , _yawrate_offset_parameter.estimated_velocity_threshold);
-  nh.getParam("yawrate_offset/outlier_threshold", _yawrate_offset_parameter.outlier_threshold);
-  nh.getParam("use_canless_mode",_use_canless_mode);
-
-  std::cout<< "estimated_number_min: " << _yawrate_offset_parameter.estimated_number_min << std::endl;
-  std::cout<< "estimated_coefficient: " << _yawrate_offset_parameter.estimated_coefficient << std::endl;
-  std::cout<< "estimated_velocity_threshold: " << _yawrate_offset_parameter.estimated_velocity_threshold << std::endl;
-  std::cout<< "outlier_threshold: " << _yawrate_offset_parameter.outlier_threshold << std::endl;
-
   std::string publish_topic_name = "/publish_topic_name/invalid";
   std::string subscribe_topic_name = "/subscribe_topic_name/invalid";
+
+  std::string yaml_file;
+  nh.getParam("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
   if (argc == 2)
   {
@@ -108,15 +115,66 @@ int main(int argc, char** argv)
     {
       publish_topic_name = "yawrate_offset_1st";
       subscribe_topic_name = "heading_interpolate_1st";
-      nh.getParam("yawrate_offset/1st/estimated_number_max", _yawrate_offset_parameter.estimated_number_max);
-      std::cout<< "estimated_number_max: " << _yawrate_offset_parameter.estimated_number_max << std::endl;
+      try
+      {
+        YAML::Node conf = YAML::LoadFile(yaml_file);
+
+        _yawrate_offset_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+        _yawrate_offset_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
+        _yawrate_offset_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+
+        _yawrate_offset_parameter.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
+        _yawrate_offset_parameter.estimated_maximum_interval = conf["yawrate_offset"]["1st"]["estimated_maximum_interval"].as<double>();
+        _yawrate_offset_parameter.gnss_receiving_threshold = conf["yawrate_offset"]["gnss_receiving_threshold"].as<double>();
+        _yawrate_offset_parameter.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
+
+        std::cout << "imu_rate " << _yawrate_offset_parameter.imu_rate << std::endl;
+        std::cout << "gnss_rate " << _yawrate_offset_parameter.gnss_rate << std::endl;
+        std::cout << "moving_judgment_threshold " << _yawrate_offset_parameter.moving_judgment_threshold << std::endl;
+
+        std::cout << "estimated_minimum_interval " << _yawrate_offset_parameter.estimated_minimum_interval << std::endl;
+        std::cout << "estimated_maximum_interval " << _yawrate_offset_parameter.estimated_maximum_interval << std::endl;
+        std::cout << "gnss_receiving_threshold " << _yawrate_offset_parameter.gnss_receiving_threshold << std::endl;
+        std::cout << "outlier_threshold " << _yawrate_offset_parameter.outlier_threshold << std::endl;
+      }
+      catch (YAML::Exception& e)
+      {
+        std::cerr << "\033[1;yawrate_offset_1st Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+        exit(3);
+      }
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "yawrate_offset_2nd";
       subscribe_topic_name = "heading_interpolate_2nd";
-      nh.getParam("yawrate_offset/2nd/estimated_number_max", _yawrate_offset_parameter.estimated_number_max);
-      std::cout<< "estimated_number_max: " << _yawrate_offset_parameter.estimated_number_max << std::endl;
+
+      try
+      {
+        YAML::Node conf = YAML::LoadFile(yaml_file);
+
+        _yawrate_offset_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+        _yawrate_offset_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
+        _yawrate_offset_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+
+        _yawrate_offset_parameter.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
+        _yawrate_offset_parameter.estimated_maximum_interval = conf["yawrate_offset"]["2nd"]["estimated_maximum_interval"].as<double>();
+        _yawrate_offset_parameter.gnss_receiving_threshold = conf["yawrate_offset"]["gnss_receiving_threshold"].as<double>();
+        _yawrate_offset_parameter.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
+
+        std::cout << "imu_rate " << _yawrate_offset_parameter.imu_rate << std::endl;
+        std::cout << "gnss_rate " << _yawrate_offset_parameter.gnss_rate << std::endl;
+        std::cout << "moving_judgment_threshold " << _yawrate_offset_parameter.moving_judgment_threshold << std::endl;
+
+        std::cout << "estimated_minimum_interval " << _yawrate_offset_parameter.estimated_minimum_interval << std::endl;
+        std::cout << "estimated_maximum_interval " << _yawrate_offset_parameter.estimated_maximum_interval << std::endl;
+        std::cout << "gnss_receiving_threshold " << _yawrate_offset_parameter.gnss_receiving_threshold << std::endl;
+        std::cout << "outlier_threshold " << _yawrate_offset_parameter.outlier_threshold << std::endl;
+      }
+      catch (YAML::Exception& e)
+      {
+        std::cerr << "\033[1;yawrate_offset_2nd Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+        exit(3);
+      }
     }
     else
     {

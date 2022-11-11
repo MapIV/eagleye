@@ -8,13 +8,13 @@
 
     <arg name="use_rtk_deadreckoning" default="true"/>
     <arg name="use_rtk_heading" default="false"/>
-    <arg name="use_canless_mode" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
+    <arg name="use_multi_antenna_mode" default="true"/>
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
-    <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
-    <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
+    <param name ="velocity_scale_factor_save_str" value="$(find eagleye_rt)/config/velocity_scale_factor.txt"/>
+    <param name="use_multi_antenna_mode" value="$(arg use_multi_antenna_mode)"/>
 
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
@@ -35,10 +35,10 @@
     <node pkg="eagleye_rt" name="position_node" type="position" />
     <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate"/>
     <node pkg="eagleye_rt" name="smoothing_node" type="smoothing"/>
-    <node pkg="eagleye_rt" name="height_node" type="height"/>
+    <!-- <node pkg="eagleye_rt" name="height_node" type="height"/> -->
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
     <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
-    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen" />
+    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen"/>
     <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- RTK Options -->
@@ -48,7 +48,17 @@
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="enable_additional_rolling_node" type="enable_additional_rolling" if="$(arg enable_additional_rolling)"/>
 
-  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>
+    <!-- Multi Antennas Options -->
+    <include file="$(find gnss_compass)/launch/gnss_compass.launch">
+    </include>
+
+  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix_dualantenna.launch">
+        <arg name="sub_topic_name1" default="/sensing/gnss/nmea_sentence"/>
+        <arg name="output_gga" default="true"/>
+        <arg name="output_rmc" default="true"/>
+        <arg name="sub_topic_name2" default="/sensing/sub_gnss/nmea_sentence"/>
+  </include>
+
   </group>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>

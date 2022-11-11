@@ -48,6 +48,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistS
   std::vector<int> velocity_index;
   std::vector<int> index;
 
+  double estimated_buffer_number = smoothing_parameter.gnss_rate * smoothing_parameter.moving_average_time;
 
   if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
   {
@@ -94,7 +95,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistS
 
     time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-    if (time_buffer_length > smoothing_parameter.estimated_number_max)
+    if (time_buffer_length > estimated_buffer_number)
     {
       smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
       smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
@@ -103,22 +104,22 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistS
       smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
     }
 
-    if (smoothing_status->estimated_number < smoothing_parameter.estimated_number_max)
+    if (smoothing_status->estimated_number < estimated_buffer_number)
     {
       ++smoothing_status->estimated_number;
       gnss_smooth_pos_enu->status.enabled_status = false;
     }
     else
     {
-      smoothing_status->estimated_number = smoothing_parameter.estimated_number_max;
+      smoothing_status->estimated_number = estimated_buffer_number;
       gnss_smooth_pos_enu->status.enabled_status = true;
     }
 
-    if (smoothing_status->estimated_number == smoothing_parameter.estimated_number_max){
+    if (smoothing_status->estimated_number == estimated_buffer_number){
       for (i = 0; i < smoothing_status->estimated_number; i++)
       {
         index.push_back(i);
-        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.estimated_velocity_threshold)
+        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.moving_judgment_threshold)
         {
           velocity_index.push_back(i);
         }
@@ -134,7 +135,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistS
         sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
       }
 
-      if (velocity_index_length > index_length * smoothing_parameter.estimated_threshold)
+      if (velocity_index_length > index_length * smoothing_parameter.moving_ratio_threshold)
       {
         gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
         gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;

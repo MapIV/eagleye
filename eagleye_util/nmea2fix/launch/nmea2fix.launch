@@ -8,7 +8,7 @@
   <arg name="pub_gga_topic_name" default="/navsat/gga"/>
   <arg name="pub_rmc_topic_name" default="/navsat/rmc"/>
   <arg name="output_gga" default="true"/>
-  <arg name="output_rmc" default="false"/>
+  <arg name="output_rmc" default="true"/>
 
   <node pkg="eagleye_nmea2fix" name="nmea2fix_node" type="nmea2fix_node" output="screen">
     <param name="pub_fix_topic_name" value="$(arg pub_fix_topic_name)"/>

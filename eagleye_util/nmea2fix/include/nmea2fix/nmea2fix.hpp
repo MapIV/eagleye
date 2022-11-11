@@ -32,8 +32,10 @@
 #include "nmea_msgs/Gprmc.h"
 
 #include <string>
+#include <sstream>
 #include <time.h>
 #include <memory>
+#include <vector>
 
 extern double stringToGPSTime(std::string&, double);
 extern void nmea2fix_converter(const nmea_msgs::Sentence,  sensor_msgs::NavSatFix*, nmea_msgs::Gpgga*, nmea_msgs::Gprmc*);

@@ -123,6 +123,21 @@ Clone and build the necessary packages for Eagleye.
 
 - [eagleye_pp](eagleye_pp) : post-processing version
 
+## Optional Features
+
+### canless mode
+
+While normal eagleye requires CAN (wheel speed) information, this option allows localization estimation with GNSS/IMU alone, without vehicle speed.
+
+However, in this mode, note the following
+- Accuracy degrades in non-open sky environments.
+- RTK positioning is required.
+- Localization estimating is not possible when driving backward.
+
+To use this mode
+- Use launch/eagleye_rt_canless.launch for eagleye_rt instead of launch/eagleye_rt.launch.
+- Set use_canless_mode in eagleye_pp_config.yaml to true for eagleye_pp.
+
 ## Sample data
 ### ROSBAG
 
@@ -155,4 +170,4 @@ Eagleye is provided under the [BSD 3-Clause](https://github.com/MapIV/eagleye/bl
 
 ## Contacts
 
-If you have further question, email to map4@tier4.jp.
+If you have further question, email to support@map4.jp.

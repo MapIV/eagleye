@@ -60,6 +60,8 @@
   <exec_depend>tf2_sensor_msgs</exec_depend>
   <exec_depend>tf2_eigen</exec_depend>
   <exec_depend>ublox_msgs</exec_depend>
+  <depend>roslib</depend>
+  <depend>yaml-cpp</depend>
 
   <export>
   </export>
