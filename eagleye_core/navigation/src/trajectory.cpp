@@ -40,7 +40,7 @@ void trajectory_estimate(const sensor_msgs::msg::Imu imu,  const geometry_msgs::
   rclcpp::Time ros_clock(imu.header.stamp);
   auto imu_time = ros_clock.seconds();
 
-  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
+  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_threshold && yawrate_offset_2nd.status.enabled_status == true)
   {
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
   }
@@ -70,7 +70,7 @@ void trajectory_estimate(const sensor_msgs::msg::Imu imu,  const geometry_msgs::
 
   if (trajectory_status->estimate_status_count == 2 && std::abs(velocity.twist.linear.x) > 0 && trajectory_status->time_last != 0)
   {
-    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
+    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.curve_judgment_threshold)
     {
       enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu_time - trajectory_status->time_last);
       enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu_time - trajectory_status->time_last);
@@ -104,7 +104,7 @@ void trajectory3d_estimate(const sensor_msgs::msg::Imu imu, const geometry_msgs:
   rclcpp::Time ros_clock(imu.header.stamp);
   auto imu_time = ros_clock.seconds();
 
-  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_velocity_threshold && yawrate_offset_2nd.status.enabled_status == true)
+  if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_threshold && yawrate_offset_2nd.status.enabled_status == true)
   {
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset); //Inverted because the coordinate system is reversed
   }
@@ -133,7 +133,7 @@ void trajectory3d_estimate(const sensor_msgs::msg::Imu imu, const geometry_msgs:
 
   if (trajectory_status->estimate_status_count == 2 && std::abs(velocity.twist.linear.x) > 0 && trajectory_status->time_last != 0)
   {
-    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.stop_judgment_yawrate_threshold)
+    if(std::abs(imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset) < trajectory_parameter.curve_judgment_threshold)
     {
       enu_relative_pos->enu_pos.x = enu_relative_pos->enu_pos.x + enu_vel->vector.x * (imu_time - trajectory_status->time_last);
       enu_relative_pos->enu_pos.y = enu_relative_pos->enu_pos.y + enu_vel->vector.y * (imu_time - trajectory_status->time_last);

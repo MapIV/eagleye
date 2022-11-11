@@ -101,16 +101,28 @@ int main(int argc, char** argv)
 
   std::string subscribe_gga_topic_name = "/navsat/gga";
 
-  node->declare_parameter("gga_topic",subscribe_gga_topic_name);
-  node->declare_parameter("position_interpolate.number_buffer_max", position_interpolate_parameter.number_buffer_max);
-  node->declare_parameter("position_interpolate.stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
+  std::string yaml_file;
+  node->declare_parameter("yaml_file",yaml_file);
+  node->get_parameter("yaml_file",yaml_file);
+  std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  node->get_parameter("gga_topic",subscribe_gga_topic_name);
-  node->get_parameter("position_interpolate.number_buffer_max", position_interpolate_parameter.number_buffer_max);
-  node->get_parameter("position_interpolate.stop_judgment_velocity_threshold", position_interpolate_parameter.stop_judgment_velocity_threshold);
-  std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
-  std::cout<< "number_buffer_max "<<position_interpolate_parameter.number_buffer_max<<std::endl;
-  std::cout<< "stop_judgment_velocity_threshold "<<position_interpolate_parameter.stop_judgment_velocity_threshold<<std::endl;
+  try
+  {
+    YAML::Node conf = YAML::LoadFile(yaml_file);
+
+    position_interpolate_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+    position_interpolate_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    position_interpolate_parameter.sync_search_period = conf["/**"]["ros__parameters"]["position_interpolate"]["sync_search_period"].as<double>();
+
+    std::cout << "imu_rate " << position_interpolate_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgment_threshold " << position_interpolate_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "sync_search_period " << position_interpolate_parameter.sync_search_period << std::endl;
+  }
+  catch (YAML::Exception& e)
+  {
+    std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    exit(3);
+  }
 
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", rclcpp::QoS(10), enu_vel_callback); //ros::TransportHints().tcpNoDelay()

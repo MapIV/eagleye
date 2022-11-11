@@ -96,7 +96,6 @@ static double _eagleye_twist_time_last;
 bool _use_compare_yawrate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
-double _th_velocity_scale_factor_percent = 20;
 double _th_diff_rad_per_sec = 0.17453;
 int _num_continuous_abnormal_yawrate = 0;
 int _th_num_continuous_abnormal_yawrate = 10;
@@ -234,6 +233,12 @@ void eagleye_twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedP
   _eagleye_twist = *msg;
 }
 
+void comparison_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+{
+  _comparison_velocity_ptr = msg;
+}
+
+
 void imu_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
   rclcpp::Time ros_clock(_imu.header.stamp);
@@ -310,13 +315,24 @@ void velocity_scale_factor_topic_checker(diagnostic_updater::DiagnosticStatusWra
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_velocity_scale_factor.scale_factor)) {
-    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_velocity_scale_factor.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_velocity_scale_factor.status.is_abnormal) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    if (_velocity_scale_factor.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    {
+      msg = "Estimated velocity scale factor is NaN or infinete";
+    }
+    else if (_velocity_scale_factor.status.error_code == eagleye_msgs::msg::Status::TOO_LARGE_OR_SMALL)
+    {
+      msg = "Estimated velocity scale factor is too large or too small";
+    }
+    else
+    {
+      msg = "abnormal error of velocity_scale_factor";
+    }
   }
 
   _velocity_scale_factor_time_last = velocity_scale_factor_time;
@@ -502,13 +518,20 @@ void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
-    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_stop.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_yawrate_offset_stop.status.is_abnormal) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_stop.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_stop";
+    }
   }
 
   _yawrate_offset_stop_time_last = yawrate_offset_stop_time;
@@ -526,13 +549,20 @@ void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_1st.yawrate_offset)) {
-    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_1st.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_yawrate_offset_1st.status.is_abnormal) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_1st.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_1st";
+    }
   }
 
   _yawrate_offset_1st_time_last = yawrate_offset_1st_time;
@@ -550,13 +580,20 @@ void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrappe
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!std::isfinite(_yawrate_offset_2nd.yawrate_offset)) {
-    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    msg = "invalid number";
-  }
   else if (!_yawrate_offset_2nd.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
+  }
+  else if (_yawrate_offset_2nd.status.is_abnormal) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    {
+      msg = "estimate value is NaN or infinete";
+    }
+    else
+    {
+      msg = "abnormal error of yawrate_offset_2nd";
+    }
   }
 
   _yawrate_offset_2nd_time_last = yawrate_offset_2nd_time;
@@ -725,6 +762,33 @@ void twist_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   }
 
   _eagleye_twist_time_last = eagleye_twist_time;
+  stat.summary(level, msg);
+}
+
+void imu_comparison_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+{
+  if(_comparison_velocity_ptr == nullptr)
+  {
+    return;
+  }
+
+  int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
+  std::string msg = "OK";
+
+  if(_use_compare_yawrate && _th_diff_rad_per_sec <
+    std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
+  {
+    _num_continuous_abnormal_yawrate++;
+  }
+  else
+  {
+    _num_continuous_abnormal_yawrate = 0;
+  }
+
+  if (_num_continuous_abnormal_yawrate > _th_num_continuous_abnormal_yawrate) {
+    level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
+    msg = "IMU Yaw Rate too large or too small compared to reference twist";
+  }
   stat.summary(level, msg);
 }
 
@@ -1002,13 +1066,6 @@ void outputLog(void)
   return;
 }
 
-void on_timer()
-{
-  // Diagnostic Updater
-  updater_->force_update();
-
-}
-
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   _imu.header = msg->header;
@@ -1035,33 +1092,51 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("monitor");
-  updater_ = std::make_shared<diagnostic_updater::Updater>(node);
 
   std::string subscribe_twist_topic_name = "/can_twist";
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string comparison_twist_topic_name = "/calculated_twist";
 
   node->declare_parameter("twist_topic",subscribe_twist_topic_name);
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
+  node->declare_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
+  node->declare_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->declare_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
+  node->declare_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
   node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
+  node->get_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
+  node->get_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->get_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
+  node->get_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
+
 
   std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
+  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
+  if(_use_compare_yawrate) {
+  std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
+  std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
+  std::cout<< "th_num_continuous_abnormal_yawrate "<<_th_num_continuous_abnormal_yawrate<<std::endl;
+  }
 
   // // Diagnostic Updater
+  double update_time = 1.0 / _update_rate;
+  updater_ = std::make_shared<diagnostic_updater::Updater>(node, update_time);
+
   updater_->setHardwareID("eagleye_topic_checker");
   updater_->add("eagleye_input_imu", imu_topic_checker);
   updater_->add("eagleye_input_rtklib_nav", rtklib_nav_topic_checker);
@@ -1085,6 +1160,7 @@ int main(int argc, char** argv)
   updater_->add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater_->add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_->add("eagleye_twist", twist_topic_checker);
+  if(_use_compare_yawrate) updater_->add("eagleye_imu_comparison", imu_comparison_checker);
 
   time_t time_;
   time_ = time(NULL);
@@ -1120,16 +1196,8 @@ int main(int argc, char** argv)
   auto sub24 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10), eagleye_fix_callback);
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
+  auto sub27 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, 1000, comparison_velocity_callback);
 
-  double delta_time = 1.0 / static_cast<double>(_update_rate);
-
-  auto timer_callback = std::bind(on_timer);
-  const auto period_ns =
-    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));
-  auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
-    node->get_clock(), period_ns, std::move(timer_callback),
-    node->get_node_base_interface()->get_context());
-  node->get_node_timers_interface()->add_timer(timer, nullptr);
   rclcpp::spin(node);
 
   return 0;

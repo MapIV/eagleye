@@ -133,7 +133,7 @@ install(TARGETS
   DESTINATION lib/$(PROJECT_NAME)
 )
 
-install(DIRECTORY config launch
+install(DIRECTORY config launch log
   DESTINATION share/${PROJECT_NAME}
   #DESTINATION lib/${PROJECT_NAME}
 )

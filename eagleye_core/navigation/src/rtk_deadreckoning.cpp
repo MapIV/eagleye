@@ -100,7 +100,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nme
       enu_absolute_rtk_deadreckoning->status.estimate_status = true;
     }
     else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) +
-      (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_velocity_threshold)
+      (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_threshold)
     {
       rtk_deadreckoning_status->provisional_enu_pos_x = enu_absolute_rtk_deadreckoning->enu_pos.x + enu_vel.vector.x *
         (enu_vel_time - rtk_deadreckoning_status->time_last);

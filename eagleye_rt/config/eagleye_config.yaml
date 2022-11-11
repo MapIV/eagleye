@@ -1,165 +1,160 @@
 /**:                                               #GNSS cycle 5Hz, IMU cycle 50Hz.
   ros__parameters:
-    #Estimate mode
+    # Estimate mode
     use_gnss_mode: RTKLIB
-    ## RTKLIB (rtklib) or NMEA (nmea)
-    ## The NMEA(nmea) mode eliminates the need to enter topics of type rtklib into eagleye, but may reduce accuracy.
+    use_canless_mode: false  
 
+    # Topic
     twist_topic: /can_twist
     imu_topic: /imu/data_raw
     rtklib_nav_topic: /rtklib_nav
-    ## If RTK positioning is not used, the following topic settings are not necessary.
-    nmea_sentence_topic: /navsat/nmea_sentence
+    nmea_sentence_topic: /nmea_sentence
     gga_topic: /navsat/gga
-    localization_pose_topic: /localization/pose # This parameter is used to input external poses such as map matching to eagleye. (Normally it is not used.)
+    rmc_topic: /navsat/rmc
+    localization_pose_topic: /localization/pose 
 
-    tf_gnss_flame:
+    # TF
+    tf_gnss_frame:
       parent: "base_link"
       child: "gnss"
 
-    ecef_base_pos:                                        #The position in the ecef coordinate system to use when converting to the enu coordinate system. If 0, the position entered for the first time when starting the program will be used as a reference.
+    # Origin of GNSS coordinates (ECEF to ENU)
+    ecef_base_pos:
       x : 0.0                               
       y : 0.0
       z : 0.0
       use_ecef_base_position : false
 
-    velocity_scale_factor:                                #Parameters for estimating vehicle speed scale factor.
-      estimated_number_min: 1000.0                           #Minimum number of data used for estimation. (default:1000 = 20s)
-      estimated_number_max: 20000.0                          #Maximum number of data used for estimation. (default:20000 = 400s)
-      estimated_velocity_threshold: 2.78                   #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      estimated_coefficient: 0.025                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.025 =2.5%)
-      save_velocity_scale_factor: false                     #If this parameter is set to true, the velocitry_scale_factor saved at the last startup is used as the initial value at startup.
-      velocity_scale_factor_save_duration: 100.0           #[sec]
+    # Eagleye Navigation Parameters
+    # Basic Navigation Functions
+    common:
+      imu_rate: 50
+      gnss_rate: 5
+      stop_judgment_threshold: 0.01
+      slow_judgment_threshold: 0.278
+      moving_judgment_threshold: 2.78
+      
+    velocity_scale_factor:                                
+      estimated_minimum_interval: 20
+      estimated_maximum_interval: 400
+      gnss_receiving_threshold: 0.25
+      velocity_scale_factor_save_str: /config/velocity_scale_factor.txt
+      save_velocity_scale_factor: false                    
+      velocity_scale_factor_save_duration: 100.0 
+      th_velocity_scale_factor_percent: 10.0          
 
-    yawrate_offset_stop:                                  #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      estimated_number: 200.0                               #Number of data used for estimation. (default:200 = 4s)
+    yawrate_offset_stop:                                  
+      estimated_interval: 4
       outlier_threshold: 0.002
 
-    angular_velocity_offset_stop:                         #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU during stoppage
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      estimated_number: 200.0                               #Number of data used for estimation. (default:200 = 4s)
-      outlier_threshold: 0.002
-
-    yawrate_offset:                                       #Parameters related to estimation of yaw rate offset due to temperature drift and noise of IMU while driving
-      estimated_number_min: 1500.0                          #Minimum number of data used for estimation. (default:1500 = 30s)
-      estimated_coefficient: 0.01                         #A coefficient for determining the threshold for the number of valid data in the buffer to determine whether to make an estimate. (default:0.01 =10%)
-      estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
+    yawrate_offset:                                       
+      estimated_minimum_interval: 30
+      gnss_receiving_threshold: 0.25
       outlier_threshold: 0.002
       1st:
-        estimated_number_max: 14000.0                       #Maximum number of data used for estimation. (default:14000 = 280s)
+        estimated_maximum_interval: 300
       2nd:
-        estimated_number_max: 25000.0                       #Maximum number of data used for estimation. (default:25000 = 500s)
+        estimated_maximum_interval: 500
 
-    heading:                                              #Parameters for estimating the azimuth of a car
-      estimated_number_min: 500.0                           #Minimum number of data used for estimation. (default:500 = 10s)
-      estimated_number_max: 1500.0                          #Maximum number of data used for estimation. (default:1500 = 30s)
-      estimated_gnss_coefficient: 0.025                   #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
-      estimated_heading_coefficient: 0.0125               #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.0125 = 1.25%)
-      outlier_threshold: 0.0524                           #Threshold for ending estimated outlier rejection. (default:0.0524 rad = 3 degree)
-      estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      estimated_yawrate_threshold: 0.0873                 #Yaw rate threshold for curve judgment. (default:0.0873 rad/s = 5 degree/s)
-
-    rtk_heading:                                          #Parameters for estimating the azimuth of a car
-      estimated_distance: 0.3                             #Distance to be used for heading angle estimation.
-      estimated_heading_buffer_min: 2                     #Minimum number of RTK fix solutions required for heading angle estimation
-      estimated_number_min: 500.0                           #Minimum number of data used for estimation. (default:500 = 10s)
-      estimated_number_max: 1500.0                          #Maximum number of data used for estimation. (default:1500 = 30s)
-      estimated_gnss_coefficient: 0.025                   #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
-      estimated_heading_coefficient: 0.0125               #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.0125 = 1.25%)
-      outlier_threshold: 0.0524                           #Threshold for ending estimated outlier rejection. (default:0.0524 rad = 3 degree)
-      estimated_velocity_threshold: 0.278                 #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      estimated_yawrate_threshold: 0.0873                 #Yaw rate threshold for curve judgment. (default:0.0873 rad/s = 5 degree/s)
+    heading:                                             
+      estimated_minimum_interval: 10
+      estimated_maximum_interval: 30
+      gnss_receiving_threshold: 0.25
+      outlier_threshold: 0.0524                         
+      outlier_ratio_threshold: 0.5
+      curve_judgment_threshold: 0.0873
 
     heading_interpolate:
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      number_buffer_max: 100.0
+      sync_search_period: 2
 
     slip_angle:
-      manual_coefficient: 0.0                             #If you do not want to correct slip angle, set slip angle estimate to false and set the coefficient here to 0
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
+      manual_coefficient: 0.0                             
 
     slip_coefficient:
-      estimated_number_min: 100.0                           #Minimum number of data used for estimation. (default:100)
-      estimated_number_max: 5000.0                          #Maximum number of data used for estimation. (default:5000)
-      estimated_velocity_threshold: 3.0                     #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      estimated_yawrate_threshold: 0.017453               #Yaw rate threshold for curve judgment. (default:0.017453 rad/s = 1 degree/s)
-      lever_arm: 0.26                                     #Distance from center of rear wheel axle to GNSS antenna. (m)
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-
-    trajectory:
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      timer_updata_rate: 10.0                              #Period of timer to detect the absence of input twist (default:10 hz)
-      th_deadlock_time: 1.0                                 #Time to allow input twist not to come (default:1s)
-
-    position:
-      estimated_distance: 300.0                             #Vehicle trajectory length used for estimation. (default:300 m)
-      separation_distance: 0.1                            #Minimum travel distance to buffer. (0.1 m)
-      estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      outlier_threshold: 3.0                              #Threshold for ending estimated outlier rejection. (default:3 m)
-      estimated_enu_vel_coefficient : 0.025               #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.025 = 2.5%)
-      estimated_position_coefficient: 0.25                #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.25 = 25%)
-
-    position_interpolate:
-      number_buffer_max: 100.0
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-
-    rtk_deadreckoning:
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-
-    smoothing:
-      estimated_number_max: 25                            #GNSS output cycle　* Smoothing time
-      estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      estimated_threshold: 0.1
-
-    height:
-      estimated_distance: 200.0                             #Vehicle trajectory length used for acc x offset estimation. (default:200 m)
-      estimated_distance_max: 2000.0                        #Vehicle trajectory length used for acc x scale factor estimation. (default:2000 m)
-      separation_distance: 0.1                            #Minimum travel distance to buffer. (0.1 m)
-      estimated_velocity_threshold: 2.78                  #Velocity threshold at which to start estimation. (default:2.78 m/s = 10 km/h)
-      estimated_velocity_coefficient: 0.1                 #A coefficient for determining the threshold for the number of valid data in the GNSS buffer to determine whether to make an estimate. (default:0.1 = 10%)
-      estimated_height_coefficient: 0.02                  #A coefficient for determining the threshold for the number of valid data in the remainder buffer to determine whether to make an estimate. (default:0.02 = 2%)
-      outlier_threshold: 0.3                              #Threshold for ending estimated outlier rejection. (default:0.3 m)
-      average_num: 50                                     #Moving average parameter of the pitch angle. (default:50 = 1[s])
-
-    enable_additional_rolling:
-      matching_update_distance: 0.3                       #Distance to re-estimate from previous estimate. (default:0.3 m)
-      stop_judgment_velocity_threshold: 0.01              #Speed threshold for judgment at stop. (default:0.01 m/s)
-      rolling_buffer_num: 50.0                              #Number of data to take a moving average of roll angle (default:50 = 1s)
-      link_Time_stamp_parameter: 0.01                     #Time considered to be in sync for time synchronization. (default:0.01 s)
-      imu_buffer_num: 10.0                                  #Number of IMU data to be stored for time correction. (default:10)
+      estimated_minimum_interval: 2
+      estimated_maximum_interval: 100
+      curve_judgment_threshold: 0.017453
+      lever_arm: 0.0                                     
 
     rolling:
-      stop_judgment_velocity_threshold: 0.01
       filter_process_noise: 0.01
-      filter_observation_noise: 1.0
+      filter_observation_noise: 1
 
-    velocity_estimator:
-      gga_downsample_time: 1.0
-      stop_judgment_velocity_threshold: 0.2
-      stop_judgment_buffer_maxnum: 50.0
-      variance_threshold: 0.000025
-      pitchrate_offset:
-        buffer_count_max: 400
-      pitching:
-        buffer_max: 250
-        outlier_threshold: 0.0174
-        estimated_velocity_threshold: 0.3
-        estimated_gnss_coefficient: 0.02
-        estimated_coefficient: 0.0125
-      acceleration_offset:
-        buffer_min: 1500.0
-        buffer_max: 25000.0
-        filter_process_noise: 0.01
-        filter_observation_noise: 1.0
-      doppler_fusion:
-        buffer_max: 200.0
-        estimated_gnss_coefficient: 0.02
-        estimated_coefficient: 0.01
-        outlier_threshold: 0.1
+    trajectory:                       
+      curve_judgment_threshold: 0.017453
+      timer_updata_rate: 10       
+      deadlock_threshold: 1
+
+    smoothing:
+      moving_average_time: 3
+      moving_ratio_threshold: 0.1
+
+    height:
+      estimated_minimum_interval: 200
+      estimated_maximum_interval: 2000
+      update_distance: 0.1
+      gnss_receiving_threshold: 0.1
+      outlier_threshold: 0.3
+      outlier_ratio_threshold: 0.5
+      moving_average_time: 1
+
+    position:
+      estimated_interval: 300
+      update_distance: 0.1
+      outlier_threshold: 3.0
+      gnss_receiving_threshold: 0.25
+      outlier_ratio_threshold: 0.5
+
+    position_interpolate:
+      sync_search_period: 2
 
     monitor:
       print_status: true
       log_output_status: false
+      use_compare_yawrate: false
+      comparison_twist_topic: /calculated_twist
+      th_diff_rad_per_sec: 0.17453
+      th_num_continuous_abnormal_yawrate: 25
+
+    # Optional Navigation Functions
+    angular_velocity_offset_stop:                         
+      estimated_interval: 4
+      outlier_threshold: 0.002
+
+    rtk_heading:                                          
+      update_distance: 0.3
+      estimated_minimum_interval: 10
+      estimated_maximum_interval: 30
+      gnss_receiving_threshold: 0.25
+      outlier_threshold: 0.0524
+      outlier_ratio_threshold: 0.5
+      curve_judgment_threshold: 0.0873
+
+    enable_additional_rolling:
+      update_distance: 0.3
+      moving_average_time: 1
+      sync_judgment_threshold: 0.01
+      sync_search_period: 1
+
+    velocity_estimator:
+      gga_downsample_time: 0.5
+      stop_judgment_velocity_threshold: 0.2 
+      stop_judgment_interval: 1
+      variance_threshold: 0.000025
+      pitchrate_offset:
+        estimated_interval: 8
+      pitching:
+        estimated_interval: 5
+        outlier_threshold: 0.0174
+        gnss_receiving_threshold: 0.2
+        outlier_ratio_threshold: 0.5
+      acceleration_offset:
+        estimated_minimum_interval: 30
+        estimated_maximum_interval: 500
+        filter_process_noise: 0.01
+        filter_observation_noise: 1
+      doppler_fusion:
+        estimated_interval: 4
+        gnss_receiving_threshold: 0.2
+        outlier_ratio_threshold: 0.5
+        outlier_threshold: 0.1

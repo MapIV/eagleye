@@ -17,13 +17,13 @@
   <build_depend>rtklib_msgs</build_depend>
   <build_depend>eagleye_msgs</build_depend>
   <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>geodesy</build_export_depend>
   <build_export_depend>eagleye_coordinate</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>rtklib_msgs</build_export_depend>
   <build_export_depend>eagleye_msgs</build_export_depend>
-  <build_depend>tf2_ros</build_depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
