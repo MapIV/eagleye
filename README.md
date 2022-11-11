@@ -56,6 +56,7 @@ Clone and build the necessary packages for Eagleye.
 	git clone https://github.com/MapIV/nmea_comms.git
 	git clone https://github.com/MapIV/nmea_ros_bridge.git
 	git clone https://github.com/MapIV/gnss_compass_ros.git
+	git clone https://github.com/MapIV/llh_converter.git
 	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	catkin_make -DCMAKE_BUILD_TYPE=Release
