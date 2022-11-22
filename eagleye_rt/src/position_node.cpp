@@ -153,7 +153,7 @@ int main(int argc, char** argv)
   // tfBuffer_(node->get_clock());
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);

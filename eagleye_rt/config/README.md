@@ -18,9 +18,6 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | twist_topic                   | string | Topic name to be subscribed to in node (geometry_msgs/TwistStamped.msg) | /can_twist               |
 | rtklib_nav_topic              | string | Topic name to be subscribed to in node (rtklib_msgs/RtklibNav.msg)      | /rtklib_nav_topic        |
 | nmea_sentence_topic           | string | Topic name to be subscribed to in node (nmea_msgs/Sentence.msg)         | /nmea_sentence_topic     |
-| gga_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gpgga.msg)            | /navsat/gga              |
-| rmc_topic                     | string | Topic name to be subscribed to in node (nmea_msgs/Gprmc.msg)            | /navsat/rmc              |
-| localization_pose_topic       | string | Topic name to be subscribed to in node (geometry_msgs/PoseStamped.msg)  | /localization_pose_topic |
 
 
 ## TF

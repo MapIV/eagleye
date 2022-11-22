@@ -9,9 +9,6 @@
     imu_topic: /imu/data_raw
     rtklib_nav_topic: /rtklib_nav
     nmea_sentence_topic: /nmea_sentence
-    gga_topic: /navsat/gga
-    rmc_topic: /navsat/rmc
-    localization_pose_topic: /localization/pose 
 
     # TF
     tf_gnss_frame:

@@ -129,7 +129,7 @@ int main(int argc, char** argv)
   auto node = rclcpp::Node::make_shared(node_name);
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_rmc_topic_name = "/navsat/rmc";
+  std::string subscribe_rmc_topic_name = "gnss/rmc";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
