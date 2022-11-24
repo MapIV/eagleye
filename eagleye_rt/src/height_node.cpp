@@ -107,7 +107,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("height");
 
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);

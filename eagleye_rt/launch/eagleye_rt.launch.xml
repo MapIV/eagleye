@@ -122,11 +122,12 @@
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
+    <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
+            <arg name="config_yaml" value="$(var config_yaml)"/>
+    </include>
   </group>
 
-  <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
-        <arg name="config_yaml" value="$(var config_yaml)"/>
-  </include>
+
 
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
 

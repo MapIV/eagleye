@@ -197,7 +197,7 @@ int main(int argc, char** argv)
   std::string subscribe_twist_topic_name = "/can_twist";
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_rmc_topic_name = "/navsat/rmc";
+  std::string subscribe_rmc_topic_name = "gnss/rmc";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
