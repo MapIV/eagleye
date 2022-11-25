@@ -42,6 +42,8 @@ static geometry_msgs::Vector3Stamped _enu_vel;
 static eagleye_msgs::Position _enu_absolute_rtk_deadreckoning;
 static sensor_msgs::NavSatFix _eagleye_fix;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
+static eagleye_msgs::Rolling _rolling;
+static eagleye_msgs::Pitching _pitching;
 
 static ros::Publisher _pub1;
 static ros::Publisher _pub2;
@@ -66,6 +68,15 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
   _heading_interpolate_3rd = *msg;
 }
 
+void rolling_callback(const eagleye_msgs::Rolling::ConstPtr& msg)
+{
+  _rolling = *msg;
+}
+
+void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
+{
+  _pitching = *msg;
+}
 
 void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tf_listener, tf2_ros::Buffer* tf_buffer)
 {
@@ -99,10 +110,10 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   _eagleye_fix.header.frame_id = "gnss";
 
   if (_use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    rtk_deadreckoning_estimate(_rtklib_nav, _enu_vel, _gga, _heading_interpolate_3rd,
+    rtk_deadreckoning_estimate(_rtklib_nav, _enu_vel, _gga, _heading_interpolate_3rd, _rolling, _pitching,
       _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);
   else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
-    rtk_deadreckoning_estimate(_enu_vel, _gga, _heading_interpolate_3rd,
+    rtk_deadreckoning_estimate(_enu_vel, _gga, _heading_interpolate_3rd, _rolling, _pitching,
       _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);    
   
   if(_enu_absolute_rtk_deadreckoning.status.enabled_status)

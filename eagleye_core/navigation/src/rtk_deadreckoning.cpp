@@ -32,8 +32,8 @@
 #include "navigation/navigation.hpp"
 
 void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading,
-  RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
-  eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
+  eagleye_msgs::Rolling rolling, eagleye_msgs::Pitching pitching, RtkDeadreckoningParameter rtk_deadreckoning_parameter,
+  RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
   double enu_pos[3],enu_rtk[3];
@@ -64,7 +64,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
     tf::Transform transform;
     tf::Quaternion q;
     transform.setOrigin(tf::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
-    q.setRPY(0, 0, (90* M_PI / 180)-heading.heading_angle);
+    q.setRPY(rolling.rolling_angle, pitching.pitching_angle, (90* M_PI / 180)-heading.heading_angle);
     transform.setRotation(q);
 
     tf::Transform transform2, transform3;
@@ -126,7 +126,9 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
   }
 }
 
-void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
+void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading,
+  eagleye_msgs::Rolling rolling, eagleye_msgs::Pitching pitching, RtkDeadreckoningParameter rtk_deadreckoning_parameter,
+  RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
 {
   if(rtk_deadreckoning_parameter.use_ecef_base_position)
   {
@@ -145,10 +147,12 @@ void rtk_deadreckoning_estimate(rtklib_msgs::RtklibNav rtklib_nav,geometry_msgs:
     rtk_deadreckoning_status->position_estimate_start_status = true;
   }
 
-  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
+  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rolling, pitching, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
 }
 
-void rtk_deadreckoning_estimate(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status, eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
+void rtk_deadreckoning_estimate(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs::Gpgga gga,  eagleye_msgs::Heading heading,
+  eagleye_msgs::Rolling rolling, eagleye_msgs::Pitching pitching, RtkDeadreckoningParameter rtk_deadreckoning_parameter, RtkDeadreckoningStatus* rtk_deadreckoning_status,
+  eagleye_msgs::Position* enu_absolute_rtk_deadreckoning,sensor_msgs::NavSatFix* eagleye_fix)
 {
   double ecef_pos[3];
   double llh_pos[3];
@@ -177,5 +181,5 @@ void rtk_deadreckoning_estimate(geometry_msgs::Vector3Stamped enu_vel, nmea_msgs
     rtk_deadreckoning_status->position_estimate_start_status = true;
   }
 
-  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
+  rtk_deadreckoning_estimate_(enu_vel, gga, heading, rolling, pitching, rtk_deadreckoning_parameter, rtk_deadreckoning_status, enu_absolute_rtk_deadreckoning, eagleye_fix);
 }

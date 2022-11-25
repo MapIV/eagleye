@@ -743,10 +743,10 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     if(use_canless_mode_)
     {
       if (use_gnss_mode_ == "rtklib" || use_gnss_mode_ == "RTKLIB") 
-        rtk_deadreckoning_estimate(rtklib_nav_[i], _enu_vel, gga_[i], _heading_interpolate_3rd,
+        rtk_deadreckoning_estimate(rtklib_nav_[i], _enu_vel, gga_[i], _heading_interpolate_3rd, _rolling, _pitching,
           rtk_deadreckoning_parameter_, &rtk_deadreckoning_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
       else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA") 
-        rtk_deadreckoning_estimate(_enu_vel, gga_[i], _heading_interpolate_3rd,
+        rtk_deadreckoning_estimate(_enu_vel, gga_[i], _heading_interpolate_3rd, _rolling, _pitching,
           rtk_deadreckoning_parameter_, &rtk_deadreckoning_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);      
     }
     else
