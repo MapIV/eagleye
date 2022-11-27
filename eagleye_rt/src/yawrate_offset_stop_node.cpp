@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("yawrate_offset_stop");
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -81,8 +81,6 @@ int main(int argc, char** argv)
     try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-
-    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
 
     _yawrate_offset_stop_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     _yawrate_offset_stop_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();

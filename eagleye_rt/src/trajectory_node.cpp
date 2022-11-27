@@ -179,7 +179,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("trajectory");
 
-  std::string subscribe_twist_topic_name;
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -191,8 +191,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
-
-    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
 
     trajectory_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
 

@@ -5,7 +5,9 @@
     use_canless_mode: false  
 
     # Topic
-    twist_topic: /can_twist
+    twist:
+      twist_type: 1 # TwistStamped : 0, TwistWithCovarianceStamped: 1
+      twist_topic: /can_twist
     imu_topic: /imu/data_raw
     rtklib_nav_topic: /rtklib_nav
     nmea_sentence_topic: /nmea_sentence

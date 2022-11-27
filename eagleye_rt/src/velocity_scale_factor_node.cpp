@@ -194,7 +194,7 @@ int main(int argc, char** argv)
 
   double velocity_scale_factor_save_duration = 100.0;
 
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_rmc_topic_name = "gnss/rmc";
@@ -210,7 +210,6 @@ int main(int argc, char** argv)
 
     _use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
 
-    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
     subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
     _velocity_scale_factor_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();

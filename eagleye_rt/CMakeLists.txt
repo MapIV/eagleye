@@ -22,6 +22,10 @@ ament_auto_add_executable(tf_converted_imu
   src/tf_converted_imu.cpp
 )
 
+ament_auto_add_executable(twist_relay
+  src/twist_relay.cpp
+)
+
 ament_auto_add_executable(correction_imu
   src/correction_imu.cpp
 )

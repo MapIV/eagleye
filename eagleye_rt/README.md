@@ -26,7 +26,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 1. Check if wheel speed (vehicle speed) is published in `/can_twist` topic.
 
 * Topic name: /can_twist
-* Message type: geometry_msgs/TwistStamped twist.liner.x
+* Message type: geometry_msgs/TwistStamped twist.liner.x or geometry_msgs/TwistWithCovarianceStamped twist.twist.liner.x
 
 
 2. Check if the IMU data is published in `/imu/data_raw` topic.

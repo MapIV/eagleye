@@ -11,6 +11,11 @@
     <arg name="use_rtk_deadreckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
 
+     <node pkg="eagleye_rt" name="twist_relay" exec="twist_relay">
+            <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+     </node>
+
      <node pkg="eagleye_rt" name="tf_converted_imu" exec="tf_converted_imu">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
