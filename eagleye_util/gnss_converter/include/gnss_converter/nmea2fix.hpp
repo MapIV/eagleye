@@ -23,8 +23,8 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef NMEA2FIX_H
-#define NMEA2FIX_H
+#ifndef gnss_converter_H
+#define gnss_converter_H
 
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/nav_sat_fix.hpp"
@@ -36,7 +36,7 @@
 #include <memory>
 
 extern double stringToGPSTime(std::string&, double);
-extern void nmea2fix_converter(const nmea_msgs::msg::Sentence,  sensor_msgs::msg::NavSatFix*,
+extern void gnss_converter_converter(const nmea_msgs::msg::Sentence,  sensor_msgs::msg::NavSatFix*,
     nmea_msgs::msg::Gpgga*, nmea_msgs::msg::Gprmc*);
 
-#endif /*NMEA2FIX_H */
+#endif /*gnss_converter_H */

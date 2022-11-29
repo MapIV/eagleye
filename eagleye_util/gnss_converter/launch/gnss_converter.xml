@@ -6,7 +6,7 @@
 
   <group>
     <push-ros-namespace namespace="gnss"/>
-    <node pkg="eagleye_nmea2fix" name="nmea2fix_node" exec="nmea2fix" output="screen">
+    <node pkg="eagleye_gnss_converter" name="gnss_converter_node" exec="gnss_converter" output="screen">
           <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
   </group>

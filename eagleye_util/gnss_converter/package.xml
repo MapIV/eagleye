@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>eagleye_nmea2fix</name>
+  <name>eagleye_gnss_converter</name>
   <version>1.0.0</version>
-  <description>nmea2fix package</description>
+  <description>gnss_converter package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
 
@@ -12,12 +12,24 @@
   <build_depend>rclcpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>nmea_msgs</build_depend>
+  <build_depend>ublox_msgs</build_depend>
+  <build_depend>rtklib_msgs</build_depend>
+  <build_depend>eagleye_coordinate</build_depend>
+  <build_depend>eagleye_navigation</build_depend>
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>sensor_msgs</build_export_depend>
   <build_export_depend>nmea_msgs</build_export_depend>
+  <build_export_depend>ublox_msgs</build_export_depend>
+  <build_export_depend>rtklib_msgs</build_export_depend>
+  <build_export_depend>eagleye_coordinate</build_export_depend>
+  <build_export_depend>eagleye_navigation</build_export_depend>
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>nmea_msgs</exec_depend>
+  <exec_depend>ublox_msgs</exec_depend>
+  <exec_depend>rtklib_msgs</exec_depend>
+  <exec_depend>eagleye_coordinate</exec_depend>
+  <exec_depend>eagleye_navigation</exec_depend>
   
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

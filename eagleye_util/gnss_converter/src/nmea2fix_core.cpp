@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "nmea2fix/nmea2fix.hpp"
+#include "gnss_converter/nmea2fix.hpp"
 
 double stringToGPSTime(std::string& input, double header_time)
 {
@@ -50,7 +50,7 @@ double stringToGPSTime(std::string& input, double header_time)
   return GPSTime;
 }
 
-void nmea2fix_converter(const nmea_msgs::msg::Sentence sentence, sensor_msgs::msg::NavSatFix* fix, nmea_msgs::msg::Gpgga* gga, nmea_msgs::msg::Gprmc* rmc)
+void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_msgs::msg::NavSatFix* fix, nmea_msgs::msg::Gpgga* gga, nmea_msgs::msg::Gprmc* rmc)
 {
 
   std::vector<std::string> linedata,nmea_data;

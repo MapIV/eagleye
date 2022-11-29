@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "rtklib_nav";
   std::string subscribe_rmc_topic_name = "gnss/rmc";
 
   std::string yaml_file;
@@ -209,8 +209,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
-
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
     _velocity_scale_factor_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     _velocity_scale_factor_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();

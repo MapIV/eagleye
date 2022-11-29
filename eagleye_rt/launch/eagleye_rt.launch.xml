@@ -127,7 +127,7 @@
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
+    <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
             <arg name="config_yaml" value="$(var config_yaml)"/>
     </include>
   </group>
