@@ -106,16 +106,11 @@ ament_auto_add_executable(rtk_heading
   src/rtk_heading_node.cpp
 )
 
-ament_auto_add_executable(navpvt2rtk
-  src/navpvt2rtk_node.cpp
-)
-
 ament_auto_add_executable(velocity_estimator
   src/velocity_estimator_node.cpp
 )
 
 install(TARGETS 
-  navpvt2rtk
   tf_converted_imu
   correction_imu
   distance
@@ -139,7 +134,6 @@ install(TARGETS
 
 install(DIRECTORY config launch log
   DESTINATION share/${PROJECT_NAME}
-  #DESTINATION lib/${PROJECT_NAME}
 )
 
 

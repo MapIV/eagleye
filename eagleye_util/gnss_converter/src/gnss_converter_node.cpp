@@ -2,6 +2,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "gnss_converter/nmea2fix.hpp"
 #include <ublox_msgs/msg/nav_pvt.hpp>
+#include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
@@ -49,6 +50,7 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg) 
 
 void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { nav_msg_ptr = msg; }
 
+
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 {
   rtklib_msgs::msg::RtklibNav r;
@@ -80,12 +82,41 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   rtklib_nav_pub->publish(r);
 }
 
+void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
+{
+  if (nav_msg_ptr == nullptr) return;
+  rtklib_msgs::msg::RtklibNav r;
+  r.header.frame_id = "gps";
+  r.header.stamp = msg->header.stamp;
+  rclcpp::Time ros_clock(msg->header.stamp);
+  double gnss_velocity_time = ros_clock.seconds();
+  r.tow = gnss_velocity_time;
+
+  double llh[3];
+  llh[0] = nav_msg_ptr->latitude * M_PI / 180.0;
+  llh[1] = nav_msg_ptr->longitude * M_PI / 180.0;
+  llh[2] = nav_msg_ptr->altitude;
+  double ecef_pos[3];
+  llh2xyz(llh, ecef_pos);
+  r.ecef_pos.x = ecef_pos[0];
+  r.ecef_pos.y = ecef_pos[1];
+  r.ecef_pos.z = ecef_pos[2];
+
+  r.ecef_vel.x = msg->twist.twist.linear.x;
+  r.ecef_vel.y = msg->twist.twist.linear.y;
+  r.ecef_vel.z = msg->twist.twist.linear.z;
+
+  rtklib_nav_pub->publish(r);
+}
+
+
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("gnss_converter_node");
 
-  int velocity_source_type = 0; // rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2
+  int velocity_source_type = 0;
+  // rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3
   std::string velocity_source_topic;
   int llh_source_type = 0; // rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2
   std::string llh_source_topic;
@@ -93,6 +124,7 @@ int main(int argc, char** argv)
   rclcpp::Subscription<rtklib_msgs::msg::RtklibNav>::SharedPtr rtklib_nav_sub;
   rclcpp::Subscription<nmea_msgs::msg::Sentence>::SharedPtr nmea_sentence_sub;
   rclcpp::Subscription<ublox_msgs::msg::NavPVT>::SharedPtr navpvt_sub;
+  rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr gnss_velocity_sub;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr navsatfix_sub;
 
   node->declare_parameter("gnss.velocity_source_type",velocity_source_type);
@@ -120,6 +152,11 @@ int main(int argc, char** argv)
   else if(velocity_source_type == 2)
   {
     navpvt_sub = node->create_subscription<ublox_msgs::msg::NavPVT>(velocity_source_topic, 1000, navpvt_callback);
+  }
+  else if(velocity_source_type == 3)
+  {
+    gnss_velocity_sub = node->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
+        velocity_source_topic, 1000, gnss_velocity_callback);
   }
   else 
   {
