@@ -108,7 +108,7 @@
     </node>
   </group>
 
-  <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
+  <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
         <arg name="sub_topic_name" value="nmea_sentence"/>
         <arg name="pub_fix_topic_name" value="navsat/fix"/>
   </include>

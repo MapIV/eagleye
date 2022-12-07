@@ -1093,13 +1093,11 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("monitor");
 
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
   std::string comparison_twist_topic_name = "/calculated_twist";
-
-  node->declare_parameter("twist_topic",subscribe_twist_topic_name);
 
   node->declare_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->declare_parameter("gga_topic",subscribe_gga_topic_name);
@@ -1110,7 +1108,6 @@ int main(int argc, char** argv)
   node->declare_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
   node->declare_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
-  node->get_parameter("twist_topic",subscribe_twist_topic_name);
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
@@ -1120,8 +1117,6 @@ int main(int argc, char** argv)
   node->get_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
   node->get_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
 
-
-  std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;

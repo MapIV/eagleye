@@ -152,7 +152,7 @@ int main(int argc, char** argv)
 
   // tfBuffer_(node->get_clock());
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
@@ -166,8 +166,6 @@ int main(int argc, char** argv)
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
-
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
     position_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
     position_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();

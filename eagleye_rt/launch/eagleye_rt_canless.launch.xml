@@ -114,7 +114,7 @@
     </node>
   </group>
 
-  <include file="$(find-pkg-share eagleye_nmea2fix)/launch/nmea2fix.xml">
+  <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
         <arg name="config_yaml" value="$(var config_yaml)"/>
   </include>
 

@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>eagleye_gnss_converter</name>
+  <version>1.0.0</version>
+  <description>gnss_converter package</description>
+
+  <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
+
+  <license>BSD3</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nmea_msgs</build_depend>
+  <build_depend>ublox_msgs</build_depend>
+  <build_depend>rtklib_msgs</build_depend>
+  <build_depend>eagleye_coordinate</build_depend>
+  <build_depend>eagleye_navigation</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_export_depend>rclcpp</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>nmea_msgs</build_export_depend>
+  <build_export_depend>ublox_msgs</build_export_depend>
+  <build_export_depend>rtklib_msgs</build_export_depend>
+  <build_export_depend>eagleye_coordinate</build_export_depend>
+  <build_export_depend>eagleye_navigation</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
+  <build_export_depend>tf2_geometry_msgs</build_export_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nmea_msgs</exec_depend>
+  <exec_depend>ublox_msgs</exec_depend>
+  <exec_depend>rtklib_msgs</exec_depend>
+  <exec_depend>eagleye_coordinate</exec_depend>
+  <exec_depend>eagleye_navigation</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

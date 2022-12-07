@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(eagleye_nmea2fix)
+project(eagleye_gnss_converter)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -20,9 +20,9 @@ ament_auto_find_build_dependencies()
 
 include_directories(include)
 
-ament_auto_add_executable(nmea2fix
+ament_auto_add_executable(gnss_converter
   src/nmea2fix_core.cpp
-  src/nmea2fix_node.cpp
+  src/gnss_converter_node.cpp
 )
 
 install(TARGETS

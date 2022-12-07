@@ -98,7 +98,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 1. Check if wheel speed (vehicle speed) is published in `/can_twist` topic.
 
 * Topic name: /can_twist
-* Message type: geometry_msgs/TwistStamped twist.liner.x
+* Message type: geometry_msgs/TwistStamped twist.liner.x or geometry_msgs/TwistWithCovarianceStamped twist.twist.liner.x
 
 
 2. Check if the IMU data is published in `/imu/data_raw` topic.
@@ -128,7 +128,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 ### Subscribed Topics
  - /navsat/nmea_sentence (nmea_msgs/Sentence)
 
- - /can_twist (geometry_msgs/TwistStamped)
+ - /can_twist (geometry_msgs/TwistStamped or geometry_msgs/TwistWithCovarianceStamped)
 
  - /rtklib_nav (rtklib_msgs/RtklibNav)
 
@@ -138,7 +138,9 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
  - /eagleye/fix (sensor_msgs/NavSatFix) 
 
- - /eagleye/twist (ngeometry_msgs/TwistStamped)
+ - /eagleye/twist (geometry_msgs/TwistStamped)
+
+ - /eagleye/twist_with_covariance (geometry_msgs/TwistWithCovarianceStamped)
 
 
 ### Note
