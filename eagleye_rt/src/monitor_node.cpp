@@ -1095,7 +1095,7 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
   std::string comparison_twist_topic_name = "/calculated_twist";
 
