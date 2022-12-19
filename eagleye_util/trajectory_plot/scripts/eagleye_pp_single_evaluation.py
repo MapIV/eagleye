@@ -52,9 +52,13 @@ if __name__ == "__main__":
         config = yaml.safe_load(yml)
 
     # set param
+    missing_gnss_type = config["eagleye_log"]["missing_gnss_type"]
     reverse_imu = config["param"]["reverse_imu_flag"]
     plane = config["param"]["plane_num"]
+    plot_text_data = config["evaluation_plot"]["plot_text_data"]
+    plot_text_step = config["evaluation_plot"]["plot_text_step"]
     data_name = config["param"]["data_name_param"]
+    font_size = config["param"]["font_size_param"]
 
     print('plane',plane)
 
@@ -85,11 +89,27 @@ if __name__ == "__main__":
     dopplor = pd.concat([raw_df['elapsed_time'],vel, dopplor_heading],axis=1)
 
     eagleye_plot_rpy = pd.concat([eagleye_df['roll'],eagleye_df['pitch'],eagleye_df['yaw']],axis=1)
-    util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor)
+    eagleye_6dof = pd.concat([eagleye_xyz,eagleye_plot_rpy],axis=1)
+    raw_6dof = pd.concat([raw_xyz,dopplor_heading],axis=1)
+
+    if missing_gnss_type == 0:
+        util_plot.plot_6DoF_single(eagleye_df['elapsed_time'],raw_df['elapsed_time'],raw_df['elapsed_time'], eagleye_xyz, rtk_xyz, raw_xyz, eagleye_plot_rpy,dopplor, font_size)
+        util_plot.plot_traj_text_tree('2D Trajectory', raw_xyz, rtk_xyz, eagleye_xyz, eagleye_df[plot_text_data], plot_text_step, font_size, data_name, "gnss rtk data(nmea)")
+        util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'], eagleye_df[plot_text_data], plot_text_step, font_size)
+        util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, font_size, data_name, "gnss rtk data(nmea)")
+    elif missing_gnss_type == 1:
+        util_plot.plot_6DoF(eagleye_df['elapsed_time'], eagleye_6dof, rtk_xyz , data_name, "gnss rtk data(nmea)",font_size)
+        util_plot.plot_traj_text('2D Trajectory', rtk_xyz, eagleye_xyz, eagleye_df[plot_text_data], plot_text_step, font_size, data_name, "gnss rtk data(nmea)")
+        util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'], eagleye_df[plot_text_data], plot_text_step, font_size)
+        util_plot.plot_traj_3d(rtk_xyz, eagleye_xyz, font_size, data_name, "gnss rtk data(nmea)")
+    elif missing_gnss_type == 2:
+        util_plot.plot_6DoF(eagleye_df['elapsed_time'], eagleye_6dof, raw_6dof , data_name, "gnss raw data(rtklib)",font_size)
+        util_plot.plot_traj_text('2D Trajectory', rtk_xyz, eagleye_xyz, eagleye_df[plot_text_data], plot_text_step, font_size, data_name, "gnss raw data(rtklib)")
+        util_plot.plot_traj_3d(raw_xyz, eagleye_xyz, font_size, data_name, "gnss raw data(rtklib)")
 
     fig2 = plt.figure()
     ax_sf = fig2.add_subplot(2, 1, 1)
-    util_plot.plot_one(ax_sf, eagleye_df, 'elapsed_time', 'sf', 'Velocity scal factor', 'Time [s]', 'Velocity scal factor []', "None", 1)
+    util_plot.plot_one(ax_sf, eagleye_df, 'elapsed_time', 'sf', 'Velocity scal factor', 'Time [s]', 'Velocity scal factor []', "None", 1, font_size)
 
     ax_vel = fig2.add_subplot(2, 1, 2)
     ax_vel.set_title('Velocity')
@@ -100,12 +120,6 @@ if __name__ == "__main__":
     ax_vel.set_ylabel('Velocity [m/s]')
     ax_vel.legend(loc='upper right')
     ax_vel.grid()
-
-    util_plot.plot_traj_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
-
-    util_plot.plot_traj_qual(eagleye_xyz,eagleye_df['qual'])
-
-    util_plot.plot_traj_3d_three(raw_xyz, rtk_xyz, eagleye_xyz, data_name, "gnss rtk data(nmea)")
 
     plt.show()
     
