@@ -136,4 +136,7 @@
 
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
 
+  <include file="$(find-pkg-share eagleye_fix2pose)/launch/fix2pose.xml">
+  </include>
+
 </launch>

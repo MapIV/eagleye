@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
 
-  std::string subscribe_rtklib_nav_topic_name = "rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
   std::string subscribe_rmc_topic_name = "gnss/rmc";
 
   std::string yaml_file;

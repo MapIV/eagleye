@@ -3,7 +3,8 @@
 <launch>
 
   <node pkg="eagleye_fix2pose" name="fix2pose_node" exec="fix2pose" output="screen" >
-
+    <!-- /eagleye/fix or  /eagleye/rtk_fix(rtk_deadreckoning mode) -->
+    <remap from="/eagleye/fix" to="/eagleye/fix" />
     <param name="plane" value="7"/>
     <param name="tf_num" value="1"/>
     <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
