@@ -185,13 +185,13 @@ int main(int argc, char** argv)
   std::cout<< "parent_frame_id"<<parent_frame_id<<std::endl;
   std::cout<< "child_frame_id"<<child_frame_id<<std::endl;
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("/eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("/eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
-  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("/eagleye/fix", 1000, fix_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("/eagleye/rolling", 1000, rolling_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("/eagleye/pitching", 1000, pitching_callback);
-  pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("/eagleye/pose", 1000);
-  pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/eagleye/pose_with_covariance", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Position>("eagleye/enu_absolute_pos_interpolate", 1000, position_callback);
+  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("eagleye/fix", 1000, fix_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
+  pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("eagleye/pose", 1000);
+  pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
   br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   rclcpp::spin(node);

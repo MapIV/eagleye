@@ -129,7 +129,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("rtk_deadreckoning");
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
@@ -142,7 +142,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
     rtk_deadreckoning_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
     rtk_deadreckoning_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
@@ -153,7 +152,6 @@ int main(int argc, char** argv)
     rtk_deadreckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
 
     std::cout << "use_gnss_mode " << use_gnss_mode << std::endl;
-    std::cout << "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
     std::cout << "ecef_base_pos_x " << rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
     std::cout << "ecef_base_pos_y " << rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
