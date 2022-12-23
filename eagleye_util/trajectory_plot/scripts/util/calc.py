@@ -193,10 +193,27 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
     set_target_index: List[float] = []
     set_ref_index: List[float] = []
 
-    ref_time_min_index = ref_data[ref_data['TimeStamp'] - csv_data['TimeStamp'][0] < 0].index
-    ref_data = ref_data.drop(ref_time_min_index)
-    ref_time_max_index = ref_data[ref_data['TimeStamp'] - csv_data['TimeStamp'].tail(1) > 0].index
-    ref_data = ref_data.drop(ref_time_max_index)
+    if ref_data['TimeStamp'][0] >  csv_data['TimeStamp'][0]:
+        csv_data = csv_data[csv_data['TimeStamp'] > ref_data['TimeStamp'][0] - sync_threshold_time]
+        csv_data = csv_data.reset_index(drop=True)
+    else:
+        ref_data = ref_data[ref_data['TimeStamp'] > csv_data['TimeStamp'][0] - sync_threshold_time]
+        ref_data = ref_data.reset_index(drop=True)
+
+    if len(csv_data) == 0 or len(ref_data) == 0:
+        print("[ERROR] Target time and ref time ranges do not match.")
+        sys.exit(1)
+
+    if ref_data.iloc[-1]['TimeStamp'] < csv_data.iloc[-1]['TimeStamp']:
+        csv_data = csv_data[csv_data['TimeStamp'] < ref_data.iloc[-1]['TimeStamp'] + sync_threshold_time]
+        csv_data = csv_data.reset_index(drop=True)
+    else:
+        ref_data = ref_data[ref_data['TimeStamp'] < csv_data.iloc[-1]['TimeStamp'] + sync_threshold_time]
+        ref_data = ref_data.reset_index(drop=True)
+
+    if len(csv_data) == 0 or len(ref_data) == 0:
+        print("[ERROR] Target time and ref time ranges do not match.")
+        sys.exit(1)
 
     sync_ref_time_tmp = ref_data['TimeStamp']
 
@@ -220,15 +237,11 @@ def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchroni
             set_ref_index.append(num)
 
     data_df_output = csv_data.iloc[set_target_index]
-    data_df_output = data_df_output.reset_index()
+    data_df_output = data_df_output.reset_index(drop=True)
     data_df_output['elapsed_time'] = data_df_output['TimeStamp'] - data_df_output['TimeStamp'][0]
     ref_df_output = ref_data.iloc[set_ref_index]
-    ref_df_output = ref_df_output.reset_index()
+    ref_df_output = ref_df_output.reset_index(drop=True)
     ref_df_output['elapsed_time'] = ref_df_output['TimeStamp'] - ref_df_output['TimeStamp'][0]
-
-    if not set_target_index:
-        print("Time sync Error")
-        sys.exit(1)
 
     return ref_df_output , data_df_output
 
