@@ -105,8 +105,8 @@ void ll2xy_mgrs(double llh[3], double xyz[3])
   //wgs_point.longitude = llh[1];
   wgs_point.altitude = llh[2];
 
-  std::cout << wgs_point.latitude << std::endl;
-  std::cout << wgs_point.longitude << std::endl;
+  // std::cout << wgs_point.latitude << std::endl;
+  // std::cout << wgs_point.longitude << std::endl;
 
 
   geodesy::UTMPoint utm_point;
