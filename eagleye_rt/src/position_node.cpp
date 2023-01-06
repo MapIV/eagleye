@@ -56,6 +56,8 @@ static bool use_canless_mode;
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 
+std::string node_name = "position";
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
@@ -109,7 +111,7 @@ void on_timer()
   }
   catch (tf2::TransformException& ex)
   {
-    // RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "%s", ex.what());
     return;
   }
 }
@@ -148,9 +150,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("position");
-
-  // tfBuffer_(node->get_clock());
+  auto node = rclcpp::Node::make_shared(node_name);
 
   std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
@@ -233,6 +233,8 @@ int main(int argc, char** argv)
     node->get_clock(), period_ns, std::move(timer_callback),
     node->get_node_base_interface()->get_context());
   node->get_node_timers_interface()->add_timer(timer, nullptr);
+
+  tf2_ros::TransformListener listener(tfBuffer_);
 
   rclcpp::spin(node);
 
