@@ -40,6 +40,18 @@ jobs:
           source /opt/ros/melodic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
           catkin_make -DCMAKE_BUILD_TYPE=Release -j1
+      - name: eagleye_pp
+        run: |
+          cd ~/eagleye/
+          sudo apt install curl
+          sudo apt install zip unzip
+          curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
+          unzip data.zip || true
+          ./src/eagleye/eagleye_pp/scripts/launch_pp.sh ~/eagleye/2020-07-15-13-39-56.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config.yaml
+      - name: trajectory_plot
+        run: |
+          cd ~/eagleye/
+          python3 src/eagleye/eagleye_util/trajectory_plot/scripts/eagleye_pp_single_evaluation.py */eagleye_log.csv src/eagleye/eagleye_util/trajectory_plot/config/trajectory_plot.yaml
 
   noetic_build:
     runs-on:  ubuntu-20.04
