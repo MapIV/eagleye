@@ -4,7 +4,7 @@
 
   <node pkg="eagleye_fix2pose" name="fix2pose_node" exec="fix2pose" output="screen" >
     <!-- /eagleye/fix or  /eagleye/rtk_fix(rtk_deadreckoning mode) -->
-    <remap from="/eagleye/fix" to="/eagleye/fix" />
+    <remap from="eagleye/fix" to="eagleye/fix" />
     <!-- plane rectangular coordinate number -->
     <param name="plane" value="7"/>
     <!-- 1 : plane rectangular coordinate  2 : MGRS -->
@@ -12,7 +12,10 @@
     <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
     <param name="convert_height_num" value="0"/>
     <param name="parent_frame_id" value="map"/>
-    <param name="child_frame_id" value="base_link"/>
+    <param name="child_frame_id" value="eagleye_base_link"/>
+    <param name="fix_only_publish" value="false"/>
+    <param name="base_link_frame_id" value="base_link"/>
+    <param name="gnss_frame_id" value="gnss_link"/>
   </node>
 
 </launch>
