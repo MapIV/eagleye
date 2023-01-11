@@ -141,10 +141,10 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
       std::vector<double> base_heading_angle_buffer2;
       std::vector<double> diff_buffer;
 
-     if(!heading_interpolate.status.enabled_status)
-     {
-       heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-     }
+      if(!heading_interpolate.status.enabled_status)
+      {
+        heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
+      }
 
       int ref_cnt;
       std::vector<double> heading_angle_buffer2;
@@ -229,6 +229,9 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
             provisional_heading_angle_buffer[index[index_length-1]]);
         }
         heading->status.estimate_status = true;
+
+        double heading_STD = heading_parameter.init_STD; 
+        heading->variance = heading_STD*heading_STD;
       }
     }
   }

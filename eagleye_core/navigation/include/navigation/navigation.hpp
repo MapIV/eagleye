@@ -24,6 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <yaml-cpp/yaml.h>
+#include <Eigen/Dense>
 
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/NavSatFix.h"
@@ -136,6 +137,7 @@ struct HeadingParameter
   double outlier_threshold;
   double outlier_ratio_threshold;
   double curve_judgment_threshold;
+  double init_STD;
 };
 
 struct HeadingStatus
@@ -194,6 +196,7 @@ struct HeadingInterpolateParameter
   double imu_rate;
   double stop_judgment_threshold;
   double sync_search_period;
+  double proc_noise;
 };
 
 struct HeadingInterpolateStatus
@@ -206,6 +209,7 @@ struct HeadingInterpolateStatus
   double provisional_heading_angle;
   std::vector<double> provisional_heading_angle_buffer;
   std::vector<double> imu_stamp_buffer;
+  double heading_variance_last;
 };
 
 struct PositionParameter
@@ -411,6 +415,8 @@ struct RtkDeadreckoningParameter
   double tf_gnss_rotation_w;
   std::string tf_gnss_parent_frame;
   std::string tf_gnss_child_frame;
+  double rtk_fix_STD;
+  double proc_noise;
 };
 
 struct RtkDeadreckoningStatus
@@ -428,6 +434,7 @@ struct RtkDeadreckoningStatus
   std::vector<double> provisional_enu_pos_y_buffer;
   std::vector<double> provisional_enu_pos_z_buffer;
   std::vector<double> imu_stamp_buffer;
+  Eigen::MatrixXd position_covariance_last;
 };
 
 struct EnableAdditionalRollingParameter
