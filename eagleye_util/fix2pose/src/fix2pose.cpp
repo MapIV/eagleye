@@ -114,9 +114,9 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   double eagleye_heading = 0;
   if (_eagleye_heading_ptr != nullptr)
   {
-    eagleye_heading = fmod(_eagleye_heading_ptr->heading_angle, 2*M_PI);
+    eagleye_heading = fmod((90* M_PI / 180) - _eagleye_heading_ptr->heading_angle, 2*M_PI);
     tf::Quaternion tf_quat = tf::createQuaternionFromRPY(_eagleye_rolling.rolling_angle,
-      _eagleye_pitching.pitching_angle, (90* M_PI / 180) - eagleye_heading);
+      _eagleye_pitching.pitching_angle, eagleye_heading);
     quaternionTFToMsg(tf_quat, _quat);
   }
   else
@@ -164,7 +164,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   double std_dev_yaw = 100; // [rad]
   if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
   if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
-  if(_eagleye_heading_ptr != nullptr && _eagleye_heading_ptr->status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
+  if(_eagleye_heading_ptr != nullptr && _eagleye_heading_ptr->status.enabled_status) std_dev_yaw = std::sqrt(_eagleye_heading_ptr->variance);
   _pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
   _pose_with_covariance.pose.covariance[7] = msg->position_covariance[4];
   _pose_with_covariance.pose.covariance[14] = msg->position_covariance[8];

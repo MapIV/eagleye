@@ -175,8 +175,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   
-  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
-  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
+  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
+  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 
   tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf_listener(tf_buffer);
