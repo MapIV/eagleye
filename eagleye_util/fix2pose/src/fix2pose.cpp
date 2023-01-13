@@ -43,7 +43,6 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 
-#include <llh_converter/height_converter.hpp>
 #include <llh_converter/llh_converter.hpp>
 
 rclcpp::Clock _ros_clock(RCL_ROS_TIME);
