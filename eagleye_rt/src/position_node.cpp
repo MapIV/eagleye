@@ -56,7 +56,7 @@ static bool use_canless_mode;
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 
-std::string node_name = "position";
+std::string node_name = "eagleye_position";
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {

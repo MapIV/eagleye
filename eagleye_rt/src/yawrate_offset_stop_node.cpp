@@ -70,7 +70,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("yawrate_offset_stop");
+  auto node = rclcpp::Node::make_shared("eagleye_yawrate_offset_stop");
   std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;

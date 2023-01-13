@@ -126,7 +126,7 @@ void rolling_node(rclcpp::Node::SharedPtr node)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("rolling");
+  auto node = rclcpp::Node::make_shared("eagleye_rolling");
 
   rolling_node(node);
 

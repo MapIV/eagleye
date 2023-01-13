@@ -190,7 +190,7 @@ void on_timer()
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("velocity_scale_factor");
+  auto node = rclcpp::Node::make_shared("eagleye_velocity_scale_factor");
 
   double velocity_scale_factor_save_duration = 100.0;
 

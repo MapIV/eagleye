@@ -64,7 +64,7 @@ private:
 
 };
 
-TFConvertedIMU::TFConvertedIMU() : Node("tf_converted_imu"),
+TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
     clock_(RCL_ROS_TIME),
     tfbuffer_(std::make_shared<rclcpp::Clock>(clock_)),
     tflistener_(tfbuffer_),
@@ -112,6 +112,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
     tf2::doTransform(linear_acceleration, transformed_linear_acceleration, transform);
 
     tf_converted_imu_.angular_velocity = transformed_angular_velocity.vector;
+    tf_converted_imu_.angular_velocity.z = (-1) * transformed_angular_velocity.vector.z;
     tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
     tf_converted_imu_.orientation = transformed_quaternion;
 

@@ -121,7 +121,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("enable_additional_rolling");
+  auto node = rclcpp::Node::make_shared("eagleye_enable_additional_rolling");
 
   std::string subscribe_localization_pose_topic_name;
 

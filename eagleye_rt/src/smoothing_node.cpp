@@ -67,7 +67,7 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("smoothing");
+  auto node = rclcpp::Node::make_shared("eagleye_smoothing");
 
   std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
 

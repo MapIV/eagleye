@@ -51,7 +51,7 @@ private:
 
 };
 
-TwistRelay::TwistRelay() : Node("twist_relay"),
+TwistRelay::TwistRelay() : Node("eagleye_twist_relay"),
     clock_(RCL_ROS_TIME),
     logger_(get_logger())
 {

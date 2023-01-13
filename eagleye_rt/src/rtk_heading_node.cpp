@@ -109,7 +109,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("rtk_heading");
+  auto node = rclcpp::Node::make_shared("eagleye_rtk_heading");
 
 
   std::string subscribe_gga_topic_name = "gnss/gga";

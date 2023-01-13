@@ -61,6 +61,8 @@ static bool input_status;
 
 static bool use_canless_mode;
 
+static std::string node_name = "eagleye_trajectory";
+
 void correction_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   correction_velocity = *msg;
@@ -116,7 +118,7 @@ void on_timer()
   else
   {
     input_status = false;
-    RCLCPP_WARN(rclcpp::get_logger("trajectory"), "Twist is missing the required input topics.");
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "Twist is missing the required input topics.");
   }
 
   if (imu_time != imu_time_last) imu_time_last = imu_time;
@@ -177,7 +179,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("trajectory");
+  auto node = rclcpp::Node::make_shared(node_name);
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
 

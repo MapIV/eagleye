@@ -102,7 +102,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("slip_coefficient");
+  auto node = rclcpp::Node::make_shared("eagleye_slip_coefficient");
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
 
