@@ -53,7 +53,7 @@ static bool use_canless_mode;
 
 bool is_first_correction_velocity = false;
 
-std::string node_name = "heading";
+std::string node_name = "eagleye_heading";
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {

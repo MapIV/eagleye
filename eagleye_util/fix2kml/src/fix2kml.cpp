@@ -76,7 +76,7 @@ int main(int argc, char** argv)
 
   std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc = std::bind(&receive_data, std::placeholders::_1, &kmlfile);
   auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>(fixname, rclcpp::QoS(10), sub1_fnc);
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/localization/pose_estimator/eagleye/distance", rclcpp::QoS(10), distance_callback);
   rclcpp::spin(node);
 
   return 0;

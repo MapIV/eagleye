@@ -43,6 +43,9 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 
+#include <llh_converter/height_converter.hpp>
+#include <llh_converter/llh_converter.hpp>
+
 rclcpp::Clock _ros_clock(RCL_ROS_TIME);
 
 static eagleye_msgs::msg::Rolling _eagleye_rolling;
@@ -57,17 +60,15 @@ std::shared_ptr<tf2_ros::TransformBroadcaster> _br2;
 static geometry_msgs::msg::PoseStamped _pose;
 static geometry_msgs::msg::PoseWithCovarianceStamped _pose_with_covariance;
 
-static int _convert_height_num = 0;
-static int _plane = 7;
-static int _tf_num = 1;
 static std::string _parent_frame_id, _child_frame_id;
 static std::string _base_link_frame_id, _gnss_frame_id;
 
-static ConvertHeight _convert_height;
+llh_converter::LLHConverter _lc;
+llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
 
-std::string node_name = "fix2pose";
+std::string _node_name = "eagleye_fix2pose";
 
 tf2_ros::Buffer _tf_buffer(std::make_shared<rclcpp::Clock>(_ros_clock));
 
@@ -89,7 +90,6 @@ void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
   bool fix_only_publish_flag = (msg->position_covariance[0] < 0.01 && _eagleye_heading.status.enabled_status);
-  // std::cout<< "fix_only_publish_flag "<< fix_only_publish_flag<<std::endl;
   if(_fix_only_publish && !fix_only_publish_flag)
   {
     return;
@@ -102,38 +102,27 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  if (_convert_height_num == 1)
-  {
-    _convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-    llh[2] = _convert_height.convert2altitude();
-  }
-  else if(_convert_height_num == 2)
-  {
-    _convert_height.setLLH(msg->latitude,msg->longitude,msg->altitude);
-    llh[2] = _convert_height.convert2ellipsoid();
-  }
-
-  if (_tf_num == 1)
-  {
-    ll2xy(_plane,llh,xyz);
-  }
-  else if (_tf_num == 2)
-  {
-    ll2xy_mgrs(llh,xyz);
-  }
+  _lc.convertRad2XYZ(llh[0], llh[1], llh[2], xyz[0], xyz[1], xyz[2], _llh_param);
 
   tf2::Quaternion localization_quat;
   if (_eagleye_heading.status.enabled_status)
   {
     _eagleye_heading.heading_angle = fmod(_eagleye_heading.heading_angle,2*M_PI);
-    localization_quat.setRPY(_eagleye_rolling.rolling_angle, _eagleye_pitching.pitching_angle, (90* M_PI / 180)-_eagleye_heading.heading_angle);
+    localization_quat.setRPY(0, 0, (90* M_PI / 180)-_eagleye_heading.heading_angle);
   }
   else
   {
-    tf2::Quaternion localization_quat;
     tf2::Matrix3x3(localization_quat).setRPY(0, 0, 0);
   }
   _quat = tf2::toMsg(localization_quat);
+
+
+  _pose.header = msg->header;
+  _pose.header.frame_id = "map";
+  _pose.pose.position.x = xyz[0];
+  _pose.pose.position.y = xyz[1];
+  _pose.pose.position.z = xyz[2];
+  _pose.pose.orientation = _quat;
 
   geometry_msgs::msg::PoseStamped::Ptr transformed_pose_msg_ptr(
     new geometry_msgs::msg::PoseStamped);
@@ -143,27 +132,36 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
     geometry_msgs::msg::TransformStamped::Ptr TF_sensor_to_base_ptr(new geometry_msgs::msg::TransformStamped);
     try
     {
-      *TF_sensor_to_base_ptr = _tf_buffer.lookupTransform(_base_link_frame_id, _gnss_frame_id, tf2::TimePointZero);
+      *TF_sensor_to_base_ptr = _tf_buffer.lookupTransform(_gnss_frame_id, _base_link_frame_id, tf2::TimePointZero);
 
-      tf2::doTransform(_pose, *transformed_pose_msg_ptr, *TF_sensor_to_base_ptr);
-      std::string map_frame = "map";
-      transformed_pose_msg_ptr->header = _pose.header;
-      transformed_pose_msg_ptr->header.frame_id = _parent_frame_id;
-      _pose = *transformed_pose_msg_ptr;
+      tf2::Transform transform, transform2, transfrom3;
+      transform.setOrigin(tf2::Vector3(_pose.pose.position.x, _pose.pose.position.y,
+        _pose.pose.position.z));
+      transform.setRotation(localization_quat);
+      tf2::Quaternion q2(TF_sensor_to_base_ptr->transform.rotation.x, TF_sensor_to_base_ptr->transform.rotation.y,
+        TF_sensor_to_base_ptr->transform.rotation.z, TF_sensor_to_base_ptr->transform.rotation.w);
+      transform2.setOrigin(tf2::Vector3(TF_sensor_to_base_ptr->transform.translation.x,
+        TF_sensor_to_base_ptr->transform.translation.y, TF_sensor_to_base_ptr->transform.translation.z));
+      transform2.setRotation(q2);
+      transfrom3 = transform * transform2;
+  
+      _pose.header.frame_id = _parent_frame_id;
+      _pose.pose.position.x = transfrom3.getOrigin().getX();
+      _pose.pose.position.y = transfrom3.getOrigin().getY();
+      _pose.pose.position.z = transfrom3.getOrigin().getZ();
+      _pose.pose.orientation.x = transfrom3.getRotation().getX();
+      _pose.pose.orientation.y = transfrom3.getRotation().getY();
+      _pose.pose.orientation.z = transfrom3.getRotation().getZ();
+      _pose.pose.orientation.w = transfrom3.getRotation().getW();
+
     }
     catch (tf2::TransformException& ex)
     {
-      RCLCPP_WARN(rclcpp::get_logger(node_name), "%s", ex.what());
+      RCLCPP_WARN(rclcpp::get_logger(_node_name), "%s", ex.what());
       return;
     }
   }
 
-  _pose.header = msg->header;
-  _pose.header.frame_id = "map";
-  _pose.pose.position.x = xyz[1];
-  _pose.pose.position.y = xyz[0];
-  _pose.pose.position.z = xyz[2];
-  _pose.pose.orientation = _quat;
   _pub->publish(_pose);
 
   _pose_with_covariance.header = _pose.header;
@@ -199,35 +197,91 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 
 int main(int argc, char** argv)
 {
-  rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared(node_name);
+  int plane = 7;
+  int tf_num = 7;
+  int convert_height_num = 7;
+  int geoid_type = 0;
 
-  node->declare_parameter("plane", _plane);
-  node->declare_parameter("tf_num", _tf_num);
-  node->declare_parameter("convert_height_num", _convert_height_num);
+  rclcpp::init(argc, argv);
+  auto node = rclcpp::Node::make_shared(_node_name);
+
+  node->declare_parameter("plane", plane);
+  node->declare_parameter("tf_num", tf_num);
+  node->declare_parameter("convert_height_num", convert_height_num);
+  node->declare_parameter("geoid_type", geoid_type);
   node->declare_parameter("parent_frame_id", _parent_frame_id);
   node->declare_parameter("child_frame_id", _child_frame_id);
   node->declare_parameter("fix_only_publish", _fix_only_publish);
   node->declare_parameter("base_link_frame_id", _base_link_frame_id);
   node->declare_parameter("gnss_frame_id", _gnss_frame_id);
 
-  node->get_parameter("plane", _plane);
-  node->get_parameter("tf_num", _tf_num);
-  node->get_parameter("convert_height_num", _convert_height_num);
+  node->get_parameter("plane", plane);
+  node->get_parameter("tf_num", tf_num);
+  node->get_parameter("convert_height_num", convert_height_num);
+  node->get_parameter("geoid_type", geoid_type);
   node->get_parameter("parent_frame_id", _parent_frame_id);
   node->get_parameter("child_frame_id", _child_frame_id);
   node->get_parameter("fix_only_publish", _fix_only_publish);
   node->get_parameter("base_link_frame_id", _base_link_frame_id);
   node->get_parameter("gnss_frame_id", _gnss_frame_id);
 
-  std::cout<< "plane "<< _plane<<std::endl;
-  std::cout<< "tf_num "<< _tf_num<<std::endl;
-  std::cout<< "convert_height_num "<< _convert_height_num<<std::endl;
+  std::cout<< "plane "<< plane<<std::endl;
+  std::cout<< "tf_num "<< tf_num<<std::endl;
+  std::cout<< "convert_height_num "<< convert_height_num<<std::endl;
+  std::cout<< "geoid_type "<< geoid_type<<std::endl;
   std::cout<< "parent_frame_id "<< _parent_frame_id<<std::endl;
   std::cout<< "child_frame_id "<< _child_frame_id<<std::endl;
   std::cout<< "fix_only_publish "<< _fix_only_publish<<std::endl;
   std::cout<< "base_link_frame_id "<< _base_link_frame_id<<std::endl;
   std::cout<< "gnss_frame_id "<< _gnss_frame_id<<std::endl;
+
+  
+  if (tf_num == 1)
+  {
+    _llh_param.use_mgrs = false;
+    _llh_param.plane_num = plane;  
+  }
+  else if (tf_num == 2)
+  {
+    _llh_param.use_mgrs = true;
+  }
+  else
+  {
+    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "tf_num is not valid");
+    rclcpp::shutdown();
+  }
+
+  if (convert_height_num == 0)
+  {
+    RCLCPP_INFO(rclcpp::get_logger(_node_name), "convert_height_num is 0(no convert)");
+  }
+  if (convert_height_num == 1)
+  {
+    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO; 
+  }
+  else if (convert_height_num == 2)
+  {
+    _llh_param.height_convert_type = llh_converter::ConvertType::ORTHO2ELLIPS;
+  }
+  else
+  {
+    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "tf_num is not valid");
+    rclcpp::shutdown();
+  }
+
+ if(geoid_type == 0)
+  {
+    _llh_param.geoid_type = llh_converter::GeoidType::EGM2008;
+  }
+  else if(geoid_type == 1)
+  {
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011; 
+  }
+  else
+  {
+    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "GeoidType is not valid");
+    rclcpp::shutdown();
+  }
 
   tf2_ros::TransformListener tf_listener(_tf_buffer);
   auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_callback);

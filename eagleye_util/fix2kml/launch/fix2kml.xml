@@ -3,7 +3,7 @@
 
   <arg name="filename" default="$(find-pkg-share eagleye_fix2kml)/kml/eagleye_fix.kml"/>
   <arg name="kmlname" default="Eagleye"/>
-  <arg name="fixname" default="/eagleye/fix"/>
+  <arg name="fixname" default="/sensing/gnss/ublox/nav_sat_fix"/>
   <arg name="color" default="ff0000ff"/>
 
   <node pkg="eagleye_fix2kml" name="fix2kml_node" exec="fix2kml" output="log">

@@ -227,7 +227,7 @@ struct PositionParameter
   double tf_gnss_rotation_x;
   double tf_gnss_rotation_y;
   double tf_gnss_rotation_z;
-  double tf_gnss_rotation_w;
+  double tf_gnss_rotation_w = 1.0;
   std::string tf_gnss_parent_frame;
   std::string tf_gnss_child_frame;
 

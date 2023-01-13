@@ -64,7 +64,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("distance");
+  auto node = rclcpp::Node::make_shared("eagleye_distance");
 
   node->declare_parameter("use_canless_mode",_use_canless_mode);
   node->get_parameter("use_canless_mode",_use_canless_mode);
