@@ -17,6 +17,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: rosdep update
         run: |
@@ -55,6 +58,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: rosdep update
         run: |
