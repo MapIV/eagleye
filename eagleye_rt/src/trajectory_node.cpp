@@ -168,7 +168,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
     eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
     eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[35] = 0.1 * 0.1;
+    eagleye_twist_with_covariance.twist.covariance[35] = 0.003 * 0.003;
 
     pub4->publish(eagleye_twist_with_covariance);
   }
