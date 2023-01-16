@@ -86,6 +86,8 @@
       curve_judgment_threshold: 0.017453
       timer_updata_rate: 10       
       deadlock_threshold: 1
+      twist_stddev_vx: 0.2
+      twist_stddev_wz: 0.03
 
     smoothing:
       moving_average_time: 3

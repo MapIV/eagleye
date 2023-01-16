@@ -330,6 +330,8 @@ struct TrajectoryParameter
 {
   double stop_judgment_threshold;
   double curve_judgment_threshold;
+  double twist_stddev_vx;
+  double twist_stddev_wz;
 };
 
 struct TrajectoryStatus
