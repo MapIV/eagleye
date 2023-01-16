@@ -165,12 +165,12 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     eagleye_twist_with_covariance.twist.twist = eagleye_twist.twist;
     // TODO(Map IV): temporary value
     // linear.y, linear.z, angular.x, and angular.y are not calculated values.
-    eagleye_twist_with_covariance.twist.covariance[0] = 0.2 * 0.2;
+    eagleye_twist_with_covariance.twist.covariance[0] = trajectory_parameter.twist_stddev_vx*trajectory_parameter.twist_stddev_vx; //0.2 * 0.2;
     eagleye_twist_with_covariance.twist.covariance[7] = 10000.0;
     eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
     eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
     eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[35] = 0.1 * 0.1;
+    eagleye_twist_with_covariance.twist.covariance[35] = trajectory_parameter.twist_stddev_wz * trajectory_parameter.twist_stddev_wz; //0.1 * 0.1;
 
     pub4->publish(eagleye_twist_with_covariance);
   }
@@ -193,10 +193,10 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
-
     trajectory_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-
     trajectory_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["trajectory"]["curve_judgment_threshold"].as<double>();
+    trajectory_parameter.twist_stddev_vx = conf["/**"]["ros__parameters"]["trajectory"]["twist_stddev_vx"].as<double>();
+    trajectory_parameter.twist_stddev_wz = conf["/**"]["ros__parameters"]["trajectory"]["twist_stddev_wz"].as<double>();
     timer_updata_rate = conf["/**"]["ros__parameters"]["trajectory"]["timer_updata_rate"].as<double>();
     // deadlock_threshold = conf["/**"]["ros__parameters"]["trajectory"]["deadlock_threshold"].as<double>();
 
@@ -207,6 +207,10 @@ int main(int argc, char** argv)
     std::cout << "stop_judgment_threshold " << trajectory_parameter.stop_judgment_threshold << std::endl;
 
     std::cout << "curve_judgment_threshold " << trajectory_parameter.curve_judgment_threshold << std::endl;
+
+    std::cout << "twist_stddev_vx " << trajectory_parameter.twist_stddev_vx << std::endl;
+
+    std::cout << "twist_stddev_wz " << trajectory_parameter.twist_stddev_wz << std::endl;
     std::cout << "timer_updata_rate " << timer_updata_rate << std::endl;
     // std::cout << "deadlock_threshold " << deadlock_threshold << std::endl;
   }
