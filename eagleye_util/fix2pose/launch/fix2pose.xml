@@ -5,6 +5,7 @@
   <node pkg="eagleye_fix2pose" name="fix2pose_node" exec="fix2pose" output="screen" >
     <!-- /eagleye/fix or  /eagleye/rtk_fix(rtk_deadreckoning mode) -->
     <remap from="eagleye/fix" to="eagleye/fix" />
+    <remap from="ekf_trigger_node" to="/localization/pose_twist_fusion_filter/trigger_node"/>
     <!-- plane rectangular coordinate number -->
     <param name="plane" value="7"/>
     <!-- 1 : plane rectangular coordinate  2 : MGRS -->
