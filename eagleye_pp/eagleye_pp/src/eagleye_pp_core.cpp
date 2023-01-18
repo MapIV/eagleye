@@ -145,6 +145,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     heading_interpolate_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     heading_interpolate_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     heading_interpolate_parameter_.sync_search_period = conf["heading_interpolate"]["sync_search_period"].as<double>();
+    heading_interpolate_parameter_.proc_noise = conf["heading_interpolate"]["proc_noise"].as<double>();
 
     heading_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     heading_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
@@ -156,6 +157,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     heading_parameter_.outlier_threshold = conf["heading"]["outlier_threshold"].as<double>();
     heading_parameter_.outlier_ratio_threshold = conf["heading"]["outlier_ratio_threshold"].as<double>();
     heading_parameter_.curve_judgment_threshold = conf["heading"]["curve_judgment_threshold"].as<double>();
+    heading_parameter_.init_STD = conf["heading"]["init_STD"].as<double>();
 
     position_interpolate_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     position_interpolate_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
@@ -182,6 +184,8 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     // rtk_deadreckoning_parameter_.tf_gnss_parent_frame = conf["tf_gnss_frame"]["parent"].as<std::string>();
     // rtk_deadreckoning_parameter_.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
     rtk_deadreckoning_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    rtk_deadreckoning_parameter_.rtk_fix_STD = conf["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
+    rtk_deadreckoning_parameter_.proc_noise = conf["rtk_deadreckoning"]["proc_noise"].as<double>();
 
     slip_angle_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     slip_angle_parameter_.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
