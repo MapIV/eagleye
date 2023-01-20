@@ -85,6 +85,10 @@ trajectory:
   curve_judgment_threshold: 0.017453
   timer_updata_rate: 10       
   deadlock_threshold: 1
+  sensor_noise_velocity: 0.05
+  sensor_scale_noise_velocity: 0.02
+  sensor_noise_yawrate: 0.01
+  sensor_bias_noise_yawrate: 0.1
 
 smoothing:
   moving_average_time: 3

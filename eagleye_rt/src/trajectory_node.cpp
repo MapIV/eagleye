@@ -45,9 +45,11 @@ static eagleye_msgs::Pitching _pitching;
 static geometry_msgs::Vector3Stamped _enu_vel;
 static eagleye_msgs::Position _enu_relative_pos;
 static geometry_msgs::TwistStamped _eagleye_twist;
+static geometry_msgs::TwistWithCovarianceStamped _eagleye_twist_with_covariance;
 static ros::Publisher _pub1;
 static ros::Publisher _pub2;
 static ros::Publisher _pub3;
+static ros::Publisher _pub4;
 
 struct TrajectoryParameter _trajectory_parameter;
 struct TrajectoryStatus _trajectory_status;
@@ -144,7 +146,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _eagleye_twist.header = msg->header;
     _eagleye_twist.header.frame_id = "base_link";
     trajectory3d_estimate(_imu, _correction_velocity, velocity_enable_status, _heading_interpolate_3rd, _yawrate_offset_stop, 
-      _yawrate_offset_2nd, _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+      _yawrate_offset_2nd, _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist,
+      &_eagleye_twist_with_covariance);
 
     if(_heading_interpolate_3rd.status.enabled_status)
     {
@@ -152,6 +155,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
       _pub2.publish(_enu_relative_pos);
     }
     _pub3.publish(_eagleye_twist);
+    _pub4.publish(_eagleye_twist_with_covariance);
   }
 }
 
@@ -176,8 +180,13 @@ int main(int argc, char** argv)
     subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
 
     _trajectory_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-
     _trajectory_parameter.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();
+
+    _trajectory_parameter.sensor_noise_velocity = conf["trajectory"]["sensor_noise_velocity"].as<double>();
+    _trajectory_parameter.sensor_scale_noise_velocity = conf["trajectory"]["sensor_scale_noise_velocity"].as<double>();
+    _trajectory_parameter.sensor_noise_yawrate = conf["trajectory"]["sensor_noise_yawrate"].as<double>();
+    _trajectory_parameter.sensor_bias_noise_yawrate = conf["trajectory"]["sensor_bias_noise_yawrate"].as<double>();
+
     _timer_updata_rate = conf["trajectory"]["timer_updata_rate"].as<double>();
     _deadlock_threshold = conf["trajectory"]["deadlock_threshold"].as<double>();
 
@@ -186,8 +195,13 @@ int main(int argc, char** argv)
     std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
 
     std::cout << "stop_judgment_threshold " << _trajectory_parameter.stop_judgment_threshold << std::endl;
-
     std::cout << "curve_judgment_threshold " << _trajectory_parameter.curve_judgment_threshold << std::endl;
+
+    std::cout << "sensor_noise_velocity " << _trajectory_parameter.sensor_noise_velocity << std::endl;
+    std::cout << "sensor_scale_noise_velocity " << _trajectory_parameter.sensor_scale_noise_velocity << std::endl;
+    std::cout << "sensor_noise_yawrate " << _trajectory_parameter.sensor_noise_yawrate << std::endl;
+    std::cout << "sensor_bias_noise_yawrate " << _trajectory_parameter.sensor_bias_noise_yawrate << std::endl;
+
     std::cout << "timer_updata_rate " << _timer_updata_rate << std::endl;
     std::cout << "deadlock_threshold " << _deadlock_threshold << std::endl;
   }
@@ -209,6 +223,7 @@ int main(int argc, char** argv)
   _pub1 = nh.advertise<geometry_msgs::Vector3Stamped>("enu_vel", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);
   _pub3 = nh.advertise<geometry_msgs::TwistStamped>("twist", 1000);
+  _pub4 = nh.advertise<geometry_msgs::TwistWithCovarianceStamped>("twist_with_covariance", 1000);
 
   ros::Timer timer = nh.createTimer(ros::Duration(1/_timer_updata_rate), timer_callback);
 

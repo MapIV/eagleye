@@ -29,6 +29,7 @@
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/TwistStamped.h"
+#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "nmea_msgs/Gpgga.h"
 #include "nmea_msgs/Gprmc.h"
@@ -325,6 +326,10 @@ struct TrajectoryParameter
 {
   double stop_judgment_threshold;
   double curve_judgment_threshold;
+  double sensor_noise_velocity;
+  double sensor_scale_noise_velocity;
+  double sensor_noise_yawrate;
+  double sensor_bias_noise_yawrate;
 };
 
 struct TrajectoryStatus
@@ -511,7 +516,7 @@ extern void smoothing_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs:
   eagleye_msgs::Position*);
 extern void trajectory_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,
   const eagleye_msgs::YawrateOffset,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,
-  geometry_msgs::TwistStamped*);
+  geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
 extern void heading_interpolate_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::YawrateOffset,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,
   eagleye_msgs::Heading*);
@@ -521,7 +526,7 @@ extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,cons
   const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,
-  geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
+  geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
 extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter,
   AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
 extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,

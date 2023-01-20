@@ -189,12 +189,12 @@ output_csv_file << "timestamp,eagleye_llh.latitude,eagleye_llh.longitude,eagleye
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[7] << ","; // eagleye_llh.position_covariance[7]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_fix[i].position_covariance[8] << ","; // eagleye_llh.position_covariance[8]
     output_csv_file << bool(eagleye_state_forward_.enu_absolute_pos_interpolate[i].status.estimate_status) << ","; // eagleye_llh.status
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.x << ","; // eagleye_twist.linear.x
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.y << ","; // eagleye_twist.linear.y
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.linear.z << ","; // eagleye_twist.linear.z
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.x << ","; // eagleye_twist.angular.x
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.y << ","; // eagleye_twist.angular.y
-    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist[i].twist.angular.z << ","; // eagleye_twist.angular.z
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.linear.x << ","; // eagleye_twist.linear.x
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.linear.y << ","; // eagleye_twist.linear.y
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.linear.z << ","; // eagleye_twist.linear.z
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.angular.x << ","; // eagleye_twist.angular.x
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.angular.y << ","; // eagleye_twist.angular.y
+    output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state_forward_.eagleye_twist_with_covariance[i].twist.twist.angular.z << ","; // eagleye_twist.angular.z
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_twist.covariance[0]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_twist.covariance[1]
     output_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << 0 << ","; // eagleye_twist.covariance[2]

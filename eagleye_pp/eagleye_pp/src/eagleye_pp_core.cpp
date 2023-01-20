@@ -200,6 +200,10 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
 
     trajectory_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     trajectory_parameter_.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();
+    trajectory_parameter_.sensor_noise_velocity = conf["trajectory"]["sensor_noise_velocity"].as<double>();
+    trajectory_parameter_.sensor_scale_noise_velocity = conf["trajectory"]["sensor_scale_noise_velocity"].as<double>();
+    trajectory_parameter_.sensor_noise_yawrate = conf["trajectory"]["sensor_noise_yawrate"].as<double>();
+    trajectory_parameter_.sensor_bias_noise_yawrate = conf["trajectory"]["sensor_bias_noise_yawrate"].as<double>();
 
     velocity_scale_factor_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     velocity_scale_factor_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
@@ -618,6 +622,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
   eagleye_msgs::Position _gnss_smooth_pos_enu;
   sensor_msgs::NavSatFix _eagleye_fix;
   geometry_msgs::TwistStamped _eagleye_twist;
+  geometry_msgs::TwistWithCovarianceStamped _eagleye_twist_with_covariance;
   eagleye_msgs::StatusStamped _velocity_status;
 
   VelocityEstimator velocity_estimator;
@@ -739,7 +744,8 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     _enu_vel.header = imu_[i].header;
     _enu_relative_pos.header = imu_[i].header;
     _eagleye_twist.header = imu_[i].header;
-    trajectory_estimate(imu_[i], _correction_velocity, _velocity_status, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist);
+    trajectory_estimate(imu_[i], _correction_velocity, _velocity_status, _heading_interpolate_3rd, _yawrate_offset_stop, _yawrate_offset_2nd, trajectory_parameter_, 
+      &trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist, &_eagleye_twist_with_covariance);
 
     _enu_absolute_pos.header = imu_[i].header;
     _enu_absolute_pos_interpolate.header = imu_[i].header;
@@ -793,6 +799,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     	eagleye_state_forward_.gnss_smooth_pos_enu.push_back(_gnss_smooth_pos_enu);
     	eagleye_state_forward_.eagleye_fix.push_back(_eagleye_fix);
     	eagleye_state_forward_.eagleye_twist.push_back(_eagleye_twist);
+    	eagleye_state_forward_.eagleye_twist_with_covariance.push_back(_eagleye_twist_with_covariance);
     	eagleye_state_forward_.flag_reliability_buffer.push_back(height_status.flag_reliability);
     }
     else
@@ -822,6 +829,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
     	eagleye_state_backward_.gnss_smooth_pos_enu.push_back(_gnss_smooth_pos_enu);
     	eagleye_state_backward_.eagleye_fix.push_back(_eagleye_fix);
     	eagleye_state_backward_.eagleye_twist.push_back(_eagleye_twist);
+    	eagleye_state_backward_.eagleye_twist_with_covariance.push_back(_eagleye_twist_with_covariance);
     	eagleye_state_backward_.flag_reliability_buffer.push_back(height_status.flag_reliability);
     }
 
@@ -1472,7 +1480,7 @@ void eagleye_pp::smoothingTrajectory(void)
     trajectory_estimate(imu_[i], eagleye_state_forward_.correction_velocity[i], velocity_enable_status, eagleye_state_forward_.heading_interpolate_3rd[i], 
       eagleye_state_forward_.yawrate_offset_stop[i], eagleye_state_forward_.yawrate_offset_2nd[i],
       trajectory_parameter_, &trajectory_status, &eagleye_state_forward_.enu_vel[i], &eagleye_state_forward_.enu_relative_pos[i],
-      &eagleye_state_forward_.eagleye_twist[i]);
+      &eagleye_state_forward_.eagleye_twist[i], &eagleye_state_forward_.eagleye_twist_with_covariance[i]);
   }
 
   gga_length = std::distance(gga_.begin(), gga_.end());

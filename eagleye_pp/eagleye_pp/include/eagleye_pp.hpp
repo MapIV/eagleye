@@ -99,6 +99,7 @@ private:
     std::vector<eagleye_msgs::Rolling> rolling;
     std::vector<sensor_msgs::NavSatFix> eagleye_fix;
     std::vector<geometry_msgs::TwistStamped> eagleye_twist;
+    std::vector<geometry_msgs::TwistWithCovarianceStamped> eagleye_twist_with_covariance;
   };
 
   EagleyeStates eagleye_state_forward_, eagleye_state_backward_;
