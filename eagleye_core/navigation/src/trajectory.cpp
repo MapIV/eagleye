@@ -31,11 +31,44 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
+
+void calculate_covariance(const geometry_msgs::TwistStamped velocity, const eagleye_msgs::StatusStamped velocity_status,
+  const eagleye_msgs::YawrateOffset yawrate_offset_stop, const TrajectoryParameter trajectory_parameter,
+  geometry_msgs::TwistWithCovarianceStamped* eagleye_twist_with_covariance)
+{
+  double noise_velocity;
+  double noise_yawrate;
+
+  if(velocity_status.status.enabled_status)
+  {
+    noise_velocity = trajectory_parameter.sensor_noise_velocity * trajectory_parameter.sensor_noise_velocity;
+  }
+  else
+  {
+    noise_velocity = trajectory_parameter.sensor_noise_velocity * trajectory_parameter.sensor_noise_velocity
+      + (velocity.twist.linear.x*trajectory_parameter.sensor_scale_noise_velocity)*(velocity.twist.linear.x*trajectory_parameter.sensor_scale_noise_velocity);
+  }
+
+  if(yawrate_offset_stop.status.enabled_status)
+  {
+    noise_yawrate = trajectory_parameter.sensor_noise_yawrate * trajectory_parameter.sensor_noise_yawrate;
+  }
+  else
+  {
+    noise_yawrate = trajectory_parameter.sensor_noise_yawrate * trajectory_parameter.sensor_noise_yawrate
+      + trajectory_parameter.sensor_bias_noise_yawrate * trajectory_parameter.sensor_bias_noise_yawrate;
+  }
+
+  eagleye_twist_with_covariance->twist.covariance[0] = noise_velocity;
+  eagleye_twist_with_covariance->twist.covariance[35] = noise_yawrate;
+
+}
+
 void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistStamped velocity, 
   const eagleye_msgs::StatusStamped velocity_status, const eagleye_msgs::Heading heading_interpolate_3rd, 
   const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, 
   const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, geometry_msgs::Vector3Stamped* enu_vel, 
-  eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
+  eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist, geometry_msgs::TwistWithCovarianceStamped* eagleye_twist_with_covariance)
 {
 
   if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_threshold &&
@@ -43,14 +76,19 @@ void trajectory_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistS
   {
     // Inverted because the coordinate system is reversed
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
+    eagleye_twist_with_covariance->twist.twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
   }
   else
   {
     // Inverted because the coordinate system is reversed
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
+    eagleye_twist_with_covariance->twist.twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
 
   eagleye_twist->twist.linear.x = velocity.twist.linear.x;
+  eagleye_twist_with_covariance->twist.twist.linear.x = velocity.twist.linear.x;
+
+  calculate_covariance(velocity, velocity_status, yawrate_offset_stop, trajectory_parameter, eagleye_twist_with_covariance);
 
   if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)
@@ -107,7 +145,8 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
   const eagleye_msgs::StatusStamped velocity_status, const eagleye_msgs::Heading heading_interpolate_3rd, 
   const eagleye_msgs::YawrateOffset yawrate_offset_stop, const eagleye_msgs::YawrateOffset yawrate_offset_2nd, 
   const eagleye_msgs::Pitching pitching, const TrajectoryParameter trajectory_parameter, TrajectoryStatus* trajectory_status, 
-  geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist)
+  geometry_msgs::Vector3Stamped* enu_vel, eagleye_msgs::Position* enu_relative_pos, geometry_msgs::TwistStamped* eagleye_twist,
+  geometry_msgs::TwistWithCovarianceStamped* eagleye_twist_with_covariance)
 {
 
   if (std::abs(velocity.twist.linear.x) > trajectory_parameter.stop_judgment_threshold &&
@@ -115,14 +154,19 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
   {
     //Inverted because the coordinate system is reversed
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
+    eagleye_twist_with_covariance->twist.twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_2nd.yawrate_offset);
   }
   else
   {
     //Inverted because the coordinate system is reversed
     eagleye_twist->twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
+    eagleye_twist_with_covariance->twist.twist.angular.z = -1 * (imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset);
   }
 
   eagleye_twist->twist.linear.x = velocity.twist.linear.x;
+  eagleye_twist_with_covariance->twist.twist.linear.x = velocity.twist.linear.x;
+
+  calculate_covariance(velocity, velocity_status, yawrate_offset_stop, trajectory_parameter, eagleye_twist_with_covariance);
 
   if (trajectory_status->estimate_status_count == 0 && velocity_status.status.enabled_status == true &&
     heading_interpolate_3rd.status.enabled_status == true)
@@ -165,6 +209,8 @@ void trajectory3d_estimate(const sensor_msgs::Imu imu, const geometry_msgs::Twis
 
     enu_relative_pos->status.enabled_status = enu_relative_pos->status.estimate_status = true;
   }
+
+
 
   trajectory_status->heading_last = heading_interpolate_3rd.heading_angle;
   trajectory_status->time_last = imu.header.stamp.toSec();

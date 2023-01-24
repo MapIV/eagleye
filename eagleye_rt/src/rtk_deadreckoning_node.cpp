@@ -127,7 +127,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
 
   std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "navsat/gga";
+  std::string subscribe_gga_topic_name = "/navsat/gga";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
@@ -148,6 +148,9 @@ int main(int argc, char** argv)
     _rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
     _rtk_deadreckoning_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
 
+    _rtk_deadreckoning_parameter.rtk_fix_STD = conf["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
+    _rtk_deadreckoning_parameter.proc_noise = conf["rtk_deadreckoning"]["proc_noise"].as<double>();
+
     std::cout << "use_gnss_mode " << _use_gnss_mode << std::endl;
     std::cout << "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
@@ -158,6 +161,8 @@ int main(int argc, char** argv)
     std::cout << "tf_gnss_frame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
     std::cout << "tf_gnss_frame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
     std::cout << "stop_judgment_threshold " << _rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "rtk_fix_STD " << _rtk_deadreckoning_parameter.rtk_fix_STD << std::endl;
+    std::cout << "proc_noise " << _rtk_deadreckoning_parameter.proc_noise << std::endl;
   }
   catch (YAML::Exception& e)
   {
@@ -170,8 +175,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   
-  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_rtk_deadreckoning", 1000);
-  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("rtk_fix", 1000);
+  _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
+  _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 
   tf2_ros::Buffer tf_buffer;
   tf2_ros::TransformListener tf_listener(tf_buffer);

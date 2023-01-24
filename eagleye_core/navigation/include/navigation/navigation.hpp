@@ -24,10 +24,12 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <yaml-cpp/yaml.h>
+#include <Eigen/Dense>
 
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/NavSatFix.h"
 #include "geometry_msgs/TwistStamped.h"
+#include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
 #include "nmea_msgs/Gpgga.h"
 #include "nmea_msgs/Gprmc.h"
@@ -136,6 +138,7 @@ struct HeadingParameter
   double outlier_threshold;
   double outlier_ratio_threshold;
   double curve_judgment_threshold;
+  double init_STD;
 };
 
 struct HeadingStatus
@@ -194,6 +197,7 @@ struct HeadingInterpolateParameter
   double imu_rate;
   double stop_judgment_threshold;
   double sync_search_period;
+  double proc_noise;
 };
 
 struct HeadingInterpolateStatus
@@ -206,6 +210,7 @@ struct HeadingInterpolateStatus
   double provisional_heading_angle;
   std::vector<double> provisional_heading_angle_buffer;
   std::vector<double> imu_stamp_buffer;
+  double heading_variance_last;
 };
 
 struct PositionParameter
@@ -321,6 +326,10 @@ struct TrajectoryParameter
 {
   double stop_judgment_threshold;
   double curve_judgment_threshold;
+  double sensor_noise_velocity;
+  double sensor_scale_noise_velocity;
+  double sensor_noise_yawrate;
+  double sensor_bias_noise_yawrate;
 };
 
 struct TrajectoryStatus
@@ -411,6 +420,8 @@ struct RtkDeadreckoningParameter
   double tf_gnss_rotation_w;
   std::string tf_gnss_parent_frame;
   std::string tf_gnss_child_frame;
+  double rtk_fix_STD;
+  double proc_noise;
 };
 
 struct RtkDeadreckoningStatus
@@ -428,6 +439,7 @@ struct RtkDeadreckoningStatus
   std::vector<double> provisional_enu_pos_y_buffer;
   std::vector<double> provisional_enu_pos_z_buffer;
   std::vector<double> imu_stamp_buffer;
+  Eigen::MatrixXd position_covariance_last;
 };
 
 struct EnableAdditionalRollingParameter
@@ -504,7 +516,7 @@ extern void smoothing_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs:
   eagleye_msgs::Position*);
 extern void trajectory_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,const eagleye_msgs::YawrateOffset,
   const eagleye_msgs::YawrateOffset,const TrajectoryParameter,TrajectoryStatus*,geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,
-  geometry_msgs::TwistStamped*);
+  geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
 extern void heading_interpolate_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::YawrateOffset,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,
   eagleye_msgs::Heading*);
@@ -514,7 +526,7 @@ extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,cons
   const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,
-  geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*);
+  geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
 extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter,
   AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
 extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
