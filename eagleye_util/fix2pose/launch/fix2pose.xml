@@ -17,6 +17,8 @@
     <param name="parent_frame_id" value="map"/>
     <param name="child_frame_id" value="eagleye_base_link"/>
     <param name="fix_only_publish" value="false"/>
+    <!-- Minimum covariance of the pose topics to be published when fix_only_publish is true -->
+    <param name="pub_std_pos_thres" value="0.1"/>
     <param name="base_link_frame_id" value="base_link"/>
     <param name="gnss_frame_id" value="gnss_link"/>
   </node>
