@@ -46,6 +46,7 @@ Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https:/
 	git clone https://github.com/MapIV/eagleye.git -b main-ros2
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
 	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
+	git clone https://github.com/MapIV/gnss_compass_ros.git -b main-ros2
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 	sudo geographiclib-get-geoids best
 	sudo mkdir /usr/share/GSIGEO

@@ -4,6 +4,7 @@
   <arg name="use_tf" default="true" />
   <arg name="config_yaml" default="eagleye_config.yaml"/>
   <arg name="enable_additional_rolling" default="false"/>
+  <arg name="use_multi_antenna_mode" default="false"/>
  
   <group>
     <push-ros-namespace namespace="eagleye"/>
@@ -40,14 +41,17 @@
     <node pkg="eagleye_rt" name="heading_node_1st" exec="heading" args="1st" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_node_2nd" exec="heading" args="2nd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_node_3rd" exec="heading" args="3rd" if="$(eval &quot;'$(var use_rtk_heading)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+            <param name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </node>
     <node pkg="eagleye_rt" name="heading_interpolate_node_1st" exec="heading_interpolate" args="1st">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
