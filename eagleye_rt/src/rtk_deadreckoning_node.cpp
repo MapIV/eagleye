@@ -150,6 +150,8 @@ int main(int argc, char** argv)
     rtk_deadreckoning_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
     rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
     rtk_deadreckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    rtk_deadreckoning_parameter.rtk_fix_STD = conf["/**"]["ros__parameters"]["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
+    rtk_deadreckoning_parameter.proc_noise = conf["/**"]["ros__parameters"]["rtk_deadreckoning"]["proc_noise"].as<double>();
 
     std::cout << "use_gnss_mode " << use_gnss_mode << std::endl;
 
@@ -160,6 +162,8 @@ int main(int argc, char** argv)
     std::cout << "tf_gnss_frame/parent " << rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
     std::cout << "tf_gnss_frame/child " << rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
     std::cout << "stop_judgment_threshold " << rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "rtk_fix_STD " << rtk_deadreckoning_parameter.rtk_fix_STD << std::endl;
+    std::cout << "proc_noise " << rtk_deadreckoning_parameter.proc_noise << std::endl;
   }
   catch (YAML::Exception& e)
   {
@@ -172,8 +176,8 @@ int main(int argc, char** argv)
   auto sub3 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
   
-  pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_rtk_deadreckoning", 1000);
-  pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("rtk_fix", 1000);
+  pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", 1000);
+  pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", 1000);
 
   const auto period_ns =
       std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.5));

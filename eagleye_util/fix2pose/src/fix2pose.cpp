@@ -108,11 +108,12 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 
   _lc.convertRad2XYZ(llh[0], llh[1], llh[2], xyz[0], xyz[1], xyz[2], _llh_param);
 
+  double eagleye_heading = 0;
   tf2::Quaternion localization_quat;
   if (_eagleye_heading.status.enabled_status)
   {
-    _eagleye_heading.heading_angle = fmod(_eagleye_heading.heading_angle,2*M_PI);
-    localization_quat.setRPY(0, 0, (90* M_PI / 180)-_eagleye_heading.heading_angle);
+    eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
+    localization_quat.setRPY(0, 0, eagleye_heading);
   }
   else
   {
@@ -176,7 +177,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   double std_dev_yaw = 100; // [rad]
   if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
   if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
-  if(_eagleye_heading.status.enabled_status) std_dev_yaw = 0.2 / 180 * M_PI;
+  if(_eagleye_heading.status.enabled_status) std_dev_yaw = std::sqrt(_eagleye_heading.variance);
   _pose_with_covariance.pose.covariance[0] = msg->position_covariance[0];
   _pose_with_covariance.pose.covariance[7] = msg->position_covariance[4];
   _pose_with_covariance.pose.covariance[14] = msg->position_covariance[8];

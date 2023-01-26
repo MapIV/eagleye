@@ -54,11 +54,11 @@
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="position_node" exec="position">
+    <node pkg="eagleye_rt" name="position_node" exec="position" if="$(eval &quot;'$(var use_rtk_deadreckoning)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>
-    <node pkg="eagleye_rt" name="position_interpolate_node" exec="position_interpolate">
+    <node pkg="eagleye_rt" name="position_interpolate_node" exec="position_interpolate" if="$(eval &quot;'$(var use_rtk_deadreckoning)'=='false'&quot;)">
             <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
             <param name="yaml_file" value="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
     </node>

@@ -150,10 +150,10 @@ void heading_estimate_(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamp
       std::vector<double> inversion_up_index;
       std::vector<double> inversion_down_index;
 
-     if(heading_interpolate.status.enabled_status == false)
-     {
-       heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-     }
+      if(heading_interpolate.status.enabled_status == false)
+      {
+        heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
+      }
 
       int ref_cnt;
       std::vector<double> heading_angle_buffer2;
@@ -238,6 +238,9 @@ void heading_estimate_(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamp
             provisional_heading_angle_buffer[index[index_length-1]]);
         }
         heading->status.estimate_status = true;
+
+        double heading_STD = heading_parameter.init_STD;
+        heading->variance = heading_STD*heading_STD;
       }
     }
   }
