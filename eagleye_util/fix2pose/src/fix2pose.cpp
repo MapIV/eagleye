@@ -38,6 +38,7 @@
 #include "eagleye_msgs/Position.h"
 #include "tf/transform_broadcaster.h"
 #include "coordinate/coordinate.hpp"
+#include "llh_converter/llh_converter.hpp"
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -52,12 +53,10 @@ static ros::Publisher _pose_pub, _pose_with_covariance_pub;
 static geometry_msgs::PoseStamped _pose;
 static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 
-static int _convert_height_num = 0;
-static int _plane = 7;
-static int _tf_num = 1;
 static std::string _parent_frame_id, _child_frame_id, _base_link_frame_id, _gnss_frame_id;
 
-static ConvertHeight _convert_height;
+llh_converter::LLHConverter _lc;
+llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
 
@@ -91,25 +90,7 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   llh[1] = msg->longitude* M_PI / 180;
   llh[2] = msg->altitude;
 
-  if (_convert_height_num == 1)
-  {
-    _convert_height.setLLH(msg->latitude, msg->longitude, msg->altitude);
-    llh[2] = _convert_height.convert2altitude();
-  }
-  else if(_convert_height_num == 2)
-  {
-    _convert_height.setLLH(msg->latitude, msg->longitude, msg->altitude);
-    llh[2] = _convert_height.convert2ellipsoid();
-  }
-
-  if (_tf_num == 1)
-  {
-    ll2xy(_plane, llh, xyz);
-  }
-  else if (_tf_num == 2)
-  {
-    ll2xy_mgrs(llh, xyz);
-  }
+  _lc.convertRad2XYZ(llh[0], llh[1], llh[2], xyz[0], xyz[1], xyz[2], _llh_param);
 
   double eagleye_heading = 0;
   if (_eagleye_heading_ptr != nullptr)
@@ -188,24 +169,78 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "fix2pose");
   ros::NodeHandle nh;
 
-  nh.getParam("fix2pose_node/plane", _plane);
-  nh.getParam("fix2pose_node/plane", _plane);
-  nh.getParam("fix2pose_node/tf_num", _tf_num);
-  nh.getParam("fix2pose_node/convert_height_num", _convert_height_num);
+  int plane = 7;
+  int tf_num = 1;
+  int convert_height_num = 2;
+  int geoid_type = 0;
+
+  nh.getParam("fix2pose_node/plane", plane);
+  nh.getParam("fix2pose_node/tf_num", tf_num);
+  nh.getParam("fix2pose_node/convert_height_num", convert_height_num);
+  nh.getParam("fix2pose_node/geoid_type", geoid_type);
   nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
   nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
   nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
   nh.getParam("fix2pose_node/base_link_frame_id", _base_link_frame_id);
   nh.getParam("fix2pose_node/gnss_frame_id", _gnss_frame_id);
 
-  std::cout<< "plane " << _plane << std::endl;
-  std::cout<< "tf_num " << _tf_num << std::endl;
-  std::cout<< "convert_height_num " << _convert_height_num << std::endl;
+  std::cout<< "plane " << plane << std::endl;
+  std::cout<< "tf_num " << tf_num << std::endl;
+  std::cout<< "convert_height_num " << convert_height_num << std::endl;
+  std::cout<< "geoid_type " << geoid_type << std::endl;
   std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
   std::cout<< "fix_only_publish " << _fix_only_publish << std::endl;
   std::cout<< "base_link_frame_id " << _base_link_frame_id << std::endl;
   std::cout<< "gnss_frame_id " << _gnss_frame_id << std::endl;
+
+
+  if (tf_num == 1)
+  {
+    _llh_param.use_mgrs = false;
+    _llh_param.plane_num = plane;
+  }
+  else if (tf_num == 2)
+  {
+    _llh_param.use_mgrs = true;
+  }
+  else
+  {
+    ROS_ERROR("tf_num is not valid");
+    ros::shutdown();
+  }
+
+  if (convert_height_num == 0)
+  {
+    ROS_INFO("convert_height_num is 0(no convert)");
+  }
+  else if (convert_height_num == 1)
+  {
+    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO;
+  }
+  else if (convert_height_num == 2)
+  {
+    _llh_param.height_convert_type = llh_converter::ConvertType::ORTHO2ELLIPS;
+  }
+  else
+  {
+    ROS_ERROR("convert_height_num is not valid");
+    ros::shutdown();
+  }
+
+ if(geoid_type == 0)
+  {
+    _llh_param.geoid_type = llh_converter::GeoidType::EGM2008;
+  }
+  else if(geoid_type == 1)
+  {
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011;
+  }
+  else
+  {
+    ROS_ERROR("GeoidType is not valid");
+    ros::shutdown();
+  }
 
   std::string fix_name;
   if(!_fix_only_publish)
