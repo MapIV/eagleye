@@ -272,7 +272,7 @@ int main(int argc, char** argv)
   {
     RCLCPP_INFO(rclcpp::get_logger(_node_name), "convert_height_num is 0(no convert)");
   }
-  if (convert_height_num == 1)
+  else if (convert_height_num == 1)
   {
     _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO; 
   }
@@ -282,7 +282,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "tf_num is not valid");
+    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "convert_height_num is not valid");
     rclcpp::shutdown();
   }
 
