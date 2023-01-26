@@ -152,6 +152,7 @@ int main(int argc, char** argv)
     heading_parameter.outlier_threshold = conf["/**"]["ros__parameters"]["heading"]["outlier_threshold"].as<double>();
     heading_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["heading"]["outlier_ratio_threshold"].as<double>();
     heading_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["heading"]["curve_judgment_threshold"].as<double>();
+    heading_parameter.init_STD = conf["/**"]["ros__parameters"]["heading"]["init_STD"].as<double>();
 
     std::cout<< "use_gnss_mode " << use_gnss_mode << std::endl;
 
@@ -169,6 +170,7 @@ int main(int argc, char** argv)
     std::cout << "outlier_threshold " << heading_parameter.outlier_threshold << std::endl;
     std::cout << "outlier_ratio_threshold " << heading_parameter.outlier_ratio_threshold << std::endl;
     std::cout << "curve_judgment_threshold " << heading_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "init_STD " << heading_parameter.init_STD << std::endl;
   }
   catch (YAML::Exception& e)
   {
