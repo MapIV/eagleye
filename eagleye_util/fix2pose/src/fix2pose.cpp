@@ -68,6 +68,7 @@ llh_converter::LLHConverter _lc;
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
+double _pub_std_pos_thres = 0.1; // [m]
 bool _initial_pose_estimated = false;
 
 std::string _node_name = "eagleye_fix2pose";
@@ -93,7 +94,8 @@ void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  bool fix_only_publish_flag = (msg->position_covariance[0] < 0.01 && _eagleye_heading.status.enabled_status);
+  bool fix_only_publish_flag = (msg->position_covariance[0] < _pub_std_pos_thres * _pub_std_pos_thres
+    && _eagleye_heading.status.enabled_status);
   if(_fix_only_publish && !fix_only_publish_flag)
   {
     return;
@@ -230,6 +232,7 @@ int main(int argc, char** argv)
   node->declare_parameter("parent_frame_id", _parent_frame_id);
   node->declare_parameter("child_frame_id", _child_frame_id);
   node->declare_parameter("fix_only_publish", _fix_only_publish);
+  node->declare_parameter("pub_std_pos_thres", _pub_std_pos_thres);
   node->declare_parameter("base_link_frame_id", _base_link_frame_id);
   node->declare_parameter("gnss_frame_id", _gnss_frame_id);
 
@@ -240,6 +243,7 @@ int main(int argc, char** argv)
   node->get_parameter("parent_frame_id", _parent_frame_id);
   node->get_parameter("child_frame_id", _child_frame_id);
   node->get_parameter("fix_only_publish", _fix_only_publish);
+  node->get_parameter("pub_std_pos_thres", _pub_std_pos_thres);
   node->get_parameter("base_link_frame_id", _base_link_frame_id);
   node->get_parameter("gnss_frame_id", _gnss_frame_id);
 
@@ -250,6 +254,7 @@ int main(int argc, char** argv)
   std::cout<< "parent_frame_id "<< _parent_frame_id<<std::endl;
   std::cout<< "child_frame_id "<< _child_frame_id<<std::endl;
   std::cout<< "fix_only_publish "<< _fix_only_publish<<std::endl;
+  std::cout<< "pub_std_pos_thres "<< _pub_std_pos_thres<<std::endl;
   std::cout<< "base_link_frame_id "<< _base_link_frame_id<<std::endl;
   std::cout<< "gnss_frame_id "<< _gnss_frame_id<<std::endl;
 
