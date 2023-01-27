@@ -59,6 +59,9 @@ llh_converter::LLHConverter _lc;
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
+int _fix_judgement_type = 0;
+int _fix_gnss_status = 0;
+double _fix_std_pos_thres = 0.1; // [m]
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 {
@@ -77,7 +80,22 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::TransformListener* tf_listener, tf2_ros::Buffer* tf_buffer)
 {
-  if(_fix_only_publish && msg->status.status != 0)
+  bool fix_flag = false;
+  if(_fix_judgement_type == 0)
+  {
+    if(msg->status.status == 0 && _eagleye_heading_ptr->status.enabled_status) fix_flag = true;
+  }
+  else if(_fix_judgement_type == 1)
+  {
+    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading_ptr->status.enabled_status) fix_flag = true;
+  }
+  else
+  {
+    ROS_ERROR("fix_judgement_type is not valid");
+    ros::shutdown();
+  }
+
+  if(_fix_only_publish && !fix_flag)
   {
     return;
   }
@@ -181,6 +199,9 @@ int main(int argc, char** argv)
   nh.getParam("fix2pose_node/parent_frame_id", _parent_frame_id);
   nh.getParam("fix2pose_node/child_frame_id", _child_frame_id);
   nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
+  nh.getParam("fix2pose_node/fix_judgement_type", _fix_judgement_type);
+  nh.getParam("fix2pose_node/fix_gnss_status", _fix_gnss_status);
+  nh.getParam("fix2pose_node/fix_judgement_type", _fix_judgement_type);
   nh.getParam("fix2pose_node/base_link_frame_id", _base_link_frame_id);
   nh.getParam("fix2pose_node/gnss_frame_id", _gnss_frame_id);
 
@@ -191,6 +212,9 @@ int main(int argc, char** argv)
   std::cout<< "parent_frame_id " << _parent_frame_id << std::endl;
   std::cout<< "child_frame_id " << _child_frame_id << std::endl;
   std::cout<< "fix_only_publish " << _fix_only_publish << std::endl;
+  std::cout<< "fix_judgement_type " << _fix_judgement_type << std::endl;
+  std::cout<< "fix_gnss_status " << _fix_gnss_status << std::endl;
+  std::cout<< "fix_std_pos_thres " << _fix_std_pos_thres << std::endl;
   std::cout<< "base_link_frame_id " << _base_link_frame_id << std::endl;
   std::cout<< "gnss_frame_id " << _gnss_frame_id << std::endl;
 

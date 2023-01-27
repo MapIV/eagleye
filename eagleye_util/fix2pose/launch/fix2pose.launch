@@ -16,7 +16,14 @@
   <!-- Parameters for tf to publish -->
   <arg name="parent_frame_id" default="map"/>
   <arg name="child_frame_id" default="base_link"/>
+
   <arg name="fix_only_publish" default="false"/>
+  <!-- 0:fix.status 1:fix.position_covariance[0] (if fix_only_publish==true)-->
+  <arg name="fix_judgement_type" default="0"/>
+  <!--Fix status(if fix_judgement_type is 0)-->
+  <arg name="fix_gnss_status" default="0"/>
+  <!--Minimum covariance of the pose topics to be published [m](if fix_judgement_type is 1)-->
+  <arg name="fix_std_pos_thres" default="0.1"/>
 
   <!--Parameters related to tf to be read -->
   <arg name="base_link_frame_id" default="base_link"/>
@@ -30,6 +37,9 @@
     <param name="parent_frame_id" value="$(arg parent_frame_id)"/>
     <param name="child_frame_id" value="$(arg child_frame_id)"/>
     <param name="fix_only_publish" value="$(arg fix_only_publish)"/>
+    <param name="fix_judgement_type" value="$(arg fix_judgement_type)"/>
+    <param name="fix_gnss_status" value="$(arg fix_gnss_status)"/>
+    <param name="fix_std_pos_thres" value="$(arg fix_std_pos_thres)"/>
     <param name="gnss_frame_id" value="$(arg gnss_frame_id)"/>
   </node>
 
