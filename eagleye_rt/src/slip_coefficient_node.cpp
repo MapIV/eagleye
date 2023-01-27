@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("eagleye_slip_coefficient");
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -117,8 +117,6 @@ int main(int argc, char** argv)
 
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
 
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
-
     slip_coefficient_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     slip_coefficient_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
     slip_coefficient_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
@@ -129,8 +127,6 @@ int main(int argc, char** argv)
     slip_coefficient_parameter.lever_arm = conf["/**"]["ros__parameters"]["slip_coefficient"]["lever_arm"].as<double>();
 
     std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
-
-    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
     std::cout << "imu_rate " << slip_coefficient_parameter.imu_rate << std::endl;
     std::cout << "stop_judgment_threshold " << slip_coefficient_parameter.stop_judgment_threshold << std::endl;
