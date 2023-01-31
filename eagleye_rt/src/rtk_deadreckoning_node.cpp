@@ -126,8 +126,8 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "rtk_deadreckoning");
   ros::NodeHandle nh;
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
+  std::string subscribe_gga_topic_name = "navsat/gga";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
@@ -138,7 +138,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
     _rtk_deadreckoning_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     _rtk_deadreckoning_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();

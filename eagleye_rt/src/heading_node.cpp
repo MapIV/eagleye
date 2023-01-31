@@ -151,7 +151,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading");
   ros::NodeHandle nh;
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
   std::string subscribe_rmc_topic_name = "navsat/rmc";
 
   std::string yaml_file;
@@ -163,8 +163,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
-
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
     _heading_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _heading_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();

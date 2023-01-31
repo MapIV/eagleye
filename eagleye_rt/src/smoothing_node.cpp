@@ -69,7 +69,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "smoothing");
   ros::NodeHandle nh;
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
@@ -80,8 +80,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_canless_mode = conf["use_canless_mode"].as<bool>();
-
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
     _smoothing_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     _smoothing_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
