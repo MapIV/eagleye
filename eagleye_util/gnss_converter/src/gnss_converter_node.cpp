@@ -26,9 +26,9 @@ void nmea_callback(const nmea_msgs::Sentence::ConstPtr &msg)
   {
     gga.header.frame_id = fix.header.frame_id = "gnss";
     pub1.publish(fix);
-    if(output_gga) pub2.publish(gga);
+    pub2.publish(gga);
   }
-  if (rmc.header.stamp.toSec() != 0 && output_rmc)
+  if (rmc.header.stamp.toSec() != 0)
   {
     rmc.header.frame_id = "gnss";
     pub3.publish(rmc);
