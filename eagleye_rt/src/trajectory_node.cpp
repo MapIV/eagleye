@@ -165,7 +165,7 @@ int main(int argc, char** argv)
 
   ros::NodeHandle nh;
 
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
@@ -176,8 +176,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_canless_mode = conf["use_canless_mode"].as<bool>();
-
-    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
 
     _trajectory_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     _trajectory_parameter.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();

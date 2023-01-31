@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>eagleye_gnss_converter</name>
+  <version>1.0.0</version>
+  <description>gnss_converter package</description>
+
+  <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
+
+  <license>BSD3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>nmea_msgs</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>nmea_msgs</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>nmea_msgs</exec_depend>
+  <depend>rtklib_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>ublox_msgs</depend>
+  <depend>eagleye_coordinate</depend>
+  <export>
+  </export>
+</package>

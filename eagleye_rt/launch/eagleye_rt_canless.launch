@@ -18,6 +18,7 @@
 
     <rosparam command="load" file="$(arg yaml_file)"/>
 
+    <node pkg="eagleye_rt" name="twist_relay" type="twist_relay" />
     <node pkg="eagleye_rt" name="tf_converted_imu" type="tf_converted_imu" />
     <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
     <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
@@ -43,6 +44,7 @@
     <!-- RTK Options -->
     <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning"/>
 
+    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
   </group>
 
   <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch"/>

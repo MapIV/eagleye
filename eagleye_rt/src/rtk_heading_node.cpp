@@ -112,7 +112,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "rtk_heading");
   ros::NodeHandle nh;
 
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_gga_topic_name = "navsat/gga";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);

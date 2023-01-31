@@ -59,7 +59,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "angular_velocity_offset_stop");
   ros::NodeHandle nh;
 
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;
   nh.getParam("yaml_file",yaml_file);
@@ -68,8 +68,6 @@ int main(int argc, char** argv)
   try
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
-
-    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
 
     _angular_velocity_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _angular_velocity_offset_stop_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();

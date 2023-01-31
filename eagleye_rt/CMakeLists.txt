@@ -53,6 +53,10 @@ include_directories(
   ${YAML_CPP_INCLUDE_DIRS}
 )
 
+add_executable(twist_relay src/twist_relay_node.cpp)
+target_link_libraries(twist_relay ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+add_dependencies(twist_relay ${catkin_EXPORTED_TARGETS})
+
 add_executable(velocity_scale_factor src/velocity_scale_factor_node.cpp)
 target_link_libraries(velocity_scale_factor ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 add_dependencies(velocity_scale_factor ${catkin_EXPORTED_TARGETS})
