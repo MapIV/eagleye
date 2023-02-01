@@ -201,7 +201,7 @@ int main(int argc, char** argv)
   nh.getParam("fix2pose_node/fix_only_publish", _fix_only_publish);
   nh.getParam("fix2pose_node/fix_judgement_type", _fix_judgement_type);
   nh.getParam("fix2pose_node/fix_gnss_status", _fix_gnss_status);
-  nh.getParam("fix2pose_node/fix_judgement_type", _fix_judgement_type);
+  nh.getParam("fix2pose_node/_fix_std_pos_thres", _fix_std_pos_thres);
   nh.getParam("fix2pose_node/base_link_frame_id", _base_link_frame_id);
   nh.getParam("fix2pose_node/gnss_frame_id", _gnss_frame_id);
 
