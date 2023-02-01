@@ -41,7 +41,7 @@
 
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
-#include "nmea2fix/nmea2fix.hpp"
+#include "gnss_converter/nmea2fix.hpp"
 
 #include <tf2/utils.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>

@@ -25,7 +25,7 @@
 
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
-#include "nmea2fix/nmea2fix.hpp"
+#include "gnss_converter/nmea2fix.hpp"
 #include "eagleye_pp.hpp"
 #include <multi_rosbag_controller/multi_rosbag_controller.hpp>
 
