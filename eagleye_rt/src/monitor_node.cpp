@@ -892,7 +892,7 @@ void outputLog(void)
   output_log_file << "timestamp,imu.angular_velocity.x,imu.angular_velocity.y,imu.angular_velocity.z,imu.linear_acceleration.x,imu.linear_acceleration.y,imu.linear_acceleration.z\
 ,rtklib_nav.tow,rtklib_nav.ecef_pos.x,rtklib_nav.ecef_pos.y,rtklib_nav.ecef_pos.z,rtklib_nav.ecef_vel.x,rtklib_nav.ecef_vel.y,rtklib_nav.ecef_vel.z,rtklib_nav.status.status.status,rtklib_nav.status.status.service,rtklib_nav.status.latitude,rtklib_nav.status.longitude,rtklib_nav.status.altitude\
 ,velocity.twist.linear.x,velocity.twist.linear.y,velocity.twist.linear.z,velocity.twist.angular.x,velocity.twist.angular.y,velocity.twist.angular.z\
-,velocity_scale_factor.scale_factor,velocity_scale_factor.correction_velocity.linear.x,velocity_scale_factor.correction_velocity.linear.y,velocity_scale_factor.correction_velocity.linear.z,velocity_scale_factor.correction_velocity.angular.x,velocity_scale_factor.correction_velocity.angular.y,velocity_scale_factor.correction_velocity.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
+,velocity_scale_factor.scale_factor,correction_velocity.twist.linear.x,correction_velocity.twist.linear.y,correction_velocity.twist.linear.z,correction_velocity.twist.angular.x,correction_velocity.twist.angular.y,correction_velocity.twist.angular.z,velocity_scale_factor.status.enabled_status,velocity_scale_factor.status.estimate_status\
 ,distance.distance,distance.status.enabled_status,distance.status.estimate_status\
 ,heading_1st.heading_angle,heading_1st.status.enabled_status,heading_1st.status.estimate_status\
 ,heading_interpolate_1st.heading_angle,heading_interpolate_1st.status.enabled_status,heading_interpolate_1st.status.estimate_status\
@@ -928,8 +928,10 @@ void outputLog(void)
   {
   std::ofstream output_log_file(_output_log_dir, std::ios_base::app);
   rclcpp::Time imu_clock(_imu.header.stamp);
-  double imu_time = imu_clock.seconds();
-  output_log_file << std::setprecision(std::numeric_limits<int>::max_digits10) << imu_time << ","; // timestamp
+  long double nano_sec = imu_clock.nanoseconds();
+  long double sec_digits = std::pow(10,9);
+  long double imu_time = nano_sec/sec_digits;
+  output_log_file << std::fixed << std::setprecision(9) << imu_time  << ","; // timestamp
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.x << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.y << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _imu.angular_velocity.z << ",";
@@ -1192,6 +1194,7 @@ int main(int argc, char** argv)
   auto sub25 = node->create_subscription<geometry_msgs::msg::TwistStamped>("twist", rclcpp::QoS(10), eagleye_twist_callback);
   auto sub26 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", rclcpp::QoS(10), rolling_callback);
   auto sub27 = node->create_subscription<geometry_msgs::msg::TwistStamped>(comparison_twist_topic_name, 1000, comparison_velocity_callback);
+  auto sub28 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", 1000, correction_velocity_callback);
 
   rclcpp::spin(node);
 
