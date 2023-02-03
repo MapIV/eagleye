@@ -23,7 +23,7 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "nmea2fix/nmea2fix.hpp"
+#include "gnss_converter/nmea2fix.hpp"
 
 double stringToGPSTime(std::string& input, double header_time)
 {

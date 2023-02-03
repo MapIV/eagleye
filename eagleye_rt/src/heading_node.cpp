@@ -151,7 +151,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "heading");
   ros::NodeHandle nh;
 
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
   std::string subscribe_rmc_topic_name = "navsat/rmc";
 
   std::string yaml_file;
@@ -164,8 +164,6 @@ int main(int argc, char** argv)
 
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
 
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
-
     _heading_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _heading_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
     _heading_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
@@ -176,6 +174,7 @@ int main(int argc, char** argv)
     _heading_parameter.outlier_threshold = conf["heading"]["outlier_threshold"].as<double>();
     _heading_parameter.outlier_ratio_threshold = conf["heading"]["outlier_ratio_threshold"].as<double>();
     _heading_parameter.curve_judgment_threshold = conf["heading"]["curve_judgment_threshold"].as<double>();
+    _heading_parameter.init_STD = conf["heading"]["init_STD"].as<double>();
 
     std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
 
@@ -193,6 +192,7 @@ int main(int argc, char** argv)
     std::cout << "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
     std::cout << "outlier_ratio_threshold " << _heading_parameter.outlier_ratio_threshold << std::endl;
     std::cout << "curve_judgment_threshold " << _heading_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "init_STD " << _heading_parameter.init_STD << std::endl;
   }
   catch (YAML::Exception& e)
   {

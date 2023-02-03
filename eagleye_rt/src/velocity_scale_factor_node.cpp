@@ -190,9 +190,9 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "velocity_scale_factor");
   ros::NodeHandle nh;
 
-  std::string subscribe_twist_topic_name = "/can_twist";
+  std::string subscribe_twist_topic_name = "vehicle/twist";
   std::string subscribe_imu_topic_name = "/imu/data_raw";
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
+  std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
   std::string subscribe_rmc_topic_name = "navsat/rmc";
 
   double velocity_scale_factor_save_duration; // [sec]
@@ -208,8 +208,6 @@ int main(int argc, char** argv)
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
 
     subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
-    subscribe_twist_topic_name = conf["twist_topic"].as<std::string>();
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
     _velocity_scale_factor_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _velocity_scale_factor_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();

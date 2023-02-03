@@ -36,6 +36,7 @@
   <exec_depend>tf</exec_depend>
   <exec_depend>eagleye_coordinate</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
+  <depend>llh_converter</depend>
 
   <export>
 

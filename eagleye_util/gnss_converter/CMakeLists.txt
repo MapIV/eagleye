@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(eagleye_nmea2fix)
+project(eagleye_gnss_converter)
 
 set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
 
@@ -7,11 +7,15 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
   nmea_msgs
+  rtklib_msgs
+  geometry_msgs
+  ublox_msgs
+  eagleye_coordinate
 )
 
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES nmea2fix
+  LIBRARIES gnss_converter
 )
 
 include_directories(
@@ -20,35 +24,35 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(nmea2fix
+add_library(gnss_converter
   src/nmea2fix_core.cpp
 )
 
-install(DIRECTORY include/nmea2fix/
-  DESTINATION include/nmea2fix/
+install(DIRECTORY include/gnss_converter/
+  DESTINATION include/gnss_converter/
   FILES_MATCHING PATTERN "*.hpp"
 )
 
-target_link_libraries(nmea2fix
+target_link_libraries(gnss_converter
   ${catkin_LIBRARIES}
 )
 
-install(TARGETS nmea2fix
+install(TARGETS gnss_converter
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 find_package(catkin REQUIRED COMPONENTS
-  eagleye_nmea2fix
+  eagleye_gnss_converter
 )
 
-add_executable(nmea2fix_node src/nmea2fix_node.cpp)
-target_link_libraries(nmea2fix_node ${catkin_LIBRARIES})
-add_dependencies(nmea2fix_node ${catkin_EXPORTED_TARGETS})
+add_executable(gnss_converter_node src/gnss_converter_node.cpp)
+target_link_libraries(gnss_converter_node ${catkin_LIBRARIES})
+add_dependencies(gnss_converter_node ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS
-  nmea2fix_node
+  gnss_converter_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

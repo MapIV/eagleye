@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <group ns="navsat">
+    <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
+    <node pkg="eagleye_gnss_converter" name="gnss_converter_node" type="gnss_converter_node" output="screen">
+    </node>
+  </group>
+
+</launch>

@@ -4,6 +4,9 @@ project(eagleye_navigation)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
 
+find_package(Eigen3 QUIET)
+set(EIGEN3_INCLUDE_DIRS ${EIGEN3_INCLUDE_DIR})
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
@@ -23,6 +26,7 @@ include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIRS}
 )
 

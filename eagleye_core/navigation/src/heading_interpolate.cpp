@@ -43,6 +43,8 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   bool heading_estimate_status = false;
   std::size_t imu_stamp_buffer_length;
 
+  double proc_noise = heading_interpolate_parameter.proc_noise;
+
   double search_buffer_number = heading_interpolate_parameter.sync_search_period * heading_interpolate_parameter.imu_rate;
 
   yawrate = imu.angular_velocity.z;
@@ -77,6 +79,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   {
     double dt = imu.header.stamp.toSec() - heading_interpolate_status->time_last;
     heading_interpolate_status->provisional_heading_angle += yawrate * dt;
+    heading_interpolate_status->heading_variance_last += proc_noise*proc_noise;
   }
 
   // data buffer generate
@@ -107,22 +110,26 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
     if (heading_estimate_status && estimate_index > 0 && heading_interpolate_status->number_buffer >= estimate_index &&
       heading_interpolate_status->heading_estimate_status_count > 1)
     {
+      double heading_variance = heading.variance;
       double diff_estimate_heading_angle = (heading_interpolate_status->provisional_heading_angle_buffer[estimate_index-1] - heading.heading_angle);
       for (int i = estimate_index; i <= heading_interpolate_status->number_buffer; i++)
       {
         heading_interpolate_status->provisional_heading_angle_buffer[i-1] -= diff_estimate_heading_angle;
+        heading_variance += proc_noise*proc_noise;
       }
       heading_interpolate_status->provisional_heading_angle =
         heading_interpolate_status->provisional_heading_angle_buffer[heading_interpolate_status->number_buffer-1];
 
       heading_interpolate->status.enabled_status = true;
       heading_interpolate->status.estimate_status = true;
+      heading_interpolate_status->heading_variance_last = heading_variance;
     }
     else if (heading_interpolate_status->heading_estimate_status_count == 1)
     {
       heading_interpolate_status->provisional_heading_angle = heading.heading_angle;
       heading_interpolate->status.enabled_status = true;
       heading_interpolate->status.estimate_status = false;
+      heading_interpolate_status->heading_variance_last = heading.variance;
     }
     else
     {
@@ -133,6 +140,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   if (heading_interpolate_status->heading_estimate_start_status)
   {
     heading_interpolate->heading_angle = heading_interpolate_status->provisional_heading_angle + slip_angle.slip_angle;
+    heading_interpolate->variance = heading_interpolate_status->heading_variance_last;
   }
   else
   {
