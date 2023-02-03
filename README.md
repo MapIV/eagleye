@@ -46,7 +46,11 @@ Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https:/
 	git clone https://github.com/MapIV/eagleye.git -b main-ros2
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
 	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
+	git clone https://github.com/MapIV/gnss_compass_ros.git -b main-ros2
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
+	sudo geographiclib-get-geoids best
+	sudo mkdir /usr/share/GSIGEO
+	sudo cp eagleye/eagleye_util/llh_converter/data/gsigeo2011_ver2_1.asc /usr/share/GSIGEO/
 	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
@@ -98,7 +102,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 1. Check if wheel speed (vehicle speed) is published in `/can_twist` topic.
 
 * Topic name: /can_twist
-* Message type: geometry_msgs/TwistStamped twist.liner.x
+* Message type: geometry_msgs/TwistStamped twist.liner.x or geometry_msgs/TwistWithCovarianceStamped twist.twist.liner.x
 
 
 2. Check if the IMU data is published in `/imu/data_raw` topic.
@@ -128,7 +132,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 ### Subscribed Topics
  - /navsat/nmea_sentence (nmea_msgs/Sentence)
 
- - /can_twist (geometry_msgs/TwistStamped)
+ - /can_twist (geometry_msgs/TwistStamped or geometry_msgs/TwistWithCovarianceStamped)
 
  - /rtklib_nav (rtklib_msgs/RtklibNav)
 
@@ -138,7 +142,9 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
  - /eagleye/fix (sensor_msgs/NavSatFix) 
 
- - /eagleye/twist (ngeometry_msgs/TwistStamped)
+ - /eagleye/twist (geometry_msgs/TwistStamped)
+
+ - /eagleye/twist_with_covariance (geometry_msgs/TwistWithCovarianceStamped)
 
 
 ### Note

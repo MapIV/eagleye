@@ -93,7 +93,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("heading_interpolate");
+  auto node = rclcpp::Node::make_shared("eagleye_heading_interpolate");
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -107,10 +107,12 @@ int main(int argc, char** argv)
     heading_interpolate_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     heading_interpolate_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
     heading_interpolate_parameter.sync_search_period = conf["/**"]["ros__parameters"]["heading_interpolate"]["sync_search_period"].as<double>();
+    heading_interpolate_parameter.proc_noise = conf["/**"]["ros__parameters"]["heading_interpolate"]["proc_noise"].as<double>();
 
     std::cout << "imu_rate " << heading_interpolate_parameter.imu_rate << std::endl;
     std::cout << "stop_judgment_threshold " << heading_interpolate_parameter.stop_judgment_threshold << std::endl;
     std::cout << "sync_search_period " << heading_interpolate_parameter.sync_search_period << std::endl;
+    std::cout << "proc_noise " << heading_interpolate_parameter.proc_noise << std::endl;
   }
   catch (YAML::Exception& e)
   {

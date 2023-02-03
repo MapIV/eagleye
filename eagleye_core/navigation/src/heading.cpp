@@ -150,10 +150,10 @@ void heading_estimate_(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamp
       std::vector<double> inversion_up_index;
       std::vector<double> inversion_down_index;
 
-     if(heading_interpolate.status.enabled_status == false)
-     {
-       heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
-     }
+      if(heading_interpolate.status.enabled_status == false)
+      {
+        heading_interpolate.heading_angle = heading_status->heading_angle_buffer [index[index_length-1]];
+      }
 
       int ref_cnt;
       std::vector<double> heading_angle_buffer2;
@@ -238,6 +238,9 @@ void heading_estimate_(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamp
             provisional_heading_angle_buffer[index[index_length-1]]);
         }
         heading->status.estimate_status = true;
+
+        double heading_STD = heading_parameter.init_STD;
+        heading->variance = heading_STD*heading_STD;
       }
     }
   }
@@ -323,4 +326,36 @@ void heading_estimate(const nmea_msgs::msg::Gprmc nmea_rmc,sensor_msgs::msg::Imu
   heading_status->gnss_status_buffer.push_back(gnss_status);
 
   heading_estimate_(imu, velocity, yawrate_offset_stop, yawrate_offset, slip_angle, heading_interpolate, heading_parameter, heading_status, heading);
+}
+
+void heading_estimate(const eagleye_msgs::msg::Heading multi_antenna_heading,sensor_msgs::msg::Imu imu,geometry_msgs::msg::TwistStamped velocity,
+  eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,eagleye_msgs::msg::YawrateOffset yawrate_offset,eagleye_msgs::msg::SlipAngle slip_angle,
+  eagleye_msgs::msg::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::msg::Heading* heading)
+{
+  bool gnss_status;
+  double heading_angle = 0.0;
+
+  rclcpp::Time multi_anttena_clock(multi_antenna_heading.header.stamp);
+  double multi_anttena_time = multi_anttena_clock.seconds();
+  if (heading_status->ros_time_last ==  multi_anttena_time || multi_anttena_time == 0)
+  {
+    gnss_status = false;
+    heading_angle = 0;
+    heading_status->ros_time_last = multi_anttena_time;
+  }
+  else
+  {
+    gnss_status = true;
+    heading_angle = multi_antenna_heading.heading_angle;
+    heading_status->ros_time_last = multi_anttena_time;
+  }
+
+  heading_status->heading_angle_buffer .push_back(heading_angle);
+  heading_status->gnss_status_buffer .push_back(gnss_status);
+
+  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+
+  if(!heading->status.estimate_status) heading->heading_angle = heading_angle;
+  if(gnss_status) heading->status.estimate_status = true;
+
 }

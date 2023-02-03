@@ -56,6 +56,8 @@ static bool use_canless_mode;
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 
+std::string node_name = "eagleye_position";
+
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav = *msg;
@@ -109,7 +111,7 @@ void on_timer()
   }
   catch (tf2::TransformException& ex)
   {
-    // RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "%s", ex.what());
     return;
   }
 }
@@ -148,12 +150,10 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("position");
+  auto node = rclcpp::Node::make_shared(node_name);
 
-  // tfBuffer_(node->get_clock());
-
-  std::string subscribe_rtklib_nav_topic_name = "/rtklib_nav";
-  std::string subscribe_gga_topic_name = "/navsat/gga";
+  std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
+  std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -166,8 +166,6 @@ int main(int argc, char** argv)
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
-
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
 
     position_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
     position_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
@@ -235,6 +233,8 @@ int main(int argc, char** argv)
     node->get_clock(), period_ns, std::move(timer_callback),
     node->get_node_base_interface()->get_context());
   node->get_node_timers_interface()->add_timer(timer, nullptr);
+
+  tf2_ros::TransformListener listener(tfBuffer_);
 
   rclcpp::spin(node);
 

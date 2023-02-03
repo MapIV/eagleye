@@ -45,26 +45,8 @@ VelocityEstimator velocity_estimator;
 static geometry_msgs::msg::TwistStamped velocity_msg;
 
 static std::string yaml_file;
-static std::string subscribe_rtklib_nav_topic_name;
-static std::string subscribe_gga_topic_name;
-
-void setParam(std::string yaml_file)
-{
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-  try
-  {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
-    subscribe_rtklib_nav_topic_name = conf["/**"]["ros__parameters"]["rtklib_nav_topic"].as<std::string>();
-    subscribe_gga_topic_name = conf["/**"]["ros__parameters"]["gga_topic"].as<std::string>();
-    std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-    std::cout << "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mVelocityEstimatorNode YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
-  }
-}
+static std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
+static std::string subscribe_gga_topic_name = "gnss/gga";
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstPtr msg)
 {
@@ -99,7 +81,6 @@ void velocity_estimator_node(rclcpp::Node::SharedPtr node)
   node->declare_parameter("yaml_file",yaml_file);
   node->get_parameter("yaml_file",yaml_file);
 
-  setParam(yaml_file);
   velocity_estimator.setParam(yaml_file);
 
   auto rtklib_sub =
@@ -118,7 +99,7 @@ void velocity_estimator_node(rclcpp::Node::SharedPtr node)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("velocity_estimator");
+  auto node = rclcpp::Node::make_shared("eagleye_velocity_estimator");
 
   velocity_estimator_node(node);
 

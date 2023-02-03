@@ -60,11 +60,13 @@ private:
 
   std::string tf_base_link_frame_;
 
+  bool reverse_imu_wz_;
+
   void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg);
 
 };
 
-TFConvertedIMU::TFConvertedIMU() : Node("tf_converted_imu"),
+TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
     clock_(RCL_ROS_TIME),
     tfbuffer_(std::make_shared<rclcpp::Clock>(clock_)),
     tflistener_(tfbuffer_),
@@ -76,14 +78,17 @@ TFConvertedIMU::TFConvertedIMU() : Node("tf_converted_imu"),
   declare_parameter("imu_topic", subscribe_imu_topic_name);
   declare_parameter("publish_imu_topic", publish_imu_topic_name);
   declare_parameter("tf_gnss_frame.parent", tf_base_link_frame_);
+  declare_parameter("reverse_imu_wz", reverse_imu_wz_);
 
   get_parameter("imu_topic", subscribe_imu_topic_name);
   get_parameter("publish_imu_topic", publish_imu_topic_name);
   get_parameter("tf_gnss_frame.parent", tf_base_link_frame_);
+  get_parameter("reverse_imu_wz", reverse_imu_wz_);
 
   std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
   std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
   std::cout<< "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
+  std::cout<< "reverse_imu_wz: " << reverse_imu_wz_ << std::endl;
 
   sub_ =  create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, rclcpp::QoS(10), std::bind(&TFConvertedIMU::imu_callback, this, std::placeholders::_1));
   pub_ = create_publisher<sensor_msgs::msg::Imu>("imu/data_tf_converted", rclcpp::QoS(10));
@@ -112,6 +117,14 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
     tf2::doTransform(linear_acceleration, transformed_linear_acceleration, transform);
 
     tf_converted_imu_.angular_velocity = transformed_angular_velocity.vector;
+    if(reverse_imu_wz_)
+    {
+      tf_converted_imu_.angular_velocity.z = (-1) * transformed_angular_velocity.vector.z;
+    }
+    else
+    {
+      tf_converted_imu_.angular_velocity.z = transformed_angular_velocity.vector.z;
+    }
     tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
     tf_converted_imu_.orientation = transformed_quaternion;
 

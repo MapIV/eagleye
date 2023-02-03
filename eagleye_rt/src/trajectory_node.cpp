@@ -45,6 +45,7 @@ static eagleye_msgs::msg::Pitching pitching;
 static geometry_msgs::msg::Vector3Stamped enu_vel;
 static eagleye_msgs::msg::Position enu_relative_pos;
 static geometry_msgs::msg::TwistStamped eagleye_twist;
+static geometry_msgs::msg::TwistWithCovarianceStamped eagleye_twist_with_covariance;
 rclcpp::Publisher<geometry_msgs::msg::Vector3Stamped>::SharedPtr pub1;
 rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub2;
 rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub3;
@@ -60,6 +61,8 @@ static double imu_time_last,velocity_time_last;
 static bool input_status;
 
 static bool use_canless_mode;
+
+static std::string node_name = "eagleye_trajectory";
 
 void correction_velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
@@ -116,7 +119,7 @@ void on_timer()
   else
   {
     input_status = false;
-    RCLCPP_WARN(rclcpp::get_logger("trajectory"), "Twist is missing the required input topics.");
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "Twist is missing the required input topics.");
   }
 
   if (imu_time != imu_time_last) imu_time_last = imu_time;
@@ -147,8 +150,10 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     enu_relative_pos.header.frame_id = "base_link";
     eagleye_twist.header = msg->header;
     eagleye_twist.header.frame_id = "base_link";
+    eagleye_twist_with_covariance.header = msg->header;
+    eagleye_twist_with_covariance.header.frame_id = "base_link";
     trajectory3d_estimate(imu,correction_velocity,velocity_enable_status,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,
-      trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist);
+      trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist, &eagleye_twist_with_covariance);
 
     if (heading_interpolate_3rd.status.enabled_status)
     {
@@ -156,20 +161,6 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
       pub2->publish(enu_relative_pos);
     }
     pub3->publish(eagleye_twist);
-
-    geometry_msgs::msg::TwistWithCovarianceStamped eagleye_twist_with_covariance;
-    eagleye_twist_with_covariance.header = msg->header;
-    eagleye_twist_with_covariance.header.frame_id = "base_link";
-    eagleye_twist_with_covariance.twist.twist = eagleye_twist.twist;
-    // TODO(Map IV): temporary value
-    // linear.y, linear.z, angular.x, and angular.y are not calculated values.
-    eagleye_twist_with_covariance.twist.covariance[0] = 0.2 * 0.2;
-    eagleye_twist_with_covariance.twist.covariance[7] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
-    eagleye_twist_with_covariance.twist.covariance[35] = 0.1 * 0.1;
-
     pub4->publish(eagleye_twist_with_covariance);
   }
 }
@@ -177,9 +168,9 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("trajectory");
+  auto node = rclcpp::Node::make_shared(node_name);
 
-  std::string subscribe_twist_topic_name;
+  std::string subscribe_twist_topic_name = "vehicle/twist";
 
   std::string yaml_file;
   node->declare_parameter("yaml_file",yaml_file);
@@ -191,12 +182,12 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
-
-    subscribe_twist_topic_name = conf["/**"]["ros__parameters"]["twist_topic"].as<std::string>();
-
     trajectory_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-
     trajectory_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["trajectory"]["curve_judgment_threshold"].as<double>();
+    trajectory_parameter.sensor_noise_velocity = conf["/**"]["ros__parameters"]["trajectory"]["sensor_noise_velocity"].as<double>();
+    trajectory_parameter.sensor_scale_noise_velocity = conf["/**"]["ros__parameters"]["trajectory"]["sensor_scale_noise_velocity"].as<double>();
+    trajectory_parameter.sensor_noise_yawrate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_noise_yawrate"].as<double>();
+    trajectory_parameter.sensor_bias_noise_yawrate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_bias_noise_yawrate"].as<double>();
     timer_updata_rate = conf["/**"]["ros__parameters"]["trajectory"]["timer_updata_rate"].as<double>();
     // deadlock_threshold = conf["/**"]["ros__parameters"]["trajectory"]["deadlock_threshold"].as<double>();
 
@@ -207,6 +198,12 @@ int main(int argc, char** argv)
     std::cout << "stop_judgment_threshold " << trajectory_parameter.stop_judgment_threshold << std::endl;
 
     std::cout << "curve_judgment_threshold " << trajectory_parameter.curve_judgment_threshold << std::endl;
+
+    std::cout << "sensor_noise_velocity " << trajectory_parameter.sensor_noise_velocity << std::endl;
+    std::cout << "sensor_scale_noise_velocity " << trajectory_parameter.sensor_scale_noise_velocity << std::endl;
+    std::cout << "sensor_noise_yawrate " << trajectory_parameter.sensor_noise_yawrate << std::endl;
+    std::cout << "sensor_bias_noise_yawrate " << trajectory_parameter.sensor_bias_noise_yawrate << std::endl;
+
     std::cout << "timer_updata_rate " << timer_updata_rate << std::endl;
     // std::cout << "deadlock_threshold " << deadlock_threshold << std::endl;
   }

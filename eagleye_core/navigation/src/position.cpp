@@ -77,15 +77,16 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
     q.setRPY(0, 0, (90* M_PI / 180)-heading_interpolate_3rd.heading_angle);
     transform.setRotation(q);
 
-    tf2::Transform transform2;
+    tf2::Transform transform2, transform3;
     tf2::Quaternion q2(position_parameter.tf_gnss_rotation_x,position_parameter.tf_gnss_rotation_y,
       position_parameter.tf_gnss_rotation_z,position_parameter.tf_gnss_rotation_w);
-    transform2.setOrigin(transform*tf2::Vector3(-position_parameter.tf_gnss_translation_x,
-      -position_parameter.tf_gnss_translation_y, -position_parameter.tf_gnss_translation_z));
-    transform2.setRotation(transform*q2);
+    transform2.setOrigin(tf2::Vector3(position_parameter.tf_gnss_translation_x, position_parameter.tf_gnss_translation_y,
+      position_parameter.tf_gnss_translation_z));
+    transform2.setRotation(q2);
+    transform3 = transform * transform2.inverse();
 
     tf2::Vector3 tmp_pos;
-    tmp_pos = transform2.getOrigin();
+    tmp_pos = transform3.getOrigin();
 
     enu_pos[0] = tmp_pos.getX();
     enu_pos[1] = tmp_pos.getY();

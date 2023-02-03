@@ -16,7 +16,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
+        with:
+          submodules: true
 
       - name: rosdep update
         run: |
@@ -40,44 +42,6 @@ jobs:
           rosdep install --from-paths src --ignore-src -r -y
           colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --catkin-skip-building-tests
 
-  galactic_build:
-    runs-on:  ubuntu-20.04
-    
-    container: ros:galactic
-    services:
-      ros:
-        image: ros
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: rosdep update
-        run: |
-          apt-get update
-          rosdep update
-      - name: Create Workspace
-        run: |
-          mkdir -p ~/eagleye/src/
-          cp -r `pwd` ~/eagleye/src/
-      - name: Clone rtklib_msgs
-        run: |
-          cd ~/eagleye/src/
-          git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
-      - name: Install GeographicLib
-        run: |
-          apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
-      - name: Build
-        run: |
-          cd ~/eagleye/
-          source /opt/ros/galactic/setup.bash
-          rosdep install --from-paths src --ignore-src -r -y
-          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --catkin-skip-building-tests
-
   foxy_build:
     runs-on:  ubuntu-20.04
     
@@ -92,7 +56,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
+        with:
+          submodules: true
 
       - name: rosdep update
         run: |

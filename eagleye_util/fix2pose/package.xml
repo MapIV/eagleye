@@ -12,7 +12,6 @@
   <build_depend>rclcpp</build_depend>
   <build_depend>rclpy</build_depend>
   <build_depend>std_msgs</build_depend>
-  <build_depend>geographic_msgs</build_depend>
   <build_depend>eagleye_msgs</build_depend>
   <build_depend>eagleye_navigation</build_depend>
   <build_depend>tf2_ros</build_depend>
@@ -20,7 +19,6 @@
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>rclpy</build_export_depend>
   <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>geographic_msgs</build_export_depend>
   <build_export_depend>eagleye_msgs</build_export_depend>
   <build_export_depend>eagleye_navigation</build_export_depend>
   <build_export_depend>tf2_ros</build_export_depend>
@@ -28,11 +26,12 @@
   <exec_depend>rclcpp</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
-  <exec_depend>geographic_msgs</exec_depend>
   <exec_depend>eagleye_msgs</exec_depend>
   <exec_depend>eagleye_navigation</exec_depend>
   <exec_depend>tf2_ros</exec_depend>
   <exec_depend>eagleye_coordinate</exec_depend>
+  <depend>llh_converter</depend>
+  <depend>std_srvs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

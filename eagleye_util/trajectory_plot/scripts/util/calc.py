@@ -190,196 +190,59 @@ def calc_distance_xy(xy):
 def sync_time(ref_data,csv_data,sync_threshold_time,leap_time): # Time synchronization
     sync_index = np.zeros(len(csv_data['TimeStamp']))
 
-    first_flag_data = 0
-    set_data_df: List[float] = []
-    set_data_xyz: List[float] = []
-    set_data_ori: List[float] = []
-    set_data_rpy: List[float] = []
-    set_data_velocity: List[float] = []
-    set_data_vel: List[float] = []
-    set_data_angular: List[float] = []
-    set_data_distance: List[float] = []
-    set_data_qual: List[float] = []
-    set_data_yawrate_offset_stop: List[float] = []
-    first_flag_ref = 0
-    set_ref_data_df: List[float] = []
-    set_ref_data_xyz: List[float] = []
-    set_ref_data_ori: List[float] = []
-    set_ref_data_rpy: List[float] = []
-    set_ref_data_velocity: List[float] = []
-    set_ref_data_vel: List[float] = []
-    set_ref_data_angular: List[float] = []
-    set_ref_data_distance: List[float] = []
-    set_ref_data_qual: List[float] = []
-    set_ref_yawrate_offset_stop: List[float] = []
+    set_target_index: List[float] = []
+    set_ref_index: List[float] = []
+
+    if ref_data['TimeStamp'][0] >  csv_data['TimeStamp'][0]:
+        csv_data = csv_data[csv_data['TimeStamp'] > ref_data['TimeStamp'][0] - sync_threshold_time]
+        csv_data = csv_data.reset_index(drop=True)
+    else:
+        ref_data = ref_data[ref_data['TimeStamp'] > csv_data['TimeStamp'][0] - sync_threshold_time]
+        ref_data = ref_data.reset_index(drop=True)
+
+    if len(csv_data) == 0 or len(ref_data) == 0:
+        print("[ERROR] Target time and ref time ranges do not match.")
+        sys.exit(1)
+
+    if ref_data.iloc[-1]['TimeStamp'] < csv_data.iloc[-1]['TimeStamp']:
+        csv_data = csv_data[csv_data['TimeStamp'] < ref_data.iloc[-1]['TimeStamp'] + sync_threshold_time]
+        csv_data = csv_data.reset_index(drop=True)
+    else:
+        ref_data = ref_data[ref_data['TimeStamp'] < csv_data.iloc[-1]['TimeStamp'] + sync_threshold_time]
+        ref_data = ref_data.reset_index(drop=True)
+
+    if len(csv_data) == 0 or len(ref_data) == 0:
+        print("[ERROR] Target time and ref time ranges do not match.")
+        sys.exit(1)
+
+    sync_ref_time_tmp = ref_data['TimeStamp']
+
+    num = 0
+    len_drop_num = 0
     for i in range(len(csv_data)):
         if i == 0: continue
         time_tmp: List[float] = []
-        time_tmp = abs(csv_data.iloc[i]['TimeStamp']-ref_data['TimeStamp'] + leap_time)
-        sync_index[i] = np.argmin(time_tmp)
+        time_tmp = csv_data.iloc[i]['TimeStamp']-sync_ref_time_tmp + leap_time
+        sync_index[i] = np.argmin(abs(time_tmp))
         sync_time_tmp = time_tmp[sync_index[i]]
         if sync_time_tmp < sync_threshold_time:
-            num = int(sync_index[i])
-            data_time_tmp = csv_data.iloc[i]['TimeStamp']
-            if (first_flag_data == 0):
-                first_time_data = csv_data.iloc[i]['TimeStamp']
-                first_flag_data = 1
-            data_elapsed_time_tmp = csv_data.iloc[i]['TimeStamp'] - first_time_data
-            set_data_df.append([data_elapsed_time_tmp,data_time_tmp])
-            if 'x' in csv_data.columns:
-                data_x_tmp = csv_data.iloc[i]['x']
-                data_y_tmp = csv_data.iloc[i]['y']
-                data_z_tmp = csv_data.iloc[i]['z']
-                set_data_xyz.append([data_x_tmp,data_y_tmp,data_z_tmp])
-            if 'ori_x' in csv_data.columns:
-                data_ori_x_tmp = csv_data.iloc[i]['ori_x']
-                data_ori_y_tmp = csv_data.iloc[i]['ori_y']
-                data_ori_z_tmp = csv_data.iloc[i]['ori_z']
-                data_ori_w_tmp = csv_data.iloc[i]['ori_w']
-                set_data_ori.append([data_ori_x_tmp,data_ori_y_tmp,data_ori_z_tmp,data_ori_w_tmp])
-            if 'roll' in csv_data.columns:
-                data_roll_tmp = csv_data.iloc[i]['roll']
-                data_pitch_tmp = csv_data.iloc[i]['pitch']
-                data_yaw_tmp = csv_data.iloc[i]['yaw']
-                set_data_rpy.append([data_roll_tmp,data_pitch_tmp,data_yaw_tmp])
-            if 'velocity' in csv_data.columns:
-                velocity_tmp = csv_data.iloc[i]['velocity']
-                set_data_velocity.append([velocity_tmp])
-            if 'vel_x' in csv_data.columns:
-                data_vel_x_tmp = csv_data.iloc[i]['vel_x']
-                data_vel_y_tmp = csv_data.iloc[i]['vel_y']
-                data_vel_z_tmp = csv_data.iloc[i]['vel_z']
-                set_data_vel.append([data_vel_x_tmp,data_vel_y_tmp,data_vel_z_tmp])
-            if 'angular_x' in csv_data.columns:
-                data_angular_x_tmp = csv_data.iloc[i]['angular_x']
-                data_angular_y_tmp = csv_data.iloc[i]['angular_y']
-                data_angular_z_tmp = csv_data.iloc[i]['angular_z']
-                set_data_angular.append([data_angular_x_tmp,data_angular_y_tmp,data_angular_z_tmp])
-            if 'distance' in csv_data.columns:
-                data_distance_tmp = csv_data.iloc[i]['distance']
-                set_data_distance.append([data_distance_tmp])
-            if 'qual' in csv_data.columns:
-                data_qual_tmp = csv_data.iloc[i]['qual']
-                set_data_qual.append([data_qual_tmp])
-            if 'vel_x' in csv_data.columns:
-                data_yawrate_offset_stop_tmp = csv_data.iloc[i]['yawrate_offset_stop']
-                data_yawrate_offset_tmp = csv_data.iloc[i]['yawrate_offset']
-                data_slip_tmp = csv_data.iloc[i]['slip']
-                set_data_yawrate_offset_stop.append([data_yawrate_offset_stop_tmp,data_yawrate_offset_tmp,data_slip_tmp])
+            tmp_num = int(sync_index[i])
+            set_target_index.append(i)
+            num = num + len_drop_num
+            drop_num = list(range(0,tmp_num - len_drop_num - 1,1))
+            if not drop_num == None:
+                sync_ref_time_tmp = sync_ref_time_tmp.drop(drop_num, axis=0)
+                len_drop_num = len(drop_num)
+                sync_ref_time_tmp = sync_ref_time_tmp.reset_index(drop=True)
+            set_ref_index.append(num)
 
-            ref_time_tmp = ref_data.iloc[num]['TimeStamp']
-            if (first_flag_ref == 0):
-                first_time_ref = ref_data.iloc[num]['TimeStamp']
-                first_flag_ref = 1
-            ref_elapsed_time_tmp = ref_data.iloc[num]['TimeStamp'] - first_time_ref
-            set_ref_data_df.append([ref_elapsed_time_tmp,ref_time_tmp])
-            if 'x' in ref_data.columns:
-                ref_x_tmp = ref_data.iloc[num]['x']
-                ref_y_tmp = ref_data.iloc[num]['y']
-                ref_z_tmp = ref_data.iloc[num]['z']
-                set_ref_data_xyz.append([ref_x_tmp,ref_y_tmp,ref_z_tmp])
-            if 'ori_x' in ref_data.columns:
-                ref_ori_x_tmp = ref_data.iloc[num]['ori_x']
-                ref_ori_y_tmp = ref_data.iloc[num]['ori_y']
-                ref_ori_z_tmp = ref_data.iloc[num]['ori_z']
-                ref_ori_w_tmp = ref_data.iloc[num]['ori_w']
-                set_ref_data_ori.append([ref_ori_x_tmp,ref_ori_y_tmp,ref_ori_z_tmp,ref_ori_w_tmp])
-            if 'roll' in ref_data.columns:
-                ref_roll_tmp = ref_data.iloc[num]['roll']
-                ref_pitch_tmp = ref_data.iloc[num]['pitch']
-                ref_yaw_tmp = ref_data.iloc[num]['yaw']
-                set_ref_data_rpy.append([ref_roll_tmp,ref_pitch_tmp,ref_yaw_tmp])
-            if 'velocity' in ref_data.columns:
-                velocity_tmp = ref_data.iloc[num]['velocity']
-                set_ref_data_velocity.append([velocity_tmp])
-            if 'vel_x' in ref_data.columns:
-                ref_vel_x_tmp = ref_data.iloc[num]['vel_x']
-                ref_vel_y_tmp = ref_data.iloc[num]['vel_y']
-                ref_vel_z_tmp = ref_data.iloc[num]['vel_z']
-                set_ref_data_vel.append([ref_vel_x_tmp,ref_vel_y_tmp,ref_vel_z_tmp])
-            if 'angular_x' in ref_data.columns:
-                ref_angular_x_tmp = ref_data.iloc[num]['angular_x']
-                ref_angular_y_tmp = ref_data.iloc[num]['angular_y']
-                ref_angular_z_tmp = ref_data.iloc[num]['angular_z']
-                set_ref_data_angular.append([ref_angular_x_tmp,ref_angular_y_tmp,ref_angular_z_tmp])
-            if 'distance' in ref_data.columns:
-                ref_distance_tmp = ref_data.iloc[num]['distance']
-                set_ref_data_distance.append([ref_distance_tmp])
-            if 'qual' in ref_data.columns:
-                ref_qual_tmp = ref_data.iloc[num]['qual']
-                set_ref_data_qual.append([ref_qual_tmp])
-            if 'yawrate_offset_stop' in ref_data.columns:
-                ref_yareta_offset_stop_tmp = ref_data.iloc[num]['yawrate_offset_stop']
-                ref_yawrate_offset_tmp = ref_data.iloc[num]['yawrate_offset']
-                ref_slip_tmp = ref_data.iloc[num]['slip']
-                set_ref_yawrate_offset_stop.append([ref_yareta_offset_stop_tmp,ref_yawrate_offset_tmp,ref_slip_tmp])
+    data_df_output = csv_data.iloc[set_target_index]
+    data_df_output = data_df_output.reset_index(drop=True)
+    data_df_output['elapsed_time'] = data_df_output['TimeStamp'] - data_df_output['TimeStamp'][0]
+    ref_df_output = ref_data.iloc[set_ref_index]
+    ref_df_output = ref_df_output.reset_index(drop=True)
+    ref_df_output['elapsed_time'] = ref_df_output['TimeStamp'] - ref_df_output['TimeStamp'][0]
 
-
-    if not set_data_df:
-        print("Time sync Error")
-        sys.exit(1)
-    data_xyz = pd.DataFrame()
-    data_ori = pd.DataFrame()
-    data_rpy = pd.DataFrame()
-    data_velocity = pd.DataFrame()
-    data_vel = pd.DataFrame()
-    data_angular = pd.DataFrame()
-    data_distance = pd.DataFrame()
-    data_qual = pd.DataFrame()
-    data_yawrate_offset_stop = pd.DataFrame()
-    data_df = pd.DataFrame(set_data_df,columns=['elapsed_time','TimeStamp'])
-    if 'x' in csv_data.columns:
-        data_xyz = pd.DataFrame(set_data_xyz,columns=['x', 'y', 'z'])
-    if 'ori_x' in csv_data.columns:
-        data_ori = pd.DataFrame(set_data_ori,columns=['ori_x', 'ori_y', 'ori_z', 'ori_w'])
-    if 'roll' in csv_data.columns:
-        data_rpy = pd.DataFrame(set_data_rpy,columns=['roll', 'pitch', 'yaw'])
-    if 'velocity' in csv_data.columns:
-        data_velocity = pd.DataFrame(set_data_velocity,columns=['velocity'])
-    if 'vel_x' in csv_data.columns:
-        data_vel = pd.DataFrame(set_data_vel,columns=['vel_x', 'vel_y', 'vel_z'])
-    if 'angular_x' in csv_data.columns:
-        data_angular = pd.DataFrame(set_data_angular,columns=['angular_x', 'angular_y', 'angular_z'])
-    if 'distance' in csv_data.columns:
-        data_distance = pd.DataFrame(set_data_distance,columns=['distance'])
-    if 'qual' in csv_data.columns:
-        data_qual = pd.DataFrame(set_data_qual,columns=['qual'])
-    if 'yawrate_offset_stop' in csv_data.columns:
-        data_yawrate_offset_stop = pd.DataFrame(set_data_yawrate_offset_stop,columns=['yawrate_offset_stop','yawrate_offset','slip'])
-    data_df_output = pd.concat([data_df,data_xyz,data_ori,data_rpy,data_velocity,data_vel,data_angular,data_distance,data_qual,data_yawrate_offset_stop],axis=1)
-
-    ref_xyz = pd.DataFrame()
-    ref_ori = pd.DataFrame()
-    ref_rpy = pd.DataFrame()
-    ref_velocity = pd.DataFrame()
-    ref_vel = pd.DataFrame()
-    ref_angular = pd.DataFrame()
-    ref_distance = pd.DataFrame()
-    ref_qual = pd.DataFrame()
-    ref_yawrate_offset_stop = pd.DataFrame()
-    ref_qual = pd.DataFrame()
-    ref_qual = pd.DataFrame()
-    ref_df = pd.DataFrame(set_ref_data_df,columns=['elapsed_time','TimeStamp'])
-    if 'x' in ref_data.columns:
-        ref_xyz = pd.DataFrame(set_ref_data_xyz,columns=['x', 'y', 'z'])
-    if 'ori_x' in ref_data.columns:
-        ref_ori = pd.DataFrame(set_ref_data_ori,columns=['ori_x', 'ori_y', 'ori_z', 'ori_w'])
-    if 'roll' in ref_data.columns:
-        ref_rpy = pd.DataFrame(set_ref_data_rpy,columns=['roll', 'pitch', 'yaw'])
-    if 'velocity' in ref_data.columns:
-        ref_velocity = pd.DataFrame(set_ref_data_velocity,columns=['velocity'])
-    if 'vel_x' in ref_data.columns:
-        ref_vel = pd.DataFrame(set_ref_data_vel,columns=['vel_x', 'vel_y', 'vel_z'])
-    if 'angular_x' in ref_data.columns:
-        ref_angular = pd.DataFrame(set_ref_data_angular,columns=['angular_x', 'angular_y', 'angular_z'])
-    if 'distance' in ref_data.columns:
-        ref_distance = pd.DataFrame(set_ref_data_distance,columns=['distance'])
-    if 'qual' in ref_data.columns:
-        ref_qual = pd.DataFrame(set_ref_data_qual,columns=['qual'])
-    if 'yawrate_offset_stop' in ref_data.columns:
-        ref_yawrate_offset_stop = pd.DataFrame(set_ref_yawrate_offset_stop,columns=['yawrate_offset_stop','qual','qual'])
-    
-    ref_df_output = pd.concat([ref_df,ref_xyz,ref_ori,ref_rpy,ref_velocity,ref_vel,ref_angular,ref_distance,ref_qual,ref_yawrate_offset_stop],axis=1)
     return ref_df_output , data_df_output
 
 def calc_error_xyz(elapsed_time,ref_time,eagleye_time,ref_xyz,data_xyz,ref_yaw):
