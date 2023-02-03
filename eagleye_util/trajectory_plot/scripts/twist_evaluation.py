@@ -74,6 +74,7 @@ if __name__ == "__main__":
     plot_text_step = config["twist_evaluation"]["plot_text_step"]
     ref_data_name = config["param"]["ref_data_name_param"]
     data_name = config["param"]["data_name_param"]
+    font_size = config["param"]["font_size_param"]
     
     print('plane',plane)
     print('sync_threshold_time',sync_threshold_time)
@@ -172,18 +173,18 @@ if __name__ == "__main__":
 
         fig2 = plt.figure()
         ax_dr = fig2.add_subplot(2, 1, 1)
-        util_plot.plot_one(ax_dr, dr_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1)
+        util_plot.plot_one(ax_dr, dr_error, 'start_distance', 'error_2d', 'relative position Error', 'start distance [m]', '2D Error [m]', '-', 1, font_size)
         ax_dr.set_ylim([0.0,dr_error_ylim])
 
         dr_ErrTra = util_calc.calc_TraRate(dr_error["error_2d"] , eval_step_max)
 
         ax_trarate_dr = fig2.add_subplot(2, 1, 2)
-        util_plot.plot_one(ax_trarate_dr, dr_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10)
+        util_plot.plot_one(ax_trarate_dr, dr_ErrTra, 'x_label', 'ErrTra', 'Cumulative Error Distribution (relative position)', '2D error [m]', 'Rate [%]', '-', 10, font_size)
         ax_trarate_dr.set_xscale('log') 
         ax_trarate_dr.get_xaxis().set_major_formatter(matplotlib.ticker.ScalarFormatter())
         ax_trarate_dr.set_xticks([0.01, 0.05, 0.1, 0.5, 1.0, 3.0])
 
-        util_plot.plot_traj_text('DR Trajectory', ref_xyz, dr_trajcetory,ref_df[plot_text_data], plot_text_step, data_name, ref_data_name)
+        util_plot.plot_traj_text('DR Trajectory', ref_xyz, dr_trajcetory,ref_df[plot_text_data], plot_text_step, font_size, data_name, ref_data_name)
 
         
     plt.show()
