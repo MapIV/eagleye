@@ -188,17 +188,15 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
     index_time_unit = config["eagleye_log"]["time_unit"]
     tf_num = config["eagleye_log"]["tf_num"]
     ros_reverse_imu = config["eagleye_log"]["ros_reverse_imu"]
+    missing_gnss_type = config["eagleye_log"]["missing_gnss_type"]
     eagleye_df = df[["timestamp",
              "rtklib_nav.tow",
              "velocity_scale_factor.scale_factor",
-             "velocity.twist.linear.x",
+             "correction_velocity.twist.linear.x",
              "distance.distance",
-             "enu_absolute_pos_interpolate.enu_pos.x",
-             "enu_absolute_pos_interpolate.enu_pos.y",
-             "enu_absolute_pos_interpolate.enu_pos.z",
-             "enu_absolute_pos.ecef_base_pos.x",
-             "enu_absolute_pos.ecef_base_pos.y",
-             "enu_absolute_pos.ecef_base_pos.z",
+             "enu_absolute_pos_interpolate.ecef_base_pos.x",
+             "enu_absolute_pos_interpolate.ecef_base_pos.y",
+             "enu_absolute_pos_interpolate.ecef_base_pos.z",
              "rolling.rolling_angle",
              "pitching.pitching_angle",
              "heading_interpolate_1st.heading_angle",
@@ -213,20 +211,20 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
              "eagleye_pp_llh.latitude",
              "eagleye_pp_llh.longitude",
              "eagleye_pp_llh.altitude",
-            "imu.angular_velocity.x",
-            "imu.angular_velocity.y",
-            "imu.angular_velocity.z",
+             "imu.angular_velocity.x",
+             "imu.angular_velocity.y",
+             "imu.angular_velocity.z",
              'gga_llh.gps_qual',
              ]]
 
     eagleye_df = eagleye_df.rename(columns={'timestamp': 'TimeStamp_tmp',
                             'rtklib_nav.tow': 'TOW',
                             'velocity_scale_factor.scale_factor': 'sf',
-                            'velocity.twist.linear.x': 'velocity',
+                            'correction_velocity.twist.linear.x': 'velocity',
                             'distance.distance': 'distance',
-                            'enu_absolute_pos.ecef_base_pos.x': 'ecef_base_x',
-                            'enu_absolute_pos.ecef_base_pos.y': 'ecef_base_y',
-                            'enu_absolute_pos.ecef_base_pos.z': 'ecef_base_z',
+                            'enu_absolute_pos_interpolate.ecef_base_pos.x': 'ecef_base_x',
+                            'enu_absolute_pos_interpolate.ecef_base_pos.y': 'ecef_base_y',
+                            'enu_absolute_pos_interpolate.ecef_base_pos.z': 'ecef_base_z',
                             'rolling.rolling_angle': 'roll_rad',
                             'pitching.pitching_angle': 'pitch_rad',
                             'heading_interpolate_1st.heading_angle': 'heading_1st',
@@ -285,17 +283,22 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
                                     'gga_llh.gps_qual': 'qual',
                                     })
 
-    eagleye_index = eagleye_df[eagleye_df['latitude'] == 0].index
-    eagleye_df = eagleye_df.drop(eagleye_index)
-    eagleye_df = eagleye_df.reset_index()
-
     raw_index = raw_df[raw_df['latitude'] == 0].index
     rtk_index = raw_df[raw_df['rtk_latitude'] == 0].index
-    if len(rtk_index) < len(raw_index):
+    if missing_gnss_type == 1:
+        raw_df = raw_df.drop(rtk_index)
+        eagleye_df = eagleye_df.drop(rtk_index)
+    elif missing_gnss_type == 2:
         raw_df = raw_df.drop(raw_index)
+        eagleye_df = eagleye_df.drop(raw_index)
+    elif len(rtk_index) < len(raw_index):
+        raw_df = raw_df.drop(raw_index)
+        eagleye_df = eagleye_df.drop(raw_index)
     else:
         raw_df = raw_df.drop(rtk_index)
+        eagleye_df = eagleye_df.drop(rtk_index)
     raw_df = raw_df.reset_index()
+    eagleye_df = eagleye_df.reset_index()
 
     if index_time_unit == 1:
         eagleye_df['TimeStamp'] = eagleye_df['TimeStamp_tmp'] * 10 ** (-9)

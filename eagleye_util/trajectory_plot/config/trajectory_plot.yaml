@@ -63,7 +63,8 @@ twist_index:
 
 eagleye_log:
   tf_num: 0 # 0:plane, 1:mgrs
-  time_unit: 1 # 0:[s], 1:[ns]
+  time_unit: 0 # 0:[s], 1:[ns]
+  missing_gnss_type: 2 # 0:use all type, 1:rtklib_nav, 2:nmea
   ros_reverse_imu: False # [True]:Use reverse_imu in ros
 
 param:
@@ -83,6 +84,7 @@ param:
   eval_step_max_param: 3.0 # Maximum value of error to be evaluated default (default:3.0 = 3.0[m])
   ref_data_name_param: 'ref data' # Reference Legend Name. (default:'ref data')
   data_name_param: 'eagleye' # Target Legend Name. (default:'eagleye')
+  font_size_param: 12 # label size
 
 evaluation_plot:
   dr_error_ylim: 3.0 # ylabel data lim
