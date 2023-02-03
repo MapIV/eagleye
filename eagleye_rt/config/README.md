@@ -15,10 +15,12 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | Name                          | Type   | Description                                                             | Default value            |
 | :---------------------------- | :----- | :---------------------------------------------------------------------- | :----------------------- |
 | imu_topic                     | string | Topic name to be subscribed to in node (sensor_msgs/Imu.msg)            | /imu/data_raw            |
-| twist.twist_type                   | string | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
-| twist.twist_topic                   | string | Topic name to be subscribed to in node (geometry_msgs/TwistStamped.msg) of (geometry_msgs/TwistWithCovarianceStamped.msg) | /can_twist               |
-| rtklib_nav_topic              | string | Topic name to be subscribed to in node (rtklib_msgs/RtklibNav.msg)      | /rtklib_nav_topic        |
-| nmea_sentence_topic           | string | Topic name to be subscribed to in node (nmea_msgs/Sentence.msg)         | /nmea_sentence_topic     |
+| twist.twist_type                   | int | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
+| twist.twist_topic                   | string | Topic name to be subscribed to in node | /can_twist               |
+| gnss.velocity_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
+| gnss.velocity_source_topic              | string | Topic name to be subscribed to in node      | /rtklib_nav        |
+| gnss.llh_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
+| gnss.llh_source_topic              | string | Topic name to be subscribed to in node   | /rtklib_nav        |
 
 
 ## TF
