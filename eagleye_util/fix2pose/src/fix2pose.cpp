@@ -43,6 +43,7 @@
 #include "tf2_geometry_msgs/tf2_geometry_msgs.h"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <std_srvs/srv/set_bool.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <llh_converter/llh_converter.hpp>
 
@@ -64,7 +65,8 @@ static geometry_msgs::msg::PoseWithCovarianceStamped _pose_with_covariance;
 static std::string _parent_frame_id, _child_frame_id;
 static std::string _base_link_frame_id, _gnss_frame_id;
 
-llh_converter::LLHConverter _lc;
+std::string geoid_file_path = ament_index_cpp::get_package_share_directory("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
+llh_converter::LLHConverter _lc(geoid_file_path);
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
