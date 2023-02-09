@@ -34,7 +34,7 @@
 #define g 9.80665
 
 void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped velocity, const eagleye_msgs::msg::StatusStamped velocity_status,
-  const eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd,const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop,
+  const eagleye_msgs::msg::YawrateOffset yaw_rate_offset_2nd,const eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop,
   const eagleye_msgs::msg::Distance distance, const sensor_msgs::msg::Imu imu, const geometry_msgs::msg::PoseStamped localization_pose,
   const eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop, const EnableAdditionalRollingParameter rolling_parameter,
   EnableAdditionalRollingStatus* rolling_status, eagleye_msgs::msg::Rolling* rolling_angle, eagleye_msgs::msg::AccYOffset* acc_y_offset)
@@ -59,7 +59,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped v
   rclcpp::Time localization_pose_clock(localization_pose.header.stamp);
   double localization_pose_time = localization_pose_clock.seconds();
 
-  rolling_status->yawrate = imu.angular_velocity.z;
+  rolling_status->yaw_rate = imu.angular_velocity.z;
   rolling_status->rollrate = imu.angular_velocity.x;
   rolling_status->rollrate_offset_stop = angular_velocity_offset_stop.angular_velocity_offset.x;
 
@@ -69,25 +69,25 @@ void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped v
   if (rolling_status->imu_time_buffer.size() < search_buffer_number && velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.push_back(imu_time);
-    rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
+    rolling_status->yaw_rate_buffer.push_back(rolling_status->yaw_rate);
     rolling_status->velocity_buffer.push_back(velocity.twist.linear.x);
-    rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
+    rolling_status->yaw_rate_offset_buffer.push_back(yaw_rate_offset_2nd.yaw_rate_offset);
     rolling_status->acceleration_y_buffer.push_back(rolling_status->imu_acceleration_y);
     rolling_status->distance_buffer.push_back(distance.distance);
   }
   else if (velocity_status.status.enabled_status)
   {
     rolling_status->imu_time_buffer.erase(rolling_status->imu_time_buffer.begin());
-    rolling_status->yawrate_buffer.erase(rolling_status->yawrate_buffer.begin());
+    rolling_status->yaw_rate_buffer.erase(rolling_status->yaw_rate_buffer.begin());
     rolling_status->velocity_buffer.erase(rolling_status->velocity_buffer.begin());
-    rolling_status->yawrate_offset_buffer.erase(rolling_status->yawrate_offset_buffer.begin());
+    rolling_status->yaw_rate_offset_buffer.erase(rolling_status->yaw_rate_offset_buffer.begin());
     rolling_status->acceleration_y_buffer.erase(rolling_status->acceleration_y_buffer.begin());
     rolling_status->distance_buffer.erase(rolling_status->distance_buffer.begin());
     
     rolling_status->imu_time_buffer.push_back(imu_time);
-    rolling_status->yawrate_buffer.push_back(rolling_status->yawrate);
+    rolling_status->yaw_rate_buffer.push_back(rolling_status->yaw_rate);
     rolling_status->velocity_buffer.push_back(velocity.twist.linear.x);
-    rolling_status->yawrate_offset_buffer.push_back(yawrate_offset_2nd.yawrate_offset);
+    rolling_status->yaw_rate_offset_buffer.push_back(yaw_rate_offset_2nd.yaw_rate_offset);
     rolling_status->acceleration_y_buffer.push_back(rolling_status->imu_acceleration_y);
     rolling_status->distance_buffer.push_back(distance.distance);
     data_buffer_status = true;
@@ -115,7 +115,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped v
           tf2::fromMsg(localization_pose.pose.orientation, localization_quat);
           tf2::Matrix3x3(localization_quat).getRPY(additional_angle[0], additional_angle[1], additional_angle[2]);
 
-          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yawrate_buffer[i]+rolling_status->yawrate_offset_buffer[i])-
+          acc_y_offset_tmp = -1*(rolling_status->velocity_buffer[i]*(rolling_status->yaw_rate_buffer[i]+rolling_status->yaw_rate_offset_buffer[i])-
             rolling_status->acceleration_y_buffer[i]-g*std::sin(additional_angle[0]));
           rolling_status->acc_offset_sum = rolling_status->acc_offset_sum + acc_y_offset_tmp;
           rolling_status->acc_offset_data_count ++;
@@ -142,12 +142,12 @@ void enable_additional_rolling_estimate(const geometry_msgs::msg::TwistStamped v
   {
     if (velocity.twist.linear.x > rolling_parameter.stop_judgment_threshold)
     {
-      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-
+      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yaw_rate+yaw_rate_offset_2nd.yaw_rate_offset)/g)-
         (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
     else
     {
-      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_stop.yawrate_offset)/g)-
+      rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yaw_rate+yaw_rate_offset_stop.yaw_rate_offset)/g)-
         (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);
     }
   }

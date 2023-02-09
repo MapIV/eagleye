@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * rtk_deadreckoning_node.cpp
+ * rtk_dead_reckoning_node.cpp
  * Author MapIV Sekino
  */
 
@@ -40,15 +40,15 @@ static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static nmea_msgs::msg::Gpgga gga;
 static geometry_msgs::msg::Vector3Stamped enu_vel;
 
-static eagleye_msgs::msg::Position enu_absolute_rtk_deadreckoning;
+static eagleye_msgs::msg::Position enu_absolute_rtk_dead_reckoning;
 static sensor_msgs::msg::NavSatFix eagleye_fix;
 static eagleye_msgs::msg::Heading heading_interpolate_3rd;
 
 rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub1;
 rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub2;
 
-struct RtkDeadreckoningParameter rtk_deadreckoning_parameter;
-struct RtkDeadreckoningStatus rtk_deadreckoning_status;
+struct RtkDeadreckoningParameter rtk_dead_reckoning_parameter;
+struct RtkDeadreckoningStatus rtk_dead_reckoning_status;
 
 std::string use_gnss_mode;
 
@@ -76,15 +76,15 @@ void on_timer()
   geometry_msgs::msg::TransformStamped transformStamped;
   try
   {
-    transformStamped = tfBuffer_.lookupTransform(rtk_deadreckoning_parameter.tf_gnss_parent_frame, rtk_deadreckoning_parameter.tf_gnss_child_frame, tf2::TimePointZero);
+    transformStamped = tfBuffer_.lookupTransform(rtk_dead_reckoning_parameter.tf_gnss_parent_frame, rtk_dead_reckoning_parameter.tf_gnss_child_frame, tf2::TimePointZero);
 
-    rtk_deadreckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
-    rtk_deadreckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
-    rtk_deadreckoning_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
-    rtk_deadreckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
+    rtk_dead_reckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
+    rtk_dead_reckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
+    rtk_dead_reckoning_parameter.tf_gnss_translation_z = transformStamped.transform.translation.z;
+    rtk_dead_reckoning_parameter.tf_gnss_rotation_x = transformStamped.transform.rotation.x;
+    rtk_dead_reckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
+    rtk_dead_reckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
+    rtk_dead_reckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
   }
   catch (tf2::TransformException& ex)
   {
@@ -100,17 +100,17 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
 
   enu_vel.header = msg->header;
   enu_vel.vector = msg->vector;
-  enu_absolute_rtk_deadreckoning.header = msg->header;
-  enu_absolute_rtk_deadreckoning.header.frame_id = "base_link";
+  enu_absolute_rtk_dead_reckoning.header = msg->header;
+  enu_absolute_rtk_dead_reckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
   if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    rtk_deadreckoning_estimate(rtklib_nav,enu_vel,gga,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
+    rtk_dead_reckoning_estimate(rtklib_nav,enu_vel,gga,heading_interpolate_3rd,rtk_dead_reckoning_parameter,&rtk_dead_reckoning_status,&enu_absolute_rtk_dead_reckoning,&eagleye_fix);
   else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    rtk_deadreckoning_estimate(enu_vel,gga,heading_interpolate_3rd,rtk_deadreckoning_parameter,&rtk_deadreckoning_status,&enu_absolute_rtk_deadreckoning,&eagleye_fix);
-  if (enu_absolute_rtk_deadreckoning.status.enabled_status == true)
+    rtk_dead_reckoning_estimate(enu_vel,gga,heading_interpolate_3rd,rtk_dead_reckoning_parameter,&rtk_dead_reckoning_status,&enu_absolute_rtk_dead_reckoning,&eagleye_fix);
+  if (enu_absolute_rtk_dead_reckoning.status.enabled_status == true)
   {
-    pub1->publish(enu_absolute_rtk_deadreckoning);
+    pub1->publish(enu_absolute_rtk_dead_reckoning);
     pub2->publish(eagleye_fix);
   }
   else if (gga_time != 0)
@@ -127,7 +127,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_rtk_deadreckoning");
+  auto node = rclcpp::Node::make_shared("eagleye_rtk_dead_reckoning");
 
   std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
   std::string subscribe_gga_topic_name = "gnss/gga";
@@ -143,31 +143,31 @@ int main(int argc, char** argv)
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
 
-    rtk_deadreckoning_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
-    rtk_deadreckoning_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
-    rtk_deadreckoning_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
-    rtk_deadreckoning_parameter.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
-    rtk_deadreckoning_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
-    rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
-    rtk_deadreckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-    rtk_deadreckoning_parameter.rtk_fix_STD = conf["/**"]["ros__parameters"]["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
-    rtk_deadreckoning_parameter.proc_noise = conf["/**"]["ros__parameters"]["rtk_deadreckoning"]["proc_noise"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+    rtk_dead_reckoning_parameter.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
+    rtk_dead_reckoning_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
+    rtk_dead_reckoning_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
+    rtk_dead_reckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    rtk_dead_reckoning_parameter.rtk_fix_STD = conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["rtk_fix_STD"].as<double>();
+    rtk_dead_reckoning_parameter.proc_noise = conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["proc_noise"].as<double>();
 
     std::cout << "use_gnss_mode " << use_gnss_mode << std::endl;
 
-    std::cout << "ecef_base_pos_x " << rtk_deadreckoning_parameter.ecef_base_pos_x << std::endl;
-    std::cout << "ecef_base_pos_y " << rtk_deadreckoning_parameter.ecef_base_pos_y << std::endl;
-    std::cout << "ecef_base_pos_z " << rtk_deadreckoning_parameter.ecef_base_pos_z << std::endl;
-    std::cout << "use_ecef_base_position " << rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
-    std::cout << "tf_gnss_frame/parent " << rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
-    std::cout << "tf_gnss_frame/child " << rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
-    std::cout << "stop_judgment_threshold " << rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "rtk_fix_STD " << rtk_deadreckoning_parameter.rtk_fix_STD << std::endl;
-    std::cout << "proc_noise " << rtk_deadreckoning_parameter.proc_noise << std::endl;
+    std::cout << "ecef_base_pos_x " << rtk_dead_reckoning_parameter.ecef_base_pos_x << std::endl;
+    std::cout << "ecef_base_pos_y " << rtk_dead_reckoning_parameter.ecef_base_pos_y << std::endl;
+    std::cout << "ecef_base_pos_z " << rtk_dead_reckoning_parameter.ecef_base_pos_z << std::endl;
+    std::cout << "use_ecef_base_position " << rtk_dead_reckoning_parameter.use_ecef_base_position << std::endl;
+    std::cout << "tf_gnss_frame/parent " << rtk_dead_reckoning_parameter.tf_gnss_parent_frame << std::endl;
+    std::cout << "tf_gnss_frame/child " << rtk_dead_reckoning_parameter.tf_gnss_child_frame << std::endl;
+    std::cout << "stop_judgment_threshold " << rtk_dead_reckoning_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "rtk_fix_STD " << rtk_dead_reckoning_parameter.rtk_fix_STD << std::endl;
+    std::cout << "proc_noise " << rtk_dead_reckoning_parameter.proc_noise << std::endl;
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31mrtk_deadreckoning Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31mrtk_dead_reckoning Node YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 

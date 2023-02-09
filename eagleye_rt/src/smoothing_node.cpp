@@ -41,7 +41,7 @@ rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub;
 struct SmoothingParameter smoothing_parameter;
 struct SmoothingStatus smoothing_status;
 
-static bool use_canless_mode;
+static bool use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
@@ -55,7 +55,7 @@ void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr m
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   rtklib_nav = *msg;
   gnss_smooth_pos_enu.header = msg->header;
@@ -80,7 +80,7 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
 
     smoothing_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
     smoothing_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
     smoothing_parameter.moving_average_time = conf["/**"]["ros__parameters"]["smoothing"]["moving_average_time"].as<double>();
     smoothing_parameter.moving_ratio_threshold = conf["/**"]["ros__parameters"]["smoothing"]["moving_ratio_threshold"].as<double>();
 
-    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 

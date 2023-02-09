@@ -102,9 +102,9 @@ struct YawrateOffsetStopParameter
 struct YawrateOffsetStopStatus
 {
   int stop_count;
-  double yawrate_offset_stop_last;
+  double yaw_rate_offset_stop_last;
   bool estimate_start_status;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
 };
 
 struct YawrateOffsetParameter
@@ -126,11 +126,11 @@ struct YawrateOffsetStatus
   int heading_estimate_status_count;
   int estimated_number;
   std::vector<double> time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> heading_angle_buffer;
   std::vector<double> correction_velocity_buffer;
   std::vector<bool> heading_estimate_status_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
 };
 
 struct HeadingParameter
@@ -156,10 +156,10 @@ struct HeadingStatus
   int estimated_number;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
 };
@@ -187,10 +187,10 @@ struct RtkHeadingStatus
   double last_rtk_heading_angle;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
   std::vector<double> distance_buffer;
@@ -337,8 +337,8 @@ struct TrajectoryParameter
   double curve_judgment_threshold;
   double sensor_noise_velocity;
   double sensor_scale_noise_velocity;
-  double sensor_noise_yawrate;
-  double sensor_bias_noise_yawrate;
+  double sensor_noise_yaw_rate;
+  double sensor_bias_noise_yaw_rate;
 };
 
 struct TrajectoryStatus
@@ -404,12 +404,12 @@ struct AngularVelocityOffsetStopStatus
 {
   int stop_count;
   double rollrate_offset_stop_last;
-  double pitchrate_offset_stop_last;
-  double yawrate_offset_stop_last;
+  double pitch_rate_offset_stop_last;
+  double yaw_rate_offset_stop_last;
   bool estimate_start_status;
   std::vector<double> rollrate_buffer;
-  std::vector<double> pitchrate_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> pitch_rate_buffer;
+  std::vector<double> yaw_rate_buffer;
 };
 
 struct RtkDeadreckoningParameter
@@ -464,7 +464,7 @@ struct EnableAdditionalRollingStatus
 {
   double distance_last;
   double acc_offset_sum;
-  double yawrate;
+  double yaw_rate;
   double rollrate;
   double imu_acceleration_y;
   double rollrate_offset_stop;
@@ -474,9 +474,9 @@ struct EnableAdditionalRollingStatus
   std::vector<double> roll_rate_interpolate_buffer;
   std::vector<double> rolling_estimated_buffer;
   std::vector<double> imu_time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> velocity_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> acceleration_y_buffer;
   std::vector<double> distance_buffer;
 };
@@ -501,9 +501,9 @@ extern void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav, co
 extern void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, geometry_msgs::msg::TwistStamped*, eagleye_msgs::msg::VelocityScaleFactor*);
 extern void distance_estimate(const geometry_msgs::msg::TwistStamped, DistanceStatus*, eagleye_msgs::msg::Distance*);
-extern void yawrate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped, const sensor_msgs::msg::Imu, const YawrateOffsetStopParameter,
+extern void yaw_rate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped, const sensor_msgs::msg::Imu, const YawrateOffsetStopParameter,
   YawrateOffsetStopStatus*, eagleye_msgs::msg::YawrateOffset*);
-extern void yawrate_offset_estimate(const geometry_msgs::msg::TwistStamped, const eagleye_msgs::msg::YawrateOffset,const eagleye_msgs::msg::Heading,
+extern void yaw_rate_offset_estimate(const geometry_msgs::msg::TwistStamped, const eagleye_msgs::msg::YawrateOffset,const eagleye_msgs::msg::Heading,
   const sensor_msgs::msg::Imu, const YawrateOffsetParameter, YawrateOffsetStatus*, eagleye_msgs::msg::YawrateOffset*);
 extern void heading_estimate(const rtklib_msgs::msg::RtklibNav, const sensor_msgs::msg::Imu, const geometry_msgs::msg::TwistStamped,
   const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle, const eagleye_msgs::msg::Heading,
@@ -541,9 +541,9 @@ extern void trajectory3d_estimate(const sensor_msgs::msg::Imu, const geometry_ms
   geometry_msgs::msg::Vector3Stamped*,eagleye_msgs::msg::Position*,geometry_msgs::msg::TwistStamped*,geometry_msgs::msg::TwistWithCovarianceStamped*);
 extern void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStamped, const sensor_msgs::msg::Imu,
   const AngularVelocityOffsetStopParameter, AngularVelocityOffsetStopStatus*, eagleye_msgs::msg::AngularVelocityOffset*);
-extern void rtk_deadreckoning_estimate(const rtklib_msgs::msg::RtklibNav,const geometry_msgs::msg::Vector3Stamped,const nmea_msgs::msg::Gpgga,
+extern void rtk_dead_reckoning_estimate(const rtklib_msgs::msg::RtklibNav,const geometry_msgs::msg::Vector3Stamped,const nmea_msgs::msg::Gpgga,
   const eagleye_msgs::msg::Heading,const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::msg::Position*,sensor_msgs::msg::NavSatFix*);
-extern void rtk_deadreckoning_estimate(const geometry_msgs::msg::Vector3Stamped,const nmea_msgs::msg::Gpgga, const eagleye_msgs::msg::Heading,
+extern void rtk_dead_reckoning_estimate(const geometry_msgs::msg::Vector3Stamped,const nmea_msgs::msg::Gpgga, const eagleye_msgs::msg::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::msg::Position*,sensor_msgs::msg::NavSatFix*);
 extern void rtk_heading_estimate(const nmea_msgs::msg::Gpgga, const sensor_msgs::msg::Imu, const geometry_msgs::msg::TwistStamped,
   const eagleye_msgs::msg::Distance,const eagleye_msgs::msg::YawrateOffset, const eagleye_msgs::msg::YawrateOffset,  const eagleye_msgs::msg::SlipAngle,
@@ -576,10 +576,10 @@ class VelocityEstimator
         PitchrateOffsetStopEstimator();
 
         void setParam(std::string yaml_file);
-        bool PitchrateOffsetStopEstimate(double pitchrate, double stop_status);
+        bool PitchrateOffsetStopEstimate(double pitch_rate, double stop_status);
 
-        double pitchrate_offset;
-        eagleye_msgs::msg::Status pitchrate_offset_status;
+        double pitch_rate_offset;
+        eagleye_msgs::msg::Status pitch_rate_offset_status;
 
       private:
         struct Param
@@ -591,7 +591,7 @@ class VelocityEstimator
         PitchrateOffsetStopEstimator::Param param;
 
         int stop_count;
-        std::vector<double> pitchrate_buffer;
+        std::vector<double> pitch_rate_buffer;
     };
 
     class PitchingEstimator
@@ -601,7 +601,7 @@ class VelocityEstimator
 
         void setParam(std::string yaml_file);
         bool PitchingEstimate(double imu_time_last, double doppler_velocity, double rtkfix_velocity,
-                              double pitchrate, double pitchrate_offset, double rtkfix_pitching,
+                              double pitch_rate, double pitch_rate_offset, double rtkfix_pitching,
                               bool navsat_update_status, bool stop_status);
 
         double pitching;
@@ -625,7 +625,7 @@ class VelocityEstimator
         PitchingEstimator::Param param;
 
         std::vector<double> time_buffer;
-        std::vector<double> corrected_pitchrate_buffer;
+        std::vector<double> corrected_pitch_rate_buffer;
         std::vector<double> rtkfix_pitching_buffer;
         std::vector<bool> use_gnss_status_buffer;
         std::vector<bool> navsat_update_status_buffer;
@@ -697,7 +697,7 @@ class VelocityEstimator
 
     // imu variables
     double acceleration;
-    double pitchrate;
+    double pitch_rate;
     double imu_time_last;
 
     // rtklib_nav variables
@@ -722,9 +722,9 @@ class VelocityEstimator
     std::vector<double> angular_velocity_z_buffer;
 
     // // PitchrateOffsetStopEstimator variables
-    PitchrateOffsetStopEstimator pitchrate_offset_stop_estimator;
-    double pitchrate_offset;
-    eagleye_msgs::msg::Status pitchrate_offset_status;
+    PitchrateOffsetStopEstimator pitch_rate_offset_stop_estimator;
+    double pitch_rate_offset;
+    eagleye_msgs::msg::Status pitch_rate_offset_status;
 
     // PitchingEstimator variables
     PitchingEstimator pitching_estimator;

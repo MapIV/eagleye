@@ -33,7 +33,7 @@
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
 rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset;
 static eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop;
 static eagleye_msgs::msg::AccXOffset acc_x_offset;
 static eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor;
@@ -42,9 +42,9 @@ static sensor_msgs::msg::Imu imu;
 static sensor_msgs::msg::Imu correction_imu;
 
 
-void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset = *msg;
+  yaw_rate_offset = *msg;
 }
 
 void angular_velocity_offset_stop_callback(const eagleye_msgs::msg::AngularVelocityOffset::ConstSharedPtr msg)
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("eagleye_correction_imu");
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", rclcpp::QoS(10), yaw_rate_offset_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("angular_velocity_offset_stop", rclcpp::QoS(10), angular_velocity_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub3 = node->create_subscription<eagleye_msgs::msg::AccXOffset>("acc_x_offset", rclcpp::QoS(10), acc_x_offset_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<eagleye_msgs::msg::AccXScaleFactor>("acc_x_scale_factor", rclcpp::QoS(10), acc_x_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()

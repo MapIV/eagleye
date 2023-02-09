@@ -36,15 +36,15 @@ static sensor_msgs::msg::Imu imu;
 static geometry_msgs::msg::TwistStamped velocity;
 static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_2nd;
 
 rclcpp::Publisher<eagleye_msgs::msg::SlipAngle>::SharedPtr pub;
 static eagleye_msgs::msg::SlipAngle slip_angle;
 
 struct SlipangleParameter slip_angle_parameter;
 
-static bool use_canless_mode;
+static bool use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
 {
@@ -61,22 +61,22 @@ void velocity_scale_factor_callback(const eagleye_msgs::msg::VelocityScaleFactor
   velocity_scale_factor = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop = *msg;
+  yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_2nd = *msg;
+  yaw_rate_offset_2nd = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   eagleye_msgs::msg::StatusStamped velocity_enable_status;
-  if(use_canless_mode)
+  if(use_can_less_mode)
   {
     velocity_enable_status = velocity_status;
   }
@@ -89,7 +89,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   imu = *msg;
   slip_angle.header = msg->header;
   slip_angle.header.frame_id = "base_link";
-  slip_angle_estimate(imu,velocity,velocity_enable_status,yawrate_offset_stop,yawrate_offset_2nd,slip_angle_parameter,&slip_angle);
+  slip_angle_estimate(imu,velocity,velocity_enable_status,yaw_rate_offset_stop,yaw_rate_offset_2nd,slip_angle_parameter,&slip_angle);
   pub->publish(slip_angle);
   slip_angle.status.estimate_status = false;
 }
@@ -122,8 +122,8 @@ int main(int argc, char** argv)
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", rclcpp::QoS(10), imu_callback);  //ros::TransportHints().tcpNoDelay()
   auto sub2 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub3 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", rclcpp::QoS(10), yaw_rate_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", rclcpp::QoS(10), yaw_rate_offset_2nd_callback);  //ros::TransportHints().tcpNoDelay()
   pub = node->create_publisher<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10));
 
   rclcpp::spin(node);

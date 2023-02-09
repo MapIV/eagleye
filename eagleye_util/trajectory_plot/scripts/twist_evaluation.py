@@ -147,18 +147,18 @@ if __name__ == "__main__":
     if reverse_imu == True:
         if 'angular_z' in data_df.columns:
             data_df['angular_z'] = -1 * data_df['angular_z']
-            if 'yawrate_offset_stop' in data_df.columns:
-                data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
-            if 'yawrate_offset' in data_df.columns:
-                data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
+            if 'yaw_rate_offset_stop' in data_df.columns:
+                data_df['yaw_rate_offset_stop'] = -1 * data_df['yaw_rate_offset_stop']
+            if 'yaw_rate_offset' in data_df.columns:
+                data_df['yaw_rate_offset'] = -1 * data_df['yaw_rate_offset']
             if 'slip' in data_df.columns:
                 data_df['slip'] = -1 * data_df['slip']
 
     if 'x' in ref_df.columns and 'y' in ref_df.columns and 'yaw' in ref_df.columns and 'velocity' in data_df and 'angular_z' in data_df:
         print('calc dr')
         ref_xyz = pd.concat([ref_df['x'],ref_df['y']],axis=1)
-        if 'yawrate_offset_stop' in data_df and'yawrate_offset' in data_df and 'slip' in data_df and 'distance' in data_df:
-            eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
+        if 'yaw_rate_offset_stop' in data_df and'yaw_rate_offset' in data_df and 'slip' in data_df and 'distance' in data_df:
+            eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yaw_rate_offset_stop'],data_df['yaw_rate_offset'],data_df['velocity'],data_df['slip']],axis=1)
             distance = util_calc.calc_distance_xy(ref_xyz)
             dr_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],distance["distance"],eagleye_twist_data,np.deg2rad(ref_df["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
             calc_error_csv = pd.concat([dr_error['start_distance'],dr_error['error_2d']],axis=1)

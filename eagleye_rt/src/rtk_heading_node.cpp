@@ -37,8 +37,8 @@ static sensor_msgs::msg::Imu imu;
 static geometry_msgs::msg::TwistStamped velocity;
 static eagleye_msgs::msg::StatusStamped velocity_status;
 static eagleye_msgs::msg::Distance distance;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset;
 static eagleye_msgs::msg::SlipAngle slip_angle;
 static eagleye_msgs::msg::Heading heading_interpolate;
 
@@ -48,7 +48,7 @@ static eagleye_msgs::msg::Heading heading;
 struct RtkHeadingParameter heading_parameter;
 struct RtkHeadingStatus heading_status;
 
-static bool use_canless_mode;
+static bool use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
 {
@@ -65,14 +65,14 @@ void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr m
   velocity_status = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop = *msg;
+  yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset = *msg;
+  yaw_rate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
@@ -92,12 +92,12 @@ void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   imu = *msg;
   heading.header = msg->header;
   heading.header.frame_id = "base_link";
-  rtk_heading_estimate(gga,imu,velocity,distance,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+  rtk_heading_estimate(gga,imu,velocity,distance,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
 
   if (heading.status.estimate_status == true)
   {
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
 
     heading_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     heading_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
@@ -137,7 +137,7 @@ int main(int argc, char** argv)
     heading_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["rtk_heading"]["outlier_ratio_threshold"].as<double>();
     heading_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["rtk_heading"]["curve_judgment_threshold"].as<double>();
 
-    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
 
@@ -169,19 +169,19 @@ int main(int argc, char** argv)
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "heading_1st";
-      subscribe_topic_name = "yawrate_offset_stop";
+      subscribe_topic_name = "yaw_rate_offset_stop";
       subscribe_topic_name2 = "heading_interpolate_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "heading_2nd";
-      subscribe_topic_name = "yawrate_offset_1st";
+      subscribe_topic_name = "yaw_rate_offset_1st";
       subscribe_topic_name2 = "heading_interpolate_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
       publish_topic_name = "heading_3rd";
-      subscribe_topic_name = "yawrate_offset_2nd";
+      subscribe_topic_name = "yaw_rate_offset_2nd";
       subscribe_topic_name2 = "heading_interpolate_3rd";
     }
     else
@@ -200,8 +200,8 @@ int main(int argc, char** argv)
   auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
   auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback);
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yaw_rate_offset_callback);
   auto sub7 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", 1000, slip_angle_callback);
   auto sub8 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2, 1000, heading_interpolate_callback);
   auto sub9 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", 1000, distance_callback);
