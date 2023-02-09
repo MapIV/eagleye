@@ -2,7 +2,7 @@
   ros__parameters:
     # Estimate mode
     use_gnss_mode: RTKLIB
-    use_canless_mode: false  
+    use_can_less_mode: false  
 
     # Topic
     twist:
@@ -47,11 +47,11 @@
       velocity_scale_factor_save_duration: 100.0 
       th_velocity_scale_factor_percent: 10.0          
 
-    yawrate_offset_stop:                                  
+    yaw_rate_offset_stop:                                  
       estimated_interval: 4
       outlier_threshold: 0.002
 
-    yawrate_offset:                                       
+    yaw_rate_offset:                                       
       estimated_minimum_interval: 30
       gnss_receiving_threshold: 0.25
       outlier_threshold: 0.002
@@ -88,12 +88,12 @@
 
     trajectory:                       
       curve_judgment_threshold: 0.017453
-      timer_updata_rate: 10       
+      timer_update_rate: 10       
       deadlock_threshold: 1
       sensor_noise_velocity: 0.05
       sensor_scale_noise_velocity: 0.02
-      sensor_noise_yawrate: 0.01
-      sensor_bias_noise_yawrate: 0.1
+      sensor_noise_yaw_rate: 0.01
+      sensor_bias_noise_yaw_rate: 0.1
 
     smoothing:
       moving_average_time: 3
@@ -121,17 +121,17 @@
     monitor:
       print_status: true
       log_output_status: false
-      use_compare_yawrate: false
+      use_compare_yaw_rate: false
       comparison_twist_topic: /calculated_twist
       th_diff_rad_per_sec: 0.17453
-      th_num_continuous_abnormal_yawrate: 25
+      th_num_continuous_abnormal_yaw_rate: 25
 
     # Optional Navigation Functions
     angular_velocity_offset_stop:                         
       estimated_interval: 4
       outlier_threshold: 0.002
 
-    rtk_deadreckoning:
+    rtk_dead_reckoning:
       rtk_fix_STD: 0.3 #[m]
       proc_noise: 0.05 #[m]
 
@@ -155,7 +155,7 @@
       stop_judgment_velocity_threshold: 0.2 
       stop_judgment_interval: 1
       variance_threshold: 0.000025
-      pitchrate_offset:
+      pitch_rate_offset:
         estimated_interval: 8
       pitching:
         estimated_interval: 5

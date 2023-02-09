@@ -38,8 +38,8 @@ static eagleye_msgs::msg::StatusStamped velocity_status;
 static geometry_msgs::msg::TwistStamped correction_velocity;
 static eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor;
 static eagleye_msgs::msg::Heading heading_interpolate_3rd;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_2nd;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_2nd;
 static eagleye_msgs::msg::Pitching pitching;
 
 static geometry_msgs::msg::Vector3Stamped enu_vel;
@@ -54,13 +54,13 @@ rclcpp::Publisher<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr pub
 struct TrajectoryParameter trajectory_parameter;
 struct TrajectoryStatus trajectory_status;
 
-static double timer_updata_rate = 10;
+static double timer_update_rate = 10;
 static double th_deadlock_time = 1;
 
 static double imu_time_last,velocity_time_last;
 static bool input_status;
 
-static bool use_canless_mode;
+static bool use_can_less_mode;
 
 static std::string node_name = "eagleye_trajectory";
 
@@ -84,14 +84,14 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSha
   heading_interpolate_3rd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop = *msg;
+  yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_2nd = *msg;
+  yaw_rate_offset_2nd = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
@@ -128,10 +128,10 @@ void on_timer()
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   eagleye_msgs::msg::StatusStamped velocity_enable_status;
-  if(use_canless_mode)
+  if(use_can_less_mode)
   {
     velocity_enable_status = velocity_status;
   }
@@ -152,7 +152,7 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     eagleye_twist.header.frame_id = "base_link";
     eagleye_twist_with_covariance.header = msg->header;
     eagleye_twist_with_covariance.header.frame_id = "base_link";
-    trajectory3d_estimate(imu,correction_velocity,velocity_enable_status,heading_interpolate_3rd,yawrate_offset_stop,yawrate_offset_2nd,pitching,
+    trajectory3d_estimate(imu,correction_velocity,velocity_enable_status,heading_interpolate_3rd,yaw_rate_offset_stop,yaw_rate_offset_2nd,pitching,
       trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist, &eagleye_twist_with_covariance);
 
     if (heading_interpolate_3rd.status.enabled_status)
@@ -181,17 +181,17 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
     trajectory_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
     trajectory_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["trajectory"]["curve_judgment_threshold"].as<double>();
     trajectory_parameter.sensor_noise_velocity = conf["/**"]["ros__parameters"]["trajectory"]["sensor_noise_velocity"].as<double>();
     trajectory_parameter.sensor_scale_noise_velocity = conf["/**"]["ros__parameters"]["trajectory"]["sensor_scale_noise_velocity"].as<double>();
-    trajectory_parameter.sensor_noise_yawrate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_noise_yawrate"].as<double>();
-    trajectory_parameter.sensor_bias_noise_yawrate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_bias_noise_yawrate"].as<double>();
-    timer_updata_rate = conf["/**"]["ros__parameters"]["trajectory"]["timer_updata_rate"].as<double>();
+    trajectory_parameter.sensor_noise_yaw_rate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_noise_yaw_rate"].as<double>();
+    trajectory_parameter.sensor_bias_noise_yaw_rate = conf["/**"]["ros__parameters"]["trajectory"]["sensor_bias_noise_yaw_rate"].as<double>();
+    timer_update_rate = conf["/**"]["ros__parameters"]["trajectory"]["timer_update_rate"].as<double>();
     // deadlock_threshold = conf["/**"]["ros__parameters"]["trajectory"]["deadlock_threshold"].as<double>();
 
-    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
 
@@ -201,10 +201,10 @@ int main(int argc, char** argv)
 
     std::cout << "sensor_noise_velocity " << trajectory_parameter.sensor_noise_velocity << std::endl;
     std::cout << "sensor_scale_noise_velocity " << trajectory_parameter.sensor_scale_noise_velocity << std::endl;
-    std::cout << "sensor_noise_yawrate " << trajectory_parameter.sensor_noise_yawrate << std::endl;
-    std::cout << "sensor_bias_noise_yawrate " << trajectory_parameter.sensor_bias_noise_yawrate << std::endl;
+    std::cout << "sensor_noise_yaw_rate " << trajectory_parameter.sensor_noise_yaw_rate << std::endl;
+    std::cout << "sensor_bias_noise_yaw_rate " << trajectory_parameter.sensor_bias_noise_yaw_rate << std::endl;
 
-    std::cout << "timer_updata_rate " << timer_updata_rate << std::endl;
+    std::cout << "timer_update_rate " << timer_update_rate << std::endl;
     // std::cout << "deadlock_threshold " << deadlock_threshold << std::endl;
   }
   catch (YAML::Exception& e)
@@ -219,15 +219,15 @@ int main(int argc, char** argv)
   auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
   auto sub5 = node->create_subscription<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10), velocity_scale_factor_callback);
   auto sub6 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);
-  auto sub7 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
-  auto sub8 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", rclcpp::QoS(10), yaw_rate_offset_stop_callback);
+  auto sub8 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", rclcpp::QoS(10), yaw_rate_offset_2nd_callback);
   auto sub9 = node->create_subscription<eagleye_msgs::msg::Pitching>("pitching", rclcpp::QoS(10), pitching_callback);
   pub1 = node->create_publisher<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000);
   pub2 = node->create_publisher<eagleye_msgs::msg::Position>("enu_relative_pos", 1000);
   pub3 = node->create_publisher<geometry_msgs::msg::TwistStamped>("twist", 1000);
   pub4 = node->create_publisher<geometry_msgs::msg::TwistWithCovarianceStamped>("twist_with_covariance", 1000);
 
-  double delta_time = 1.0 / static_cast<double>(timer_updata_rate);
+  double delta_time = 1.0 / static_cast<double>(timer_update_rate);
   auto timer_callback = std::bind(on_timer);
   const auto period_ns =
     std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(delta_time));

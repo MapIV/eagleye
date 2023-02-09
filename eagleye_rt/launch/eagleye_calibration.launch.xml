@@ -8,7 +8,7 @@
   <group>
     <push-ros-namespace namespace="eagleye"/>
 
-    <arg name="use_rtk_deadreckoning" default="false"/>
+    <arg name="use_rtk_dead_reckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
 
      <node pkg="eagleye_rt" name="tf_converted_imu" exec="tf_converted_imu">
@@ -19,15 +19,15 @@
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" exec="yawrate_offset_stop">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_stop_node" exec="yaw_rate_offset_stop">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" exec="yawrate_offset" args="1st">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_1st" exec="yaw_rate_offset" args="1st">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" exec="yawrate_offset" args="2nd">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_2nd" exec="yaw_rate_offset" args="2nd">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
@@ -55,11 +55,11 @@
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="position_node" exec="position" if="$(eval &quot;'$(var use_rtk_deadreckoning)'=='false'&quot;)">
+    <node pkg="eagleye_rt" name="position_node" exec="position" if="$(eval &quot;'$(var use_rtk_dead_reckoning)'=='false'&quot;)">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="position_interpolate_node" exec="position_interpolate" if="$(eval &quot;'$(var use_rtk_deadreckoning)'=='false'&quot;)">
+    <node pkg="eagleye_rt" name="position_interpolate_node" exec="position_interpolate" if="$(eval &quot;'$(var use_rtk_dead_reckoning)'=='false'&quot;)">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
@@ -85,7 +85,7 @@
     </node>
 
     <!-- RTK Options -->
-    <node pkg="eagleye_rt" name="rtk_deadreckoning" exec="rtk_deadreckoning" if="$(var use_rtk_deadreckoning)">
+    <node pkg="eagleye_rt" name="rtk_dead_reckoning" exec="rtk_dead_reckoning" if="$(var use_rtk_dead_reckoning)">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>

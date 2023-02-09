@@ -39,7 +39,7 @@ static eagleye_msgs::msg::Distance _distance;
 
 struct DistanceStatus _distance_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
 {
@@ -48,7 +48,7 @@ void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstShare
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   _velocity = *msg;
   _distance.header = msg->header;
@@ -66,8 +66,8 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("eagleye_distance");
 
-  node->declare_parameter("use_canless_mode",_use_canless_mode);
-  node->get_parameter("use_canless_mode",_use_canless_mode);
+  node->declare_parameter("use_can_less_mode",_use_can_less_mode);
+  node->get_parameter("use_can_less_mode",_use_can_less_mode);
 
   auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub2 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);

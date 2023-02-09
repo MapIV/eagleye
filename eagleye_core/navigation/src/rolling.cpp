@@ -34,12 +34,12 @@
 #define g 9.80665
 
 void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamped correction_velocity,
-                      eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, eagleye_msgs::msg::YawrateOffset yawrate_offset,
+                      eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop, eagleye_msgs::msg::YawrateOffset yaw_rate_offset,
                       RollingParameter rolling_parameter, RollingStatus* rolling_status, eagleye_msgs::msg::Rolling* rolling)
 {
   double acceleration_y;
   double velocity;
-  double yawrate;
+  double yaw_rate;
 
   double init_variance = 1.0;
   double acceleration_y_variance_negative;
@@ -55,11 +55,11 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
 
   if (std::abs(velocity) > rolling_parameter.stop_judgment_threshold)
   {
-    yawrate = imu.angular_velocity.z + yawrate_offset.yawrate_offset;
+    yaw_rate = imu.angular_velocity.z + yaw_rate_offset.yaw_rate_offset;
   }
   else
   {
-    yawrate = imu.angular_velocity.z + yawrate_offset_stop.yawrate_offset;
+    yaw_rate = imu.angular_velocity.z + yaw_rate_offset_stop.yaw_rate_offset;
   }
 
   if (!rolling_status->data_status)
@@ -89,7 +89,7 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
   rolling->header = imu.header;
   rolling->header.frame_id = "base_link";
 
-  in_sin = (velocity * yawrate - filtered_acceleration_y) / g;
+  in_sin = (velocity * yaw_rate - filtered_acceleration_y) / g;
 
   if (std::abs(in_sin) < 1)
   {

@@ -202,8 +202,8 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
              "heading_interpolate_1st.heading_angle",
              "heading_interpolate_2nd.heading_angle",
              "heading_interpolate_3rd.heading_angle",
-             "yawrate_offset_stop.yawrate_offset",
-             "yawrate_offset_2nd.yawrate_offset",
+             "yaw_rate_offset_stop.yaw_rate_offset",
+             "yaw_rate_offset_2nd.yaw_rate_offset",
              "slip_angle.slip_angle",
              "enu_vel.vector.x",
              "enu_vel.vector.y",
@@ -230,8 +230,8 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
                             'heading_interpolate_1st.heading_angle': 'heading_1st',
                             'heading_interpolate_2nd.heading_angle': 'heading_2nd',
                             'heading_interpolate_3rd.heading_angle': 'yaw_rad',
-                            'yawrate_offset_stop.yawrate_offset': 'yawrate_offset_stop',
-                            'yawrate_offset_2nd.yawrate_offset': 'yawrate_offset',
+                            'yaw_rate_offset_stop.yaw_rate_offset': 'yaw_rate_offset_stop',
+                            'yaw_rate_offset_2nd.yaw_rate_offset': 'yaw_rate_offset',
                             'slip_angle.slip_angle': 'slip',
                             'enu_vel.vector.x': 'vel_x',
                             'enu_vel.vector.y': 'vel_y',
@@ -269,8 +269,8 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
                                     'velocity.twist.linear.x': 'velocity',
                                     'distance.distance': 'distance',
                                     'imu.angular_velocity.x': 'rollrate',
-                                    'imu.angular_velocity.y': 'pitchrate',
-                                    'imu.angular_velocity.z': 'yawrate',
+                                    'imu.angular_velocity.y': 'pitch_rate',
+                                    'imu.angular_velocity.z': 'yaw_rate',
                                     'rtklib_nav.ecef_vel.x': 'vel_x',
                                     'rtklib_nav.ecef_vel.y': 'vel_y',
                                     'rtklib_nav.ecef_vel.z': 'vel_z',
@@ -318,8 +318,8 @@ def set_log_df(input,plane,config): # Creation of dataset with reference to labe
         xyz = util_calc.ll2mgrs(llh)
     if ros_reverse_imu == True:
         eagleye_df['angular_z'] = -1 * eagleye_df['angular_z']
-        eagleye_df['yawrate_offset_stop'] = -1 * eagleye_df['yawrate_offset_stop']
-        eagleye_df['yawrate_offset'] = -1 * eagleye_df['yawrate_offset']
+        eagleye_df['yaw_rate_offset_stop'] = -1 * eagleye_df['yaw_rate_offset_stop']
+        eagleye_df['yaw_rate_offset'] = -1 * eagleye_df['yaw_rate_offset']
         eagleye_df['slip'] = -1 * eagleye_df['slip']
     set_eagleye_df = pd.concat([eagleye_df, xyz],axis=1)
     return set_eagleye_df, raw_df

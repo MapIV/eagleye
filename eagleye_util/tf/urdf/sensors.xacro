@@ -3,7 +3,7 @@
   xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:arg name="config_dir" default="$(find eagleye_tf)"/>
-  <xacro:property name="calibration" value="${load_yaml('$(arg config_dir)/config/sensors_tf.yaml')}"/>
+  <xacro:property name="calibration" value="${xacro.load_yaml,('$(arg config_dir)/config/sensors_tf.yaml')}"/>
   <xacro:property name="size" value="1" />
 
   <!-- base_link -->

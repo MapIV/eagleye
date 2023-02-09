@@ -32,13 +32,13 @@
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
 void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const geometry_msgs::msg::TwistStamped velocity,
-  const eagleye_msgs::msg::YawrateOffset yawrate_offset_stop, const eagleye_msgs::msg::YawrateOffset yawrate_offset, const eagleye_msgs::msg::Heading heading,
+  const eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop, const eagleye_msgs::msg::YawrateOffset yaw_rate_offset, const eagleye_msgs::msg::Heading heading,
   const eagleye_msgs::msg::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,
   eagleye_msgs::msg::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
-  double yawrate = 0.0;
+  double yaw_rate = 0.0;
   double diff_estimate_heading_angle = 0.0;
   bool heading_estimate_status;
   std::size_t imu_stamp_buffer_length;
@@ -52,15 +52,15 @@ void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const geometr
   auto heading_time = ros_clock.seconds();
   auto imu_time = ros_clock2.seconds();
 
-  yawrate = imu.angular_velocity.z;
+  yaw_rate = imu.angular_velocity.z;
 
   if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_threshold)
   {
-    yawrate = yawrate + yawrate_offset.yawrate_offset;
+    yaw_rate = yaw_rate + yaw_rate_offset.yaw_rate_offset;
   }
   else
   {
-    yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
+    yaw_rate = yaw_rate + yaw_rate_offset_stop.yaw_rate_offset;
   }
 
   if (heading_interpolate_status->number_buffer < search_buffer_number)
@@ -86,7 +86,7 @@ void heading_interpolate_estimate(const sensor_msgs::msg::Imu imu, const geometr
   if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) >
     heading_interpolate_parameter.stop_judgment_threshold)
   {
-    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yawrate * (imu_time - heading_interpolate_status->time_last));
+    heading_interpolate_status->provisional_heading_angle = heading_interpolate_status->provisional_heading_angle + (yaw_rate * (imu_time - heading_interpolate_status->time_last));
     heading_interpolate_status->heading_variance_last += proc_noise*proc_noise;
   }
 
