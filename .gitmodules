@@ -1,4 +1,0 @@
-[submodule "eagleye_util/llh_converter"]
-	path = eagleye_util/llh_converter
-	url = https://github.com/MapIV/llh_converter
-	branch = ros2
