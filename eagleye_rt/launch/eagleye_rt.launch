@@ -6,7 +6,7 @@
 
   <group ns="eagleye">
 
-    <arg name="use_rtk_deadreckoning" default="true"/>
+    <arg name="use_rtk_deadreckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
     <arg name="use_canless_mode" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
