@@ -153,7 +153,7 @@ Figure shows the relationship between these parameters.
 | sensor_noise_velocity                  | double | Sensor velocity noise                             | 0.05                    |
 | sensor_scale_noise_velocity                  | double | Sensor velocity scale noise                             | 0.02                    |
 | sensor_noise_yaw_rate                  | double | Sensor yaw rate noise                             | 0.01                    |
-| sensor_bias_noise_yaw_rate                  | double | Sensor yaw rate bias noise                             | 0.01                    |
+| sensor_bias_noise_yaw_rate                  | double | Sensor yaw rate bias noise                             | 0.1                    |
 
 ### smoothing
 
