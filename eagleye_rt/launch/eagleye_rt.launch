@@ -56,6 +56,8 @@
 
   <include file="$(find eagleye_fix2pose)/launch/fix2pose.launch">
     <arg name="gnss_frame_id" default="gnss_link"/> 
+    <arg name="plane" default="7"/> 
+    <arg name="tf_num" default="1"/>  <!-- 1 : plane  2 : mgrs  -->
   </include>
 
 </launch>

@@ -161,8 +161,6 @@ int main(int argc, char** argv)
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
     _use_canless_mode = conf["use_canless_mode"].as<bool>();
 
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
-
     _position_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     _position_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
     _position_parameter.ecef_base_pos_z = conf["ecef_base_pos"]["z"].as<double>();
@@ -183,8 +181,6 @@ int main(int argc, char** argv)
 
     std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
     std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
-
-    std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
     std::cout<< "ecef_base_pos_x " << _position_parameter.ecef_base_pos_x << std::endl;
     std::cout<< "ecef_base_pos_y " << _position_parameter.ecef_base_pos_y << std::endl;
