@@ -125,8 +125,8 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
 
   _pose.header = msg->header;
   _pose.header.frame_id = "map";
-  _pose.pose.position.x = xyz[1];
-  _pose.pose.position.y = xyz[0];
+  _pose.pose.position.x = xyz[0];
+  _pose.pose.position.y = xyz[1];
   _pose.pose.position.z = xyz[2];
   _pose.pose.orientation = _quat;
 
