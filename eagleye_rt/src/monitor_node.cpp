@@ -1096,7 +1096,6 @@ int main(int argc, char** argv)
   ros::NodeHandle n;
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
-  std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
   std::string subscribe_gga_topic_name = "navsat/gga";
   std::string comparison_twist_topic_name = "/calculated_twist";
@@ -1110,7 +1109,6 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     n.getParam("use_rtk_deadreckoning",_use_rtk_deadreckoning);
-    subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
     comparison_twist_topic_name = conf["monitor"]["comparison_twist_topic"].as<std::string>();
 
     _print_status = conf["monitor"]["print_status"].as<bool>();
@@ -1123,7 +1121,6 @@ int main(int argc, char** argv)
     _th_dr_distance = conf["monitor"]["th_dr_distance"].as<double>();
 
     std::cout<< "subscribe_twist_topic_name "<<subscribe_twist_topic_name<<std::endl;
-    std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
     std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
     std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
     std::cout<< "print_status "<<_print_status<<std::endl;
