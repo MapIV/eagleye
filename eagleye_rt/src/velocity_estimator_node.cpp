@@ -45,29 +45,9 @@ VelocityEstimator velocity_estimator;
 static geometry_msgs::TwistStamped velocity_msg;
 
 static std::string yaml_file;
-static std::string subscribe_imu_topic_name;
-static std::string subscribe_rtklib_nav_topic_name;
-static std::string subscribe_gga_topic_name;
-
-void setParam(std::string yaml_file)
-{
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-  try
-  {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
-    subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
-    subscribe_gga_topic_name = conf["gga_topic"].as<std::string>();
-    std::cout<< "subscribe_imu_topic_name "<<subscribe_imu_topic_name<<std::endl;
-    std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
-    std::cout << "subscribe_gga_topic_name " << subscribe_gga_topic_name << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mVelocityEstimatorNode YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
-  }
-}
+static std::string subscribe_imu_topic_name = "imu/data_tf_converted";
+static std::string subscribe_rtklib_nav_topic_name = "navsat/rtklib_nav";
+static std::string subscribe_gga_topic_name = "navsat/gga";
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -100,7 +80,6 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 void velocity_estimator_node(ros::NodeHandle nh)
 {
   nh.getParam("yaml_file",yaml_file);
-  setParam(yaml_file);
   velocity_estimator.setParam(yaml_file);
 
   ros::Subscriber rtklib_sub =
