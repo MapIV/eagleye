@@ -8,6 +8,10 @@
     <push-ros-namespace namespace="gnss"/>
     <node pkg="eagleye_gnss_converter" name="gnss_converter_node" exec="gnss_converter" output="screen">
           <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+          <!-- Twist Covariance Threshold in geometry_msgs/TwistWithCovarianceStamped -->
+          <param name="twist_covariance_thresh" value="0.2"/>
+          <!-- Vertical Accuracy Estimate Threshold [mm/s] in ublox_msgs/NavPVT -->
+          <param name="ublox_vacc_thresh" value="200.0"/>
     </node>
   </group>
 

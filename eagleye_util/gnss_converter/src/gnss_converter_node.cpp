@@ -18,6 +18,9 @@ sensor_msgs::msg::NavSatFix::ConstSharedPtr nav_msg_ptr;
 static std::string sub_topic_name, pub_fix_topic_name = "fix",
   pub_gga_topic_name = "gga", pub_rmc_topic_name = "rmc" ,pub_rtklib_nav_topic = "rtklib_nav";
 
+double twist_covariance_thresh = 0.2;
+double ublox_vacc_thresh = 200.0;
+
 void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
 {
   nmea_msgs::msg::Gpgga gga;
@@ -53,6 +56,7 @@ void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
 
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 {
+  if(msg->s_acc > ublox_vacc_thresh) return;
   rtklib_msgs::msg::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
@@ -84,6 +88,7 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 
 void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
 {
+  if(msg->twist.covariance[0] > twist_covariance_thresh) return;
   if (nav_msg_ptr == nullptr) return;
   rtklib_msgs::msg::RtklibNav r;
   r.header.frame_id = "gps";
@@ -131,16 +136,22 @@ int main(int argc, char** argv)
   node->declare_parameter("gnss.velocity_source_topic",velocity_source_topic);
   node->declare_parameter("gnss.llh_source_type",llh_source_type);
   node->declare_parameter("gnss.llh_source_topic",llh_source_topic);
+  node->declare_parameter("twist_covariance_thresh",twist_covariance_thresh);
+  node->declare_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
   node->get_parameter("gnss.velocity_source_type",velocity_source_type);
   node->get_parameter("gnss.velocity_source_topic",velocity_source_topic);
   node->get_parameter("gnss.llh_source_type",llh_source_type);
   node->get_parameter("gnss.llh_source_topic",llh_source_topic);
+  node->get_parameter("twist_covariance_thresh",twist_covariance_thresh);
+  node->get_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
 
   std::cout<< "velocity_source_type "<<velocity_source_type<<std::endl;
   std::cout<< "velocity_source_topic "<<velocity_source_topic<<std::endl;
   std::cout<< "llh_source_type "<<llh_source_type<<std::endl;
   std::cout<< "llh_source_topic "<<llh_source_topic<<std::endl;
-  
+  std::cout<< "twist_covariance_thresh "<<twist_covariance_thresh<<std::endl;
+  std::cout<< "ublox_vacc_thresh "<<ublox_vacc_thresh<<std::endl;
+
   if(velocity_source_type == 0)
   {
     rtklib_nav_sub = node->create_subscription<rtklib_msgs::msg::RtklibNav>(velocity_source_topic, 1000, rtklib_nav_callback);
