@@ -169,7 +169,7 @@ int main(int argc, char** argv)
     gnss_velocity_sub = node->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
         velocity_source_topic, 1000, gnss_velocity_callback);
   }
-  else 
+  else
   {
     RCLCPP_ERROR(node->get_logger(),"Invalid velocity_source_type");
     rclcpp::shutdown();

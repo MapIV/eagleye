@@ -4,9 +4,9 @@
   <arg name="use_tf" default="true" />
   <arg name="config_yaml" default="eagleye_config.yaml"/>
   <arg name="enable_additional_rolling" default="false"/>
-  <arg name="use_multi_antenna_mode" default="false"/>
+  <arg name="use_multi_antenna_mode" default="true"/>
   <arg name="config_path" default="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
- 
+
   <group>
     <push-ros-namespace namespace="eagleye"/>
 
@@ -134,12 +134,15 @@
     </node>
     <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
             <arg name="config_yaml" value="$(var config_yaml)"/>
+            <arg name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </include>
   </group>
 
 
 
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
+
+  <include file="$(find-pkg-share gnss_compass)/launch/gnss_compass.launch.xml" if="$(var use_multi_antenna_mode)"/>
 
   <include file="$(find-pkg-share eagleye_fix2pose)/launch/fix2pose.xml">
   </include>

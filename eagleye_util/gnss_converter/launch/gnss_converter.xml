@@ -3,6 +3,7 @@
 <launch>
 
   <arg name="config_yaml" default="eagleye_config.yaml"/>
+  <arg name="use_multi_antenna_mode" default="false"/>
 
   <group>
     <push-ros-namespace namespace="gnss"/>
@@ -14,5 +15,13 @@
           <param name="ublox_vacc_thresh" value="200.0"/>
     </node>
   </group>
+
+  <!-- <group if="$(var use_multi_antenna_mode)"/>
+    <push-ros-namespace namespace="sub_gnss"/>
+    <node pkg="eagleye_gnss_converter" name="gnss_converter_node" exec="gnss_converter" output="screen">
+          <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
+    </node>
+  </group> -->
+
 
 </launch>
