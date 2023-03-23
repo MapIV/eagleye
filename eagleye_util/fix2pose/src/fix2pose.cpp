@@ -73,13 +73,10 @@ bool _fix_only_publish = false;
 int _fix_judgement_type = 0;
 int _fix_gnss_status = 0;
 double _fix_std_pos_thres = 0.1; // [m]
-bool _initial_pose_estimated = false;
 
 std::string _node_name = "eagleye_fix2pose";
 
 tf2_ros::Buffer _tf_buffer(std::make_shared<rclcpp::Clock>(_ros_clock));
-
-rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr _client_ekf_trigger;
 
 void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
@@ -168,7 +165,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
         TF_sensor_to_base_ptr->transform.translation.y, TF_sensor_to_base_ptr->transform.translation.z));
       transform2.setRotation(q2);
       transfrom3 = transform * transform2;
-  
+
       _pose.header.frame_id = _parent_frame_id;
       _pose.pose.position.x = transfrom3.getOrigin().getX();
       _pose.pose.position.y = transfrom3.getOrigin().getY();
@@ -205,19 +202,6 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   _pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
   _pub2->publish(_pose_with_covariance);
 
-  if(!_initial_pose_estimated)
-  {
-    _pub3->publish(_pose_with_covariance);
-    _initial_pose_estimated = true;
-
-    const auto req = std::make_shared<std_srvs::srv::SetBool::Request>();
-    req->data = true;
-    if (!_client_ekf_trigger->service_is_ready()) {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "EKF localizar triggering service is not ready");
-    }
-    auto future_ekf = _client_ekf_trigger->async_send_request(req);
-  }
-  
   tf2::Transform transform;
   tf2::Quaternion q;
   transform.setOrigin(tf2::Vector3(_pose.pose.position.x, _pose.pose.position.y, _pose.pose.position.z));
@@ -281,11 +265,11 @@ int main(int argc, char** argv)
   std::cout<< "base_link_frame_id "<< _base_link_frame_id<<std::endl;
   std::cout<< "gnss_frame_id "<< _gnss_frame_id<<std::endl;
 
-  
+
   if (tf_num == 1)
   {
     _llh_param.use_mgrs = false;
-    _llh_param.plane_num = plane;  
+    _llh_param.plane_num = plane;
   }
   else if (tf_num == 2)
   {
@@ -303,7 +287,7 @@ int main(int argc, char** argv)
   }
   else if (convert_height_num == 1)
   {
-    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO; 
+    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO;
   }
   else if (convert_height_num == 2)
   {
@@ -321,7 +305,7 @@ int main(int argc, char** argv)
   }
   else if(geoid_type == 1)
   {
-    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011; 
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011;
   }
   else
   {
@@ -330,16 +314,14 @@ int main(int argc, char** argv)
   }
 
   tf2_ros::TransformListener tf_listener(_tf_buffer);
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("eagleye/fix", 1000, fix_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
-  _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("eagleye/pose", 1000);
-  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
-  _pub3 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/initialpose3d", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_callback);
+  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1000, fix_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", 1000, rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("pitching", 1000, pitching_callback);
+  _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1000);
+  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("pose_with_covariance", 1000);
   _br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   _br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
-  _client_ekf_trigger = node->create_client<std_srvs::srv::SetBool>("ekf_trigger_node");
   rclcpp::spin(node);
 
   return 0;

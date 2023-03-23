@@ -64,11 +64,11 @@
       2nd:
         estimated_maximum_interval: 500
 
-    heading:                                             
+    heading:
       estimated_minimum_interval: 10
       estimated_maximum_interval: 30
       gnss_receiving_threshold: 0.25
-      outlier_threshold: 0.0524                         
+      outlier_threshold: 0.0524
       outlier_ratio_threshold: 0.5
       curve_judgment_threshold: 0.0873
       init_STD: 0.0035 #[rad] (= 0.2 [deg])
@@ -78,21 +78,21 @@
       proc_noise: 0.0005 #[rad] (= 0.03 [deg])
 
     slip_angle:
-      manual_coefficient: 0.0                             
+      manual_coefficient: 0.0
 
     slip_coefficient:
       estimated_minimum_interval: 2
       estimated_maximum_interval: 100
       curve_judgment_threshold: 0.017453
-      lever_arm: 0.0                                     
+      lever_arm: 0.0
 
     rolling:
       filter_process_noise: 0.01
       filter_observation_noise: 1
 
-    trajectory:                       
+    trajectory:
       curve_judgment_threshold: 0.017453
-      timer_update_rate: 10       
+      timer_update_rate: 10
       deadlock_threshold: 1
       sensor_noise_velocity: 0.05
       sensor_scale_noise_velocity: 0.02
@@ -131,7 +131,7 @@
       th_num_continuous_abnormal_yaw_rate: 25
 
     # Optional Navigation Functions
-    angular_velocity_offset_stop:                         
+    angular_velocity_offset_stop:
       estimated_interval: 4
       outlier_threshold: 0.002
 
@@ -139,7 +139,7 @@
       rtk_fix_STD: 0.3 #[m]
       proc_noise: 0.05 #[m]
 
-    rtk_heading:                                          
+    rtk_heading:
       update_distance: 0.3
       estimated_minimum_interval: 10
       estimated_maximum_interval: 30
@@ -156,7 +156,7 @@
 
     velocity_estimator:
       gga_downsample_time: 0.5
-      stop_judgment_velocity_threshold: 0.2 
+      stop_judgment_velocity_threshold: 0.2
       stop_judgment_interval: 1
       variance_threshold: 0.000025
       pitch_rate_offset:
