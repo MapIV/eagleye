@@ -136,27 +136,33 @@ int main(int argc, char** argv)
 
   node->declare_parameter("is_sub_antenna",is_sub_antenna);
   node->get_parameter("is_sub_antenna",is_sub_antenna);
+
   if(!is_sub_antenna)
   {
     node->declare_parameter("gnss.llh_source_type",llh_source_type);
     node->declare_parameter("gnss.llh_source_topic",llh_source_topic);
+    node->get_parameter("gnss.llh_source_type",llh_source_type);
+    node->get_parameter("gnss.llh_source_topic",llh_source_topic);
   }
   else
   {
     node->declare_parameter("sub_gnss.llh_source_type",llh_source_type);
     node->declare_parameter("sub_gnss.llh_source_topic",llh_source_topic);
+    node->get_parameter("sub_gnss.llh_source_type",llh_source_type);
+    node->get_parameter("sub_gnss.llh_source_topic",llh_source_topic);
     if(llh_source_type == 0)
     {
       RCLCPP_ERROR(node->get_logger(),"Invalid llh_source_type for Sub Antenna");
       rclcpp::shutdown();
     }
   }
+
+  node->declare_parameter("gnss.velocity_source_type",velocity_source_type);
+  node->declare_parameter("gnss.velocity_source_topic",velocity_source_topic);
   node->declare_parameter("twist_covariance_thresh",twist_covariance_thresh);
   node->declare_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
   node->get_parameter("gnss.velocity_source_type",velocity_source_type);
   node->get_parameter("gnss.velocity_source_topic",velocity_source_topic);
-  node->get_parameter("gnss.llh_source_type",llh_source_type);
-  node->get_parameter("gnss.llh_source_topic",llh_source_topic);
   node->get_parameter("twist_covariance_thresh",twist_covariance_thresh);
   node->get_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
 
