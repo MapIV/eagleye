@@ -14,6 +14,7 @@
           <!-- Vertical Accuracy Estimate Threshold [mm/s] in ublox_msgs/NavPVT -->
           <param name="ublox_vacc_thresh" value="200.0"/>
           <param name="is_sub_antenna" value="false"/>
+          <param name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </node>
   </group>
 
@@ -22,6 +23,7 @@
     <node pkg="eagleye_gnss_converter" name="gnss_converter_node" exec="gnss_converter" output="screen">
           <param from="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
           <param name="is_sub_antenna" value="true"/>
+          <param name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
     </node>
   </group>
 

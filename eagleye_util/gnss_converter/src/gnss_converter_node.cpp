@@ -22,6 +22,7 @@ double twist_covariance_thresh = 0.2;
 double ublox_vacc_thresh = 200.0;
 
 bool is_sub_antenna = false;
+bool use_multi_antenna_mode = false;
 
 void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
 {
@@ -53,7 +54,10 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg) 
   rtklib_nav_pub->publish(*msg);;
 }
 
-void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { nav_msg_ptr = msg; }
+void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
+  nav_msg_ptr = msg;
+  if(use_multi_antenna_mode) navsatfix_pub->publish(*msg);
+}
 
 
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
@@ -136,6 +140,8 @@ int main(int argc, char** argv)
 
   node->declare_parameter("is_sub_antenna",is_sub_antenna);
   node->get_parameter("is_sub_antenna",is_sub_antenna);
+  node->declare_parameter("use_multi_antenna_mode",use_multi_antenna_mode);
+  node->get_parameter("use_multi_antenna_mode",use_multi_antenna_mode);
 
   if(!is_sub_antenna)
   {
@@ -143,6 +149,11 @@ int main(int argc, char** argv)
     node->declare_parameter("gnss.llh_source_topic",llh_source_topic);
     node->get_parameter("gnss.llh_source_type",llh_source_type);
     node->get_parameter("gnss.llh_source_topic",llh_source_topic);
+    if(use_multi_antenna_mode && llh_source_type == 0)
+    {
+      RCLCPP_ERROR(node->get_logger(),"Invalid llh_source_type for Main Antenna in Multi Antenna Mode");
+      rclcpp::shutdown();
+    }
   }
   else
   {

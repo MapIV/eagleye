@@ -4,7 +4,7 @@
   <arg name="use_tf" default="true" />
   <arg name="config_yaml" default="eagleye_config.yaml"/>
   <arg name="enable_additional_rolling" default="false"/>
-  <arg name="use_multi_antenna_mode" default="true"/>
+  <arg name="use_multi_antenna_mode" default="false"/>
   <arg name="config_path" default="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
 
   <group>
