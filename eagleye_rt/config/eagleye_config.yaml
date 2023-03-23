@@ -2,7 +2,7 @@
   ros__parameters:
     # Estimate mode
     use_gnss_mode: RTKLIB
-    use_can_less_mode: false  
+    use_can_less_mode: false
 
     # Topic
     twist:

@@ -137,8 +137,12 @@
                 <arg name="use_multi_antenna_mode" value="$(var use_multi_antenna_mode)"/>
         </include>
 
-        <include file="$(find-pkg-share gnss_compass)/launch/gnss_compass.launch.xml" if="$(var use_multi_antenna_mode)"/>
-
+        <include file="$(find-pkg-share gnss_compass)/launch/gnss_compass.launch.xml" if="$(var use_multi_antenna_mode)">
+                <arg name="input_main_fix_topic" value="/eagleye/gnss/fix"/>
+                <arg name="input_sub_fix_topic" value="/eagleye/sub_gnss/fix"/>
+                <arg name="input_main_gga_topic" value="/eagleye/gnss/gga"/>
+                <arg name="input_sub_gga_topic" value="/eagleye/sub_gnss/gga"/>
+        </include>
         <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
 
         <include file="$(find-pkg-share eagleye_fix2pose)/launch/fix2pose.xml">
