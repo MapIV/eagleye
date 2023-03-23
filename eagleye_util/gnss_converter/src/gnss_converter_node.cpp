@@ -21,6 +21,9 @@ static std::string sub_topic_name, pub_fix_topic_name = "fix",
 double twist_covariance_thresh = 0.2;
 double ublox_vacc_thresh = 200.0;
 
+bool is_sub_antenna = false;
+bool use_multi_antenna_mode = false;
+
 void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
 {
   nmea_msgs::msg::Gpgga gga;
@@ -51,7 +54,10 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg) 
   rtklib_nav_pub->publish(*msg);;
 }
 
-void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) { nav_msg_ptr = msg; }
+void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
+  nav_msg_ptr = msg;
+  if(use_multi_antenna_mode) navsatfix_pub->publish(*msg);
+}
 
 
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
@@ -132,16 +138,42 @@ int main(int argc, char** argv)
   rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr gnss_velocity_sub;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr navsatfix_sub;
 
+  node->declare_parameter("is_sub_antenna",is_sub_antenna);
+  node->get_parameter("is_sub_antenna",is_sub_antenna);
+  node->declare_parameter("use_multi_antenna_mode",use_multi_antenna_mode);
+  node->get_parameter("use_multi_antenna_mode",use_multi_antenna_mode);
+
+  if(!is_sub_antenna)
+  {
+    node->declare_parameter("gnss.llh_source_type",llh_source_type);
+    node->declare_parameter("gnss.llh_source_topic",llh_source_topic);
+    node->get_parameter("gnss.llh_source_type",llh_source_type);
+    node->get_parameter("gnss.llh_source_topic",llh_source_topic);
+    if(use_multi_antenna_mode && llh_source_type == 0)
+    {
+      RCLCPP_ERROR(node->get_logger(),"Invalid llh_source_type for Main Antenna in Multi Antenna Mode");
+      rclcpp::shutdown();
+    }
+  }
+  else
+  {
+    node->declare_parameter("sub_gnss.llh_source_type",llh_source_type);
+    node->declare_parameter("sub_gnss.llh_source_topic",llh_source_topic);
+    node->get_parameter("sub_gnss.llh_source_type",llh_source_type);
+    node->get_parameter("sub_gnss.llh_source_topic",llh_source_topic);
+    if(llh_source_type == 0)
+    {
+      RCLCPP_ERROR(node->get_logger(),"Invalid llh_source_type for Sub Antenna");
+      rclcpp::shutdown();
+    }
+  }
+
   node->declare_parameter("gnss.velocity_source_type",velocity_source_type);
   node->declare_parameter("gnss.velocity_source_topic",velocity_source_topic);
-  node->declare_parameter("gnss.llh_source_type",llh_source_type);
-  node->declare_parameter("gnss.llh_source_topic",llh_source_topic);
   node->declare_parameter("twist_covariance_thresh",twist_covariance_thresh);
   node->declare_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
   node->get_parameter("gnss.velocity_source_type",velocity_source_type);
   node->get_parameter("gnss.velocity_source_topic",velocity_source_topic);
-  node->get_parameter("gnss.llh_source_type",llh_source_type);
-  node->get_parameter("gnss.llh_source_topic",llh_source_topic);
   node->get_parameter("twist_covariance_thresh",twist_covariance_thresh);
   node->get_parameter("ublox_vacc_thresh",ublox_vacc_thresh);
 
@@ -152,27 +184,30 @@ int main(int argc, char** argv)
   std::cout<< "twist_covariance_thresh "<<twist_covariance_thresh<<std::endl;
   std::cout<< "ublox_vacc_thresh "<<ublox_vacc_thresh<<std::endl;
 
-  if(velocity_source_type == 0)
+  if(!is_sub_antenna)
   {
-    rtklib_nav_sub = node->create_subscription<rtklib_msgs::msg::RtklibNav>(velocity_source_topic, 1000, rtklib_nav_callback);
-  }
-  else if(velocity_source_type == 1)
-  {
-    nmea_sentence_sub = node->create_subscription<nmea_msgs::msg::Sentence>(velocity_source_topic, 1000, nmea_callback);
-  }
-  else if(velocity_source_type == 2)
-  {
-    navpvt_sub = node->create_subscription<ublox_msgs::msg::NavPVT>(velocity_source_topic, 1000, navpvt_callback);
-  }
-  else if(velocity_source_type == 3)
-  {
-    gnss_velocity_sub = node->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
-        velocity_source_topic, 1000, gnss_velocity_callback);
-  }
-  else 
-  {
-    RCLCPP_ERROR(node->get_logger(),"Invalid velocity_source_type");
-    rclcpp::shutdown();
+    if(velocity_source_type == 0)
+    {
+      rtklib_nav_sub = node->create_subscription<rtklib_msgs::msg::RtklibNav>(velocity_source_topic, 1000, rtklib_nav_callback);
+    }
+    else if(velocity_source_type == 1)
+    {
+      nmea_sentence_sub = node->create_subscription<nmea_msgs::msg::Sentence>(velocity_source_topic, 1000, nmea_callback);
+    }
+    else if(velocity_source_type == 2)
+    {
+      navpvt_sub = node->create_subscription<ublox_msgs::msg::NavPVT>(velocity_source_topic, 1000, navpvt_callback);
+    }
+    else if(velocity_source_type == 3)
+    {
+      gnss_velocity_sub = node->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
+          velocity_source_topic, 1000, gnss_velocity_callback);
+    }
+    else
+    {
+      RCLCPP_ERROR(node->get_logger(),"Invalid velocity_source_type");
+      rclcpp::shutdown();
+    }
   }
 
   if(llh_source_type == 0)
@@ -187,7 +222,7 @@ int main(int argc, char** argv)
   {
     navsatfix_sub = node->create_subscription<sensor_msgs::msg::NavSatFix>(llh_source_topic, 1000, navsatfix_callback);
   }
-  else 
+  else
   {
     RCLCPP_ERROR(node->get_logger(),"Invalid llh_source_type");
     rclcpp::shutdown();
