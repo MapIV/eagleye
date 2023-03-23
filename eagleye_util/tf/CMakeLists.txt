@@ -5,7 +5,7 @@ find_package(ament_cmake_auto REQUIRED)
 
 ament_auto_find_build_dependencies()
 
-install(DIRECTORY launch config urdf
+install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -138,8 +138,6 @@
     </include>
   </group>
 
-
-
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
 
   <include file="$(find-pkg-share gnss_compass)/launch/gnss_compass.launch.xml" if="$(var use_multi_antenna_mode)"/>
