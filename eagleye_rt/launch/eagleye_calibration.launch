@@ -12,6 +12,7 @@
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
     <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
     
+    <node pkg="eagleye_rt" name="twist_relay" type="twist_relay" />
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
     <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
     <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
@@ -42,6 +43,8 @@
     <!-- Slip Coefficient Estimate Options -->
     <param name ="output_dir" value="$(find eagleye_rt)/config/slip_coefficient.txt"/>
     <node pkg="eagleye_rt" name="slip_coefficient_node" type="slip_coefficient" output="screen" />
+
+    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
 
   </group>
 

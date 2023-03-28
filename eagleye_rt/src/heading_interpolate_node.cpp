@@ -107,10 +107,12 @@ int main(int argc, char** argv)
     _heading_interpolate_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _heading_interpolate_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     _heading_interpolate_parameter.sync_search_period = conf["heading_interpolate"]["sync_search_period"].as<double>();
+    _heading_interpolate_parameter.proc_noise = conf["heading_interpolate"]["proc_noise"].as<double>();
 
     std::cout << "imu_rate " << _heading_interpolate_parameter.imu_rate << std::endl;
     std::cout << "stop_judgment_threshold " << _heading_interpolate_parameter.stop_judgment_threshold << std::endl;
     std::cout << "sync_search_period " << _heading_interpolate_parameter.sync_search_period << std::endl;
+    std::cout << "proc_noise " << _heading_interpolate_parameter.proc_noise << std::endl;
   }
   catch (YAML::Exception& e)
   {

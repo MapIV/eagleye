@@ -5,3 +5,6 @@
 	path = eagleye_pp/common/multi_rosbag_controller
 	url = https://github.com/MapIV/multi_rosbag_controller.git
 
+[submodule "eagleye_util/llh_converter"]
+	path = eagleye_util/llh_converter
+	url = https://github.com/MapIV/llh_converter

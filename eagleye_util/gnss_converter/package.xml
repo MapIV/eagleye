@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>eagleye_nmea2fix</name>
+  <name>eagleye_gnss_converter</name>
   <version>1.0.0</version>
-  <description>nmea2fix package</description>
+  <description>gnss_converter package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
 
@@ -18,6 +18,10 @@
   <exec_depend>roscpp</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>nmea_msgs</exec_depend>
+  <depend>rtklib_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>ublox_msgs</depend>
+  <depend>eagleye_coordinate</depend>
   <export>
   </export>
 </package>

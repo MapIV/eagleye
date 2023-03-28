@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   tf2_ros
   eagleye_coordinate
+  llh_converter
 )
 
 catkin_package(
@@ -18,6 +19,7 @@ catkin_package(
   rospy
   std_msgs
   eagleye_coordinate
+  llh_converter
 )
 
 include_directories(

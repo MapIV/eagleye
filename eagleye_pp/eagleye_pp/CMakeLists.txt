@@ -16,7 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
   eagleye_msgs
   eagleye_navigation
   eagleye_coordinate
-  eagleye_nmea2fix
+  eagleye_gnss_converter
   multi_rosbag_controller
   kml_generator
   tf2
@@ -34,7 +34,7 @@ catkin_package(
    eagleye_msgs
    eagleye_navigation
    eagleye_coordinate
-   eagleye_nmea2fix
+   eagleye_gnss_converter
    multi_rosbag_controller
    kml_generator
    tf2

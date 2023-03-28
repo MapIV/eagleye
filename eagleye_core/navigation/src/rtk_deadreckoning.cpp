@@ -41,7 +41,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
   double ecef_rtk[3];
   double llh_pos[3],llh_rtk[3];
 
-  if(rtk_deadreckoning_status->position_estimate_start_status)
+  if(rtk_deadreckoning_status->position_estimate_start_status && heading.status.enabled_status)
   {
     ecef_base_pos[0] = enu_absolute_rtk_deadreckoning->ecef_base_pos.x;
     ecef_base_pos[1] = enu_absolute_rtk_deadreckoning->ecef_base_pos.y;
@@ -97,6 +97,10 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
       enu_absolute_rtk_deadreckoning->status.enabled_status = true;
       enu_absolute_rtk_deadreckoning->status.estimate_status = false;
     }
+    else if(!enu_absolute_rtk_deadreckoning->status.enabled_status)
+    {
+      return;
+    }
 
     enu_pos[0] = rtk_deadreckoning_status->provisional_enu_pos_x;
     enu_pos[1] = rtk_deadreckoning_status->provisional_enu_pos_y;
@@ -104,17 +108,65 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
 
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
 
+    double rtk_fix_STD = rtk_deadreckoning_parameter.rtk_fix_STD;
+    Eigen::MatrixXd init_covariance;
+    init_covariance = Eigen::MatrixXd::Zero(6, 6);
+    init_covariance(0,0) = rtk_fix_STD * rtk_fix_STD;
+    init_covariance(1,1) = rtk_fix_STD * rtk_fix_STD;
+    init_covariance(2,2) = rtk_fix_STD * rtk_fix_STD;
+    init_covariance(5,5) = heading.variance;
+
+    double proc_noise = rtk_deadreckoning_parameter.proc_noise;
+    Eigen::MatrixXd proc_covariance;
+    proc_covariance = Eigen::MatrixXd::Zero(6, 6);
+    proc_covariance(0,0) = proc_noise * proc_noise;
+    proc_covariance(1,1) = proc_noise * proc_noise;
+    proc_covariance(2,2) = proc_noise * proc_noise;
+
+    Eigen::MatrixXd position_covariance;
+    position_covariance = Eigen::MatrixXd::Zero(6, 6);
+
+
+    if(enu_absolute_rtk_deadreckoning->status.estimate_status)
+    {
+      position_covariance = init_covariance;
+      rtk_deadreckoning_status->position_covariance_last = position_covariance;
+    }
+    else
+    {
+      Eigen::MatrixXd jacobian;
+      jacobian = Eigen::MatrixXd::Zero(6, 6);
+      jacobian(0,0) = 1;
+      jacobian(1,1) = 1;
+      jacobian(2,2) = 1;
+      jacobian(3,3) = 1;
+      jacobian(4,4) = 1;
+      jacobian(5,5) = 1;
+      jacobian(0,5) = enu_vel.vector.y*(enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);
+      jacobian(1,5) = -enu_vel.vector.x*(enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);
+
+      // MEMO: Jacobean not included
+      // position_covariance = rtk_deadreckoning_status->position_covariance_last + proc_covariance;
+
+      // MEMO: Jacobean not included
+      position_covariance = jacobian * rtk_deadreckoning_status->position_covariance_last * (jacobian.transpose())   + proc_covariance;
+
+      rtk_deadreckoning_status->position_covariance_last = position_covariance;
+    }
+
     eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
     eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
     eagleye_fix->altitude = llh_pos[2];
-    // TODO(Map IV): temporary covariance value
-    eagleye_fix->position_covariance[0] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
-    eagleye_fix->position_covariance[4] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
-    eagleye_fix->position_covariance[8] = (enu_absolute_rtk_deadreckoning->status.estimate_status) ? 0.02 * 0.02 : 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[0] = position_covariance(0,0); // [m^2]
+    eagleye_fix->position_covariance[4] = position_covariance(1,1); // [m^2]
+    eagleye_fix->position_covariance[8] = position_covariance(2,2); // [m^2]
 
     enu_absolute_rtk_deadreckoning->enu_pos.x = enu_pos[0];
     enu_absolute_rtk_deadreckoning->enu_pos.y = enu_pos[1];
     enu_absolute_rtk_deadreckoning->enu_pos.z = enu_pos[2];
+    enu_absolute_rtk_deadreckoning->covariance[0] = position_covariance(0,0); // [m^2]
+    enu_absolute_rtk_deadreckoning->covariance[4] = position_covariance(1,1); // [m^2]
+    enu_absolute_rtk_deadreckoning->covariance[8] = position_covariance(2,2); // [m^2]
 
     rtk_deadreckoning_status->time_last = enu_vel.header.stamp.toSec();
     rtk_deadreckoning_status->position_stamp_last = gga.header.stamp.toSec();
