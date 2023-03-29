@@ -152,7 +152,7 @@ private:
 
   // Private function to calculate the initial azimuth
   void setGPSTime(double arg_GPSTime[]);
-  void calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
+  bool calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]);
   void calcPickDR(double arg_GPSTime[], bool *arg_flag_SMRaw_2D, std::vector<int> &arg_index_DRs, std::vector<int> &arg_index_DRe);
   void calcInitialHeading(double arg_GPSTime[], bool arg_flag_SMRaw_2D[], std::vector<int> arg_index_DRs, std::vector<int> arg_index_DRe);
 

@@ -133,7 +133,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     double gnss_yaw = conf["gnss"]["base_link2gnss"]["yaw"].as<double>();
     tf2_quat_gnss.setRPY(gnss_roll, gnss_pitch, gnss_yaw);
     geometry_msgs::Quaternion geometry_quat_gnss = tf2::toMsg(tf2_quat_gnss);
-  
+
     // eagleye_rt params
 
     use_gnss_mode_ = conf["gnss"]["use_gnss_mode"].as<std::string>();
@@ -916,7 +916,7 @@ Function to remove missFix
 double arg_TH_POSMAX : Threshold
 double arg_GPSTime   : Corrected time based on the time obtained from GNSS
 ***********************************************/
-void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]){
+bool eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[]){
 
   double TH_VEL_EST = 10/3.6;
   int ESTDIST = 50;
@@ -924,11 +924,20 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
   std::size_t datanum = data_length_;
   std::vector<bool> flag_Elim(data_length_, 0);
 
+  bool is_fix = false;
   flag_GNSS_.resize(datanum);
   for(int i = 0; i < datanum; i++){ //高さによる判定が不明なためfix判定のみで実装
     if(rtklib_nav_[i].status.status.status == 0){
-	  flag_GNSS_[i] = 1;
+      flag_GNSS_[i] = 1;
+      if(is_fix)
+      {
+        is_fix = true;
+      }
     }
+  }
+  if(!is_fix){
+    std::cout << "Since there is no rtk fix solution in rtklib_nav, no smoothingDeadReckoning is performed!" <<  std::endl;
+    return false;
   }
   std::vector<int> index_Raw;
   int a = 0;
@@ -1071,7 +1080,7 @@ void eagleye_pp::calcMissPositiveFIX(double arg_TH_POSMAX, double arg_GPSTime[])
     }
     kk++;
   }
-
+  return true;
 }
 
 /*********************************************************************
@@ -1421,7 +1430,7 @@ void eagleye_pp::smoothingDeadReckoning()
 
   std::vector<int> index_DRs;
   std::vector<int> index_DRe;
-  std::cout << std::endl << "Start MissPositiveFIX" <<  std::endl;
+  std::cout << std::endl << "smoothingDeadReckoning: Start MissPositiveFIX" <<  std::endl;
   bool flag_SMRaw_2D[data_length] = {0};
   double TH_POSMAX;
   // if(loop_count == 1)
@@ -1431,10 +1440,14 @@ void eagleye_pp::smoothingDeadReckoning()
   // {
     TH_POSMAX = 0.3;
   // }
-  calcMissPositiveFIX(TH_POSMAX, GPSTime);
-  std::cout << "Start PickDR" <<  std::endl;
+  bool is_flag = calcMissPositiveFIX(TH_POSMAX, GPSTime);
+  if(is_flag == false)
+  {
+    return;
+  }
+  std::cout << "smoothingDeadReckoning: Start PickDR" <<  std::endl;
   calcPickDR(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
-  std::cout << "Start initial azimuth calculation";
+  std::cout << "smoothingDeadReckoning: Start initial azimuth calculation";
   calcInitialHeading(GPSTime, flag_SMRaw_2D, index_DRs, index_DRe);
 }
 
