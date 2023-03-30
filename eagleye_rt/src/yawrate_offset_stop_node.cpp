@@ -32,7 +32,7 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-static geometry_msgs::msg::TwistStamped _velocity;
+static geometry_msgs::msg::TwistStamped::ConstSharedPtr _velocity_ptr ;
 rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr _pub;
 static eagleye_msgs::msg::YawrateOffset _yawrate_offset_stop;
 static sensor_msgs::msg::Imu _imu;
@@ -44,14 +44,15 @@ double _previous_yawrate_offset_stop = 0.0;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
-  _velocity = *msg;
+  _velocity_ptr = msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
+  if (_velocity_ptr == nullptr) return;
   _imu = *msg;
   _yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop_estimate(_velocity, _imu, _yawrate_offset_stop_parameter, &_yawrate_offset_stop_status, &_yawrate_offset_stop);
+  yawrate_offset_stop_estimate(*_velocity_ptr, _imu, _yawrate_offset_stop_parameter, &_yawrate_offset_stop_status, &_yawrate_offset_stop);
 
   _yawrate_offset_stop.status.is_abnormal = false;
   if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
