@@ -94,7 +94,7 @@ static double _enu_absolute_pos_interpolate_time_last;
 static double _eagleye_twist_time_last;
 
 bool _use_compare_yawrate = false;
-double _update_rate = 10.0;
+double _update_rate = 1.0;
 double _th_gnss_deadrock_time = 10;
 double _th_diff_rad_per_sec = 0.17453;
 int _num_continuous_abnormal_yawrate = 0;
