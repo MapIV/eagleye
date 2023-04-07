@@ -46,6 +46,7 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <llh_converter/llh_converter.hpp>
+#include <llh_converter/meridian_convergence_angle_correction.hpp>
 
 rclcpp::Clock _ros_clock(RCL_ROS_TIME);
 
@@ -129,6 +130,17 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   if (_eagleye_heading.status.enabled_status)
   {
     eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
+    llh_converter::LLA lla_struct;
+    llh_converter::XYZ xyz_struct;
+    lla_struct.latitude = llh[0];
+    lla_struct.longitude = llh[1];
+    lla_struct.altitude = llh[2];
+    xyz_struct.x = xyz[0];
+    xyz_struct.y = xyz[1];
+    xyz_struct.z = xyz[2];
+    double mca = llh_converter::getMeridianConvergence(lla_struct, xyz_struct, _lc, _llh_param); // meridian convergence angle
+    eagleye_heading += mca;
+
     localization_quat.setRPY(0, 0, eagleye_heading);
   }
   else
