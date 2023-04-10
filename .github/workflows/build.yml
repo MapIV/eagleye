@@ -44,8 +44,8 @@ jobs:
       - name: eagleye_pp
         run: |
           cd ~/eagleye/
-          sudo apt install curl
-          sudo apt install zip unzip
+          sudo apt install curl -y
+          sudo apt install zip unzip -y
           curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
           unzip data.zip || true
           ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2020-07-15-13-39-56.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config.yaml
@@ -94,8 +94,8 @@ jobs:
       - name: eagleye_pp
         run: |
           cd ~/eagleye/
-          sudo apt install curl
-          sudo apt install zip unzip
+          sudo apt install curl -y
+          sudo apt install zip unzip -y
           curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
           unzip data.zip || true
           ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2020-07-15-13-39-56.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config.yaml
