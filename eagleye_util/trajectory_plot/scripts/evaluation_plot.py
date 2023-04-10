@@ -33,6 +33,7 @@ import yaml
 from typing import List
 import pandas as pd
 import numpy as np
+import sys
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker
@@ -72,6 +73,8 @@ if __name__ == "__main__":
     dr_error_ylim = config["evaluation_plot"]["dr_error_ylim"]
     plot_text_data = config["evaluation_plot"]["plot_text_data"]
     plot_text_step = config["evaluation_plot"]["plot_text_step"]
+    ci_mode = config["evaluation_plot"]["ci_mode"]
+    ci_2d_error_thershold = config["evaluation_plot"]["ci_2d_error_thershold"]
     ref_data_name = config["param"]["ref_data_name_param"]
     data_name = config["param"]["data_name_param"]
     font_size = config["param"]["font_size_param"]
@@ -247,5 +250,12 @@ if __name__ == "__main__":
 
     print(error_table)
 
-    plt.show()
-    
+    # ci test
+    if ci_mode == False:
+        plt.show()
+    elif ci_mode == True:
+        if error_table["average"] [3] > ci_2d_error_thershold:
+            print('Error: CI has detected a degression.', file=sys.stderr)
+            sys.exit(1)
+        else:
+            print('CI test OK!')

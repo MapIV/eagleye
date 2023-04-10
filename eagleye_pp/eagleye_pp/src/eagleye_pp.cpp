@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
   if(use_rtklib_topic)
   {
     eagleye_pp.smoothingDeadReckoning();
-    std::cout << std::endl << "smoothing dead reckoning finish" <<  std::endl;
+    std::cout << "smoothing dead reckoning finish" <<  std::endl;
   }
 
   // forward/backward combination
