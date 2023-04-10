@@ -3,6 +3,7 @@
 EAGLEYE_PP="./devel/lib/eagleye_pp/eagleye_pp"
 EVALUATION="python3 src/eagleye/eagleye_util/trajectory_plot/scripts/evaluation_plot.py"
 EVALUATION_CONFIG="src/eagleye/eagleye_util/trajectory_plot/config/trajectory_plot_ci.yaml"
+REF_CSV=${FILE_PATH}"src/eagleye/eagleye_pp/data/eagleye_log.csv"
 
 function usage() {
 cat <<_EOT_
@@ -77,7 +78,6 @@ $EAGLEYE_PP $N_BAG $BAG_FILES $FILE_PATH $CONFIG
 cp $CONFIG $COPIED_CONFIG
 
 EAGLEYE_LOG_CSV=${FILE_PATH}"/eagleye_log.csv"
-REF_CSV=${FILE_PATH}"/eagleye_log.csv"
 
 $EVALUATION "-ref_log" $REF_CSV "-log" $EAGLEYE_LOG_CSV "-yaml" $EVALUATION_CONFIG
 
