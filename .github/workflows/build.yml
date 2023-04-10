@@ -2,57 +2,6 @@ name: build
 on: pull_request
 
 jobs:
-  melodic_build:
-    runs-on:  ubuntu-18.04
-    
-    container: ros:melodic
-    services:
-      ros:
-        image: ros
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v1
-        with:
-          submodules: true
-      - name: rosdep update
-        run: |
-          apt-get update
-          rosdep update
-
-      - name: Create Workspace
-        run: |
-          mkdir -p ~/eagleye/src/
-          cp -r `pwd` ~/eagleye/src/
-
-      - name: Clone rtklib_msgs
-        run: |
-          cd ~/eagleye/src/
-          git clone https://github.com/MapIV/rtklib_ros_bridge.git
-
-      - name: Build
-        run: |
-          cd ~/eagleye/
-          source /opt/ros/melodic/setup.bash
-          rosdep install --from-paths src --ignore-src -r -y
-          catkin_make -DCMAKE_BUILD_TYPE=Release -j1
-
-      - name: eagleye_pp
-        run: |
-          cd ~/eagleye/
-          sudo apt install curl -y
-          sudo apt install zip unzip -y
-          sudo apt install pip -y
-          pip install pandas scipy open3d mgrs
-          curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
-          unzip data.zip || true
-          source devel/setup.bash
-          ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2020-07-15-13-39-56.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config.yaml
-
   noetic_build:
     runs-on:  ubuntu-20.04
 
