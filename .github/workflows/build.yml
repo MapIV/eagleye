@@ -46,6 +46,7 @@ jobs:
           cd ~/eagleye/
           sudo apt install curl -y
           sudo apt install zip unzip -y
+          sudo apt install pip -y
           pip install pandas scipy open3d mgrs
           curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
           unzip data.zip || true
@@ -97,6 +98,7 @@ jobs:
           cd ~/eagleye/
           sudo apt install curl -y
           sudo apt install zip unzip -y
+          sudo apt install pip -y
           pip install pandas scipy open3d mgrs
           curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
           unzip data.zip || true
