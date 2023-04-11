@@ -29,8 +29,7 @@
  */
 
 #include "ros/ros.h"
-#include "coordinate/coordinate.hpp"
-#include "navigation/navigation.hpp"
+#include "navigation/angular_velocity_offset_stop.hpp"
 
 static geometry_msgs::TwistStamped _velocity;
 static ros::Publisher _pub;
@@ -85,6 +84,8 @@ int main(int argc, char** argv)
     std::cerr << "\033[1;31mangular_velocity_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
+
+  _angular_velocity_offset_stop_status.angular_velocity_offset_stop = Eigen::Vector3d(0.0, 0.0, 0.0);
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
