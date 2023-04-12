@@ -30,128 +30,69 @@
 
 #include "navigation/angular_velocity_offset_stop.hpp"
 
-void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, const sensor_msgs::Imu imu,
-  const AngularVelocityOffsetStopParameter angular_velocity_stop_parameter, AngularVelocityOffsetStopStatus* angular_velocity_stop_status,
-  eagleye_msgs::AngularVelocityOffset* angular_velocity_offset_stop)
+AngularVelocityOffsetStopEstimator::AngularVelocityOffsetStopEstimator()
 {
-  size_t buffer_size = angular_velocity_stop_parameter.imu_rate * angular_velocity_stop_paramter.estimated_interval * 2;
-  bool estimate_now = false;
+  // Initialization
+  is_estimation_started_ = false;
+  is_velocity_ready_ = false;
+  estimated_offset_stop_ = Eigen::Vector3d::Zero();
+}
 
-  // Push angular velocity while stopping
-  if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_threshold)
+void AngularVelocityOffsetStopEstimator::setParameter(const AngularVelocityOffsetStopParameter& param)
+{
+  // Param
+  param_ = param;
+}
+
+void AngularVelocityOffsetStopEstimator::velocityCallback(const Eigen::Vector3d& velocity)
+{
+  // Reserve velocity
+  reserved_velocity_ = velocity;
+  is_velocity_ready_ = true;
+}
+
+AngularVelocityOffsetStopStatus AngularVelocityOffsetStopEstimator::imuCallback(const Eigen::Vector3d& angular_velocity)
+{
+  // Skip until velocity is ready
+  if (!is_velocity_ready_)
+    return;
+
+  AngularVelocityOffsetStopStatus status;
+  status.is_estimated_now = false;
+
+  // Bias correction
+  Eigen::Vector3d unbiased_angular_velocity = angular_velocity - estimated_offset_stop_;
+
+  // Judge stop or moving
+  if (reserved_velocity_[0] < param.velocity_stop_judgement_threshold_ &&
+      std::abs(unbiased_angular_velocity[0]) < param.angular_stop_judgement_threshold_ &&
+      std::abs(unbiased_angular_velocity[1]) < param.angular_stop_judgement_threshold_ &&
+      std::abs(unbiased_angular_velocity[2]) < param.angular_stop_judgement_threshold_)
   {
-    Eigen::Vector3d angular_velocity(imu.angular_velocity.x, imu.angular_velocity.y, imu.angular_velocity.z);
-    angular_velocity_stop_status->buffer.push_back(angular_velocity);
+    angular_velocity_buffer_.push_back(angular_velocity);
 
-    if (angular_velocity_stop_status->buffer.size() > buffer_size)
+    // Remove element if buffer size is exceeded
+    if (angular_velocity_buffer_.size() > buffer_size_)
     {
-      angular_velocity_stop_status->buffer.pop_front();
+      angular_velocity_buffer_.pop_front();
     }
 
-    if (angular_velocity_stop_status->buffer.size() == buffer_size)
+    // Estimate offset stop if buffer is full
+    if (angular_velocity_buffer_.size() == buffer_size_)
     {
-      Eigen::Vector3d sum = std::accumlate(angular_velocity_offset_stop_status.buffer.begin(),
-                                           angular_velocity_offset_stop_status.buffer.end(),
-                                           Eigen::Vector3d(0.0, 0.0, 0.0));
-      angular_velocity_stop_status->offset_stop = - sum / static_cast<double>(buffer_size);
-      angular_velocity_stop_status->estimate_start_status = true;
-      estimate_now = true;
+      Eigen::Vector3d sum = std::accumlate(angular_velocity_buffer_.begin(), angular_velocity_buffer_.end(), Eigen::Vector3d::Zero());
+      estimated_offset_top_ = - sum / static_cast<double>(buffer_size_);
+      is_estimation_started_ = true;
+      status.is_estimated_now = true;
     }
   }
   else
   {
-    angular_velocity_stop_status->buffer.clear();
+    angular_velocity_buffer_.clear();
   }
 
-  angular_velocity_offset_stop->angular_velocity_offset.x = angular_velocity_stop_status->offset_stop[0];
-  angular_velocity_offset_stop->angular_velocity_offset.y = angular_velocity_stop_status->offset_stop[1];
-  angular_velocity_offset_stop->angular_velocity_offset.z = angular_velocity_stop_status->offset_stop[2];
-  angular_velocity_offset_stop->status.estimate_status = estimate_now;
-  angular_velocity_offset_stop->status.enable_status = angular_velocity_stop_status->estimate_start_status;
+  status.is_estimation_started = is_estimation_started_;
+  status.offset_stop = estimated_offset_stop_;
 
-  // if (angular_velocity_stop_status->estimate_start_status == false)
-  // {
-  //   angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-  //   angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-  //   angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-  // }
-  // else if ( std::fabs(std::fabs(angular_velocity_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
-  //   angular_velocity_stop_parameter.outlier_threshold && angular_velocity_stop_status->estimate_start_status == true)
-  //   // if があるので==trueの条件はいらない
-  //   // この条件の気持ちが分からない
-  // {
-  //   angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-  //   angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-  //   angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
-  // }
-
-  // rollrate_buffer_length = std::distance(angular_velocity_stop_status->rollrate_buffer.begin(), angular_velocity_stop_status->rollrate_buffer.end());
-  // pitchrate_buffer_length = std::distance(angular_velocity_stop_status->pitchrate_buffer.begin(), angular_velocity_stop_status->pitchrate_buffer.end());
-  // yawrate_buffer_length = std::distance(angular_velocity_stop_status->yawrate_buffer.begin(), angular_velocity_stop_status->yawrate_buffer.end());
-  // // .size()でいい
-  // // 個別で見る必要ある？
-
-  // if (yawrate_buffer_length > estimated_buffer_number + estimated_time_buffer_number)
-  // // estimated_buffer_number == estimated_time_buffer_numberじゃない？
-  // {
-  //   angular_velocity_stop_status->rollrate_buffer.erase(angular_velocity_stop_status->rollrate_buffer.begin());
-  //   angular_velocity_stop_status->pitchrate_buffer.erase(angular_velocity_stop_status->pitchrate_buffer.begin());
-  //   angular_velocity_stop_status->yawrate_buffer.erase(angular_velocity_stop_status->yawrate_buffer.begin());
-  //   // dequeかring bufferが良さそう？
-  // }
-
-  // if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_threshold)
-  // {
-  //   ++angular_velocity_stop_status->stop_count;
-  // }
-  // else
-  // {
-  //   angular_velocity_stop_status->stop_count = 0;
-  // }
-
-  // // mean
-  // if (angular_velocity_stop_status->stop_count > estimated_buffer_number + estimated_time_buffer_number)
-  // {
-  //   roll_tmp = 0.0;
-  //   pitch_tmp = 0.0;
-  //   yaw_tmp = 0.0;
-  //   for (i = 0; i < estimated_buffer_number; i++)
-  //   {
-  //     roll_tmp += angular_velocity_stop_status->rollrate_buffer[i];
-  //     pitch_tmp += angular_velocity_stop_status->pitchrate_buffer[i];
-  //     yaw_tmp += angular_velocity_stop_status->yawrate_buffer[i];
-  //   }
-  //   angular_velocity_offset_stop->angular_velocity_offset.x = -1 * roll_tmp / estimated_buffer_number;
-  //   angular_velocity_offset_stop->angular_velocity_offset.y = -1 * pitch_tmp / estimated_buffer_number;
-  //   angular_velocity_offset_stop->angular_velocity_offset.z = -1 * yaw_tmp / estimated_buffer_number;
-  //   // accumlateとか使いたい
-  //   // ここでangular_velocity_stop_statusに代入すべき
-  //   // 内部で計算してその結果をメッセージに反映する順序が正しい
-  //   angular_velocity_offset_stop->status.enabled_status = true;
-  //   angular_velocity_offset_stop->status.estimate_status = true;
-  //   angular_velocity_stop_status->estimate_start_status = true;
-  //   // flag多すぎ問題
-  // }
-  // else
-  // {
-  //   // ここのelseはいらなくなる
-  //   angular_velocity_offset_stop->angular_velocity_offset.x = angular_velocity_stop_status->rollrate_offset_stop_last;
-  //   angular_velocity_offset_stop->angular_velocity_offset.y = angular_velocity_stop_status->pitchrate_offset_stop_last;
-  //   angular_velocity_offset_stop->angular_velocity_offset.z = angular_velocity_stop_status->yawrate_offset_stop_last;
-  //   angular_velocity_offset_stop->status.estimate_status = false;
-  //   // 左はstructなのに右は別々の変数なのは変
-  // }
-  // if (angular_velocity_stop_status->estimate_start_status == false)
-  // {
-  //   angular_velocity_offset_stop->angular_velocity_offset.x = initial_angular_velocity_offset_stop;
-  //   angular_velocity_offset_stop->angular_velocity_offset.y = initial_angular_velocity_offset_stop;
-  //   angular_velocity_offset_stop->angular_velocity_offset.z = initial_angular_velocity_offset_stop;
-  //   // 0.0でも良さそう
-  //   angular_velocity_offset_stop->status.estimate_status = false;
-  //   angular_velocity_offset_stop->status.enabled_status = false;
-  // }
-  // angular_velocity_stop_status->rollrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.x;
-  // angular_velocity_stop_status->pitchrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.y;
-  // angular_velocity_stop_status->yawrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.z;
-  // // これもいらなくなる
+  return status;
 }

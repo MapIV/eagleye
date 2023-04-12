@@ -31,67 +31,71 @@
 #include "ros/ros.h"
 #include "navigation/angular_velocity_offset_stop.hpp"
 
-static geometry_msgs::TwistStamped _velocity;
-static ros::Publisher _pub;
-static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
-static sensor_msgs::Imu _imu;
-
-struct AngularVelocityOffsetStopParameter _angular_velocity_offset_stop_parameter;
-struct AngularVelocityOffsetStopStatus _angular_velocity_offset_stop_status;
-
-void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+class AngularVelocityOffsetStopNode
 {
-  _velocity = *msg;
-}
+public:
+  AngularVelocityOffsetStopNode(ros::NodeHandle& nh) : nh_(nh)
+  {
+    std::string yaml_file;
+    nh_.getParam("yaml_file", yaml_file);
+    std::cout << "yaml_file: " << yaml_file << std::endl;
 
-void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
-{
-  _imu = *msg;
-  _angular_velocity_offset_stop.header = msg->header;
-  angular_velocity_offset_stop_estimate(_velocity, _imu, _angular_velocity_offset_stop_parameter,
-    &_angular_velocity_offset_stop_status, &_angular_velocity_offset_stop);
-  _pub.publish(_angular_velocity_offset_stop);
-}
+    AngularVelocityOffsetStopParameter param;
+    param.load(yaml_file);
+    estimator_.setParameter(param);
+
+    offset_stop_pub_ = nh_.advertise<eagleye_msgs::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
+    twist_sub_ = nh_.subscribe("vehicle/twist", 1000, &AngularVelcoityOffsetStopNode::twistCallback, this);
+    imu_sub_ = nh_.subscribe("imu/data_tf_converted", 1000, &AngularVelocityOffsetStopNode::imuCallback, this);
+  }
+  void run()
+  {
+    ros::spin();
+  }
+
+private:
+  // ROS
+  ros::NodeHandle nh_;
+  ros::Publisher offset_stop_pub_;
+  ros::Subscriber twist_sub_;
+  ros::Subscriber imu_sub_;
+
+  // Estimator
+  AngularVelocityOffsetStopEstimator estimator_;
+
+  void twistCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
+  {
+    Eigen::Vector3d linear_velocity(msg->twist.linear.x, msg->twist.linear.y, msg->twist.linear.z);
+    estiamtor_.velocityCallback(linear_velocity);
+  }
+
+  void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
+  {
+    // Trigger estimation
+    Eigen::Vector3d angular_velocity(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
+    AngularvelocityOffsetStopStatus offset_stop_status = estimator_.imuCallback(angular_velocity);
+    
+    // Convert to ROS message
+    eagleye_msgs::AngularVelcoityOffset offset_stop_msg;
+    offset_stop_msg.header = msg->header;
+    offset_stop_msg.angular_velocity_offset.x = offset_stop_status.offset_stop[0];
+    offset_stop_msg.angular_velocity_offset.y = offset_stop_status.offset_stop[1];
+    offset_stop_msg.angular_velocity_offset.z = offset_stop_status.offset_stop[2];
+    offset_stop_msg.status.estimate_status = offset_stop_status.is_estimate_now;
+    offset_stop_msg.status.enabled_status = offset_stop_status.is_estimation_started;
+
+    // Publish
+    offset_stop_pub_.publish(offset_stop_msg);
+  }
+};
 
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "angular_velocity_offset_stop");
   ros::NodeHandle nh;
 
-  std::string subscribe_twist_topic_name = "vehicle/twist";
-
-  std::string yaml_file;
-  nh.getParam("yaml_file",yaml_file);
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-
-  try
-  {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
-
-    _angular_velocity_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
-    _angular_velocity_offset_stop_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    _angular_velocity_offset_stop_parameter.estimated_interval = conf["angular_velocity_offset_stop"]["estimated_interval"].as<double>();
-    _angular_velocity_offset_stop_parameter.outlier_threshold = conf["angular_velocity_offset_stop"]["outlier_threshold"].as<double>();
-
-    std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
-    std::cout << "imu_rate " << _angular_velocity_offset_stop_parameter.imu_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _angular_velocity_offset_stop_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "estimated_minimum_interval " << _angular_velocity_offset_stop_parameter.estimated_interval << std::endl;
-    std::cout << "outlier_threshold " << _angular_velocity_offset_stop_parameter.outlier_threshold << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mangular_velocity_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
-  }
-
-  _angular_velocity_offset_stop_status.angular_velocity_offset_stop = Eigen::Vector3d(0.0, 0.0, 0.0);
-
-  ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  _pub = nh.advertise<eagleye_msgs::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
-
-  ros::spin();
+  AngularVelocityOffsetStopNode node(nh);
+  node.run();
 
   return 0;
 }
