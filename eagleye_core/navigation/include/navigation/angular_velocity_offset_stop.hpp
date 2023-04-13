@@ -38,7 +38,7 @@
 struct AngularVelocityOffsetStopParameter
 {
   size_t buffer_size;
-  double velocity_stop_judgment_threshold;
+  double velocity_stop_judgement_threshold;
   double angular_stop_judgement_threshold;
 
   void load(const std::string& yaml_file)
@@ -50,7 +50,7 @@ struct AngularVelocityOffsetStopParameter
       double imu_rate = conf["common"]["imu_rate"].as<double>();
       double estimated_interval = conf["angular_velocity_offset_stop"]["estimated_interval"].as<double>();
       this->buffer_size = imu_rate * estimated_interval;
-      this->velocity_stop_judgment_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+      this->velocity_stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
       this->angular_stop_judgement_threshold = conf["angular_velocity_offset_stop"]["outlier_threshold"].as<double>();
     }
     catch (YAML::Exception& e)
@@ -74,7 +74,7 @@ public:
   AngularVelocityOffsetStopEstimator();
   void setParameter(const AngularVelocityOffsetStopParameter& param);
   void velocityCallback(const Eigen::Vector3d& velocity);
-  void imuCallback(const Eigen::Vector3d& angular_velocity);
+  AngularVelocityOffsetStopStatus imuCallback(const Eigen::Vector3d& angular_velocity);
 
 private:
   // Param

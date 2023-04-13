@@ -30,6 +30,8 @@
 
 #include "navigation/angular_velocity_offset_stop.hpp"
 
+#include <numeric>
+
 AngularVelocityOffsetStopEstimator::AngularVelocityOffsetStopEstimator()
 {
   // Initialization
@@ -53,21 +55,22 @@ void AngularVelocityOffsetStopEstimator::velocityCallback(const Eigen::Vector3d&
 
 AngularVelocityOffsetStopStatus AngularVelocityOffsetStopEstimator::imuCallback(const Eigen::Vector3d& angular_velocity)
 {
+  AngularVelocityOffsetStopStatus status;
+  status.is_estimation_started = false;
+  status.is_estimated_now = false;
+
   // Skip until velocity is ready
   if (!is_velocity_ready_)
-    return;
-
-  AngularVelocityOffsetStopStatus status;
-  status.is_estimated_now = false;
+    return status;
 
   // Bias correction
   Eigen::Vector3d unbiased_angular_velocity = angular_velocity - estimated_offset_stop_;
 
   // Judge stop or moving
-  if (reserved_velocity_[0] < param.velocity_stop_judgement_threshold_ &&
-      std::abs(unbiased_angular_velocity[0]) < param.angular_stop_judgement_threshold_ &&
-      std::abs(unbiased_angular_velocity[1]) < param.angular_stop_judgement_threshold_ &&
-      std::abs(unbiased_angular_velocity[2]) < param.angular_stop_judgement_threshold_)
+  if (reserved_velocity_[0] < param_.velocity_stop_judgement_threshold &&
+      std::abs(unbiased_angular_velocity[0]) < param_.angular_stop_judgement_threshold &&
+      std::abs(unbiased_angular_velocity[1]) < param_.angular_stop_judgement_threshold &&
+      std::abs(unbiased_angular_velocity[2]) < param_.angular_stop_judgement_threshold)
   {
     angular_velocity_buffer_.push_back(angular_velocity);
 
@@ -80,8 +83,8 @@ AngularVelocityOffsetStopStatus AngularVelocityOffsetStopEstimator::imuCallback(
     // Estimate offset stop if buffer is full
     if (angular_velocity_buffer_.size() == buffer_size_)
     {
-      Eigen::Vector3d sum = std::accumlate(angular_velocity_buffer_.begin(), angular_velocity_buffer_.end(), Eigen::Vector3d::Zero());
-      estimated_offset_top_ = - sum / static_cast<double>(buffer_size_);
+      Eigen::Vector3d sum = std::accumulate(angular_velocity_buffer_.begin(), angular_velocity_buffer_.end(), Eigen::Vector3d(0.0, 0.0, 0.0));
+      estimated_offset_stop_ = - sum / static_cast<double>(buffer_size_);
       is_estimation_started_ = true;
       status.is_estimated_now = true;
     }

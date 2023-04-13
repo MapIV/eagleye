@@ -30,6 +30,7 @@
 
 #include "ros/ros.h"
 #include "navigation/angular_velocity_offset_stop.hpp"
+#include "navigation/navigation.hpp"
 
 class AngularVelocityOffsetStopNode
 {
@@ -45,7 +46,7 @@ public:
     estimator_.setParameter(param);
 
     offset_stop_pub_ = nh_.advertise<eagleye_msgs::AngularVelocityOffset>("angular_velocity_offset_stop", 1000);
-    twist_sub_ = nh_.subscribe("vehicle/twist", 1000, &AngularVelcoityOffsetStopNode::twistCallback, this);
+    twist_sub_ = nh_.subscribe("vehicle/twist", 1000, &AngularVelocityOffsetStopNode::twistCallback, this);
     imu_sub_ = nh_.subscribe("imu/data_tf_converted", 1000, &AngularVelocityOffsetStopNode::imuCallback, this);
   }
   void run()
@@ -66,22 +67,22 @@ private:
   void twistCallback(const geometry_msgs::TwistStamped::ConstPtr& msg)
   {
     Eigen::Vector3d linear_velocity(msg->twist.linear.x, msg->twist.linear.y, msg->twist.linear.z);
-    estiamtor_.velocityCallback(linear_velocity);
+    estimator_.velocityCallback(linear_velocity);
   }
 
   void imuCallback(const sensor_msgs::Imu::ConstPtr& msg)
   {
     // Trigger estimation
     Eigen::Vector3d angular_velocity(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
-    AngularvelocityOffsetStopStatus offset_stop_status = estimator_.imuCallback(angular_velocity);
+    AngularVelocityOffsetStopStatus offset_stop_status = estimator_.imuCallback(angular_velocity);
     
     // Convert to ROS message
-    eagleye_msgs::AngularVelcoityOffset offset_stop_msg;
+    eagleye_msgs::AngularVelocityOffset offset_stop_msg;
     offset_stop_msg.header = msg->header;
     offset_stop_msg.angular_velocity_offset.x = offset_stop_status.offset_stop[0];
     offset_stop_msg.angular_velocity_offset.y = offset_stop_status.offset_stop[1];
     offset_stop_msg.angular_velocity_offset.z = offset_stop_status.offset_stop[2];
-    offset_stop_msg.status.estimate_status = offset_stop_status.is_estimate_now;
+    offset_stop_msg.status.estimate_status = offset_stop_status.is_estimated_now;
     offset_stop_msg.status.enabled_status = offset_stop_status.is_estimation_started;
 
     // Publish
