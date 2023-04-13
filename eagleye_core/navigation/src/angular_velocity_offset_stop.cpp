@@ -67,10 +67,12 @@ AngularVelocityOffsetStopStatus AngularVelocityOffsetStopEstimator::imuCallback(
   Eigen::Vector3d unbiased_angular_velocity = angular_velocity - estimated_offset_stop_;
 
   // Judge stop or moving
-  if (reserved_velocity_[0] < param_.velocity_stop_judgement_threshold &&
-      std::abs(unbiased_angular_velocity[0]) < param_.angular_stop_judgement_threshold &&
-      std::abs(unbiased_angular_velocity[1]) < param_.angular_stop_judgement_threshold &&
-      std::abs(unbiased_angular_velocity[2]) < param_.angular_stop_judgement_threshold)
+  bool not_translating = (reserved_velocity_[0] < param_.velocity_stop_judgement_threshold);
+  bool not_rotating = (std::abs(unbiased_angular_velocity[0]) < param_.angular_stop_judgement_threshold &&
+                       std::abs(unbiased_angular_velocity[1]) < param_.angular_stop_judgement_threshold &&
+                       std::abs(unbiased_angular_velocity[2]) < param_.angular_stop_judgement_threshold);
+
+  if (not_translating && (!is_estimation_started_ || not_rotating))
   {
     angular_velocity_buffer_.push_back(angular_velocity);
 
