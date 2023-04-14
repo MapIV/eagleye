@@ -45,7 +45,7 @@ imu:
     x: 0.0
     y: 0.0
     z: 0.0
-    roll: 0 # [rad]
+    roll: 3.14 # [rad]
     pitch: 0 # [rad]
     yaw: 0 # [rad]
 
@@ -57,9 +57,9 @@ imu_topic: /imu/data_raw
 rtklib_nav_topic: /rtklib_nav
 ## If RTK positioning is not used, the following topic settings are not necessary.
 ## Forward/backward smoothing is not possible without nmea_msgs/Sentence.
-nmea_sentence_topic: /nmea_sentence
-gga_topic: /navsat/gga
-rmc_topic: /navsat/rmc
+nmea_sentence_topic: /main/mosaic/nmea_sentence
+gga_topic: /main/mosaic/gga
+rmc_topic: /main/mosaic/rmc
 
 # Origin of GNSS coordinates (ECEF to ENU)
 ecef_base_pos:

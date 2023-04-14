@@ -49,8 +49,7 @@ jobs:
           sudo apt install curl -y
           sudo apt install zip unzip -y
           sudo apt install pip -y
-          pip install pandas scipy open3d mgrs
-          curl -L https://www.dropbox.com/sh/mhdib1m1oivotiu/AAD0UnANDsuIsKqcSKHt9WAJa?dl=0 -o data.zip
-          unzip data.zip || true
+          pip install pandas scipy open3d mgrs gdown
+          gdown https://drive.google.com/uc?id=1J5tKLfl8MuRMY-A_lYVnGrkeMzqTmQsS
           source devel/setup.bash
-          ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2020-07-15-13-39-56.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config.yaml
+          ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2022-06-16-11-53-39_0.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config_ci.yaml
