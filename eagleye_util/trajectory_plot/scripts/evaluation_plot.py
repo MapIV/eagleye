@@ -246,7 +246,8 @@ if __name__ == "__main__":
 
 
     # plot 3d trajectory
-    util_plot.plot_traj_3d( ref_df, data_df, font_size, data_name, ref_data_name)
+    if ci_mode == False:
+        util_plot.plot_traj_3d( ref_df, data_df, font_size, data_name, ref_data_name)
 
     print(error_table)
 

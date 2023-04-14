@@ -31,6 +31,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "nmea_msgs/Gpgga.h"
 #include "nmea_msgs/Gprmc.h"
 
@@ -383,27 +384,6 @@ struct HeightStatus
   std::vector<double> acc_buffer;
 };
 
-struct AngularVelocityOffsetStopParameter
-{
-  double imu_rate;
-  double estimated_interval;
-  double stop_judgment_threshold;
-  double outlier_threshold;
-
-};
-
-struct AngularVelocityOffsetStopStatus
-{
-  int stop_count;
-  double rollrate_offset_stop_last;
-  double pitchrate_offset_stop_last;
-  double yawrate_offset_stop_last;
-  bool estimate_start_status;
-  std::vector<double> rollrate_buffer;
-  std::vector<double> pitchrate_buffer;
-  std::vector<double> yawrate_buffer;
-};
-
 struct RtkDeadreckoningParameter
 {
   double stop_judgment_threshold;
@@ -527,8 +507,6 @@ extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,cons
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,
   geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
-extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter,
-  AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
 extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void rtk_deadreckoning_estimate(const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
