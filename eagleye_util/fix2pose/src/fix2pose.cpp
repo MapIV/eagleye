@@ -132,9 +132,9 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
     eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
     llh_converter::LLA lla_struct;
     llh_converter::XYZ xyz_struct;
-    lla_struct.latitude = llh[0];
-    lla_struct.longitude = llh[1];
-    lla_struct.altitude = llh[2];
+    lla_struct.latitude = msg->latitude;
+    lla_struct.longitude = msg->longitude;
+    lla_struct.altitude = msg->altitude;
     xyz_struct.x = xyz[0];
     xyz_struct.y = xyz[1];
     xyz_struct.z = xyz[2];
