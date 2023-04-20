@@ -237,6 +237,7 @@ struct PositionParameter
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
+  double gnss_error_covariance;
 };
 
 struct PositionStatus
@@ -261,6 +262,7 @@ struct PositionInterpolateParameter
   double imu_rate;
   double stop_judgment_threshold;
   double sync_search_period;
+  double proc_noise;
 };
 
 struct PositionInterpolateStatus
@@ -268,6 +270,7 @@ struct PositionInterpolateStatus
   int position_estimate_status_count;
   int number_buffer;
   bool position_estimate_start_status;
+  bool is_estimate_start{false};
   double position_stamp_last;
   double time_last;
   double provisional_enu_pos_x;
@@ -277,6 +280,7 @@ struct PositionInterpolateStatus
   std::vector<double> provisional_enu_pos_y_buffer;
   std::vector<double> provisional_enu_pos_z_buffer;
   std::vector<double> imu_stamp_buffer;
+  Eigen::MatrixXd position_covariance_last;
 };
 
 struct SlipangleParameter
@@ -501,7 +505,7 @@ extern void heading_interpolate_estimate(const sensor_msgs::Imu,const geometry_m
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,
   eagleye_msgs::Heading*);
 extern void position_interpolate_estimate(const eagleye_msgs::Position,const geometry_msgs::Vector3Stamped,const eagleye_msgs::Position,
-  const eagleye_msgs::Height,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
+  const eagleye_msgs::Height,const eagleye_msgs::Heading,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,const geometry_msgs::TwistStamped,const eagleye_msgs::Distance,
   const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
