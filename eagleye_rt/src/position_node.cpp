@@ -182,8 +182,10 @@ int main(int argc, char** argv)
     position_parameter.update_distance = conf["/**"]["ros__parameters"]["position"]["update_distance"].as<double>();
     position_parameter.outlier_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_threshold"].as<double>();
 
-    position_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["heading"]["gnss_receiving_threshold"].as<double>();
+    position_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["position"]["gnss_receiving_threshold"].as<double>();
     position_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_ratio_threshold"].as<double>();
+
+    position_parameter.gnss_error_covariance = conf["/**"]["ros__parameters"]["position"]["gnss_error_covariance"].as<double>();
 
     std::cout<< "use_gnss_mode " << use_gnss_mode << std::endl;
     std::cout<< "use_can_less_mode " << use_can_less_mode << std::endl;

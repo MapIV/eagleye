@@ -37,7 +37,7 @@ static geometry_msgs::msg::Vector3Stamped enu_vel;
 static eagleye_msgs::msg::Height height;
 static eagleye_msgs::msg::Position gnss_smooth_pos;
 static nmea_msgs::msg::Gpgga gga;
-
+static eagleye_msgs::msg::Heading heading_interpolate_3rd;
 
 static eagleye_msgs::msg::Position enu_absolute_pos_interpolate;
 static sensor_msgs::msg::NavSatFix eagleye_fix;
@@ -67,6 +67,11 @@ void height_callback(const eagleye_msgs::msg::Height::ConstSharedPtr msg)
   height = *msg;
 }
 
+void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
+{
+  heading_interpolate_3rd = *msg;
+}
+
 void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
   rclcpp::Time ros_clock(gga.header.stamp);
@@ -77,7 +82,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   enu_absolute_pos_interpolate.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
-  position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
+  position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,heading_interpolate_3rd,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
   if (enu_absolute_pos.status.enabled_status == true)
   {
     pub1->publish(enu_absolute_pos_interpolate);
@@ -113,6 +118,7 @@ int main(int argc, char** argv)
     position_interpolate_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
     position_interpolate_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
     position_interpolate_parameter.sync_search_period = conf["/**"]["ros__parameters"]["position_interpolate"]["sync_search_period"].as<double>();
+    position_interpolate_parameter.proc_noise = conf["/**"]["ros__parameters"]["position_interpolate"]["proc_noise"].as<double>();
 
     std::cout << "imu_rate " << position_interpolate_parameter.imu_rate << std::endl;
     std::cout << "stop_judgment_threshold " << position_interpolate_parameter.stop_judgment_threshold << std::endl;
@@ -130,6 +136,7 @@ int main(int argc, char** argv)
   auto sub3 = node->create_subscription<eagleye_msgs::msg::Position>("gnss_smooth_pos_enu", rclcpp::QoS(10), gnss_smooth_pos_enu_callback); //ros::TransportHints().tcpNoDelay()
   auto sub4 = node->create_subscription<eagleye_msgs::msg::Height>("height", rclcpp::QoS(10), height_callback); //ros::TransportHints().tcpNoDelay()
   auto sub5 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, rclcpp::QoS(10), gga_callback); //ros::TransportHints().tcpNoDelay()
+  auto sub6 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback); //ros::TransportHints().tcpNoDelay()
   pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", rclcpp::QoS(10));
   pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", rclcpp::QoS(10));
 
