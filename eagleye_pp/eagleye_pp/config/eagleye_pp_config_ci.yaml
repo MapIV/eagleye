@@ -2,7 +2,7 @@
 timestamp_sort: true
 # true: Look at the timestamp and determine the order of the buffers
 # false: Determine the order of the contents of the rosbag (This should be used when the time stamp is not recorded correctly)
-  
+
 # Output of Eagleye estimated parameters
 output_log: true
 
@@ -152,9 +152,11 @@ position:
   outlier_threshold: 3.0
   gnss_receiving_threshold: 0.25
   outlier_ratio_threshold: 0.5
+  gnss_error_covariance: 0.5
 
 position_interpolate:
   sync_search_period: 2
+  proc_noise: 0.05 # [m]
 
 # Optional Navigation Functions
 angular_velocity_offset_stop:
