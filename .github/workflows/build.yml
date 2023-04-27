@@ -35,6 +35,10 @@ jobs:
           git clone https://github.com/MapIV/llh_converter
           git clone https://github.com/MapIV/gnss_compass_ros.git
 
+      - name: Install GeographicLib
+        run: |
+          apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
+
       - name: Build
         run: |
           cd ~/eagleye/
