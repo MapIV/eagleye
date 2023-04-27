@@ -140,13 +140,14 @@ void rtk_dead_reckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nm
     Eigen::MatrixXd position_covariance;
     position_covariance = Eigen::MatrixXd::Zero(6, 6);
 
+    double velocity = std::sqrt(enu_vel.vector.x*enu_vel.vector.x + enu_vel.vector.y*enu_vel.vector.y + enu_vel.vector.z*enu_vel.vector.z);
 
     if(enu_absolute_rtk_dead_reckoning->status.estimate_status)
     {
       position_covariance = init_covariance;
       rtk_dead_reckoning_status->position_covariance_last = position_covariance;
     }
-    else
+    else if (velocity > rtk_dead_reckoning_parameter.stop_judgment_threshold)
     {
       Eigen::MatrixXd jacobian;
       jacobian = Eigen::MatrixXd::Zero(6, 6);
@@ -166,6 +167,10 @@ void rtk_dead_reckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nm
       position_covariance = jacobian * rtk_dead_reckoning_status->position_covariance_last * (jacobian.transpose())   + proc_covariance;
 
       rtk_dead_reckoning_status->position_covariance_last = position_covariance;
+    }
+    else
+    {
+      position_covariance = rtk_dead_reckoning_status->position_covariance_last;
     }
 
     eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
