@@ -162,6 +162,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     position_interpolate_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     position_interpolate_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     position_interpolate_parameter_.sync_search_period = conf["position_interpolate"]["sync_search_period"].as<double>();
+    position_interpolate_parameter_.proc_noise = conf["position_interpolate"]["proc_noise"].as<double>();
 
     position_parameter_.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     position_parameter_.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
@@ -176,6 +177,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     position_parameter_.outlier_threshold = conf["position"]["outlier_threshold"].as<double>();
     position_parameter_.gnss_receiving_threshold = conf["heading"]["gnss_receiving_threshold"].as<double>();
     position_parameter_.outlier_ratio_threshold = conf["position"]["outlier_ratio_threshold"].as<double>();
+    position_parameter_.gnss_error_covariance = conf["position"]["gnss_error_covariance"].as<double>();
 
     rtk_deadreckoning_parameter_.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     rtk_deadreckoning_parameter_.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
@@ -767,7 +769,7 @@ void eagleye_pp::estimatingEagleye(bool arg_forward_flag)
       else if (use_gnss_mode_ == "nmea" || use_gnss_mode_ == "NMEA")
         position_estimate(gga_[i], _correction_velocity, _velocity_status, _distance, _heading_interpolate_3rd, _enu_vel, position_parameter_, &position_status, &_enu_absolute_pos);
 
-      position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, position_interpolate_parameter_, &position_interpolate_status,
+      position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos_enu, _height, _heading_interpolate_3rd, position_interpolate_parameter_, &position_interpolate_status,
         &_enu_absolute_pos_interpolate, &_eagleye_fix);
     }
     }

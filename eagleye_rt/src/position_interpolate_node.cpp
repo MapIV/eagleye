@@ -37,6 +37,8 @@ static geometry_msgs::Vector3Stamped _enu_vel;
 static eagleye_msgs::Height _height;
 static eagleye_msgs::Position _gnss_smooth_pos;
 static nmea_msgs::Gpgga _gga;
+static eagleye_msgs::Heading _heading_interpolate_3rd;
+
 
 static eagleye_msgs::Position _enu_absolute_pos_interpolate;
 static sensor_msgs::NavSatFix _eagleye_fix;
@@ -66,6 +68,11 @@ void height_callback(const eagleye_msgs::Height::ConstPtr& msg)
   _height = *msg;
 }
 
+void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
+{
+  _heading_interpolate_3rd = *msg;
+}
+
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
   _enu_vel = *msg;
@@ -73,7 +80,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   _enu_absolute_pos_interpolate.header.frame_id = "base_link";
   _eagleye_fix.header = msg->header;
   _eagleye_fix.header.frame_id = "gnss";
-  position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos, _height, _position_interpolate_parameter, &_position_interpolate_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
+  position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos, _height, _heading_interpolate_3rd, _position_interpolate_parameter, &_position_interpolate_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
   if(_enu_absolute_pos.status.enabled_status)
   {
     _pub1.publish(_enu_absolute_pos_interpolate);
@@ -112,6 +119,7 @@ int main(int argc, char** argv)
     _position_interpolate_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _position_interpolate_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
     _position_interpolate_parameter.sync_search_period = conf["position_interpolate"]["sync_search_period"].as<double>();
+    _position_interpolate_parameter.proc_noise = conf["position_interpolate"]["proc_noise"].as<double>();
 
     std::cout << "imu_rate " << _position_interpolate_parameter.imu_rate << std::endl;
     std::cout << "stop_judgment_threshold " << _position_interpolate_parameter.stop_judgment_threshold << std::endl;
@@ -128,6 +136,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub3 = nh.subscribe("gnss_smooth_pos_enu", 1000, gnss_smooth_pos_enu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("height", 1000, height_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
   _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
   _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 

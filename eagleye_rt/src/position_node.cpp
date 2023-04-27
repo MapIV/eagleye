@@ -176,9 +176,11 @@ int main(int argc, char** argv)
     _position_parameter.update_distance = conf["position"]["update_distance"].as<double>();
     _position_parameter.outlier_threshold = conf["position"]["outlier_threshold"].as<double>();
 
-    _position_parameter.gnss_receiving_threshold = conf["heading"]["gnss_receiving_threshold"].as<double>();
+    _position_parameter.gnss_receiving_threshold = conf["position"]["gnss_receiving_threshold"].as<double>();
     _position_parameter.outlier_ratio_threshold = conf["position"]["outlier_ratio_threshold"].as<double>();
 
+    _position_parameter.gnss_error_covariance = conf["position"]["gnss_error_covariance"].as<double>();
+    
     std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
     std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
 

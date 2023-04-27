@@ -15,12 +15,12 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | Name                          | Type   | Description                                                             | Default value            |
 | :---------------------------- | :----- | :---------------------------------------------------------------------- | :----------------------- |
 | imu_topic                     | string | Topic name to be subscribed to in node (sensor_msgs/Imu.msg)            | /imu/data_raw            |
-| twist.twist_type                   | int | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
-| twist.twist_topic                   | string | Topic name to be subscribed to in node | /can_twist               |
-| gnss.velocity_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
-| gnss.velocity_source_topic              | string | Topic name to be subscribed to in node      | /rtklib_nav        |
-| gnss.llh_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
-| gnss.llh_source_topic              | string | Topic name to be subscribed to in node   | /rtklib_nav        |
+| twist.twist_type              | int    | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
+| twist.twist_topic             | string | Topic name to be subscribed to in node                                  | /can_twist               |
+| gnss.velocity_source_type     | int    | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
+| gnss.velocity_source_topic    | string | Topic name to be subscribed to in node                                  | /rtklib_nav        |
+| gnss.llh_source_type          | int    | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
+| gnss.llh_source_topic         | string | Topic name to be subscribed to in node                                  | /rtklib_nav        |
 
 ## TF
 
@@ -110,14 +110,14 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [rad]                                   | 0.0524 (3 deg)       |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
 | curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
-| init_STD                   | double | Standard deviation of Doppler azimuth angle [rad] | 0.0035 (0.2 deg)          |
+| init_STD                            | double | Standard deviation of Doppler azimuth angle [rad]                               | 0.0035 (0.2 deg)     |
 
 ### heading_interpolate
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
-| proc_noise                   | double | Process Noise [rad] | 0.0005 (0.03 deg)          |
+| proc_noise                          | double | Process Noise [rad]                                                             | 0.0005 (0.03 deg)    |
 
 ### slip_angle
 
@@ -185,14 +185,14 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m]                                     | 3                    |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
-
+| gnss_error_covariance               | double | GNSS error covariance [m]                                                       | 0.5                  |
 
 ### position_interpolate
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
-
+| proc_noise                          | double | Process Noise [m]                                                               | 0.05                 |
 
 ### monitor
 

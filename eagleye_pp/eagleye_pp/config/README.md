@@ -103,14 +103,14 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [rad]                                   | 0.0524 (3 deg)       |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
 | curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
-| init_STD                   | double | Standard deviation of Doppler azimuth angle [rad] | 0.0035 (0.2 deg)          |
+| init_STD                            | double | Standard deviation of Doppler azimuth angle [rad]                               | 0.0035 (0.2 deg)     |
 
 ### heading_interpolate
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
-| proc_noise                   | double | Process Noise [rad] | 0.0005 (0.03 deg)          |
+| proc_noise                          | double | Process Noise [rad]                                                             | 0.0005 (0.03 deg)    |
 
 ### slip_angle
 
@@ -143,10 +143,10 @@ Figure shows the relationship between these parameters.
 | curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0174 (1 deg/s)     |
 | timer_updata_rate                   | double | Self-diagnostic cycle [Hz]                                                      | 10                   |
 | deadlock_threshold                  | double | Allowable communication deadlock time for error output [s]                      | 1                    |
-| sensor_noise_velocity                  | double | Sensor velocity noise                             | 0.05                    |
-| sensor_scale_noise_velocity                  | double | Sensor velocity scale noise                             | 0.02                    |
-| sensor_noise_yawrate                  | double | Sensor yaw rate noise                             | 0.01                    |
-| sensor_bias_noise_yawrate                  | double | Sensor yaw rate bias noise                             | 0.01                    |
+| sensor_noise_velocity               | double | Sensor velocity noise                                                           | 0.05                 |
+| sensor_scale_noise_velocity         | double | Sensor velocity scale noise                                                     | 0.02                 |
+| sensor_noise_yawrate                | double | Sensor yaw rate noise                                                           | 0.01                 |
+| sensor_bias_noise_yawrate           | double | Sensor yaw rate bias noise                                                      | 0.01                 |
 
 ### smoothing
 
@@ -178,6 +178,7 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m]                                     | 3                    |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
+| gnss_error_covariance               | double | GNSS error covariance [m]                                                       | 0.5                  |
 
 
 ### position_interpolate
@@ -185,6 +186,7 @@ Figure shows the relationship between these parameters.
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
+| proc_noise                          | double | Process Noise [m]                                                               | 0.05                 |
 
 
 ### Optional Navigation Functions
@@ -200,10 +202,8 @@ Figure shows the relationship between these parameters.
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
-| rtk_fix_STD                     | double | RTK-FIX position covariance
- [m]                 | 0.3                  |
-| proc_noise          | double | Process Noise
- [m]                               | 0.05                   |
+| rtk_fix_STD                         | double | RTK-FIX position covariance [m]                                                 | 0.3                  |
+| proc_noise                          | double | Process Noise [m]                                                               | 0.05                 |
 
 ### rtk_heading
 
