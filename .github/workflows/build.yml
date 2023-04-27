@@ -17,7 +17,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-
       - name: rosdep update
         run: |
           apt-get update
