@@ -27,7 +27,6 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <math.h>
 
-
 void ll2xy(int num, double llh[3], double xyz[3])
 {
   int lon_deg, lon_min, lat_deg, lat_min; // longitude and latitude of origin of each plane in Japan

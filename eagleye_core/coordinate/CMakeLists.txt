@@ -36,7 +36,6 @@ ament_auto_add_library(eagleye_coordinate SHARED
   src/ecef2llh.cpp
   src/enu2llh.cpp
   src/enu2xyz_vel.cpp
-  src/ll2xy_mgrs.cpp
   src/ll2xy.cpp
   src/llh2xyz.cpp
   src/xyz2enu_vel.cpp
