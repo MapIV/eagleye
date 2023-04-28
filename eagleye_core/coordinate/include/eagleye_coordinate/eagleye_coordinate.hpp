@@ -27,11 +27,11 @@
 #define COORDINATE_H
 
 #include <cmath>
-#include <geodesy/utm.h>
 #include "geographic_msgs/msg/geo_point.hpp"
 #include <GeographicLib/Geoid.hpp>
 #include <GeographicLib/MGRS.hpp>
 #include <GeographicLib/UTMUPS.hpp>
+#include <iostream>
 
 class ConvertHeight
 {
@@ -54,7 +54,6 @@ private:
 };
 
 extern void ll2xy(int, double*, double*);
-extern void ll2xy_mgrs(double*, double*);
 extern void ecef2llh(double*, double*);
 extern void enu2llh(double*, double*, double*);
 extern void enu2xyz_vel(double*, double*, double*);
