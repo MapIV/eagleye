@@ -11,7 +11,6 @@ static nmea_msgs::Sentence sentence;
 sensor_msgs::NavSatFix::ConstPtr nav_msg_ptr;
 
 static std::string sub_topic_name,pub_fix_topic_name,pub_gga_topic_name, pub_rmc_topic_name;
-static bool output_gga, output_rmc;
 
 void nmea_callback(const nmea_msgs::Sentence::ConstPtr &msg)
 {
