@@ -119,8 +119,8 @@ int main(int argc, char *argv[]) {
   eagleye_pp_instance.convertHeight();
 
   // Output process
-  eagleye_pp_instance.writeLineKML(nmea_data_flag);
-  eagleye_pp_instance.writePointKML(nmea_data_flag);
+  eagleye_pp_instance.writeLineKML(use_rtklib_topic);
+  eagleye_pp_instance.writePointKML(use_rtklib_topic);
   eagleye_pp_instance.writeSimpleCSV();
   eagleye_pp_instance.writeDetailCSV();
   return 0;
