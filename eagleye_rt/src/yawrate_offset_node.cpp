@@ -121,7 +121,7 @@ int main(int argc, char** argv)
 
         _yawrate_offset_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
         _yawrate_offset_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-        _yawrate_offset_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+        _yawrate_offset_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
         _yawrate_offset_parameter.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
         _yawrate_offset_parameter.estimated_maximum_interval = conf["yawrate_offset"]["1st"]["estimated_maximum_interval"].as<double>();
@@ -130,7 +130,7 @@ int main(int argc, char** argv)
 
         std::cout << "imu_rate " << _yawrate_offset_parameter.imu_rate << std::endl;
         std::cout << "gnss_rate " << _yawrate_offset_parameter.gnss_rate << std::endl;
-        std::cout << "moving_judgment_threshold " << _yawrate_offset_parameter.moving_judgment_threshold << std::endl;
+        std::cout << "moving_judgement_threshold " << _yawrate_offset_parameter.moving_judgement_threshold << std::endl;
 
         std::cout << "estimated_minimum_interval " << _yawrate_offset_parameter.estimated_minimum_interval << std::endl;
         std::cout << "estimated_maximum_interval " << _yawrate_offset_parameter.estimated_maximum_interval << std::endl;
@@ -154,7 +154,7 @@ int main(int argc, char** argv)
 
         _yawrate_offset_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
         _yawrate_offset_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-        _yawrate_offset_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+        _yawrate_offset_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
         _yawrate_offset_parameter.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
         _yawrate_offset_parameter.estimated_maximum_interval = conf["yawrate_offset"]["2nd"]["estimated_maximum_interval"].as<double>();
@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
         std::cout << "imu_rate " << _yawrate_offset_parameter.imu_rate << std::endl;
         std::cout << "gnss_rate " << _yawrate_offset_parameter.gnss_rate << std::endl;
-        std::cout << "moving_judgment_threshold " << _yawrate_offset_parameter.moving_judgment_threshold << std::endl;
+        std::cout << "moving_judgement_threshold " << _yawrate_offset_parameter.moving_judgement_threshold << std::endl;
 
         std::cout << "estimated_minimum_interval " << _yawrate_offset_parameter.estimated_minimum_interval << std::endl;
         std::cout << "estimated_maximum_interval " << _yawrate_offset_parameter.estimated_maximum_interval << std::endl;

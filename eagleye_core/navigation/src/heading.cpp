@@ -85,8 +85,8 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
 
   if (heading_status->estimated_number  > estimated_buffer_number_min &&
     heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
-    heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.moving_judgment_threshold &&
-    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.curve_judgment_threshold)
+    heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.moving_judgement_threshold &&
+    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.curve_judgement_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -103,7 +103,7 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
       {
         gnss_index.push_back(i);
       }
-      if (heading_status->correction_velocity_buffer [i] > heading_parameter.moving_judgment_threshold)
+      if (heading_status->correction_velocity_buffer [i] > heading_parameter.moving_judgement_threshold)
       {
         velocity_index.push_back(i);
       }
@@ -122,7 +122,7 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
       {
         if (i > 0)
         {
-          if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.moving_judgment_threshold)
+          if (std::abs(heading_status->correction_velocity_buffer [heading_status->estimated_number -1]) > heading_parameter.moving_judgement_threshold)
           {
             double dt = heading_status->time_buffer [i] - heading_status->time_buffer [i-1];
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +

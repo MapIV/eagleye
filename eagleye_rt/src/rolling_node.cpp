@@ -84,12 +84,12 @@ void setParam(std::string yaml_file)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_canless_mode = conf["use_canless_mode"].as<bool>();
-    _rolling_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _rolling_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _rolling_parameter.filter_process_noise = conf["rolling"]["filter_process_noise"].as<double>();
     _rolling_parameter.filter_observation_noise = conf["rolling"]["filter_observation_noise"].as<double>();
 
     std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
-    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _rolling_parameter.stop_judgement_threshold << std::endl;
     std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
     std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
   }

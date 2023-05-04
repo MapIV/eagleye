@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 
     _height_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _height_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _height_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _height_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
     _height_parameter.estimated_minimum_interval = conf["height"]["estimated_minimum_interval"].as<double>();
     _height_parameter.estimated_maximum_interval = conf["height"]["estimated_maximum_interval"].as<double>();
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _height_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _height_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << _height_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _height_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_minimum_interval " << _height_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _height_parameter.estimated_maximum_interval << std::endl;

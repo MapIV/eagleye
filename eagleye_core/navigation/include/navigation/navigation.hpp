@@ -63,7 +63,7 @@ struct VelocityScaleFactorParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
@@ -90,7 +90,7 @@ struct YawrateOffsetStopParameter
 {
   double imu_rate;
   double estimated_interval;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double outlier_threshold;
 };
 
@@ -106,7 +106,7 @@ struct YawrateOffsetParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
@@ -131,14 +131,14 @@ struct HeadingParameter
 {
   double imu_rate;
   double gnss_rate;
-  double stop_judgment_threshold;
-  double moving_judgment_threshold;
+  double stop_judgement_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
-  double curve_judgment_threshold;
+  double curve_judgement_threshold;
   double init_STD;
 };
 
@@ -162,15 +162,15 @@ struct RtkHeadingParameter
 {
   double imu_rate;
   double gnss_rate;
-  double stop_judgment_threshold;
-  double slow_judgment_threshold;
+  double stop_judgement_threshold;
+  double slow_judgement_threshold;
   double update_distance;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
-  double curve_judgment_threshold;
+  double curve_judgement_threshold;
 };
 
 struct RtkHeadingStatus
@@ -196,7 +196,7 @@ struct RtkHeadingStatus
 struct HeadingInterpolateParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double sync_search_period;
   double proc_noise;
 };
@@ -231,7 +231,7 @@ struct PositionParameter
 
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_interval;
   double update_distance;
   double gnss_receiving_threshold;
@@ -260,7 +260,7 @@ struct PositionStatus
 struct PositionInterpolateParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double sync_search_period;
   double proc_noise;
 };
@@ -286,7 +286,7 @@ struct PositionInterpolateStatus
 struct SlipangleParameter
 {
   double manual_coefficient;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
 };
 
 struct SlipCoefficientParameter
@@ -294,9 +294,9 @@ struct SlipCoefficientParameter
   double imu_rate;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
-  double stop_judgment_threshold;
-  double moving_judgment_threshold;
-  double curve_judgment_threshold;
+  double stop_judgement_threshold;
+  double moving_judgement_threshold;
+  double curve_judgement_threshold;
   double lever_arm;
 };
 
@@ -310,7 +310,7 @@ struct SlipCoefficientStatus
 struct SmoothingParameter
 {
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double moving_average_time;
   double moving_ratio_threshold;
   double ecef_base_pos_x;
@@ -329,8 +329,8 @@ struct SmoothingStatus
 
 struct TrajectoryParameter
 {
-  double stop_judgment_threshold;
-  double curve_judgment_threshold;
+  double stop_judgement_threshold;
+  double curve_judgement_threshold;
   double sensor_noise_velocity;
   double sensor_scale_noise_velocity;
   double sensor_noise_yawrate;
@@ -348,7 +348,7 @@ struct HeightParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double update_distance;
@@ -390,7 +390,7 @@ struct HeightStatus
 
 struct RtkDeadreckoningParameter
 {
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
@@ -429,10 +429,10 @@ struct RtkDeadreckoningStatus
 struct EnableAdditionalRollingParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double update_distance;
   double moving_average_time;
-  double sync_judgment_threshold;
+  double sync_judgement_threshold;
   double sync_search_period;
 };
 
@@ -459,7 +459,7 @@ struct EnableAdditionalRollingStatus
 
 struct RollingParameter
 {
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double filter_process_noise;
   double filter_observation_noise;
 };
@@ -586,7 +586,7 @@ class VelocityEstimator
           double buffer_max;
           double outlier_threshold;
           double estimated_velocity_threshold;
-          double slow_judgment_threshold;
+          double slow_judgement_threshold;
           double gnss_receiving_threshold;
           double estimated_gnss_coefficient;
           double outlier_ratio_threshold;
@@ -649,9 +649,9 @@ class VelocityEstimator
       double gnss_rate;
 
       double gga_downsample_time;
-      double stop_judgment_interval;
-      double stop_judgment_velocity_threshold;
-      double stop_judgment_buffer_maxnum;
+      double stop_judgement_interval;
+      double stop_judgement_velocity_threshold;
+      double stop_judgement_buffer_maxnum;
       double variance_threshold;
 
       // doppler fusion parameter
@@ -686,7 +686,7 @@ class VelocityEstimator
     double rtkfix_pitching; 
     bool navsat_update_status;
 
-    // stop judgment variables
+    // stop judgement variables
     bool stop_status;
     std::vector<double> angular_velocity_x_buffer;
     std::vector<double> angular_velocity_y_buffer;
@@ -719,7 +719,7 @@ class VelocityEstimator
     bool updateImu(const sensor_msgs::Imu);
     bool updateRtklibNav(const rtklib_msgs::RtklibNav);
     bool updateGGA(const nmea_msgs::Gpgga);
-    bool StopJudgment(const sensor_msgs::Imu);
+    bool Stopjudgement(const sensor_msgs::Imu);
     bool DopplerFusion();
 };
 

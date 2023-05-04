@@ -89,7 +89,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
       enu_absolute_rtk_deadreckoning->status.enabled_status = true;
       enu_absolute_rtk_deadreckoning->status.estimate_status = true;
     }
-    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgment_threshold)
+    else if(rtk_deadreckoning_status->time_last != 0 && sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) + (enu_vel.vector.z * enu_vel.vector.z)) > rtk_deadreckoning_parameter.stop_judgement_threshold)
     {
       rtk_deadreckoning_status->provisional_enu_pos_x = enu_absolute_rtk_deadreckoning->enu_pos.x + enu_vel.vector.x * (enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);
       rtk_deadreckoning_status->provisional_enu_pos_y = enu_absolute_rtk_deadreckoning->enu_pos.y + enu_vel.vector.y * (enu_vel.header.stamp.toSec() - rtk_deadreckoning_status->time_last);
@@ -133,7 +133,7 @@ void rtk_deadreckoning_estimate_(geometry_msgs::Vector3Stamped enu_vel, nmea_msg
       position_covariance = init_covariance;
       rtk_deadreckoning_status->position_covariance_last = position_covariance;
     }
-    else if (velocity > rtk_deadreckoning_parameter.stop_judgment_threshold)
+    else if (velocity > rtk_deadreckoning_parameter.stop_judgement_threshold)
     {
       Eigen::MatrixXd jacobian;
       jacobian = Eigen::MatrixXd::Zero(6, 6);

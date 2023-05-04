@@ -131,7 +131,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
     position_status->enu_relative_pos_z_buffer.push_back(0);
     position_status->distance_buffer.push_back(distance.distance);
 
-    data_status = true; //judgment that refreshed data
+    data_status = true; //judgement that refreshed data
 
     if (position_status->distance_buffer.end() - position_status->distance_buffer.begin() > estimated_number_max)
     {
@@ -151,7 +151,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
   {
 
     if (distance.distance > position_parameter.estimated_interval && gnss_status == true &&
-      velocity.twist.linear.x > position_parameter.moving_judgment_threshold && position_status->heading_estimate_status_count > 0)
+      velocity.twist.linear.x > position_parameter.moving_judgement_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
       std::vector<int> velocity_index;
@@ -163,7 +163,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
         {
           distance_index.push_back(i);
 
-          if (position_status->correction_velocity_buffer[i] > position_parameter.moving_judgment_threshold)
+          if (position_status->correction_velocity_buffer[i] > position_parameter.moving_judgement_threshold)
           {
             velocity_index.push_back(i);
           }

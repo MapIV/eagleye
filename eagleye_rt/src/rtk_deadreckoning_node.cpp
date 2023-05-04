@@ -145,7 +145,7 @@ int main(int argc, char** argv)
     _rtk_deadreckoning_parameter.use_ecef_base_position = conf["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
     _rtk_deadreckoning_parameter.tf_gnss_parent_frame = conf["tf_gnss_frame"]["parent"].as<std::string>();
     _rtk_deadreckoning_parameter.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
-    _rtk_deadreckoning_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _rtk_deadreckoning_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
 
     _rtk_deadreckoning_parameter.rtk_fix_STD = conf["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
     _rtk_deadreckoning_parameter.proc_noise = conf["rtk_deadreckoning"]["proc_noise"].as<double>();
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     std::cout << "use_ecef_base_position " << _rtk_deadreckoning_parameter.use_ecef_base_position << std::endl;
     std::cout << "tf_gnss_frame/parent " << _rtk_deadreckoning_parameter.tf_gnss_parent_frame << std::endl;
     std::cout << "tf_gnss_frame/child " << _rtk_deadreckoning_parameter.tf_gnss_child_frame << std::endl;
-    std::cout << "stop_judgment_threshold " << _rtk_deadreckoning_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _rtk_deadreckoning_parameter.stop_judgement_threshold << std::endl;
     std::cout << "rtk_fix_STD " << _rtk_deadreckoning_parameter.rtk_fix_STD << std::endl;
     std::cout << "proc_noise " << _rtk_deadreckoning_parameter.proc_noise << std::endl;
   }

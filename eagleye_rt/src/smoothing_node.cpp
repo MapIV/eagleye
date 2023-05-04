@@ -86,7 +86,7 @@ int main(int argc, char** argv)
     _smoothing_parameter.ecef_base_pos_z = conf["ecef_base_pos"]["z"].as<double>();
 
     _smoothing_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _smoothing_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _smoothing_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     _smoothing_parameter.moving_average_time = conf["smoothing"]["moving_average_time"].as<double>();
     _smoothing_parameter.moving_ratio_threshold = conf["smoothing"]["moving_ratio_threshold"].as<double>();
 
@@ -99,7 +99,7 @@ int main(int argc, char** argv)
     std::cout<< "ecef_base_pos_z " << _smoothing_parameter.ecef_base_pos_z << std::endl;
 
     std::cout << "gnss_rate " << _smoothing_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << _smoothing_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _smoothing_parameter.moving_judgement_threshold << std::endl;
     std::cout << "moving_average_time " << _smoothing_parameter.moving_average_time << std::endl;
     std::cout << "moving_ratio_threshold " << _smoothing_parameter.moving_ratio_threshold << std::endl;
   }

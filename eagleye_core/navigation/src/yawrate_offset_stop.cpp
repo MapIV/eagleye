@@ -66,7 +66,7 @@ void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped velocity, co
     yawrate_offset_stop_status->yawrate_buffer.erase(yawrate_offset_stop_status->yawrate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < yawrate_offset_stop_parameter.stop_judgment_threshold)
+  if (velocity.twist.linear.x < yawrate_offset_stop_parameter.stop_judgement_threshold)
   {
     ++yawrate_offset_stop_status->stop_count;
   }

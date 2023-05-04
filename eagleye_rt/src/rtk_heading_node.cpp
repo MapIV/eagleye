@@ -126,8 +126,8 @@ int main(int argc, char** argv)
 
     _heading_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _heading_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _heading_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    _heading_parameter.slow_judgment_threshold = conf["common"]["slow_judgment_threshold"].as<double>();
+    _heading_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    _heading_parameter.slow_judgement_threshold = conf["common"]["slow_judgement_threshold"].as<double>();
 
     _heading_parameter.update_distance = conf["rtk_heading"]["update_distance"].as<double>();
     _heading_parameter.estimated_minimum_interval = conf["rtk_heading"]["estimated_minimum_interval"].as<double>();
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
     _heading_parameter.gnss_receiving_threshold = conf["rtk_heading"]["gnss_receiving_threshold"].as<double>();
     _heading_parameter.outlier_threshold = conf["rtk_heading"]["outlier_threshold"].as<double>();
     _heading_parameter.outlier_ratio_threshold = conf["rtk_heading"]["outlier_ratio_threshold"].as<double>();
-    _heading_parameter.curve_judgment_threshold = conf["rtk_heading"]["curve_judgment_threshold"].as<double>();
+    _heading_parameter.curve_judgement_threshold = conf["rtk_heading"]["curve_judgement_threshold"].as<double>();
 
     std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
 
@@ -143,8 +143,8 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _heading_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _heading_parameter.gnss_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _heading_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "slow_judgment_threshold " << _heading_parameter.slow_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _heading_parameter.stop_judgement_threshold << std::endl;
+    std::cout << "slow_judgement_threshold " << _heading_parameter.slow_judgement_threshold << std::endl;
 
     std::cout << "update_distance " << _heading_parameter.update_distance << std::endl;
     std::cout << "estimated_minimum_interval " << _heading_parameter.estimated_minimum_interval << std::endl;
@@ -152,7 +152,7 @@ int main(int argc, char** argv)
     std::cout << "gnss_receiving_threshold " << _heading_parameter.gnss_receiving_threshold << std::endl;
     std::cout << "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
     std::cout << "outlier_ratio_threshold " << _heading_parameter.outlier_ratio_threshold << std::endl;
-    std::cout << "curve_judgment_threshold " << _heading_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "curve_judgement_threshold " << _heading_parameter.curve_judgement_threshold << std::endl;
   }
   catch (YAML::Exception& e)
   {
