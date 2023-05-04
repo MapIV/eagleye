@@ -32,46 +32,77 @@
 #include "sensor_msgs/NavSatFix.h"
 #include "eagleye_msgs/Distance.h"
 #include "fix2kml/KmlGenerator.hpp"
-#include <boost/bind.hpp>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <functional>
 
-static double interval = 0.2; //m
-static double driving_distance = 0.0;
-static double driving_distance_last = 0.0;
-static std::string filename, kmlname, fixname, color = "ff0000ff";
-
-void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
+class Fix2Kml
 {
-  driving_distance = msg->distance;
+public:
+  Fix2Kml(ros::NodeHandle &nh);
+  ~Fix2Kml();
+
+private:
+  void distanceCallback(const eagleye_msgs::Distance::ConstPtr &msg);
+  void receiveData(const sensor_msgs::NavSatFix::ConstPtr &msg);
+
+  ros::NodeHandle nh_;
+  ros::Subscriber sub1_, sub2_;
+  std::shared_ptr<KmlGenerator> kmlfile_;
+  double interval_;
+  double driving_distance_;
+  double driving_distance_last_;
+  std::string filename_, kmlname_, fixname_, color_;
+};
+
+Fix2Kml::Fix2Kml(ros::NodeHandle &nh) : nh_(nh)
+{
+  nh_.getParam("fix2kml/filename", filename_);
+  nh_.getParam("fix2kml/kmlname", kmlname_);
+  nh_.getParam("fix2kml/fixname", fixname_);
+  nh_.getParam("fix2kml/color", color_);
+
+  std::cout << "filename " << filename_ << std::endl;
+  std::cout << "kmlname " << kmlname_ << std::endl;
+  std::cout << "fixname " << fixname_ << std::endl;
+  std::cout << "color " << color_ << std::endl;
+
+  interval_ = 0.2; // m
+  driving_distance_ = 0.0;
+  driving_distance_last_ = 0.0;
+
+  kmlfile_ = std::make_shared<KmlGenerator>(kmlname_, color_);
+
+  sub1_ = nh_.subscribe<sensor_msgs::NavSatFix>(fixname_, 1000, std::bind(&Fix2Kml::receiveData, this, std::placeholders::_1));
+  sub2_ = nh_.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, std::bind(&Fix2Kml::distanceCallback, this, std::placeholders::_1));
 }
 
-void receive_data(const sensor_msgs::NavSatFix::ConstPtr& msg, KmlGenerator *kmlfile)
+Fix2Kml::~Fix2Kml()
 {
-  if((driving_distance - driving_distance_last) > interval)
+}
+
+void Fix2Kml::distanceCallback(const eagleye_msgs::Distance::ConstPtr &msg)
+{
+  driving_distance_ = msg->distance;
+}
+
+void Fix2Kml::receiveData(const sensor_msgs::NavSatFix::ConstPtr &msg)
+{
+  if ((driving_distance_ - driving_distance_last_) > interval_)
   {
-    kmlfile->addPoint(msg->longitude, msg->latitude, msg->altitude);
-    kmlfile->KmlGenerate(filename);
-    driving_distance_last = driving_distance;
+    kmlfile_->addPoint(msg->longitude, msg->latitude, msg->altitude);
+    kmlfile_->KmlGenerate(filename_);
+    driving_distance_last_ = driving_distance_;
   }
 }
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   ros::init(argc, argv, "fix2kml");
   ros::NodeHandle nh;
 
-  nh.getParam("fix2kml/filename",filename);
-  nh.getParam("fix2kml/kmlname",kmlname);
-  nh.getParam("fix2kml/fixname",fixname);
-  nh.getParam("fix2kml/color",color);
-  std::cout<< "filename " << filename << std::endl;
-  std::cout<< "kmlname " << kmlname << std::endl;
-  std::cout<< "fixname " << fixname << std::endl;
-  std::cout<< "color " << color << std::endl;
-
-  KmlGenerator kmlfile(kmlname, color);
-
-  ros::Subscriber sub1 = nh.subscribe<sensor_msgs::NavSatFix>(fixname, 1000, boost::bind(receive_data,_1, &kmlfile));
-  ros::Subscriber sub2 = nh.subscribe<eagleye_msgs::Distance>("eagleye/distance", 1000, distance_callback);
+  Fix2Kml fix2kml(nh);
   ros::spin();
 
   return 0;
