@@ -118,7 +118,7 @@ void navpvt_callback(const ublox_msgs::NavPVT::ConstPtr& msg)
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
   r.header.stamp.nsec = msg->nano;
- if (nav_msg_ptr != nullptr)
+  if (nav_msg_ptr != nullptr)
     r.status = *nav_msg_ptr;
   r.tow = msg->iTOW;
 
