@@ -29,36 +29,27 @@
 #include "eagleye_pp.hpp"
 #include <multi_rosbag_controller/multi_rosbag_controller.hpp>
 
-int main(int argc, char *argv[])
-{
-  eagleye_pp eagleye_pp;
-  int n_bag;
-  std::vector<std::string> rosbags;
-  std::string output_path, config_file;
+void print_error_and_exit(const std::string &message) {
+  std::cerr << "\033[1;31mError: " << message << "\033[0m" << std::endl;
+  exit(1);
+}
 
-  if (argc > 1)
-  {
-    n_bag = std::stoi(argv[1]);
-    if (argc >= 4 + n_bag)
-    {
-      for (int bag_id = 0; bag_id < n_bag; bag_id++)
-      {
-        rosbags.push_back(argv[2 + bag_id]);
-      }
-      output_path = argv[n_bag + 2];
-      config_file = argv[n_bag + 3];
-      eagleye_pp.setOutputPath(output_path);
-    }
-    else
-    {
-      std::cerr << "\033[31;1mError: Invalid Arguments\033[m" << std::endl;
-    }
+int main(int argc, char *argv[]) {
+  if (argc <= 1) {
+    print_error_and_exit("Invalid Arguments");
   }
-  else
-  {
-    std::cerr << "\033[1;31mError: Invalid Arguments\033[m" << std::endl;
-    exit(1);
+
+  int n_bag = std::stoi(argv[1]);
+  if (argc < 4 + n_bag) {
+    print_error_and_exit("Invalid Arguments");
   }
+
+  eagleye_pp eagleye_pp_instance;
+  std::vector<std::string> rosbags(argv + 2, argv + 2 + n_bag);
+  std::string output_path = argv[n_bag + 2];
+  std::string config_file = argv[n_bag + 3];
+
+  eagleye_pp_instance.setOutputPath(output_path);
 
   MultiRosbagController rosbag_controller(rosbags);
 
@@ -67,73 +58,29 @@ int main(int argc, char *argv[])
   std::string imu_topic = "/imu/data_raw";
   std::string rtklib_nav_topic = "/rtklib_nav";
   std::string nmea_sentence_topic = "/navsat/nmea_sentence";
-  bool nmea_data_flag = false;
-  bool use_rtk_navsatfix_topic = false;
-  bool use_rtklib_topic = false;
-    
-  eagleye_pp.setParam(config_file, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
-  std::string use_gnss_mode = eagleye_pp.getUseGNSSMode();
+  eagleye_pp_instance.setParam(config_file, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
-  std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl; 
-    
-  if (rosbag_controller.setTopic(std::string(twist_topic)) && !eagleye_pp.getUseCanlessMode())
-  {
-    std::cout << "TwistStamped topic: " << twist_topic << std::endl;
-  }
-  else if(eagleye_pp.getUseCanlessMode())
-  {
-    std::cout << "Velocity Estimate mode" << std::endl;
-    if(!rosbag_controller.findTopic(std::string(nmea_sentence_topic)))
-    {
-      std::cerr << "\033[1;31mError: Cannot find the topic for Velocity Estimate mode: " << nmea_sentence_topic << "\033[0m" << std::endl;
-      exit(1);
-    } else if (!rosbag_controller.findTopic(std::string(rtklib_nav_topic)))
-    {
-      std::cerr << "\033[1;31mError: Cannot find the topic for Velocity Estimate mode: " << rtklib_nav_topic << "\033[0m" << std::endl;
-      exit(1);
-    }
-  }
-  else
-  {
-    std::cerr << "\033[1;31mError: Cannot find the topic: " << twist_topic << "\033[0m" << std::endl;
-    exit(1);
+  std::string use_gnss_mode = eagleye_pp_instance.getUseGNSSMode();
+  bool use_canless_mode = eagleye_pp_instance.getUseCanlessMode();
+
+  std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl;
+
+  if (!rosbag_controller.setTopic(twist_topic) && !use_canless_mode) {
+    print_error_and_exit("Cannot find the topic: " + twist_topic);
   }
 
-  if (rosbag_controller.setTopic(std::string(nmea_sentence_topic)))
-  {
-    std::cout << "Sentence topic: " << nmea_sentence_topic << std::endl;
-    nmea_data_flag = true;
-    use_rtk_navsatfix_topic = true;
-  }
-  else if (!rosbag_controller.setTopic(std::string(nmea_sentence_topic)) && use_gnss_mode != "rtklib" && use_gnss_mode != "RTKLIB")
-  {
-    std::cerr << "\033[1;31mError: Cannot find the topic (Please change the Estimation mode): " << nmea_sentence_topic << "\033[0m" << std::endl;
-    exit(1);
-  }
-  else
-  {
-    std::cout << "\033[1;33mWarn: Cannot find the topic: " << nmea_sentence_topic  << "\033[0m" << std::endl;
-    use_rtk_navsatfix_topic = false;
+  bool nmea_data_flag = rosbag_controller.setTopic(nmea_sentence_topic);
+  if (!nmea_data_flag && use_gnss_mode != "rtklib" && use_gnss_mode != "RTKLIB") {
+    print_error_and_exit("Cannot find the topic (Please change the Estimation mode): " + nmea_sentence_topic);
   }
 
-  if (rosbag_controller.setTopic(std::string(imu_topic)))
-  {
-    std::cout << "Imu topic: " << imu_topic << std::endl;
-  }
-  else
-  {
-    std::cerr << "\033[1;31mError: Cannot find the topic: " << imu_topic << "\033[0m" << std::endl;
-    exit(1);
+  if (!rosbag_controller.setTopic(imu_topic)) {
+    print_error_and_exit("Cannot find the topic: " + imu_topic);
   }
 
-  if (rosbag_controller.setTopic(std::string(rtklib_nav_topic)))
-  {
-    std::cout << "RtklibNav topic: " << rtklib_nav_topic << std::endl;
-    use_rtklib_topic = true;
-  }
-  else
-  {
+  bool use_rtklib_topic = rosbag_controller.setTopic(rtklib_nav_topic);
+  if (!use_rtklib_topic) {
     std::cerr << "\033[1;31mWarning: Some rosbags do not contain the topic: " << rtklib_nav_topic << "\033[0m" << std::endl;
   }
 
@@ -141,43 +88,40 @@ int main(int argc, char *argv[])
   rosbag_controller.addQueries(in_view);
 
   // synchronize time
-  eagleye_pp.syncTimestamp(nmea_data_flag, in_view);
+  eagleye_pp_instance.syncTimestamp(nmea_data_flag, in_view);
 
   std::cout << "start eagleye offline processing!" << std::endl;
 
   bool forward_flag = true; // Switch between forward and backward
   //forward
-  eagleye_pp.estimatingEagleye(forward_flag);
-  std::cout << std::endl << "forward estimation finish" <<  std::endl;
+  eagleye_pp_instance.estimatingEagleye(forward_flag);
+  std::cout << std::endl << "forward estimation finish" << std::endl;
 
-  //Backward
-  if(eagleye_pp.getUseBackward())
-  {
+  // Backward
+  if (eagleye_pp_instance.getUseBackward()) {
     forward_flag = false;
-    eagleye_pp.estimatingEagleye(forward_flag);
-    std::cout << std::endl << "backward estimation finish" <<  std::endl;
+    eagleye_pp_instance.estimatingEagleye(forward_flag);
+    std::cout << std::endl << "backward estimation finish" << std::endl;
   }
-  
-  if(use_rtklib_topic)
-  {
-    eagleye_pp.smoothingDeadReckoning();
-    std::cout << "smoothing dead reckoning finish" <<  std::endl;
+
+  if (use_rtklib_topic) {
+    eagleye_pp_instance.smoothingDeadReckoning();
+    std::cout << "smoothing dead reckoning finish" << std::endl;
   }
 
   // forward/backward combination
-  if(eagleye_pp.getUseCombination())
-  {
+  if (eagleye_pp_instance.getUseCombination()) {
     std::cout << "start eagleye forward/backward combination processing!" << std::endl;
-    eagleye_pp.smoothingTrajectory();
+    eagleye_pp_instance.smoothingTrajectory();
   }
 
   // Convert height
-  eagleye_pp.convertHeight();
+  eagleye_pp_instance.convertHeight();
 
-  //　output process
-  eagleye_pp.writeLineKML(use_rtk_navsatfix_topic);
-  eagleye_pp.writePointKML(use_rtk_navsatfix_topic);
-  eagleye_pp.writeSimpleCSV();
-  eagleye_pp.writeDetailCSV();
+  // Output process
+  eagleye_pp_instance.writeLineKML(nmea_data_flag);
+  eagleye_pp_instance.writePointKML(nmea_data_flag);
+  eagleye_pp_instance.writeSimpleCSV();
+  eagleye_pp_instance.writeDetailCSV();
   return 0;
 }
