@@ -111,7 +111,7 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
     param.estimated_interval = conf["velocity_estimator"]["pitching"]["estimated_interval"].as<double>();
     param.buffer_max = param.imu_rate * param.estimated_interval;
     param.outlier_threshold = conf["velocity_estimator"]["pitching"]["outlier_threshold"].as<double>();
-    param.slow_judgment_threshold = conf["common"]["slow_judgment_threshold"].as<double>();
+    param.slow_judgement_threshold = conf["common"]["slow_judgement_threshold"].as<double>();
     param.gnss_receiving_threshold = conf["velocity_estimator"]["pitching"]["gnss_receiving_threshold"].as<double>();
     param.estimated_gnss_coefficient = param.gnss_rate/param.imu_rate * param.gnss_receiving_threshold;
     param.outlier_ratio_threshold = conf["velocity_estimator"]["pitching"]["outlier_ratio_threshold"].as<double>();
@@ -122,7 +122,7 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
     // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;
     // std::cout<< "buffer_max "<<param.buffer_max<<std::endl;
     // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
-    // std::cout<< "slow_judgment_threshold "<<param.slow_judgment_threshold<<std::endl;
+    // std::cout<< "slow_judgement_threshold "<<param.slow_judgement_threshold<<std::endl;
     // std::cout<< "gnss_receiving_threshold "<<param.gnss_receiving_threshold<<std::endl;
     // std::cout<< "estimated_gnss_coefficient "<<param.estimated_gnss_coefficient<<std::endl;
     // std::cout<< "outlier_ratio_threshold "<<param.outlier_ratio_threshold<<std::endl;
@@ -143,8 +143,8 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 {
   bool use_gnss_status = false;
 
-  if (doppler_velocity > param.slow_judgment_threshold ||
-      rtkfix_velocity > param.slow_judgment_threshold)
+  if (doppler_velocity > param.slow_judgement_threshold ||
+      rtkfix_velocity > param.slow_judgement_threshold)
   {
     use_gnss_status = true;
   }
@@ -175,7 +175,7 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 
   for (int i = 0; i < time_buffer_length; i++)
   {
-    if (navsat_update_status_buffer[i] && use_gnss_status_buffer[i]) gnss_index.push_back(i); //TODO Velocity judgment
+    if (navsat_update_status_buffer[i] && use_gnss_status_buffer[i]) gnss_index.push_back(i); //TODO Velocity judgement
     if (i == 0) continue;
     accumulated_pitchrate += corrected_pitchrate_buffer[i] * (time_buffer[i]-time_buffer[i-1]);
     accumulated_pitchrate_buffer[i] = accumulated_pitchrate;
@@ -320,7 +320,7 @@ bool VelocityEstimator::AccelerationOffsetEstimator::AccelerationOffsetEstimate
 
   for (int i = 0; i < time_buffer_length; i++)
   {
-    if (navsat_update_status_buffer[i]) gnss_index.push_back(i); //TODO Velocity judgment
+    if (navsat_update_status_buffer[i]) gnss_index.push_back(i); //TODO Velocity judgement
     if (i == 0)
     {
       accumulated_acceleration_buffer.push_back(0);
@@ -396,9 +396,9 @@ void VelocityEstimator::setParam(std::string yaml_file)
     param.gnss_rate = conf["common"]["gnss_rate"].as<double>();
 
     param.gga_downsample_time = conf["velocity_estimator"]["gga_downsample_time"].as<double>();
-    param.stop_judgment_velocity_threshold = conf["velocity_estimator"]["stop_judgment_velocity_threshold"].as<double>();
-    param.stop_judgment_interval = conf["velocity_estimator"]["stop_judgment_interval"].as<double>();
-    param.stop_judgment_buffer_maxnum =  param.stop_judgment_buffer_maxnum = param.imu_rate * param.stop_judgment_interval;
+    param.stop_judgement_velocity_threshold = conf["velocity_estimator"]["stop_judgement_velocity_threshold"].as<double>();
+    param.stop_judgement_interval = conf["velocity_estimator"]["stop_judgement_interval"].as<double>();
+    param.stop_judgement_buffer_maxnum =  param.stop_judgement_buffer_maxnum = param.imu_rate * param.stop_judgement_interval;
     param.variance_threshold = conf["velocity_estimator"]["variance_threshold"].as<double>();
 
     // doppler fusion parameter
@@ -417,9 +417,9 @@ void VelocityEstimator::setParam(std::string yaml_file)
     // std::cout<< "ecef_base_pos_z "<<param.ecef_base_pos_z<<std::endl;
     // std::cout<< "use_ecef_base_position "<<param.use_ecef_base_position<<std::endl;
     // std::cout<< "gga_downsample_time "<<param.gga_downsample_time<<std::endl;
-    // std::cout<< "stop_judgment_velocity_threshold "<<param.stop_judgment_velocity_threshold<<std::endl;
-    // std::cout<< "stop_judgment_interval "<<param.stop_judgment_interval<<std::endl;
-    // std::cout<< "stop_judgment_buffer_maxnum "<<param.stop_judgment_buffer_maxnum<<std::endl;
+    // std::cout<< "stop_judgement_velocity_threshold "<<param.stop_judgement_velocity_threshold<<std::endl;
+    // std::cout<< "stop_judgement_interval "<<param.stop_judgement_interval<<std::endl;
+    // std::cout<< "stop_judgement_buffer_maxnum "<<param.stop_judgement_buffer_maxnum<<std::endl;
     // std::cout<< "variance_threshold "<<param.variance_threshold<<std::endl;
     // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;
     // std::cout<< "gnss_receiving_threshold "<<param.gnss_receiving_threshold<<std::endl;
@@ -555,22 +555,22 @@ bool VelocityEstimator::updateGGA(nmea_msgs::Gpgga gga_msg)
   return true;
 }
 
-bool VelocityEstimator::StopJudgment(sensor_msgs::Imu imu_msg)
+bool VelocityEstimator::Stopjudgement(sensor_msgs::Imu imu_msg)
 {
   angular_velocity_x_buffer.push_back(imu_msg.angular_velocity.x);
   angular_velocity_y_buffer.push_back(imu_msg.angular_velocity.y);
   angular_velocity_z_buffer.push_back(imu_msg.angular_velocity.z);
 
   std::size_t buffer_length = std::distance(angular_velocity_x_buffer.begin(), angular_velocity_x_buffer.end());
-  if (buffer_length <= param.stop_judgment_buffer_maxnum) return false;
+  if (buffer_length <= param.stop_judgement_buffer_maxnum) return false;
 
   angular_velocity_x_buffer.erase(angular_velocity_x_buffer.begin());
   angular_velocity_y_buffer.erase(angular_velocity_y_buffer.begin());
   angular_velocity_z_buffer.erase(angular_velocity_z_buffer.begin());
 
   // ToDo: GNSS time update check
-  if (doppler_velocity > param.stop_judgment_velocity_threshold ||
-      rtkfix_velocity > param.stop_judgment_velocity_threshold)
+  if (doppler_velocity > param.stop_judgement_velocity_threshold ||
+      rtkfix_velocity > param.stop_judgement_velocity_threshold)
   {return false;}
 
   double sum_x = 0, sum_y = 0, sum_z = 0;
@@ -628,7 +628,7 @@ bool VelocityEstimator::DopplerFusion()
 
   for (int i = 0; i < time_buffer_length; i++)
   {
-    if (rtklib_update_status_buffer[i] && doppler_velocity_buffer[i] < 33.3) gnss_index.push_back(i); //TODO Velocity judgment
+    if (rtklib_update_status_buffer[i] && doppler_velocity_buffer[i] < 33.3) gnss_index.push_back(i); //TODO Velocity judgement
     if (i == 0) continue;
     accumulated_acceleration += corrected_acceleration_buffer[i] * (time_buffer[i]-time_buffer[i-1]);
     accumulated_acceleration_buffer[i] = accumulated_acceleration;
@@ -703,8 +703,8 @@ void VelocityEstimator::VelocityEstimate(sensor_msgs::Imu imu_msg, rtklib_msgs::
   // gga msgs setting
   navsat_update_status = updateGGA(gga_msg);
 
-  // Stop Judgment
-  stop_status = StopJudgment(imu_msg);
+  // Stop judgement
+  stop_status = Stopjudgement(imu_msg);
   velocity_status.estimate_status = false;
 
   // pitchrate offset estimation during stop

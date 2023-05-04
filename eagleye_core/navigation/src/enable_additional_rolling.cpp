@@ -93,7 +93,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   {
     for ( int i = 0; i < search_buffer_number - 1; i++ )
     {
-      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose.header.stamp.toSec()) < rolling_parameter.sync_judgment_threshold)
+      if (std::abs(rolling_status->imu_time_buffer[i] - localization_pose.header.stamp.toSec()) < rolling_parameter.sync_judgement_threshold)
       {
         if (std::abs(rolling_status->distance_last - rolling_status->distance_buffer[i]) >= rolling_parameter.update_distance )
         {
@@ -104,7 +104,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
 
       if (acc_offset_status)
       {
-        if (rolling_status->velocity_buffer[i] > rolling_parameter.stop_judgment_threshold)
+        if (rolling_status->velocity_buffer[i] > rolling_parameter.stop_judgement_threshold)
         {
           tf::Quaternion localization_quat;
           quaternionMsgToTF(localization_pose.pose.orientation, localization_quat);
@@ -135,7 +135,7 @@ void enable_additional_rolling_estimate(const geometry_msgs::TwistStamped veloci
   /// estimated rolling angle ///
   if (acc_y_offset->status.enabled_status)
   {
-    if (velocity.twist.linear.x > rolling_parameter.stop_judgment_threshold)
+    if (velocity.twist.linear.x > rolling_parameter.stop_judgement_threshold)
     {
       rolling_estimated_tmp = std::asin((velocity.twist.linear.x*(rolling_status->yawrate+yawrate_offset_2nd.yawrate_offset)/g)-
         (rolling_status->imu_acceleration_y-acc_y_offset->acc_y_offset)/g);

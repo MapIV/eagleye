@@ -31,9 +31,9 @@ ecef_base_pos:
 common:
   imu_rate: 50
   gnss_rate: 5
-  stop_judgment_threshold: 0.01
-  slow_judgment_threshold: 0.278
-  moving_judgment_threshold: 2.78
+  stop_judgement_threshold: 0.01
+  slow_judgement_threshold: 0.278
+  moving_judgement_threshold: 2.78
 
 velocity_scale_factor:
   estimated_minimum_interval: 20
@@ -63,7 +63,7 @@ heading:
   gnss_receiving_threshold: 0.25
   outlier_threshold: 0.0524
   outlier_ratio_threshold: 0.5
-  curve_judgment_threshold: 0.0873
+  curve_judgement_threshold: 0.0873
   init_STD: 0.0035 #[rad] (= 0.2 [deg])
 
 heading_interpolate:
@@ -76,7 +76,7 @@ slip_angle:
 slip_coefficient:
   estimated_minimum_interval: 2
   estimated_maximum_interval: 100
-  curve_judgment_threshold: 0.017453
+  curve_judgement_threshold: 0.017453
   lever_arm: 0.0
 
 rolling:
@@ -84,7 +84,7 @@ rolling:
   filter_observation_noise: 1
 
 trajectory:
-  curve_judgment_threshold: 0.017453
+  curve_judgement_threshold: 0.017453
   timer_updata_rate: 10
   deadlock_threshold: 1
   sensor_noise_velocity: 0.05
@@ -145,18 +145,18 @@ rtk_heading:
   gnss_receiving_threshold: 0.25
   outlier_threshold: 0.0524
   outlier_ratio_threshold: 0.5
-  curve_judgment_threshold: 0.0873
+  curve_judgement_threshold: 0.0873
 
 enable_additional_rolling:
   update_distance: 0.3
   moving_average_time: 1
-  sync_judgment_threshold: 0.01
+  sync_judgement_threshold: 0.01
   sync_search_period: 1
 
 velocity_estimator:
   gga_downsample_time: 0.5
-  stop_judgment_velocity_threshold: 0.2
-  stop_judgment_interval: 1
+  stop_judgement_velocity_threshold: 0.2
+  stop_judgement_interval: 1
   variance_threshold: 0.000025
   pitchrate_offset:
     estimated_interval: 8

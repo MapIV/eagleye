@@ -170,7 +170,7 @@ int main(int argc, char** argv)
 
     _position_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _position_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _position_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _position_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
     _position_parameter.estimated_interval = conf["position"]["estimated_interval"].as<double>();
     _position_parameter.update_distance = conf["position"]["update_distance"].as<double>();
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _position_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _position_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << _position_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _position_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_interval " << _position_parameter.estimated_interval << std::endl;
     std::cout << "update_distance " << _position_parameter.update_distance << std::endl;

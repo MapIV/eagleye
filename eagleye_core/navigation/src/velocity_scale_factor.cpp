@@ -91,7 +91,7 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
   if (velocity_scale_factor_status->estimated_number >= estimated_buffer_number_min &&
     velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true &&
     velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] >
-    velocity_scale_factor_parameter.moving_judgment_threshold)
+    velocity_scale_factor_parameter.moving_judgement_threshold)
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
     {
@@ -99,7 +99,7 @@ void velocity_scale_factor_estimate_(const geometry_msgs::TwistStamped velocity,
       {
         gnss_index.push_back(i);
       }
-      if (velocity_scale_factor_status->velocity_buffer[i] > velocity_scale_factor_parameter.moving_judgment_threshold)
+      if (velocity_scale_factor_status->velocity_buffer[i] > velocity_scale_factor_parameter.moving_judgement_threshold)
       {
         velocity_index.push_back(i);
       }

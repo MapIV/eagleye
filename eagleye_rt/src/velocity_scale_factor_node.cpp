@@ -73,7 +73,7 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
   _velocity = *msg;
 
-  if (!_is_first_move && msg->twist.linear.x > _velocity_scale_factor_parameter.moving_judgment_threshold)
+  if (!_is_first_move && msg->twist.linear.x > _velocity_scale_factor_parameter.moving_judgement_threshold)
   {
     _is_first_move = true;
   }
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
 
     _velocity_scale_factor_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _velocity_scale_factor_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _velocity_scale_factor_parameter.moving_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _velocity_scale_factor_parameter.moving_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
 
     _velocity_scale_factor_parameter.estimated_minimum_interval = conf["velocity_scale_factor"]["estimated_minimum_interval"].as<double>();
     _velocity_scale_factor_parameter.estimated_maximum_interval = conf["velocity_scale_factor"]["estimated_maximum_interval"].as<double>();
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _velocity_scale_factor_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _velocity_scale_factor_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << _velocity_scale_factor_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _velocity_scale_factor_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_minimum_interval " << _velocity_scale_factor_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _velocity_scale_factor_parameter.estimated_maximum_interval << std::endl;

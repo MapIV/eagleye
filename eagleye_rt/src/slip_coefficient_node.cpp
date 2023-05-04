@@ -60,7 +60,7 @@ void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
-  if (_is_first_correction_velocity == false && msg->twist.linear.x > _slip_coefficient_parameter.moving_judgment_threshold)
+  if (_is_first_correction_velocity == false && msg->twist.linear.x > _slip_coefficient_parameter.moving_judgement_threshold)
   {
     _is_first_correction_velocity = true;
   }
@@ -121,12 +121,12 @@ int main(int argc, char** argv)
     subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
     _slip_coefficient_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
-    _slip_coefficient_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    _slip_coefficient_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _slip_coefficient_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    _slip_coefficient_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
     _slip_coefficient_parameter.estimated_minimum_interval = conf["slip_coefficient"]["estimated_minimum_interval"].as<double>();
     _slip_coefficient_parameter.estimated_maximum_interval = conf["slip_coefficient"]["estimated_maximum_interval"].as<double>();
-    _slip_coefficient_parameter.curve_judgment_threshold = conf["slip_coefficient"]["curve_judgment_threshold"].as<double>();
+    _slip_coefficient_parameter.curve_judgement_threshold = conf["slip_coefficient"]["curve_judgement_threshold"].as<double>();
     _slip_coefficient_parameter.lever_arm = conf["slip_coefficient"]["lever_arm"].as<double>();
 
     std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
@@ -134,12 +134,12 @@ int main(int argc, char** argv)
     std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
     std::cout << "imu_rate " << _slip_coefficient_parameter.imu_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _slip_coefficient_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "moving_judgment_threshold " << _slip_coefficient_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _slip_coefficient_parameter.stop_judgement_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _slip_coefficient_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_minimum_interval " << _slip_coefficient_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _slip_coefficient_parameter.estimated_maximum_interval << std::endl;
-    std::cout << "curve_judgment_threshold " << _slip_coefficient_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "curve_judgement_threshold " << _slip_coefficient_parameter.curve_judgement_threshold << std::endl;
     std::cout << "lever_arm " << _slip_coefficient_parameter.lever_arm << std::endl;
   }
   catch (YAML::Exception& e)

@@ -143,24 +143,24 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     use_canless_mode_ = conf["use_canless_mode"].as<bool>();
 
     heading_interpolate_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
-    heading_interpolate_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    heading_interpolate_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     heading_interpolate_parameter_.sync_search_period = conf["heading_interpolate"]["sync_search_period"].as<double>();
     heading_interpolate_parameter_.proc_noise = conf["heading_interpolate"]["proc_noise"].as<double>();
 
     heading_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     heading_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    heading_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    heading_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    heading_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    heading_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     heading_parameter_.estimated_minimum_interval = conf["heading"]["estimated_minimum_interval"].as<double>();
     heading_parameter_.estimated_maximum_interval = conf["heading"]["estimated_maximum_interval"].as<double>();
     heading_parameter_.gnss_receiving_threshold = conf["heading"]["gnss_receiving_threshold"].as<double>();
     heading_parameter_.outlier_threshold = conf["heading"]["outlier_threshold"].as<double>();
     heading_parameter_.outlier_ratio_threshold = conf["heading"]["outlier_ratio_threshold"].as<double>();
-    heading_parameter_.curve_judgment_threshold = conf["heading"]["curve_judgment_threshold"].as<double>();
+    heading_parameter_.curve_judgement_threshold = conf["heading"]["curve_judgement_threshold"].as<double>();
     heading_parameter_.init_STD = conf["heading"]["init_STD"].as<double>();
 
     position_interpolate_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
-    position_interpolate_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    position_interpolate_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     position_interpolate_parameter_.sync_search_period = conf["position_interpolate"]["sync_search_period"].as<double>();
     position_interpolate_parameter_.proc_noise = conf["position_interpolate"]["proc_noise"].as<double>();
 
@@ -171,7 +171,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     // position_parameter_.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
     position_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     position_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    position_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    position_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     position_parameter_.estimated_interval = conf["position"]["estimated_interval"].as<double>();
     position_parameter_.update_distance = conf["position"]["update_distance"].as<double>();
     position_parameter_.outlier_threshold = conf["position"]["outlier_threshold"].as<double>();
@@ -185,23 +185,23 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     rtk_deadreckoning_parameter_.use_ecef_base_position = conf["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
     // rtk_deadreckoning_parameter_.tf_gnss_parent_frame = conf["tf_gnss_frame"]["parent"].as<std::string>();
     // rtk_deadreckoning_parameter_.tf_gnss_child_frame = conf["tf_gnss_frame"]["child"].as<std::string>();
-    rtk_deadreckoning_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    rtk_deadreckoning_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     rtk_deadreckoning_parameter_.rtk_fix_STD = conf["rtk_deadreckoning"]["rtk_fix_STD"].as<double>();
     rtk_deadreckoning_parameter_.proc_noise = conf["rtk_deadreckoning"]["proc_noise"].as<double>();
 
-    slip_angle_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    slip_angle_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     slip_angle_parameter_.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
 
     smoothing_parameter_.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     smoothing_parameter_.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
     smoothing_parameter_.ecef_base_pos_z = conf["ecef_base_pos"]["z"].as<double>();
     smoothing_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    smoothing_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    smoothing_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     smoothing_parameter_.moving_average_time = conf["smoothing"]["moving_average_time"].as<double>();
     smoothing_parameter_.moving_ratio_threshold = conf["smoothing"]["moving_ratio_threshold"].as<double>();
 
-    trajectory_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    trajectory_parameter_.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();
+    trajectory_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    trajectory_parameter_.curve_judgement_threshold = conf["trajectory"]["curve_judgement_threshold"].as<double>();
     trajectory_parameter_.sensor_noise_velocity = conf["trajectory"]["sensor_noise_velocity"].as<double>();
     trajectory_parameter_.sensor_scale_noise_velocity = conf["trajectory"]["sensor_scale_noise_velocity"].as<double>();
     trajectory_parameter_.sensor_noise_yawrate = conf["trajectory"]["sensor_noise_yawrate"].as<double>();
@@ -209,14 +209,14 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
 
     velocity_scale_factor_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     velocity_scale_factor_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    velocity_scale_factor_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    velocity_scale_factor_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     velocity_scale_factor_parameter_.estimated_minimum_interval = conf["velocity_scale_factor"]["estimated_minimum_interval"].as<double>();
     velocity_scale_factor_parameter_.estimated_maximum_interval = conf["velocity_scale_factor"]["estimated_maximum_interval"].as<double>();
     velocity_scale_factor_parameter_.gnss_receiving_threshold = conf["velocity_scale_factor"]["gnss_receiving_threshold"].as<double>();
 
     yawrate_offset_1st_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     yawrate_offset_1st_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    yawrate_offset_1st_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    yawrate_offset_1st_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     yawrate_offset_1st_parameter_.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
     yawrate_offset_1st_parameter_.estimated_maximum_interval = conf["yawrate_offset"]["1st"]["estimated_maximum_interval"].as<double>();
     yawrate_offset_1st_parameter_.gnss_receiving_threshold = conf["yawrate_offset"]["gnss_receiving_threshold"].as<double>();
@@ -224,20 +224,20 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
 
     yawrate_offset_2nd_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     yawrate_offset_2nd_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    yawrate_offset_2nd_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    yawrate_offset_2nd_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_minimum_interval = conf["yawrate_offset"]["estimated_minimum_interval"].as<double>();
     yawrate_offset_2nd_parameter_.estimated_maximum_interval = conf["yawrate_offset"]["2nd"]["estimated_maximum_interval"].as<double>();
     yawrate_offset_2nd_parameter_.gnss_receiving_threshold = conf["yawrate_offset"]["gnss_receiving_threshold"].as<double>();
     yawrate_offset_2nd_parameter_.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
 
     yawrate_offset_stop_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
-    yawrate_offset_stop_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    yawrate_offset_stop_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     yawrate_offset_stop_parameter_.estimated_interval = conf["yawrate_offset_stop"]["estimated_interval"].as<double>();
     yawrate_offset_stop_parameter_.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
 
     height_parameter_.imu_rate = conf["common"]["imu_rate"].as<double>();
     height_parameter_.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    height_parameter_.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    height_parameter_.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     height_parameter_.estimated_minimum_interval = conf["height"]["estimated_minimum_interval"].as<double>();
     height_parameter_.estimated_maximum_interval = conf["height"]["estimated_maximum_interval"].as<double>();
     height_parameter_.update_distance = conf["height"]["update_distance"].as<double>();
@@ -246,7 +246,7 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     height_parameter_.outlier_ratio_threshold = conf["height"]["outlier_ratio_threshold"].as<double>();
     height_parameter_.moving_average_time = conf["height"]["moving_average_time"].as<double>();
 
-    rolling_parameter_.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    rolling_parameter_.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     rolling_parameter_.filter_process_noise = conf["rolling"]["filter_process_noise"].as<double>();
     rolling_parameter_.filter_observation_noise = conf["rolling"]["filter_observation_noise"].as<double>();
   }

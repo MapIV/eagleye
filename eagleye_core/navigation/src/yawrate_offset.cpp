@@ -100,7 +100,7 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
 
   bool estimated_condition_status;
   if (yawrate_offset_status->estimated_preparation_conditions == 2 &&
-    yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.moving_judgment_threshold &&
+    yawrate_offset_status->correction_velocity_buffer[yawrate_offset_status->estimated_number-1] > yawrate_offset_parameter.moving_judgement_threshold &&
     yawrate_offset_status->heading_estimate_status_buffer[yawrate_offset_status->estimated_number-1] == true)
   {
     estimated_condition_status = true;
@@ -118,7 +118,7 @@ void yawrate_offset_estimate(const geometry_msgs::TwistStamped velocity, const e
   {
     for (int i = 0; i < yawrate_offset_status->estimated_number; i++)
     {
-      if (yawrate_offset_status->correction_velocity_buffer[i] > yawrate_offset_parameter.moving_judgment_threshold)
+      if (yawrate_offset_status->correction_velocity_buffer[i] > yawrate_offset_parameter.moving_judgement_threshold)
       {
         velocity_index.push_back(i);
       }

@@ -74,7 +74,7 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
   yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) > slip_coefficient_parameter.stop_judgement_threshold)
   {
     yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
   }
@@ -87,8 +87,8 @@ void slip_coefficient_estimate(sensor_msgs::Imu imu,rtklib_msgs::RtklibNav rtkli
 
   if (heading_interpolate_3rd.status.estimate_status == true)
   {
-    if ((velocity.twist.linear.x > slip_coefficient_parameter.moving_judgment_threshold) &&
-      (fabs(yawrate) > slip_coefficient_parameter.curve_judgment_threshold))
+    if ((velocity.twist.linear.x > slip_coefficient_parameter.moving_judgement_threshold) &&
+      (fabs(yawrate) > slip_coefficient_parameter.curve_judgement_threshold))
     {
       double imu_heading;
 

@@ -70,7 +70,7 @@ eagleye_log:
 param:
   reverse_imu_flag: False
   plane_num: 7 # Plane Cartesian coordinate system number (default:7 = 7)
-  sync_threshold_time_data_param: 0.01 # Time threshold for judgment at synchronized. (default:0.01 = 0.01[s])
+  sync_threshold_time_data_param: 0.01 # Time threshold for judgement at synchronized. (default:0.01 = 0.01[s])
   leap_time_param: 0.0 # Offset correction for time synchronization. (default:0.0 = 0.0[s])
   tf_x_param: 0.0 # Correction amount in East-West direction[m]
   tf_y_param: 0.0 # Correction amount in North-South direction[m]

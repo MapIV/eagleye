@@ -49,7 +49,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
 
   yawrate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgement_threshold)
   {
     yawrate += yawrate_offset.yawrate_offset;
   }
@@ -75,7 +75,7 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   }
 
   if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) >
-    heading_interpolate_parameter.stop_judgment_threshold)
+    heading_interpolate_parameter.stop_judgement_threshold)
   {
     double dt = imu.header.stamp.toSec() - heading_interpolate_status->time_last;
     heading_interpolate_status->provisional_heading_angle += yawrate * dt;

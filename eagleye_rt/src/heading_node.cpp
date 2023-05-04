@@ -83,7 +83,7 @@ void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& msg)
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
   _velocity = *msg;
-  if (!_is_first_correction_velocity && msg->twist.linear.x > _heading_parameter.moving_judgment_threshold)
+  if (!_is_first_correction_velocity && msg->twist.linear.x > _heading_parameter.moving_judgement_threshold)
   {
     _is_first_correction_velocity = true;
   }
@@ -166,14 +166,14 @@ int main(int argc, char** argv)
 
     _heading_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _heading_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _heading_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    _heading_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _heading_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    _heading_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
     _heading_parameter.estimated_minimum_interval = conf["heading"]["estimated_minimum_interval"].as<double>();
     _heading_parameter.estimated_maximum_interval = conf["heading"]["estimated_maximum_interval"].as<double>();
     _heading_parameter.gnss_receiving_threshold = conf["heading"]["gnss_receiving_threshold"].as<double>();
     _heading_parameter.outlier_threshold = conf["heading"]["outlier_threshold"].as<double>();
     _heading_parameter.outlier_ratio_threshold = conf["heading"]["outlier_ratio_threshold"].as<double>();
-    _heading_parameter.curve_judgment_threshold = conf["heading"]["curve_judgment_threshold"].as<double>();
+    _heading_parameter.curve_judgement_threshold = conf["heading"]["curve_judgement_threshold"].as<double>();
     _heading_parameter.init_STD = conf["heading"]["init_STD"].as<double>();
 
     std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
@@ -183,15 +183,15 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _heading_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _heading_parameter.gnss_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _heading_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "moving_judgment_threshold " << _heading_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _heading_parameter.stop_judgement_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _heading_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_minimum_interval " << _heading_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _heading_parameter.estimated_maximum_interval << std::endl;
     std::cout << "gnss_receiving_threshold " << _heading_parameter.gnss_receiving_threshold << std::endl;
     std::cout << "outlier_threshold " << _heading_parameter.outlier_threshold << std::endl;
     std::cout << "outlier_ratio_threshold " << _heading_parameter.outlier_ratio_threshold << std::endl;
-    std::cout << "curve_judgment_threshold " << _heading_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "curve_judgement_threshold " << _heading_parameter.curve_judgement_threshold << std::endl;
     std::cout << "init_STD " << _heading_parameter.init_STD << std::endl;
   }
   catch (YAML::Exception& e)

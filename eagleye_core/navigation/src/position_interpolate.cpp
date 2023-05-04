@@ -73,7 +73,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
   }
 
   if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) +
-    (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_threshold)
+    (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgement_threshold)
   {
     position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x *
       (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
@@ -184,7 +184,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
       position_covariance = init_covariance;
       position_interpolate_status->position_covariance_last = position_covariance;
     }
-    else if (velocity > position_interpolate_parameter.stop_judgment_threshold)
+    else if (velocity > position_interpolate_parameter.stop_judgement_threshold)
     {
       Eigen::MatrixXd jacobian;
       jacobian = Eigen::MatrixXd::Zero(6, 6);

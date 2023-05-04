@@ -107,10 +107,10 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _slip_angle_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _slip_angle_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _slip_angle_parameter.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
 
-    std::cout << "stop_judgment_threshold " << _slip_angle_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _slip_angle_parameter.stop_judgement_threshold << std::endl;
     std::cout << "manual_coefficient " << _slip_angle_parameter.manual_coefficient << std::endl;
   }
   catch (YAML::Exception& e)

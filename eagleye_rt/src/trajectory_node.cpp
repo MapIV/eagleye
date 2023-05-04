@@ -177,8 +177,8 @@ int main(int argc, char** argv)
 
     _use_canless_mode = conf["use_canless_mode"].as<bool>();
 
-    _trajectory_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
-    _trajectory_parameter.curve_judgment_threshold = conf["trajectory"]["curve_judgment_threshold"].as<double>();
+    _trajectory_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
+    _trajectory_parameter.curve_judgement_threshold = conf["trajectory"]["curve_judgement_threshold"].as<double>();
 
     _trajectory_parameter.sensor_noise_velocity = conf["trajectory"]["sensor_noise_velocity"].as<double>();
     _trajectory_parameter.sensor_scale_noise_velocity = conf["trajectory"]["sensor_scale_noise_velocity"].as<double>();
@@ -192,8 +192,8 @@ int main(int argc, char** argv)
 
     std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
 
-    std::cout << "stop_judgment_threshold " << _trajectory_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "curve_judgment_threshold " << _trajectory_parameter.curve_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _trajectory_parameter.stop_judgement_threshold << std::endl;
+    std::cout << "curve_judgement_threshold " << _trajectory_parameter.curve_judgement_threshold << std::endl;
 
     std::cout << "sensor_noise_velocity " << _trajectory_parameter.sensor_noise_velocity << std::endl;
     std::cout << "sensor_scale_noise_velocity " << _trajectory_parameter.sensor_scale_noise_velocity << std::endl;
