@@ -47,7 +47,7 @@ jobs:
           cd ~/eagleye/
           source /opt/ros/noetic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
-          catkin_make -DCMAKE_BUILD_TYPE=Release -j1
+          catkin_make -DCMAKE_BUILD_TYPE=Release -j2
 
       - name: eagleye_pp
         run: |

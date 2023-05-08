@@ -29,6 +29,7 @@
  */
 
 #include "ros/ros.h"
+#include "ros/package.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include "sensor_msgs/NavSatFix.h"
@@ -39,6 +40,7 @@
 #include "tf/transform_broadcaster.h"
 #include "coordinate/coordinate.hpp"
 #include "llh_converter/llh_converter.hpp"
+#include <llh_converter/meridian_convergence_angle_correction.hpp>
 
 #include <tf2_ros/transform_listener.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -55,7 +57,8 @@ static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 
 static std::string _parent_frame_id, _child_frame_id, _base_link_frame_id, _gnss_frame_id;
 
-llh_converter::LLHConverter _lc;
+std::string geoid_file_path = ros::package::getPath("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
+llh_converter::LLHConverter _lc(geoid_file_path);
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
@@ -114,6 +117,19 @@ void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::Transfor
   if (_eagleye_heading_ptr != nullptr)
   {
     eagleye_heading = fmod((90* M_PI / 180) - _eagleye_heading_ptr->heading_angle, 2*M_PI);
+
+    // meridian convergence angle correction
+    llh_converter::LLA lla_struct;
+    llh_converter::XYZ xyz_struct;
+    lla_struct.latitude = msg->latitude;
+    lla_struct.longitude = msg->longitude;
+    lla_struct.altitude = msg->altitude;
+    xyz_struct.x = xyz[0];
+    xyz_struct.y = xyz[1];
+    xyz_struct.z = xyz[2];
+    double mca = llh_converter::getMeridianConvergence(lla_struct, xyz_struct, _lc, _llh_param); // meridian convergence angle
+    eagleye_heading += mca;
+
     tf::Quaternion tf_quat = tf::createQuaternionFromRPY(_eagleye_rolling.rolling_angle,
       _eagleye_pitching.pitching_angle, eagleye_heading);
     quaternionTFToMsg(tf_quat, _quat);
