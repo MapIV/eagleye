@@ -114,13 +114,11 @@
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
 
-    <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
+    <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.launch.xml">
              <arg name="config_yaml" value="$(var config_yaml)"/>
      </include>
   </group>
 
-
-
-  <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
+  <include file="$(find-pkg-share eagleye_tf)/launch/tf.launch.xml" if="$(var use_tf)"/>
 
 </launch>

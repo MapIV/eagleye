@@ -109,11 +109,11 @@
     </node>
   </group>
 
-  <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
+  <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.launch.xml">
         <arg name="sub_topic_name" value="nmea_sentence"/>
         <arg name="pub_fix_topic_name" value="navsat/fix"/>
   </include>
 
-  <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
+  <include file="$(find-pkg-share eagleye_tf)/launch/tf.launch.xml" if="$(var use_tf)"/>
 
 </launch>
