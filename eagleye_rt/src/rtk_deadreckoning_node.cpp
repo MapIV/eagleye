@@ -103,8 +103,8 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
       _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);
   else if (_use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA") // use NMEA mode
     rtk_deadreckoning_estimate(_enu_vel, _gga, _heading_interpolate_3rd,
-      _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);    
-  
+      _rtk_deadreckoning_parameter, &_rtk_deadreckoning_status, &_enu_absolute_rtk_deadreckoning, &_eagleye_fix);
+
   if(_enu_absolute_rtk_deadreckoning.status.enabled_status)
   {
     _pub1.publish(_enu_absolute_rtk_deadreckoning);
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = nh.subscribe("enu_vel", 1000, enu_vel_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe(subscribe_gga_topic_name, 1000, gga_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  
+
   _pub1 = nh.advertise<eagleye_msgs::Position>("enu_absolute_pos_interpolate", 1000);
   _pub2 = nh.advertise<sensor_msgs::NavSatFix>("fix", 1000);
 

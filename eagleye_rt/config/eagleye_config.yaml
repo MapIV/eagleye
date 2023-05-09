@@ -19,6 +19,9 @@ tf_gnss_frame:
   parent: "base_link"
   child: "gnss"
 
+reverse_imu_wz: false
+reverse_imu_ax: false
+
 # Origin of GNSS coordinates (ECEF to ENU)
 ecef_base_pos:
   x : 0.0
