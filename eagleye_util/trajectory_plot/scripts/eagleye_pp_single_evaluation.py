@@ -33,6 +33,7 @@ from typing import List
 import pandas as pd
 import sys
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import util.preprocess as util_prepro
 import util.calc as util_calc
@@ -122,4 +123,4 @@ if __name__ == "__main__":
     ax_vel.grid()
 
     plt.show()
-    
+
