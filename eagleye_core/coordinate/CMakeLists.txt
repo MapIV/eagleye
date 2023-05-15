@@ -16,7 +16,7 @@ ament_auto_find_build_dependencies()
 find_package(PkgConfig)
 find_package(geodesy)
 find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
-  PAHT_SUFFIXES GeographicLib
+  PATH_SUFFIXES GeographicLib
 )
 set(GeographicLib_LIBRARIES
   NAMES Geographic
