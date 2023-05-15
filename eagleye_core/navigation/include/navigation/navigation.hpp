@@ -97,9 +97,9 @@ struct YawrateOffsetStopParameter
 struct YawrateOffsetStopStatus
 {
   int stop_count;
-  double yawrate_offset_stop_last;
+  double yaw_rate_offset_stop_last;
   bool estimate_start_status;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
 };
 
 struct YawrateOffsetParameter
@@ -120,11 +120,11 @@ struct YawrateOffsetStatus
   int heading_estimate_status_count;
   int estimated_number;
   std::vector<double> time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> heading_angle_buffer;
   std::vector<double> correction_velocity_buffer;
   std::vector<bool> heading_estimate_status_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
 };
 
 struct HeadingParameter
@@ -150,10 +150,10 @@ struct HeadingStatus
   int estimated_number;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
 };
@@ -180,10 +180,10 @@ struct RtkHeadingStatus
   double last_rtk_heading_angle;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
   std::vector<double> distance_buffer;
@@ -333,8 +333,8 @@ struct TrajectoryParameter
   double curve_judgement_threshold;
   double sensor_noise_velocity;
   double sensor_scale_noise_velocity;
-  double sensor_noise_yawrate;
-  double sensor_bias_noise_yawrate;
+  double sensor_noise_yaw_rate;
+  double sensor_bias_noise_yaw_rate;
 };
 
 struct TrajectoryStatus
@@ -440,7 +440,7 @@ struct EnableAdditionalRollingStatus
 {
   double distance_last;
   double acc_offset_sum;
-  double yawrate;
+  double yaw_rate;
   double rollrate;
   double imu_acceleration_y;
   double rollrate_offset_stop;
@@ -450,9 +450,9 @@ struct EnableAdditionalRollingStatus
   std::vector<double> roll_rate_interpolate_buffer;
   std::vector<double> rolling_estimated_buffer;
   std::vector<double> imu_time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> velocity_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> acceleration_y_buffer;
   std::vector<double> distance_buffer;
 };
@@ -477,9 +477,9 @@ extern void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav, const g
 extern void velocity_scale_factor_estimate(const nmea_msgs::Gprmc, const geometry_msgs::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, geometry_msgs::TwistStamped*, eagleye_msgs::VelocityScaleFactor*);
 extern void distance_estimate(const geometry_msgs::TwistStamped, DistanceStatus*,eagleye_msgs::Distance*);
-extern void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter,
+extern void yaw_rate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter,
   YawrateOffsetStopStatus*, eagleye_msgs::YawrateOffset*);
-extern void yawrate_offset_estimate(const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,
+extern void yaw_rate_offset_estimate(const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,
   const sensor_msgs::Imu, const YawrateOffsetParameter, YawrateOffsetStatus*, eagleye_msgs::YawrateOffset*);
 extern void heading_estimate(const rtklib_msgs::RtklibNav, const sensor_msgs::Imu, const geometry_msgs::TwistStamped,
   const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter,
@@ -511,9 +511,9 @@ extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,cons
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,
   geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
-extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
+extern void rtk_dead_reckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
-extern void rtk_deadreckoning_estimate(const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
+extern void rtk_dead_reckoning_estimate(const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void rtk_heading_estimate(const nmea_msgs::Gpgga gga, const sensor_msgs::Imu, const geometry_msgs::TwistStamped, const eagleye_msgs::Distance,
   const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const RtkHeadingParameter,

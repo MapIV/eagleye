@@ -1,4 +1,4 @@
 Header header
 
-float64 yawrate_offset
+float64 yaw_rate_offset
 eagleye_msgs/Status status

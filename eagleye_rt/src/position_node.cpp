@@ -50,7 +50,7 @@ struct PositionParameter _position_parameter;
 struct PositionStatus _position_status;
 
 static std::string _use_gnss_mode;
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -111,10 +111,10 @@ void timer_callback(const ros::TimerEvent& e, tf2_ros::TransformListener* tf_lis
 
 void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   eagleye_msgs::StatusStamped velocity_enable_status;
-  if(_use_canless_mode)
+  if(_use_can_less_mode)
   {
     velocity_enable_status = _velocity_status;
   }
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _use_gnss_mode = conf["use_gnss_mode"].as<std::string>();
-    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+    _use_can_less_mode = conf["use_can_less_mode"].as<bool>();
 
     _position_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     _position_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     _position_parameter.gnss_error_covariance = conf["position"]["gnss_error_covariance"].as<double>();
     
     std::cout<< "use_gnss_mode " << _use_gnss_mode << std::endl;
-    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
 
     std::cout<< "ecef_base_pos_x " << _position_parameter.ecef_base_pos_x << std::endl;
     std::cout<< "ecef_base_pos_y " << _position_parameter.ecef_base_pos_y << std::endl;

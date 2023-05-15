@@ -49,7 +49,7 @@ imu:
     pitch: 0 # [rad]
     yaw: 0 # [rad]
 
-use_canless_mode: false  #Estimate mode
+use_can_less_mode: false  #Estimate mode
 
 # Topic
 twist_topic: /can_twist
@@ -85,11 +85,11 @@ velocity_scale_factor:
   save_velocity_scale_factor: false
   velocity_scale_factor_save_duration: 100.0
 
-yawrate_offset_stop:
+yaw_rate_offset_stop:
   estimated_interval: 4
   outlier_threshold: 0.002
 
-yawrate_offset:
+yaw_rate_offset:
   estimated_minimum_interval: 30
   gnss_receiving_threshold: 0.25
   outlier_threshold: 0.002
@@ -130,8 +130,8 @@ trajectory:
   deadlock_threshold: 1
   sensor_noise_velocity: 0.05
   sensor_scale_noise_velocity: 0.02
-  sensor_noise_yawrate: 0.01
-  sensor_bias_noise_yawrate: 0.1
+  sensor_noise_yaw_rate: 0.01
+  sensor_bias_noise_yaw_rate: 0.1
 
 smoothing:
   moving_average_time: 3
@@ -163,7 +163,7 @@ angular_velocity_offset_stop:
   estimated_interval: 4
   outlier_threshold: 0.002
 
-rtk_deadreckoning:
+rtk_dead_reckoning:
   rtk_fix_STD: 0.3 #[m]
   proc_noise: 0.05 #[m]
 

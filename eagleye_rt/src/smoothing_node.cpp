@@ -41,7 +41,7 @@ static ros::Publisher _pub;
 struct SmoothingParameter _smoothing_parameter;
 struct SmoothingStatus _smoothing_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
@@ -55,7 +55,7 @@ void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   _rtklib_nav = *msg;
   _gnss_smooth_pos_enu.header = msg->header;
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+    _use_can_less_mode = conf["use_can_less_mode"].as<bool>();
 
     _smoothing_parameter.ecef_base_pos_x = conf["ecef_base_pos"]["x"].as<double>();
     _smoothing_parameter.ecef_base_pos_y = conf["ecef_base_pos"]["y"].as<double>();
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
     _smoothing_parameter.moving_average_time = conf["smoothing"]["moving_average_time"].as<double>();
     _smoothing_parameter.moving_ratio_threshold = conf["smoothing"]["moving_ratio_threshold"].as<double>();
 
-    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 

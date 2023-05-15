@@ -62,11 +62,11 @@ int main(int argc, char *argv[]) {
   eagleye_pp_instance.setParam(config_file, &twist_topic, &imu_topic, &rtklib_nav_topic, &nmea_sentence_topic);
 
   std::string use_gnss_mode = eagleye_pp_instance.getUseGNSSMode();
-  bool use_canless_mode = eagleye_pp_instance.getUseCanlessMode();
+  bool use_can_less_mode = eagleye_pp_instance.getUseCanlessMode();
 
   std::cout << "Estimate mode (GNSS) " << use_gnss_mode << std::endl;
 
-  if (!rosbag_controller.setTopic(twist_topic) && !use_canless_mode) {
+  if (!rosbag_controller.setTopic(twist_topic) && !use_can_less_mode) {
     print_error_and_exit("Cannot find the topic: " + twist_topic);
   }
 

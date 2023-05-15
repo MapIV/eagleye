@@ -47,7 +47,7 @@ static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
 struct HeightParameter _height_parameter;
 struct HeightStatus _height_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
@@ -71,7 +71,7 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
   
   _imu = *msg;
   _height.header = msg->header;

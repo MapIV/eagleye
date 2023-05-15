@@ -38,8 +38,8 @@ static eagleye_msgs::StatusStamped _velocity_status;
 static geometry_msgs::TwistStamped _correction_velocity;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_2nd;
 static eagleye_msgs::Pitching _pitching;
 
 static geometry_msgs::Vector3Stamped _enu_vel;
@@ -60,7 +60,7 @@ static double _deadlock_threshold = 1;
 static double _imu_time_last, _velocity_time_last;
 static bool _input_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 
 void correction_velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
@@ -83,14 +83,14 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
   _heading_interpolate_3rd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_2nd = *msg;
+  _yaw_rate_offset_2nd = *msg;
 }
 
 void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
@@ -123,10 +123,10 @@ void timer_callback(const ros::TimerEvent& e)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   eagleye_msgs::StatusStamped velocity_enable_status;
-  if(_use_canless_mode)
+  if(_use_can_less_mode)
   {
     velocity_enable_status = _velocity_status;
   }
@@ -145,8 +145,8 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     _enu_relative_pos.header.frame_id = "base_link";
     _eagleye_twist.header = msg->header;
     _eagleye_twist.header.frame_id = "base_link";
-    trajectory3d_estimate(_imu, _correction_velocity, velocity_enable_status, _heading_interpolate_3rd, _yawrate_offset_stop, 
-      _yawrate_offset_2nd, _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist,
+    trajectory3d_estimate(_imu, _correction_velocity, velocity_enable_status, _heading_interpolate_3rd, _yaw_rate_offset_stop, 
+      _yaw_rate_offset_2nd, _pitching, _trajectory_parameter, &_trajectory_status, &_enu_vel, &_enu_relative_pos, &_eagleye_twist,
       &_eagleye_twist_with_covariance);
 
     if(_heading_interpolate_3rd.status.enabled_status)
@@ -175,20 +175,20 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+    _use_can_less_mode = conf["use_can_less_mode"].as<bool>();
 
     _trajectory_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _trajectory_parameter.curve_judgement_threshold = conf["trajectory"]["curve_judgement_threshold"].as<double>();
 
     _trajectory_parameter.sensor_noise_velocity = conf["trajectory"]["sensor_noise_velocity"].as<double>();
     _trajectory_parameter.sensor_scale_noise_velocity = conf["trajectory"]["sensor_scale_noise_velocity"].as<double>();
-    _trajectory_parameter.sensor_noise_yawrate = conf["trajectory"]["sensor_noise_yawrate"].as<double>();
-    _trajectory_parameter.sensor_bias_noise_yawrate = conf["trajectory"]["sensor_bias_noise_yawrate"].as<double>();
+    _trajectory_parameter.sensor_noise_yaw_rate = conf["trajectory"]["sensor_noise_yaw_rate"].as<double>();
+    _trajectory_parameter.sensor_bias_noise_yaw_rate = conf["trajectory"]["sensor_bias_noise_yaw_rate"].as<double>();
 
     _timer_updata_rate = conf["trajectory"]["timer_updata_rate"].as<double>();
     _deadlock_threshold = conf["trajectory"]["deadlock_threshold"].as<double>();
 
-    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
 
@@ -197,8 +197,8 @@ int main(int argc, char** argv)
 
     std::cout << "sensor_noise_velocity " << _trajectory_parameter.sensor_noise_velocity << std::endl;
     std::cout << "sensor_scale_noise_velocity " << _trajectory_parameter.sensor_scale_noise_velocity << std::endl;
-    std::cout << "sensor_noise_yawrate " << _trajectory_parameter.sensor_noise_yawrate << std::endl;
-    std::cout << "sensor_bias_noise_yawrate " << _trajectory_parameter.sensor_bias_noise_yawrate << std::endl;
+    std::cout << "sensor_noise_yaw_rate " << _trajectory_parameter.sensor_noise_yaw_rate << std::endl;
+    std::cout << "sensor_bias_noise_yaw_rate " << _trajectory_parameter.sensor_bias_noise_yaw_rate << std::endl;
 
     std::cout << "timer_updata_rate " << _timer_updata_rate << std::endl;
     std::cout << "deadlock_threshold " << _deadlock_threshold << std::endl;
@@ -215,8 +215,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub4 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub9 = nh.subscribe("pitching", 1000, pitching_callback, ros::TransportHints().tcpNoDelay());
   _pub1 = nh.advertise<geometry_msgs::Vector3Stamped>("enu_vel", 1000);
   _pub2 = nh.advertise<eagleye_msgs::Position>("enu_relative_pos", 1000);

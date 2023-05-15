@@ -459,9 +459,9 @@ def calc_dr_eagleye(TimeStamp,distance,eagleye_twist_data,ref_heading,ref_xyz,di
                     data_set_flag = False
                     continue
                 if eagleye_twist_data['velocity'][j] > velocity_stop_threshold:
-                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yawrate_offset'][j]) * (TimeStamp[j] - last_time)
+                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yaw_rate_offset'][j]) * (TimeStamp[j] - last_time)
                 else:
-                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yawrate_offset_stop'][j]) * (TimeStamp[j] - last_time)
+                    heading_integtation = last_heading_integtation + (eagleye_twist_data['angular_z'][j] + eagleye_twist_data['yaw_rate_offset_stop'][j]) * (TimeStamp[j] - last_time)
                 if eagleye_twist_data['velocity'][j] > velocity_slip_threshold:
                     heading_correction_slip = heading_integtation + eagleye_twist_data['slip'][j]
                 else:
