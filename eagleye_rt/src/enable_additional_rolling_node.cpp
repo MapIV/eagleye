@@ -35,8 +35,8 @@ static ros::Publisher _pub1, _pub2;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
-static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_2nd;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
 static eagleye_msgs::Distance _distance;
 static geometry_msgs::PoseStamped _localization_pose;
 static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
@@ -48,7 +48,7 @@ static eagleye_msgs::AccYOffset _acc_y_offset;
 struct EnableAdditionalRollingParameter _rolling_parameter;
 struct EnableAdditionalRollingStatus _rolling_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
@@ -70,14 +70,14 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
   _distance = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr &msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr &msg)
 {
-  _yawrate_offset_2nd = *msg;
+  _yaw_rate_offset_2nd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr &msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr &msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
 void localization_pose_callback(const geometry_msgs::PoseStamped::ConstPtr &msg)
@@ -92,10 +92,10 @@ void angular_velocity_offset_stop_callback(const eagleye_msgs::AngularVelocityOf
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr &msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   eagleye_msgs::StatusStamped velocity_enable_status;
-  if(_use_canless_mode)
+  if(_use_can_less_mode)
   {
     velocity_enable_status = _velocity_status;
   }
@@ -110,7 +110,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr &msg)
   _acc_y_offset.header.frame_id = "imu";
   _rolling_angle.header = msg->header;
   _rolling_angle.header.frame_id = "base_link";
-  enable_additional_rolling_estimate(_velocity, velocity_enable_status, _yawrate_offset_2nd, _yawrate_offset_stop, _distance, _imu,
+  enable_additional_rolling_estimate(_velocity, velocity_enable_status, _yaw_rate_offset_2nd, _yaw_rate_offset_stop, _distance, _imu,
     _localization_pose, _angular_velocity_offset_stop, _rolling_parameter, &_rolling_status, &_rolling_angle, &_acc_y_offset);
   _pub1.publish(_acc_y_offset);
   _pub2.publish(_rolling_angle);
@@ -158,8 +158,8 @@ int main(int argc, char** argv)
   }
 
   ros::Subscriber sub1 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub2 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback , ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub2 = nh.subscribe("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback , ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("distance", 1000, distance_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe(subscribe_localization_pose_topic_name, 1000, localization_pose_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback , ros::TransportHints().tcpNoDelay());

@@ -133,7 +133,7 @@ Clone and build the necessary packages for Eagleye.
 
 ## Optional Features
 
-### canless mode
+### can_less mode
 
 While normal eagleye requires CAN (wheel speed) information, this option allows localization estimation with GNSS/IMU alone, without vehicle speed.
 
@@ -143,8 +143,8 @@ However, in this mode, note the following
 - Localization estimating is not possible when driving backward.
 
 To use this mode
-- Use launch/eagleye_rt_canless.launch for eagleye_rt instead of launch/eagleye_rt.launch.
-- Set use_canless_mode in eagleye_pp_config.yaml to true for eagleye_pp.
+- Use launch/eagleye_rt_can_less.launch for eagleye_rt instead of launch/eagleye_rt.launch.
+- Set use_can_less_mode in eagleye_pp_config.yaml to true for eagleye_pp.
 
 ### dual antenna mode
 

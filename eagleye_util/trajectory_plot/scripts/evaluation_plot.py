@@ -140,10 +140,10 @@ if __name__ == "__main__":
             eagleye_rpy['yaw'] = -1 * eagleye_rpy['yaw']
             if 'angular_z' in data_df.columns:
                 data_df['angular_z'] = -1 * data_df['angular_z']
-            if 'yawrate_offset_stop' in data_df.columns:
-                data_df['yawrate_offset_stop'] = -1 * data_df['yawrate_offset_stop']
-            if 'yawrate_offset' in data_df.columns:
-                data_df['yawrate_offset'] = -1 * data_df['yawrate_offset']
+            if 'yaw_rate_offset_stop' in data_df.columns:
+                data_df['yaw_rate_offset_stop'] = -1 * data_df['yaw_rate_offset_stop']
+            if 'yaw_rate_offset' in data_df.columns:
+                data_df['yaw_rate_offset'] = -1 * data_df['yaw_rate_offset']
             if 'slip' in data_df.columns:
                 data_df['slip'] = -1 * data_df['slip']
         eagleye_rpy['yaw'] = eagleye_rpy['yaw'] + tf_yaw
@@ -195,11 +195,11 @@ if __name__ == "__main__":
         ax1.set_xticks([0.01, 0.05, 0.1, 0.5, 1, 3])
 
     # twist Performance Evaluation
-    if 'vel_x' in data_df.columns and 'vel_y' in data_df.columns and 'yawrate_offset_stop' in data_df.columns and 'yawrate_offset' in data_df.columns and 'slip' in data_df.columns:
+    if 'vel_x' in data_df.columns and 'vel_y' in data_df.columns and 'yaw_rate_offset_stop' in data_df.columns and 'yaw_rate_offset' in data_df.columns and 'slip' in data_df.columns:
         print("start calc relative position")
         eagleye_vel_xyz = pd.concat([data_df['vel_x'],data_df['vel_y'],data_df['vel_z']],axis=1)
         ref_xyz = pd.concat([ref_df['x'],ref_df['y'],ref_df['z']],axis=1)
-        eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yawrate_offset_stop'],data_df['yawrate_offset'],data_df['velocity'],data_df['slip']],axis=1)
+        eagleye_twist_data = pd.concat([data_df['angular_z'],data_df['yaw_rate_offset_stop'],data_df['yaw_rate_offset'],data_df['velocity'],data_df['slip']],axis=1)
         calc_error, dr_trajcetory = util_calc.calc_dr_eagleye(ref_df["TimeStamp"],data_df["distance"],eagleye_twist_data,np.deg2rad(ref_rpy["yaw"]),ref_xyz,distance_length,distance_step,based_heaing_angle)
         print("finished calc relative position")
 

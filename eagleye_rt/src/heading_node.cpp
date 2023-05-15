@@ -38,8 +38,8 @@ static eagleye_msgs::Heading _multi_antenna_heading;
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset;
 static eagleye_msgs::SlipAngle _slip_angle;
 static eagleye_msgs::Heading _heading_interpolate;
 
@@ -50,7 +50,7 @@ struct HeadingParameter _heading_parameter;
 struct HeadingStatus _heading_status;
 
 static std::string _use_gnss_mode;
-static bool _use_canless_mode = false;
+static bool _use_can_less_mode = false;
 static bool _use_multi_antenna_mode = false;
 
 bool _is_first_correction_velocity = false;
@@ -94,14 +94,14 @@ void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
   _velocity_status = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset = *msg;
+  _yaw_rate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
@@ -117,8 +117,8 @@ void heading_interpolate_callback(const eagleye_msgs::Heading::ConstPtr& msg)
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   if (!_is_first_correction_velocity) return;
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
-  if(!_yawrate_offset_stop.status.enabled_status){
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
+  if(!_yaw_rate_offset_stop.status.enabled_status){
     ROS_WARN("Heading estimation is not started because the stop calibration is not yet completed");
     return;
   }
@@ -130,13 +130,13 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   bool use_rtklib_mode = _use_gnss_mode == "rtklib" || _use_gnss_mode == "RTKLIB";
   bool use_nmea_mode = _use_gnss_mode == "nmea" || _use_gnss_mode == "NMEA";
   if (use_rtklib_mode && !_use_multi_antenna_mode) // use RTKLIB mode
-    heading_estimate(_rtklib_nav, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle, 
+    heading_estimate(_rtklib_nav, _imu, _velocity, _yaw_rate_offset_stop, _yaw_rate_offset, _slip_angle, 
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
   else if (use_nmea_mode && !_use_multi_antenna_mode) // use NMEA mode
-    heading_estimate(_nmea_rmc, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
+    heading_estimate(_nmea_rmc, _imu, _velocity, _yaw_rate_offset_stop, _yaw_rate_offset, _slip_angle,
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
   else if (_use_multi_antenna_mode)
-    heading_estimate(_multi_antenna_heading, _imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _slip_angle,
+    heading_estimate(_multi_antenna_heading, _imu, _velocity, _yaw_rate_offset_stop, _yaw_rate_offset, _slip_angle,
       _heading_interpolate, _heading_parameter, &_heading_status, &_heading);
 
   if (_heading.status.estimate_status || _use_multi_antenna_mode)
@@ -209,19 +209,19 @@ int main(int argc, char** argv)
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "heading_1st";
-      subscribe_topic_name = "yawrate_offset_stop";
+      subscribe_topic_name = "yaw_rate_offset_stop";
       subscribe_topic_name2 = "heading_interpolate_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "heading_2nd";
-      subscribe_topic_name = "yawrate_offset_1st";
+      subscribe_topic_name = "yaw_rate_offset_1st";
       subscribe_topic_name2 = "heading_interpolate_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
       publish_topic_name = "heading_3rd";
-      subscribe_topic_name = "yawrate_offset_2nd";
+      subscribe_topic_name = "yaw_rate_offset_2nd";
       subscribe_topic_name2 = "heading_interpolate_3rd";
     }
     else
@@ -242,8 +242,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub4 = nh.subscribe("gnss_compass_pose", 1000, pose_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub5 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub7 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub8 = nh.subscribe(subscribe_topic_name, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub7 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub8 = nh.subscribe(subscribe_topic_name, 1000, yaw_rate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub9 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub10 = nh.subscribe(subscribe_topic_name2, 1000, heading_interpolate_callback, ros::TransportHints().tcpNoDelay());
 

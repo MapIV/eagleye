@@ -307,9 +307,9 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
 ,heading_interpolate_2nd.heading_angle,heading_interpolate_2nd.variance,heading_interpolate_2nd.status.enabled_status,heading_interpolate_2nd.status.estimate_status\
 ,heading_3rd.heading_angle,heading_3rd.variance,heading_3rd.status.enabled_status,heading_3rd.status.estimate_status\
 ,heading_interpolate_3rd.heading_angle,heading_interpolate_3rd.variance,heading_interpolate_3rd.status.enabled_status,heading_interpolate_3rd.status.estimate_status\
-,yawrate_offset_stop.yawrate_offset,yawrate_offset_stop.status.enabled_status,yawrate_offset_stop.status.estimate_status\
-,yawrate_offset_1st.yawrate_offset,yawrate_offset_1st.status.enabled_status,yawrate_offset_1st.status.estimate_status\
-,yawrate_offset_2nd.yawrate_offset,yawrate_offset_2nd.status.enabled_status,yawrate_offset_2nd.status.estimate_status\
+,yaw_rate_offset_stop.yaw_rate_offset,yaw_rate_offset_stop.status.enabled_status,yaw_rate_offset_stop.status.estimate_status\
+,yaw_rate_offset_1st.yaw_rate_offset,yaw_rate_offset_1st.status.enabled_status,yaw_rate_offset_1st.status.estimate_status\
+,yaw_rate_offset_2nd.yaw_rate_offset,yaw_rate_offset_2nd.status.enabled_status,yaw_rate_offset_2nd.status.estimate_status\
 ,slip_angle.coefficient,slip_angle.slip_angle,slip_angle.status.enabled_status,slip_angle.status.estimate_status\
 ,enu_vel.vector.x,enu_vel.vector.y,enu_vel.vector.z\
 ,enu_absolute_pos.enu_pos.x,enu_absolute_pos.enu_pos.y,enu_absolute_pos.enu_pos.z,enu_absolute_pos.ecef_base_pos.x,enu_absolute_pos.ecef_base_pos.y,enu_absolute_pos.ecef_base_pos.z\
@@ -333,7 +333,7 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
 ,enu_relative_pos.enu_pos.x,enu_relative_pos.enu_pos.y,enu_relative_pos.enu_pos.z\
 ,enu_relative_pos.status.enabled_status\
 " << std::endl;
-    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yawrate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status
+    // ,angular_velocity_offset_stop.rollrate_offset,angular_velocity_offset_stop.pitchrate_offset,angular_velocity_offset_stop.yaw_rate_offset,angular_velocity_offset_stop.status.enabled_status,angular_velocity_offset_stop.status.estimate_status
     for(int i=0; i<data_length_; i++)
     {
       *output_log_csv_file << std::setprecision(15) << imu_[i].header.stamp.toSec() << ","; //timestamp
@@ -397,15 +397,15 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.heading_interpolate_3rd[i].variance << ",";
       *output_log_csv_file << (eagleye_state.heading_interpolate_3rd[i].status.enabled_status ? "1" : "0") << ",";
       *output_log_csv_file << (eagleye_state.heading_interpolate_3rd[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_stop[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_stop[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_stop[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_1st[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_1st[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_1st[i].status.estimate_status ? "1" : "0") << ",";
-      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yawrate_offset_2nd[i].yawrate_offset << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_2nd[i].status.enabled_status ? "1" : "0") << ",";
-      *output_log_csv_file << (eagleye_state.yawrate_offset_2nd[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yaw_rate_offset_stop[i].yaw_rate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_stop[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_stop[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yaw_rate_offset_1st[i].yaw_rate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_1st[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_1st[i].status.estimate_status ? "1" : "0") << ",";
+      *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.yaw_rate_offset_2nd[i].yaw_rate_offset << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_2nd[i].status.enabled_status ? "1" : "0") << ",";
+      *output_log_csv_file << (eagleye_state.yaw_rate_offset_2nd[i].status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.slip_angle[i].coefficient << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.slip_angle[i].slip_angle << ",";
       *output_log_csv_file << (eagleye_state.slip_angle[i].status.enabled_status ? "1" : "0") << ",";
@@ -449,7 +449,7 @@ void eagleye_pp::writeDetailCSVOneWay(std::ofstream* output_log_csv_file, const 
       *output_log_csv_file << (eagleye_state.enu_absolute_pos_interpolate[i].status.estimate_status ? "1" : "0") << ",";
       // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.rollrate_offset << ",";
       // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.pitchrate_offset << ",";
-      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.yawrate_offset << ",";
+      // *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.angular_velocity_offset_stop.yaw_rate_offset << ",";
       // *output_log_csv_file << (eagleye_state.angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
       // *output_log_csv_file << (eagleye_state.angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
       *output_log_csv_file << std::setprecision(std::numeric_limits<double>::max_digits10) << eagleye_state.height[i].height << ",";
@@ -579,12 +579,12 @@ std::vector<kml_utils::Point> eagleye_pp::eagleyeStatus2PointVector( const Eagle
     kml_utils::addOtherInformation(point, "Estimate Heading 2nd Flag", kml_utils::makeBool2String(eagleye_state.heading_interpolate_2nd[i].status.enabled_status));
     kml_utils::addOtherInformation(point, "Estimate Heading 3rd [rad] ", kml_utils::makeDouble2String(eagleye_state.heading_interpolate_3rd[i].heading_angle));
     kml_utils::addOtherInformation(point, "Estimate Heading 3rd Flag", kml_utils::makeBool2String(eagleye_state.heading_interpolate_3rd[i].status.enabled_status));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset Stop [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_stop[i].yawrate_offset));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset Stop Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_stop[i].status.enabled_status));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 1st [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_1st[i].yawrate_offset));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 1st Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_1st[i].status.enabled_status));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 2nd [rad] ", kml_utils::makeDouble2String(eagleye_state.yawrate_offset_2nd[i].yawrate_offset));
-    kml_utils::addOtherInformation(point, "Estimate Yawrate Offset 2nd Flag", kml_utils::makeBool2String(eagleye_state.yawrate_offset_2nd[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset Stop [rad] ", kml_utils::makeDouble2String(eagleye_state.yaw_rate_offset_stop[i].yaw_rate_offset));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset Stop Flag", kml_utils::makeBool2String(eagleye_state.yaw_rate_offset_stop[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset 1st [rad] ", kml_utils::makeDouble2String(eagleye_state.yaw_rate_offset_1st[i].yaw_rate_offset));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset 1st Flag", kml_utils::makeBool2String(eagleye_state.yaw_rate_offset_1st[i].status.enabled_status));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset 2nd [rad] ", kml_utils::makeDouble2String(eagleye_state.yaw_rate_offset_2nd[i].yaw_rate_offset));
+    kml_utils::addOtherInformation(point, "Estimate yaw_rate Offset 2nd Flag", kml_utils::makeBool2String(eagleye_state.yaw_rate_offset_2nd[i].status.enabled_status));
     kml_utils::addOtherInformation(point, "Estimate Tire Slip Angle [rad] ", kml_utils::makeDouble2String(eagleye_state.slip_angle[i].slip_angle));
     kml_utils::addOtherInformation(point, "Estimate Tire Slip Angle Flag", kml_utils::makeBool2String(eagleye_state.slip_angle[i].status.enabled_status));
     kml_utils::addOtherInformation(point, "Estimate Pitch Angle [rad] ", kml_utils::makeDouble2String(eagleye_state.pitching[i].pitching_angle));

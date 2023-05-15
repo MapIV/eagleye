@@ -40,8 +40,8 @@ static rtklib_msgs::RtklibNav _rtklib_nav;
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_2nd;
 static eagleye_msgs::Heading _heading_interpolate_3rd;
 
 struct SlipCoefficientParameter _slip_coefficient_parameter;
@@ -50,7 +50,7 @@ struct SlipCoefficientStatus _slip_coefficient_status;
 static double _estimate_coefficient;
 
 bool _is_first_correction_velocity = false;
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void rtklib_nav_callback(const rtklib_msgs::RtklibNav::ConstPtr& msg)
 {
@@ -71,14 +71,14 @@ void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
   _velocity_status = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_2nd = *msg;
+  _yaw_rate_offset_2nd = *msg;
 }
 
 void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg)
@@ -89,10 +89,10 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::Heading::ConstPtr& msg
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   if (_is_first_correction_velocity == false) return;
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   _imu = *msg;
-  slip_coefficient_estimate(_imu, _rtklib_nav, _velocity, _yawrate_offset_stop, _yawrate_offset_2nd, 
+  slip_coefficient_estimate(_imu, _rtklib_nav, _velocity, _yaw_rate_offset_stop, _yaw_rate_offset_2nd, 
     _heading_interpolate_3rd, _slip_coefficient_parameter, &_slip_coefficient_status, &_estimate_coefficient);
 
   std::cout << "--- \033[1;34m slip_coefficient \033[m ------------------------------" <<  std::endl;
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _use_canless_mode = conf["use_canless_mode"].as<bool>();
+    _use_can_less_mode = conf["use_can_less_mode"].as<bool>();
 
     subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
 
@@ -129,7 +129,7 @@ int main(int argc, char** argv)
     _slip_coefficient_parameter.curve_judgement_threshold = conf["slip_coefficient"]["curve_judgement_threshold"].as<double>();
     _slip_coefficient_parameter.lever_arm = conf["slip_coefficient"]["lever_arm"].as<double>();
 
-    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 
@@ -152,8 +152,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub2 = nh.subscribe(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity", 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub6 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub6 = nh.subscribe("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = nh.subscribe("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback, ros::TransportHints().tcpNoDelay());
 
   ros::spin();

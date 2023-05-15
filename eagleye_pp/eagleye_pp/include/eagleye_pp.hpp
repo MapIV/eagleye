@@ -83,9 +83,9 @@ private:
     std::vector<eagleye_msgs::Heading> heading_interpolate_2nd;
     std::vector<eagleye_msgs::Heading> heading_3rd;
     std::vector<eagleye_msgs::Heading> heading_interpolate_3rd;
-    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_stop;
-    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_1st;
-    std::vector<eagleye_msgs::YawrateOffset> yawrate_offset_2nd;
+    std::vector<eagleye_msgs::YawrateOffset> yaw_rate_offset_stop;
+    std::vector<eagleye_msgs::YawrateOffset> yaw_rate_offset_1st;
+    std::vector<eagleye_msgs::YawrateOffset> yaw_rate_offset_2nd;
     std::vector<eagleye_msgs::SlipAngle> slip_angle;
     std::vector<eagleye_msgs::Height> height;
     std::vector<eagleye_msgs::Pitching> pitching;
@@ -126,21 +126,21 @@ private:
   bool output_kml_eagleye_pp_line_;
 
   std::string use_gnss_mode_;
-  bool use_canless_mode_;
+  bool use_can_less_mode_;
   bool use_nmea_downsample_;
   double nmea_downsample_freq_;
 
   struct HeadingParameter heading_parameter_;
   struct HeadingInterpolateParameter heading_interpolate_parameter_;
-  struct YawrateOffsetStopParameter yawrate_offset_stop_parameter_;
-  struct YawrateOffsetParameter yawrate_offset_1st_parameter_;
-  struct YawrateOffsetParameter yawrate_offset_2nd_parameter_;
+  struct YawrateOffsetStopParameter yaw_rate_offset_stop_parameter_;
+  struct YawrateOffsetParameter yaw_rate_offset_1st_parameter_;
+  struct YawrateOffsetParameter yaw_rate_offset_2nd_parameter_;
   struct SlipangleParameter slip_angle_parameter_;
   struct TrajectoryParameter trajectory_parameter_;
   struct VelocityScaleFactorParameter velocity_scale_factor_parameter_;
   struct PositionParameter position_parameter_;
   struct PositionInterpolateParameter position_interpolate_parameter_;
-  struct RtkDeadreckoningParameter rtk_deadreckoning_parameter_;
+  struct RtkDeadreckoningParameter rtk_dead_reckoning_parameter_;
   struct SmoothingParameter smoothing_parameter_;
   struct HeightParameter height_parameter_;
   struct RollingParameter rolling_parameter_;

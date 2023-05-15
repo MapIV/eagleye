@@ -75,7 +75,7 @@ Figure shows the relationship between these parameters.
 
 
 
-### yawrate_offset_stop
+### yaw_rate_offset_stop
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :-------------------------------------------------------------------------      | :------------------- |
@@ -83,14 +83,14 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Allowable gap between current outlier estimate and previous estimate [rad]      | 0.002                |
 
 
-### yawrate_offset
+### yaw_rate_offset
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | estimated_minimum_interval          | double | Minimum time of data buffering for estimation [s]                               | 30                   |
 | estimated_maximum_interval          | double | Maximum time of data buffering for estimation [s]                               | 300 (1st), 500 (2nd) |
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
-| outlier_threshold                   | double | Allowable gap between current estimate and _yawrate_offset_stop_ estimate [rad] | 0.002                |
+| outlier_threshold                   | double | Allowable gap between current estimate and _yaw_rate_offset_stop_ estimate [rad] | 0.002                |
 
 
 ### heading
@@ -145,8 +145,8 @@ Figure shows the relationship between these parameters.
 | deadlock_threshold                  | double | Allowable communication deadlock time for error output [s]                      | 1                    |
 | sensor_noise_velocity               | double | Sensor velocity noise                                                           | 0.05                 |
 | sensor_scale_noise_velocity         | double | Sensor velocity scale noise                                                     | 0.02                 |
-| sensor_noise_yawrate                | double | Sensor yaw rate noise                                                           | 0.01                 |
-| sensor_bias_noise_yawrate           | double | Sensor yaw rate bias noise                                                      | 0.01                 |
+| sensor_noise_yaw_rate                | double | Sensor yaw rate noise                                                           | 0.01                 |
+| sensor_bias_noise_yaw_rate           | double | Sensor yaw rate bias noise                                                      | 0.01                 |
 
 ### smoothing
 
@@ -198,7 +198,7 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Allowable gap between current outlier estimate and previous estimate [rad] | 0.002         |
 
 
-### rtk_deadreckoning
+### rtk_dead_reckoning
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |

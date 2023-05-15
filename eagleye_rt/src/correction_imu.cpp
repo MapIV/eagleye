@@ -33,7 +33,7 @@
 #include "navigation/navigation.hpp"
 
 static ros::Publisher _pub;
-static eagleye_msgs::YawrateOffset _yawrate_offset;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset;
 static eagleye_msgs::AngularVelocityOffset _angular_velocity_offset_stop;
 static eagleye_msgs::AccXOffset _acc_x_offset;
 static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
@@ -42,9 +42,9 @@ static sensor_msgs::Imu _imu;
 static sensor_msgs::Imu _correction_imu;
 
 
-void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset = *msg;
+  _yaw_rate_offset = *msg;
 }
 
 void angular_velocity_offset_stop_callback(const eagleye_msgs::AngularVelocityOffset::ConstPtr& msg)
@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "correction_imu");
   ros::NodeHandle nh;
 
-  ros::Subscriber sub1 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub1 = nh.subscribe("yaw_rate_offset_2nd", 1000, yaw_rate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("angular_velocity_offset_stop", 1000, angular_velocity_offset_stop_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("acc_x_offset", 1000, acc_x_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub4 = nh.subscribe("acc_x_scale_factor", 1000, acc_x_scale_factor_callback, ros::TransportHints().tcpNoDelay());

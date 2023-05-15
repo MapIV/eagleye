@@ -31,8 +31,8 @@
 #include "coordinate/coordinate.hpp"
 #include "navigation/navigation.hpp"
 
-void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,eagleye_msgs::YawrateOffset yawrate_offset_stop,
-  eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter,
+void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,eagleye_msgs::YawrateOffset yaw_rate_offset_stop,
+  eagleye_msgs::YawrateOffset yaw_rate_offset,eagleye_msgs::SlipAngle slip_angle,eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter,
   HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
   int index_max;
@@ -55,14 +55,14 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
     heading_status->estimated_number  = estimated_buffer_number_max;
   }
 
-  double yawrate = imu.angular_velocity.z;
+  double yaw_rate = imu.angular_velocity.z;
 
   // data buffer generate
   heading_status->time_buffer .push_back(imu.header.stamp.toSec());
-  heading_status->yawrate_buffer .push_back(yawrate);
+  heading_status->yaw_rate_buffer .push_back(yaw_rate);
   heading_status->correction_velocity_buffer .push_back(velocity.twist.linear.x);
-  heading_status->yawrate_offset_stop_buffer .push_back(yawrate_offset_stop.yawrate_offset);
-  heading_status->yawrate_offset_buffer .push_back(yawrate_offset.yawrate_offset);
+  heading_status->yaw_rate_offset_stop_buffer .push_back(yaw_rate_offset_stop.yaw_rate_offset);
+  heading_status->yaw_rate_offset_buffer .push_back(yaw_rate_offset.yaw_rate_offset);
   heading_status->slip_angle_buffer .push_back(slip_angle.slip_angle);
 
   time_buffer_length = std::distance(heading_status->time_buffer .begin(), heading_status->time_buffer .end());
@@ -71,10 +71,10 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
   {
     heading_status->time_buffer .erase(heading_status->time_buffer .begin());
     heading_status->heading_angle_buffer .erase(heading_status->heading_angle_buffer .begin());
-    heading_status->yawrate_buffer .erase(heading_status->yawrate_buffer .begin());
+    heading_status->yaw_rate_buffer .erase(heading_status->yaw_rate_buffer .begin());
     heading_status->correction_velocity_buffer .erase(heading_status->correction_velocity_buffer .begin());
-    heading_status->yawrate_offset_stop_buffer .erase(heading_status->yawrate_offset_stop_buffer .begin());
-    heading_status->yawrate_offset_buffer .erase(heading_status->yawrate_offset_buffer .begin());
+    heading_status->yaw_rate_offset_stop_buffer .erase(heading_status->yaw_rate_offset_stop_buffer .begin());
+    heading_status->yaw_rate_offset_buffer .erase(heading_status->yaw_rate_offset_buffer .begin());
     heading_status->slip_angle_buffer .erase(heading_status->slip_angle_buffer .begin());
     heading_status->gnss_status_buffer .erase(heading_status->gnss_status_buffer .begin());
   }
@@ -86,7 +86,7 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
   if (heading_status->estimated_number  > estimated_buffer_number_min &&
     heading_status->gnss_status_buffer [heading_status->estimated_number -1] == true &&
     heading_status->correction_velocity_buffer [heading_status->estimated_number -1] > heading_parameter.moving_judgement_threshold &&
-    fabsf(heading_status->yawrate_buffer [heading_status->estimated_number -1]) < heading_parameter.curve_judgement_threshold)
+    fabsf(heading_status->yaw_rate_buffer [heading_status->estimated_number -1]) < heading_parameter.curve_judgement_threshold)
   {
     heading->status.enabled_status = true;
   }
@@ -126,13 +126,13 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
           {
             double dt = heading_status->time_buffer [i] - heading_status->time_buffer [i-1];
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +
-              ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_buffer [i]) * dt);
+              ((heading_status->yaw_rate_buffer [i] + heading_status->yaw_rate_offset_buffer [i]) * dt);
           }
           else
           {
             double dt = heading_status->time_buffer [i] - heading_status->time_buffer [i-1];
             provisional_heading_angle_buffer[i] = provisional_heading_angle_buffer[i-1] +
-              ((heading_status->yawrate_buffer [i] + heading_status->yawrate_offset_stop_buffer [i]) * dt);
+              ((heading_status->yaw_rate_buffer [i] + heading_status->yaw_rate_offset_stop_buffer [i]) * dt);
           }
         }
       }
@@ -238,7 +238,7 @@ void heading_estimate_(sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity
 }
 
 void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,
-  eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
+  eagleye_msgs::YawrateOffset yaw_rate_offset_stop,eagleye_msgs::YawrateOffset yaw_rate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
   double ecef_vel[3];
@@ -287,13 +287,13 @@ void heading_estimate(rtklib_msgs::RtklibNav rtklib_nav,sensor_msgs::Imu imu,geo
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
-  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+  heading_estimate_(imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }
 
 double _rmc_track = 0;
 
 void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,
-  eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
+  eagleye_msgs::YawrateOffset yaw_rate_offset_stop,eagleye_msgs::YawrateOffset yaw_rate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
   bool gnss_status;
@@ -316,11 +316,11 @@ void heading_estimate(const nmea_msgs::Gprmc nmea_rmc,sensor_msgs::Imu imu,geome
   heading_status->heading_angle_buffer .push_back(doppler_heading_angle);
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
-  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+  heading_estimate_(imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 }
 
 void heading_estimate(const eagleye_msgs::Heading multi_antenna_heading,sensor_msgs::Imu imu,geometry_msgs::TwistStamped velocity,
-  eagleye_msgs::YawrateOffset yawrate_offset_stop,eagleye_msgs::YawrateOffset yawrate_offset,eagleye_msgs::SlipAngle slip_angle,
+  eagleye_msgs::YawrateOffset yaw_rate_offset_stop,eagleye_msgs::YawrateOffset yaw_rate_offset,eagleye_msgs::SlipAngle slip_angle,
   eagleye_msgs::Heading heading_interpolate,HeadingParameter heading_parameter, HeadingStatus* heading_status,eagleye_msgs::Heading* heading)
 {
   bool gnss_status;
@@ -343,7 +343,7 @@ void heading_estimate(const eagleye_msgs::Heading multi_antenna_heading,sensor_m
   heading_status->heading_angle_buffer .push_back(heading_angle);
   heading_status->gnss_status_buffer .push_back(gnss_status);
 
-  heading_estimate_(imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
+  heading_estimate_(imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,heading_status,heading);
 
   if(!heading->status.estimate_status) heading->heading_angle = heading_angle;
   if(gnss_status) heading->status.estimate_status = true;

@@ -61,13 +61,13 @@ add_executable(velocity_scale_factor src/velocity_scale_factor_node.cpp)
 target_link_libraries(velocity_scale_factor ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 add_dependencies(velocity_scale_factor ${catkin_EXPORTED_TARGETS})
 
-add_executable(yawrate_offset_stop src/yawrate_offset_stop_node.cpp)
-target_link_libraries(yawrate_offset_stop ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
-add_dependencies(yawrate_offset_stop ${catkin_EXPORTED_TARGETS})
+add_executable(yaw_rate_offset_stop src/yaw_rate_offset_stop_node.cpp)
+target_link_libraries(yaw_rate_offset_stop ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+add_dependencies(yaw_rate_offset_stop ${catkin_EXPORTED_TARGETS})
 
-add_executable(yawrate_offset src/yawrate_offset_node.cpp)
-target_link_libraries(yawrate_offset ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
-add_dependencies(yawrate_offset ${catkin_EXPORTED_TARGETS})
+add_executable(yaw_rate_offset src/yaw_rate_offset_node.cpp)
+target_link_libraries(yaw_rate_offset ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+add_dependencies(yaw_rate_offset ${catkin_EXPORTED_TARGETS})
 
 add_executable(heading src/heading_node.cpp)
 target_link_libraries(heading ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
@@ -117,9 +117,9 @@ add_executable(correction_imu src/correction_imu.cpp)
 target_link_libraries(correction_imu ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
 add_dependencies(correction_imu ${catkin_EXPORTED_TARGETS})
 
-add_executable(rtk_deadreckoning src/rtk_deadreckoning_node.cpp)
-target_link_libraries(rtk_deadreckoning ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
-add_dependencies(rtk_deadreckoning ${catkin_EXPORTED_TARGETS})
+add_executable(rtk_dead_reckoning src/rtk_dead_reckoning_node.cpp)
+target_link_libraries(rtk_dead_reckoning ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
+add_dependencies(rtk_dead_reckoning ${catkin_EXPORTED_TARGETS})
 
 add_executable(rtk_heading src/rtk_heading_node.cpp)
 target_link_libraries(rtk_heading ${catkin_LIBRARIES} ${YAML_CPP_LIBRARIES})
@@ -151,8 +151,8 @@ add_dependencies(velocity_estimator ${catkin_EXPORTED_TARGETS})
 
 install(TARGETS
   velocity_scale_factor
-  yawrate_offset_stop
-  yawrate_offset
+  yaw_rate_offset_stop
+  yaw_rate_offset
   heading
   position
   slip_angle
@@ -166,7 +166,7 @@ install(TARGETS
   height
   angular_velocity_offset_stop
   correction_imu
-  rtk_deadreckoning
+  rtk_dead_reckoning
   rtk_heading
   enable_additional_rolling
   rolling
