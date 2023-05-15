@@ -5,6 +5,10 @@
   <group ns="navsat">
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
     <node pkg="eagleye_gnss_converter" name="gnss_converter_node" type="gnss_converter_node" output="screen">
+          <!-- Twist Covariance Threshold in geometry_msgs/TwistWithCovarianceStamped -->
+          <param name="twist_covariance_thresh" value="0.2"/>
+          <!-- Vertical Accuracy Estimate Threshold [mm/s] in ublox_msgs/NavPVT -->
+          <param name="ublox_vacc_thresh" value="200.0"/>
     </node>
   </group>
 

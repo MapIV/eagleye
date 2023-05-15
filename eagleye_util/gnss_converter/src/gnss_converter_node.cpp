@@ -76,11 +76,15 @@ private:
     n.getParam("gnss/velocity_source_topic", velocity_source_topic);
     n.getParam("gnss/llh_source_type", llh_source_type);
     n.getParam("gnss/llh_source_topic", llh_source_topic);
+    n.getParam("twist_covariance_thresh", twist_covariance_thresh);
+    n.getParam("ublox_vacc_thresh", ublox_vacc_thresh);
 
     std::cout << "velocity_source_type " << velocity_source_type << std::endl;
     std::cout << "velocity_source_topic " << velocity_source_topic << std::endl;
     std::cout << "llh_source_type " << llh_source_type << std::endl;
     std::cout << "llh_source_topic " << llh_source_topic << std::endl;
+    std::cout << "twist_covariance_thresh " << twist_covariance_thresh << std::endl;
+    std::cout << "ublox_vacc_thresh " << ublox_vacc_thresh << std::endl;
   }
 
   // Callback functions
@@ -114,6 +118,7 @@ void navsatfix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg) { nav_msg_p
 
 void navpvt_callback(const ublox_msgs::NavPVT::ConstPtr& msg)
 {
+  if(msg->sAcc > ublox_vacc_thresh) return;
   rtklib_msgs::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
@@ -145,6 +150,7 @@ void navpvt_callback(const ublox_msgs::NavPVT::ConstPtr& msg)
 
 void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& msg)
 {
+  if(msg->twist.covariance[0] > twist_covariance_thresh) return;
   if (nav_msg_ptr == nullptr) return;
   rtklib_msgs::RtklibNav r;
   r.header.frame_id = "gps";
@@ -176,6 +182,10 @@ void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::Con
   sensor_msgs::NavSatFix::ConstPtr nav_msg_ptr;
   int velocity_source_type, llh_source_type;
   std::string velocity_source_topic, llh_source_topic;
+
+  double twist_covariance_thresh = 0.2;
+  double ublox_vacc_thresh = 200.0;
+
 };
 
 int main(int argc, char **argv)
