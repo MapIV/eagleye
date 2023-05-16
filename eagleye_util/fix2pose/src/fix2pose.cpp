@@ -99,11 +99,25 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   bool fix_flag = false;
   if(_fix_judgement_type == 0)
   {
-    if(msg->status.status == 0 && _eagleye_heading.status.enabled_status) fix_flag = true;
+    if(msg->status.status == 0 && _eagleye_heading.status.enabled_status)
+    {
+      fix_flag = true;
+    }
+    else
+    {
+      RCLCPP_WARN(rclcpp::get_logger(_node_name), "status.status is not 0");
+    }
   }
   else if(_fix_judgement_type == 1)
   {
-    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading.status.enabled_status) fix_flag = true;
+    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading.status.enabled_status) 
+    {
+      fix_flag = true;
+    }
+    else
+    {
+      RCLCPP_WARN(rclcpp::get_logger(_node_name), "position_covariance[0] is over %f", _fix_std_pos_thres * _fix_std_pos_thres);
+    }
   }
   else
   {
