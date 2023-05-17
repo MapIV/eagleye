@@ -13,7 +13,9 @@ gnss:
   velocity_source_topic:  /rtklib_nav
   llh_source_type: 1 # rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2
   llh_source_topic: /main/mosaic/nmea_sentence
-
+sub_gnss:
+  llh_source_type: 1 # nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2
+  llh_source_topic: /sub/mosaic/nmea_sentence
 # TF
 tf_gnss_frame:
   parent: "base_link"
