@@ -96,38 +96,35 @@ void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  bool fix_flag = false;
-  if(_fix_judgement_type == 0)
+  if(!_eagleye_heading.status.enabled_status)
   {
-    if(msg->status.status == 0 && _eagleye_heading.status.enabled_status)
-    {
-      fix_flag = true;
-    }
-    else
-    {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "status.status is not 0");
-    }
-  }
-  else if(_fix_judgement_type == 1)
-  {
-    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading.status.enabled_status) 
-    {
-      fix_flag = true;
-    }
-    else
-    {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "position_covariance[0] is over %f", _fix_std_pos_thres * _fix_std_pos_thres);
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "fix_judgement_type is not valid");
-    rclcpp::shutdown();
+    RCLCPP_WARN(rclcpp::get_logger(_node_name), "heading is not enabled to publish pose");
+    return;
   }
 
-  if(_fix_only_publish && !fix_flag)
+  if(_fix_only_publish)
   {
-    return;
+    if(_fix_judgement_type == 0)
+    {
+      if(!msg->status.status == 0)
+      {
+        RCLCPP_WARN(rclcpp::get_logger(_node_name), "status.status is not 0");
+        return;
+      }
+    }
+    else if(_fix_judgement_type == 1)
+    {
+      if(msg->position_covariance[0] > _fix_std_pos_thres * _fix_std_pos_thres)
+      {
+        RCLCPP_WARN(rclcpp::get_logger(_node_name), "position_covariance[0] is over %f", _fix_std_pos_thres * _fix_std_pos_thres);
+        return;
+      }
+    }
+    else
+    {
+      RCLCPP_ERROR(rclcpp::get_logger(_node_name), "fix_judgement_type is not valid");
+      rclcpp::shutdown();
+    }
   }
 
   double llh[3] = {0};
@@ -141,26 +138,19 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 
   double eagleye_heading = 0;
   tf2::Quaternion localization_quat;
-  if (_eagleye_heading.status.enabled_status)
-  {
-    eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
-    llh_converter::LLA lla_struct;
-    llh_converter::XYZ xyz_struct;
-    lla_struct.latitude = msg->latitude;
-    lla_struct.longitude = msg->longitude;
-    lla_struct.altitude = msg->altitude;
-    xyz_struct.x = xyz[0];
-    xyz_struct.y = xyz[1];
-    xyz_struct.z = xyz[2];
-    double mca = llh_converter::getMeridianConvergence(lla_struct, xyz_struct, _lc, _llh_param); // meridian convergence angle
-    eagleye_heading += mca;
+  eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
+  llh_converter::LLA lla_struct;
+  llh_converter::XYZ xyz_struct;
+  lla_struct.latitude = msg->latitude;
+  lla_struct.longitude = msg->longitude;
+  lla_struct.altitude = msg->altitude;
+  xyz_struct.x = xyz[0];
+  xyz_struct.y = xyz[1];
+  xyz_struct.z = xyz[2];
+  double mca = llh_converter::getMeridianConvergence(lla_struct, xyz_struct, _lc, _llh_param); // meridian convergence angle
+  eagleye_heading += mca;
 
-    localization_quat.setRPY(0, 0, eagleye_heading);
-  }
-  else
-  {
-    tf2::Matrix3x3(localization_quat).setRPY(0, 0, 0);
-  }
+  localization_quat.setRPY(0, 0, eagleye_heading);
   _quat = tf2::toMsg(localization_quat);
 
 
