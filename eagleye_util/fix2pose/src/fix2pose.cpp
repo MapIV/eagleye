@@ -40,7 +40,11 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#ifdef ROS_DISTRO_GALACTIC
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#else
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#endif
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <std_srvs/srv/set_bool.hpp>
 #include <ament_index_cpp/get_package_share_directory.hpp>
