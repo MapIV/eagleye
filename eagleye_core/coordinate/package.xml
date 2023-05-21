@@ -14,6 +14,7 @@
   <build_export_depend>rclcpp</build_export_depend>
   <build_export_depend>geodesy</build_export_depend>
   <depend>geographic_info</depend>
+  <depend>geographic_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
