@@ -10,8 +10,11 @@
     <arg name="use_rtk_heading" default="false"/>
 
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
+
+    <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
+    <param name="yaml_file" value="$(arg yaml_file)"/>
     <param name="use_rtk_dead_reckoning" value="$(arg use_rtk_dead_reckoning)"/>
-    
+
     <node pkg="eagleye_rt" name="twist_relay" type="twist_relay" />
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
     <node pkg="eagleye_rt" name="yaw_rate_offset_stop_node" type="yaw_rate_offset_stop" />
@@ -47,12 +50,6 @@
     <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
 
   </group>
-
-  <include file="$(find eagleye_nmea2fix)/launch/nmea2fix.launch">
-    <arg name="sub_topic_name" default="navsat/nmea_sentence"/>
-    <arg name="pub_fix_topic_name" default="navsat/fix"/>
-    <arg name="pub_rmc_topic_name" default="navsat/rmc"/>
-  </include>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>
 
