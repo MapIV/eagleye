@@ -34,7 +34,11 @@
 
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#ifdef ROS_DISTRO_GALACTIC
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#else
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#endif
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static nmea_msgs::msg::Gpgga gga;
