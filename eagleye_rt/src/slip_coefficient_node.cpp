@@ -118,8 +118,6 @@ int main(int argc, char** argv)
 
     _use_can_less_mode = conf["use_can_less_mode"].as<bool>();
 
-    subscribe_rtklib_nav_topic_name = conf["rtklib_nav_topic"].as<std::string>();
-
     _slip_coefficient_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _slip_coefficient_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _slip_coefficient_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
