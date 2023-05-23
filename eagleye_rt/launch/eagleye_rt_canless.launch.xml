@@ -5,27 +5,27 @@
   <arg name="config_yaml" default="eagleye_config.yaml"/>
   <arg name="enable_additional_rolling" default="false"/>
   <arg name="config_path" default="$(find-pkg-share eagleye_rt)/config/$(var config_yaml)"/>
- 
+
   <group>
     <push-ros-namespace namespace="eagleye"/>
 
-    <arg name="use_rtk_deadreckoning" default="true"/>
+    <arg name="use_rtk_dead_reckoning" default="true"/>
     <arg name="use_rtk_heading" default="false"/>
-    <arg name="use_canless_mode" default="true"/>
+    <arg name="use_can_less_mode" default="true"/>
 
      <node pkg="eagleye_rt" name="tf_converted_imu" exec="tf_converted_imu">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
      </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" exec="yawrate_offset_stop">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_stop_node" exec="yaw_rate_offset_stop">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" exec="yawrate_offset" args="1st">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_1st" exec="yaw_rate_offset" args="1st">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" exec="yawrate_offset" args="2nd">
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_2nd" exec="yaw_rate_offset" args="2nd">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
@@ -91,13 +91,13 @@
     </node>
 
     <!-- CANLess Options -->
-    <node pkg="eagleye_rt" name="velocity_estimator" exec="velocity_estimator" if="$(eval &quot;'$(var use_canless_mode)'=='true'&quot;)">
+    <node pkg="eagleye_rt" name="velocity_estimator" exec="velocity_estimator" if="$(eval &quot;'$(var use_can_less_mode)'=='true'&quot;)">
             <param name="yaml_file" value="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
 
     <!-- RTK Options -->
-    <node pkg="eagleye_rt" name="rtk_deadreckoning" exec="rtk_deadreckoning" if="$(var use_rtk_deadreckoning)">
+    <node pkg="eagleye_rt" name="rtk_dead_reckoning" exec="rtk_dead_reckoning" if="$(var use_rtk_dead_reckoning)">
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
@@ -113,12 +113,11 @@
             <param from="$(var config_path)"/>
             <param name="yaml_file" value="$(var config_path)"/>
     </node>
-
-    <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
-            <arg name="config_yaml" value="$(var config_yaml)"/>
-    </include>
+    <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.launch.xml">
+             <arg name="config_yaml" value="$(var config_yaml)"/>
+     </include>
   </group>
 
-  <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
+  <include file="$(find-pkg-share eagleye_tf)/launch/tf.launch.xml" if="$(var use_tf)"/>
 
 </launch>

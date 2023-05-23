@@ -49,9 +49,9 @@ static eagleye_msgs::msg::Heading _heading_2nd;
 static eagleye_msgs::msg::Heading _heading_interpolate_2nd;
 static eagleye_msgs::msg::Heading _heading_3rd;
 static eagleye_msgs::msg::Heading _heading_interpolate_3rd;
-static eagleye_msgs::msg::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset _yawrate_offset_1st;
-static eagleye_msgs::msg::YawrateOffset _yawrate_offset_2nd;
+static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_1st;
+static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_2nd;
 static eagleye_msgs::msg::SlipAngle _slip_angle;
 static eagleye_msgs::msg::Height _height;
 static eagleye_msgs::msg::Pitching _pitching;
@@ -82,9 +82,9 @@ static double _heading_2nd_time_last;
 static double _heading_interpolate_2nd_time_last;
 static double _heading_3rd_time_last;
 static double _heading_interpolate_3rd_time_last;
-static double _yawrate_offset_stop_time_last;
-static double _yawrate_offset_1st_time_last;
-static double _yawrate_offset_2nd_time_last;
+static double _yaw_rate_offset_stop_time_last;
+static double _yaw_rate_offset_1st_time_last;
+static double _yaw_rate_offset_2nd_time_last;
 static double _slip_angle_time_last;
 static double _height_time_last;
 static double _pitching_time_last;
@@ -93,12 +93,12 @@ static double _enu_absolute_pos_time_last;
 static double _enu_absolute_pos_interpolate_time_last;
 static double _eagleye_twist_time_last;
 
-bool _use_compare_yawrate = false;
+bool _use_compare_yaw_rate = false;
 double _update_rate = 10.0;
 double _th_gnss_deadrock_time = 10;
 double _th_diff_rad_per_sec = 0.17453;
-int _num_continuous_abnormal_yawrate = 0;
-int _th_num_continuous_abnormal_yawrate = 10;
+int _num_continuous_abnormal_yaw_rate = 0;
+int _th_num_continuous_abnormal_yaw_rate = 10;
 
 std::shared_ptr<diagnostic_updater::Updater> updater_;
 
@@ -168,19 +168,19 @@ void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSha
   _heading_interpolate_3rd = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_1st_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_1st_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_1st = *msg;
+  _yaw_rate_offset_1st = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  _yawrate_offset_2nd = *msg;
+  _yaw_rate_offset_2nd = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
@@ -506,97 +506,97 @@ void heading_interpolate_3rd_topic_checker(diagnostic_updater::DiagnosticStatusW
   _heading_interpolate_3rd_time_last = heading_interpolate_3rd_time;
   stat.summary(level, msg);
 }
-void yawrate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+void yaw_rate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  rclcpp::Time ros_clock(_yawrate_offset_stop.header.stamp);
-  auto yawrate_offset_stop_time = ros_clock.seconds();
+  rclcpp::Time ros_clock(_yaw_rate_offset_stop.header.stamp);
+  auto yaw_rate_offset_stop_time = ros_clock.seconds();
 
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (_yawrate_offset_stop_time_last == yawrate_offset_stop_time) {
+  if (_yaw_rate_offset_stop_time_last == yaw_rate_offset_stop_time) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!_yawrate_offset_stop.status.enabled_status) {
+  else if (!_yaw_rate_offset_stop.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (_yawrate_offset_stop.status.is_abnormal) {
+  else if (_yaw_rate_offset_stop.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    if(_yawrate_offset_stop.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    if(_yaw_rate_offset_stop.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
       msg = "estimate value is NaN or infinete";
     }
     else
     {
-      msg = "abnormal error of yawrate_offset_stop";
+      msg = "abnormal error of yaw_rate_offset_stop";
     }
   }
 
-  _yawrate_offset_stop_time_last = yawrate_offset_stop_time;
+  _yaw_rate_offset_stop_time_last = yaw_rate_offset_stop_time;
   stat.summary(level, msg);
 }
-void yawrate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+void yaw_rate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  rclcpp::Time ros_clock(_yawrate_offset_1st.header.stamp);
-  auto yawrate_offset_1st_time = ros_clock.seconds();
+  rclcpp::Time ros_clock(_yaw_rate_offset_1st.header.stamp);
+  auto yaw_rate_offset_1st_time = ros_clock.seconds();
 
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (_yawrate_offset_1st_time_last == yawrate_offset_1st_time) {
+  if (_yaw_rate_offset_1st_time_last == yaw_rate_offset_1st_time) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!_yawrate_offset_1st.status.enabled_status) {
+  else if (!_yaw_rate_offset_1st.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (_yawrate_offset_1st.status.is_abnormal) {
+  else if (_yaw_rate_offset_1st.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    if(_yawrate_offset_1st.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    if(_yaw_rate_offset_1st.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
       msg = "estimate value is NaN or infinete";
     }
     else
     {
-      msg = "abnormal error of yawrate_offset_1st";
+      msg = "abnormal error of yaw_rate_offset_1st";
     }
   }
 
-  _yawrate_offset_1st_time_last = yawrate_offset_1st_time;
+  _yaw_rate_offset_1st_time_last = yaw_rate_offset_1st_time;
   stat.summary(level, msg);
 }
-void yawrate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
+void yaw_rate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
 {
-  rclcpp::Time ros_clock(_yawrate_offset_2nd.header.stamp);
-  auto yawrate_offset_2nd_time = ros_clock.seconds();
+  rclcpp::Time ros_clock(_yaw_rate_offset_2nd.header.stamp);
+  auto yaw_rate_offset_2nd_time = ros_clock.seconds();
 
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if (_yawrate_offset_2nd_time_last == yawrate_offset_2nd_time) {
+  if (_yaw_rate_offset_2nd_time_last == yaw_rate_offset_2nd_time) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "not subscribed to topic";
   }
-  else if (!_yawrate_offset_2nd.status.enabled_status) {
+  else if (!_yaw_rate_offset_2nd.status.enabled_status) {
     level = diagnostic_msgs::msg::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (_yawrate_offset_2nd.status.is_abnormal) {
+  else if (_yaw_rate_offset_2nd.status.is_abnormal) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
-    if(_yawrate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
+    if(_yaw_rate_offset_2nd.status.error_code == eagleye_msgs::msg::Status::NAN_OR_INFINITE)
     {
       msg = "estimate value is NaN or infinete";
     }
     else
     {
-      msg = "abnormal error of yawrate_offset_2nd";
+      msg = "abnormal error of yaw_rate_offset_2nd";
     }
   }
 
-  _yawrate_offset_2nd_time_last = yawrate_offset_2nd_time;
+  _yaw_rate_offset_2nd_time_last = yaw_rate_offset_2nd_time;
   stat.summary(level, msg);
 }
 void slip_angle_topic_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
@@ -775,17 +775,17 @@ void imu_comparison_checker(diagnostic_updater::DiagnosticStatusWrapper & stat)
   int8_t level = diagnostic_msgs::msg::DiagnosticStatus::OK;
   std::string msg = "OK";
 
-  if(_use_compare_yawrate && _th_diff_rad_per_sec <
+  if(_use_compare_yaw_rate && _th_diff_rad_per_sec <
     std::abs(_corrected_imu.angular_velocity.z - _comparison_velocity_ptr->twist.angular.z))
   {
-    _num_continuous_abnormal_yawrate++;
+    _num_continuous_abnormal_yaw_rate++;
   }
   else
   {
-    _num_continuous_abnormal_yawrate = 0;
+    _num_continuous_abnormal_yaw_rate = 0;
   }
 
-  if (_num_continuous_abnormal_yawrate > _th_num_continuous_abnormal_yawrate) {
+  if (_num_continuous_abnormal_yaw_rate > _th_num_continuous_abnormal_yaw_rate) {
     level = diagnostic_msgs::msg::DiagnosticStatus::ERROR;
     msg = "IMU Yaw Rate too large or too small compared to reference twist";
   }
@@ -844,14 +844,14 @@ void printStatus(void)
 
   std::cout << std::endl;
 
-  std::cout << "--- \033[1;34m yawrate offset stop\033[m ---------------------"<< std::endl;
-  std::cout<<"\033[1m yawrate offset \033[m "<<std::setprecision(6)<<_yawrate_offset_stop.yawrate_offset<<" [rad/s]"<<std::endl;
-  std::cout<< "\033[1m status enable \033[m "<<(_yawrate_offset_stop.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout << "--- \033[1;34m yaw_rate offset stop\033[m ---------------------"<< std::endl;
+  std::cout<<"\033[1m yaw_rate offset \033[m "<<std::setprecision(6)<<_yaw_rate_offset_stop.yaw_rate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(_yaw_rate_offset_stop.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
-  std::cout << "--- \033[1;34m yawrate offset\033[m --------------------------"<< std::endl;
-  std::cout<<"\033[1m yawrate offset \033[m "<<std::setprecision(6)<<_yawrate_offset_2nd.yawrate_offset<<" [rad/s]"<<std::endl;
-  std::cout<< "\033[1m status enable \033[m "<<(_yawrate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
+  std::cout << "--- \033[1;34m yaw_rate offset\033[m --------------------------"<< std::endl;
+  std::cout<<"\033[1m yaw_rate offset \033[m "<<std::setprecision(6)<<_yaw_rate_offset_2nd.yaw_rate_offset<<" [rad/s]"<<std::endl;
+  std::cout<< "\033[1m status enable \033[m "<<(_yaw_rate_offset_2nd.status.enabled_status ? "\033[1;32mTrue\033[m" : "\033[1;31mFalse\033[m")<<std::endl;
   std::cout << std::endl;
 
   std::cout << "--- \033[1;34m slip angle\033[m ------------------------------"<< std::endl;
@@ -900,9 +900,9 @@ void outputLog(void)
 ,heading_interpolate_2nd.heading_angle,heading_interpolate_2nd.status.enabled_status,heading_interpolate_2nd.status.estimate_status\
 ,heading_3rd.heading_angle,heading_3rd.status.enabled_status,heading_3rd.status.estimate_status\
 ,heading_interpolate_3rd.heading_angle,heading_interpolate_3rd.status.enabled_status,heading_interpolate_3rd.status.estimate_status\
-,yawrate_offset_stop.yawrate_offset,yawrate_offset_stop.status.enabled_status,yawrate_offset_stop.status.estimate_status\
-,yawrate_offset_1st.yawrate_offset,yawrate_offset_1st.status.enabled_status,yawrate_offset_1st.status.estimate_status\
-,yawrate_offset_2nd.yawrate_offset,yawrate_offset_2nd.status.enabled_status,yawrate_offset_2nd.status.estimate_status\
+,yaw_rate_offset_stop.yaw_rate_offset,yaw_rate_offset_stop.status.enabled_status,yaw_rate_offset_stop.status.estimate_status\
+,yaw_rate_offset_1st.yaw_rate_offset,yaw_rate_offset_1st.status.enabled_status,yaw_rate_offset_1st.status.estimate_status\
+,yaw_rate_offset_2nd.yaw_rate_offset,yaw_rate_offset_2nd.status.enabled_status,yaw_rate_offset_2nd.status.estimate_status\
 ,slip_angle.coefficient,slip_angle.slip_angle,slip_angle.status.enabled_status,slip_angle.status.estimate_status\
 ,enu_vel.vector.x,enu_vel.vector.y,enu_vel.vector.z\
 ,enu_absolute_pos.enu_pos.x,enu_absolute_pos.enu_pos.y,enu_absolute_pos.enu_pos.z,enu_absolute_pos.ecef_base_pos.x,enu_absolute_pos.ecef_base_pos.y,enu_absolute_pos.ecef_base_pos.z,enu_absolute_pos.status.enabled_status,enu_absolute_pos.status.estimate_status\
@@ -986,15 +986,15 @@ void outputLog(void)
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _heading_interpolate_3rd.heading_angle << ",";
   output_log_file << (_heading_interpolate_3rd.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_heading_interpolate_3rd.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_stop.yawrate_offset << ",";
-  output_log_file << (_yawrate_offset_stop.status.enabled_status ? "1" : "0") << ",";
-  output_log_file << (_yawrate_offset_stop.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_1st.yawrate_offset << ",";
-  output_log_file << (_yawrate_offset_1st.status.enabled_status ? "1" : "0") << ",";
-  output_log_file << (_yawrate_offset_1st.status.estimate_status ? "1" : "0") << ",";
-  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yawrate_offset_2nd.yawrate_offset << ",";
-  output_log_file << (_yawrate_offset_2nd.status.enabled_status ? "1" : "0") << ",";
-  output_log_file << (_yawrate_offset_2nd.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yaw_rate_offset_stop.yaw_rate_offset << ",";
+  output_log_file << (_yaw_rate_offset_stop.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yaw_rate_offset_stop.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yaw_rate_offset_1st.yaw_rate_offset << ",";
+  output_log_file << (_yaw_rate_offset_1st.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yaw_rate_offset_1st.status.estimate_status ? "1" : "0") << ",";
+  output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _yaw_rate_offset_2nd.yaw_rate_offset << ",";
+  output_log_file << (_yaw_rate_offset_2nd.status.enabled_status ? "1" : "0") << ",";
+  output_log_file << (_yaw_rate_offset_2nd.status.estimate_status ? "1" : "0") << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _slip_angle.coefficient << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _slip_angle.slip_angle << ",";
   output_log_file << (_slip_angle.status.enabled_status ? "1" : "0") << ",";
@@ -1019,8 +1019,8 @@ void outputLog(void)
   output_log_file << (_enu_absolute_pos_interpolate.status.enabled_status ? "1" : "0") << ",";
   output_log_file << (_enu_absolute_pos_interpolate.status.estimate_status ? "1" : "0") << ",";
   // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.rollrate_offset << ",";
-  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.pitchrate_offset << ",";
-  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.yawrate_offset << ",";
+  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.pitch_rate_offset << ",";
+  // output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << angular_velocity_offset_stop.yaw_rate_offset << ",";
   // output_log_file << (angular_velocity_offset_stop.status.enabled_status ? "1" : "0") << ",";
   // output_log_file << (angular_velocity_offset_stop.status.estimate_status ? "1" : "0") << ",";
   output_log_file << std::setprecision(std::numeric_limits<double>::max_digits10) << _height.height << ",";
@@ -1106,28 +1106,28 @@ int main(int argc, char** argv)
   node->declare_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->declare_parameter("monitor.print_status",_print_status);
   node->declare_parameter("monitor.log_output_status",_log_output_status);
-  node->declare_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->declare_parameter("monitor.use_compare_yaw_rate",_use_compare_yaw_rate);
   node->declare_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->declare_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
+  node->declare_parameter("monitor.th_num_continuous_abnormal_yaw_rate",_th_num_continuous_abnormal_yaw_rate);
 
   node->get_parameter("rtklib_nav_topic",subscribe_rtklib_nav_topic_name);
   node->get_parameter("gga_topic",subscribe_gga_topic_name);
   node->get_parameter("monitor.comparison_twist_topic",comparison_twist_topic_name);
   node->get_parameter("monitor.print_status",_print_status);
   node->get_parameter("monitor.log_output_status",_log_output_status);
-  node->get_parameter("monitor.use_compare_yawrate",_use_compare_yawrate);
+  node->get_parameter("monitor.use_compare_yaw_rate",_use_compare_yaw_rate);
   node->get_parameter("monitor.th_diff_rad_per_sec",_th_diff_rad_per_sec);
-  node->get_parameter("monitor.th_num_continuous_abnormal_yawrate",_th_num_continuous_abnormal_yawrate);
+  node->get_parameter("monitor.th_num_continuous_abnormal_yaw_rate",_th_num_continuous_abnormal_yaw_rate);
 
   std::cout<< "subscribe_rtklib_nav_topic_name "<<subscribe_rtklib_nav_topic_name<<std::endl;
   std::cout<< "subscribe_gga_topic_name "<<subscribe_gga_topic_name<<std::endl;
   std::cout<< "print_status "<<_print_status<<std::endl;
   std::cout<< "log_output_status "<<_log_output_status<<std::endl;
-  std::cout<< "use_compare_yawrate "<<_use_compare_yawrate<<std::endl;
-  if(_use_compare_yawrate) {
+  std::cout<< "use_compare_yaw_rate "<<_use_compare_yaw_rate<<std::endl;
+  if(_use_compare_yaw_rate) {
   std::cout<< "comparison_twist_topic_name "<<comparison_twist_topic_name<<std::endl;
   std::cout<< "th_diff_rad_per_sec "<<_th_diff_rad_per_sec<<std::endl;
-  std::cout<< "th_num_continuous_abnormal_yawrate "<<_th_num_continuous_abnormal_yawrate<<std::endl;
+  std::cout<< "th_num_continuous_abnormal_yaw_rate "<<_th_num_continuous_abnormal_yaw_rate<<std::endl;
   }
 
   // // Diagnostic Updater
@@ -1147,9 +1147,9 @@ int main(int argc, char** argv)
   updater_->add("eagleye_heading_interpolate_2nd", heading_interpolate_2nd_topic_checker);
   updater_->add("eagleye_heading_3rd", heading_3rd_topic_checker);
   updater_->add("eagleye_heading_interpolate_3rd", heading_interpolate_3rd_topic_checker);
-  updater_->add("eagleye_yawrate_offset_stop", yawrate_offset_stop_topic_checker);
-  updater_->add("eagleye_yawrate_offset_1st", yawrate_offset_1st_topic_checker);
-  updater_->add("eagleye_yawrate_offset_2nd", yawrate_offset_2nd_topic_checker);
+  updater_->add("eagleye_yaw_rate_offset_stop", yaw_rate_offset_stop_topic_checker);
+  updater_->add("eagleye_yaw_rate_offset_1st", yaw_rate_offset_1st_topic_checker);
+  updater_->add("eagleye_yaw_rate_offset_2nd", yaw_rate_offset_2nd_topic_checker);
   updater_->add("eagleye_slip_angle", slip_angle_topic_checker);
   updater_->add("eagleye_enu_vel", enu_vel_topic_checker);
   updater_->add("eagleye_height", height_topic_checker);
@@ -1157,7 +1157,7 @@ int main(int argc, char** argv)
   updater_->add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater_->add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater_->add("eagleye_twist", twist_topic_checker);
-  if(_use_compare_yawrate) updater_->add("eagleye_imu_comparison", imu_comparison_checker);
+  if(_use_compare_yaw_rate) updater_->add("eagleye_imu_comparison", imu_comparison_checker);
 
   time_t time_;
   time_ = time(NULL);
@@ -1180,9 +1180,9 @@ int main(int argc, char** argv)
   auto sub11 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_2nd", rclcpp::QoS(10), heading_interpolate_2nd_callback);
   auto sub12 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_3rd", rclcpp::QoS(10), heading_3rd_callback);
   auto sub13 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", rclcpp::QoS(10), heading_interpolate_3rd_callback);
-  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
-  auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_1st", rclcpp::QoS(10), yawrate_offset_1st_callback);
-  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", rclcpp::QoS(10), yawrate_offset_2nd_callback);
+  auto sub14 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", rclcpp::QoS(10), yaw_rate_offset_stop_callback);
+  auto sub15 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_1st", rclcpp::QoS(10), yaw_rate_offset_1st_callback);
+  auto sub16 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", rclcpp::QoS(10), yaw_rate_offset_2nd_callback);
   auto sub17 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);
   auto sub18 = node->create_subscription<eagleye_msgs::msg::Position>("enu_relative_pos", rclcpp::QoS(10), enu_relative_pos_callback);
   auto sub19 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", rclcpp::QoS(10), enu_vel_callback);

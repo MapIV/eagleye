@@ -86,20 +86,20 @@ ament_auto_add_executable(velocity_scale_factor
   src/velocity_scale_factor_node.cpp
 )
 
-ament_auto_add_executable(yawrate_offset
-  src/yawrate_offset_node.cpp
+ament_auto_add_executable(yaw_rate_offset
+  src/yaw_rate_offset_node.cpp
 )
 
-ament_auto_add_executable(yawrate_offset_stop
-  src/yawrate_offset_stop_node.cpp
+ament_auto_add_executable(yaw_rate_offset_stop
+  src/yaw_rate_offset_stop_node.cpp
 )
 
 ament_auto_add_executable(angular_velocity_offset_stop
   src/angular_velocity_offset_stop_node.cpp
 )
 
-ament_auto_add_executable(rtk_deadreckoning
-  src/rtk_deadreckoning_node.cpp
+ament_auto_add_executable(rtk_dead_reckoning
+  src/rtk_dead_reckoning_node.cpp
 )
 
 ament_auto_add_executable(rtk_heading
@@ -124,8 +124,8 @@ install(TARGETS
   smoothing
   trajectory
   velocity_scale_factor
-  yawrate_offset
-  yawrate_offset_stop
+  yaw_rate_offset
+  yaw_rate_offset_stop
   angular_velocity_offset_stop
   enable_additional_rolling
   rolling

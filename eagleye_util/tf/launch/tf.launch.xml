@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+    <group>
+      <push-ros-namespace namespace="gps"/>
+        <node name="static_transform_publisher" pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 base_link gnss">
+        </node>
+    </group>
+    <group>
+      <push-ros-namespace namespace="imu"/>
+        <node name="static_transform_publisher" pkg="tf2_ros" exec="static_transform_publisher" args="0 0 0 0 0 0 base_link imu">
+        </node>
+    </group>
+</launch>

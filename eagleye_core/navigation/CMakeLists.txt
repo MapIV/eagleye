@@ -39,9 +39,9 @@ ament_auto_add_library(eagleye_navigation SHARED
   src/smoothing.cpp
   src/trajectory.cpp
   src/velocity_scale_factor.cpp
-  src/yawrate_offset_stop.cpp
-  src/yawrate_offset.cpp
-  src/rtk_deadreckoning.cpp
+  src/yaw_rate_offset_stop.cpp
+  src/yaw_rate_offset.cpp
+  src/rtk_dead_reckoning.cpp
   src/rtk_heading.cpp
   src/velocity_estimator.cpp
   include/eagleye_navigation/eagleye_navigation.hpp

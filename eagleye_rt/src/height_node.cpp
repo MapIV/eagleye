@@ -51,7 +51,7 @@
  struct HeightParameter height_parameter;
  struct HeightStatus height_status;
 
- static bool use_canless_mode;
+ static bool use_can_less_mode;
 
 void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
@@ -75,7 +75,7 @@ void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   imu = *msg;
   height.header = msg->header;

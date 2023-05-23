@@ -40,11 +40,17 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
-#include "tf2_geometry_msgs/tf2_geometry_msgs.h"
+#ifdef ROS_DISTRO_GALACTIC
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#else
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#endif
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <std_srvs/srv/set_bool.hpp>
+#include <ament_index_cpp/get_package_share_directory.hpp>
 
 #include <llh_converter/llh_converter.hpp>
+#include <llh_converter/meridian_convergence_angle_correction.hpp>
 
 rclcpp::Clock _ros_clock(RCL_ROS_TIME);
 
@@ -64,20 +70,18 @@ static geometry_msgs::msg::PoseWithCovarianceStamped _pose_with_covariance;
 static std::string _parent_frame_id, _child_frame_id;
 static std::string _base_link_frame_id, _gnss_frame_id;
 
-llh_converter::LLHConverter _lc;
+std::string geoid_file_path = ament_index_cpp::get_package_share_directory("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
+llh_converter::LLHConverter _lc(geoid_file_path);
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
 int _fix_judgement_type = 0;
 int _fix_gnss_status = 0;
 double _fix_std_pos_thres = 0.1; // [m]
-bool _initial_pose_estimated = false;
 
 std::string _node_name = "eagleye_fix2pose";
 
 tf2_ros::Buffer _tf_buffer(std::make_shared<rclcpp::Clock>(_ros_clock));
-
-rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr _client_ekf_trigger;
 
 void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
@@ -96,24 +100,35 @@ void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
 
 void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 {
-  bool fix_flag = false;
-  if(_fix_judgement_type == 0)
+  if(!_eagleye_heading.status.enabled_status)
   {
-    if(msg->status.status == 0 && _eagleye_heading.status.enabled_status) fix_flag = true;
-  }
-  else if(_fix_judgement_type == 1)
-  {
-    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading.status.enabled_status) fix_flag = true;
-  }
-  else
-  {
-    RCLCPP_ERROR(rclcpp::get_logger(_node_name), "fix_judgement_type is not valid");
-    rclcpp::shutdown();
+    RCLCPP_WARN(rclcpp::get_logger(_node_name), "heading is not enabled to publish pose");
+    return;
   }
 
-  if(_fix_only_publish && !fix_flag)
+  if(_fix_only_publish)
   {
-    return;
+    if(_fix_judgement_type == 0)
+    {
+      if(!msg->status.status == 0)
+      {
+        RCLCPP_WARN(rclcpp::get_logger(_node_name), "status.status is not 0");
+        return;
+      }
+    }
+    else if(_fix_judgement_type == 1)
+    {
+      if(msg->position_covariance[0] > _fix_std_pos_thres * _fix_std_pos_thres)
+      {
+        RCLCPP_WARN(rclcpp::get_logger(_node_name), "position_covariance[0] is over %f", _fix_std_pos_thres * _fix_std_pos_thres);
+        return;
+      }
+    }
+    else
+    {
+      RCLCPP_ERROR(rclcpp::get_logger(_node_name), "fix_judgement_type is not valid");
+      rclcpp::shutdown();
+    }
   }
 
   double llh[3] = {0};
@@ -127,15 +142,19 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
 
   double eagleye_heading = 0;
   tf2::Quaternion localization_quat;
-  if (_eagleye_heading.status.enabled_status)
-  {
-    eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
-    localization_quat.setRPY(0, 0, eagleye_heading);
-  }
-  else
-  {
-    tf2::Matrix3x3(localization_quat).setRPY(0, 0, 0);
-  }
+  eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
+  llh_converter::LLA lla_struct;
+  llh_converter::XYZ xyz_struct;
+  lla_struct.latitude = msg->latitude;
+  lla_struct.longitude = msg->longitude;
+  lla_struct.altitude = msg->altitude;
+  xyz_struct.x = xyz[0];
+  xyz_struct.y = xyz[1];
+  xyz_struct.z = xyz[2];
+  double mca = llh_converter::getMeridianConvergence(lla_struct, xyz_struct, _lc, _llh_param); // meridian convergence angle
+  eagleye_heading += mca;
+
+  localization_quat.setRPY(0, 0, eagleye_heading);
   _quat = tf2::toMsg(localization_quat);
 
 
@@ -166,7 +185,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
         TF_sensor_to_base_ptr->transform.translation.y, TF_sensor_to_base_ptr->transform.translation.z));
       transform2.setRotation(q2);
       transfrom3 = transform * transform2;
-  
+
       _pose.header.frame_id = _parent_frame_id;
       _pose.pose.position.x = transfrom3.getOrigin().getX();
       _pose.pose.position.y = transfrom3.getOrigin().getY();
@@ -203,19 +222,6 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   _pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
   _pub2->publish(_pose_with_covariance);
 
-  if(!_initial_pose_estimated)
-  {
-    _pub3->publish(_pose_with_covariance);
-    _initial_pose_estimated = true;
-
-    const auto req = std::make_shared<std_srvs::srv::SetBool::Request>();
-    req->data = true;
-    if (!_client_ekf_trigger->service_is_ready()) {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "EKF localizar triggering service is not ready");
-    }
-    auto future_ekf = _client_ekf_trigger->async_send_request(req);
-  }
-  
   tf2::Transform transform;
   tf2::Quaternion q;
   transform.setOrigin(tf2::Vector3(_pose.pose.position.x, _pose.pose.position.y, _pose.pose.position.z));
@@ -279,11 +285,11 @@ int main(int argc, char** argv)
   std::cout<< "base_link_frame_id "<< _base_link_frame_id<<std::endl;
   std::cout<< "gnss_frame_id "<< _gnss_frame_id<<std::endl;
 
-  
+
   if (tf_num == 1)
   {
     _llh_param.use_mgrs = false;
-    _llh_param.plane_num = plane;  
+    _llh_param.plane_num = plane;
   }
   else if (tf_num == 2)
   {
@@ -301,7 +307,7 @@ int main(int argc, char** argv)
   }
   else if (convert_height_num == 1)
   {
-    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO; 
+    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO;
   }
   else if (convert_height_num == 2)
   {
@@ -319,7 +325,7 @@ int main(int argc, char** argv)
   }
   else if(geoid_type == 1)
   {
-    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011; 
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011;
   }
   else
   {
@@ -328,16 +334,14 @@ int main(int argc, char** argv)
   }
 
   tf2_ros::TransformListener tf_listener(_tf_buffer);
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("eagleye/fix", 1000, fix_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
-  _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("eagleye/pose", 1000);
-  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
-  _pub3 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/initialpose3d", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_callback);
+  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1000, fix_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("rolling", 1000, rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("pitching", 1000, pitching_callback);
+  _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("pose", 1000);
+  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("pose_with_covariance", 1000);
   _br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   _br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
-  _client_ekf_trigger = node->create_client<std_srvs::srv::SetBool>("ekf_trigger_node");
   rclcpp::spin(node);
 
   return 0;

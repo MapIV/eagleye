@@ -38,8 +38,8 @@
 VelocityEstimator::PitchrateOffsetStopEstimator::PitchrateOffsetStopEstimator()
 {
   stop_count = 0;
-  pitchrate_offset = 0;
-  pitchrate_offset_status.enabled_status = false;
+  pitch_rate_offset = 0;
+  pitch_rate_offset_status.enabled_status = false;
 }
 
 void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_file)
@@ -48,7 +48,7 @@ void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
     param.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
-    param.estimated_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitchrate_offset"]["estimated_interval"].as<double>();
+    param.estimated_interval = conf["/**"]["ros__parameters"]["velocity_estimator"]["pitch_rate_offset"]["estimated_interval"].as<double>();
     param.buffer_count_max = param.imu_rate * param.estimated_interval;
     // std::cout<< "imu_rate "<<param.imu_rate<<std::endl;
     // std::cout<< "estimated_interval "<<param.estimated_interval<<std::endl;  
@@ -60,37 +60,37 @@ void VelocityEstimator::PitchrateOffsetStopEstimator::setParam(std::string yaml_
   }
 }
 
-bool VelocityEstimator::PitchrateOffsetStopEstimator::PitchrateOffsetStopEstimate(double pitchrate, double stop_status)
+bool VelocityEstimator::PitchrateOffsetStopEstimator::PitchrateOffsetStopEstimate(double pitch_rate, double stop_status)
 {
-  pitchrate_offset_status.estimate_status = false;
-  pitchrate_buffer.push_back(pitchrate);
-  std::size_t pitchrate_buffer_length = std::distance(pitchrate_buffer.begin(), pitchrate_buffer.end());
+  pitch_rate_offset_status.estimate_status = false;
+  pitch_rate_buffer.push_back(pitch_rate);
+  std::size_t pitch_rate_buffer_length = std::distance(pitch_rate_buffer.begin(), pitch_rate_buffer.end());
 
   ++stop_count;
 
   if(!stop_status)
   {
     stop_count = 0;
-    return pitchrate_offset_status.enabled_status;
+    return pitch_rate_offset_status.enabled_status;
   }
 
-  if (pitchrate_buffer_length < param.buffer_count_max) return pitchrate_offset_status.enabled_status;
-  pitchrate_buffer.erase(pitchrate_buffer.begin());
+  if (pitch_rate_buffer_length < param.buffer_count_max) return pitch_rate_offset_status.enabled_status;
+  pitch_rate_buffer.erase(pitch_rate_buffer.begin());
 
   if (stop_count > param.buffer_count_max)
   {
-    double accumulation_pitchrate = 0.0;
+    double accumulation_pitch_rate = 0.0;
     for (int i = 0; i < param.buffer_count_max/2; i++)
     {
-      accumulation_pitchrate += pitchrate_buffer[i];
+      accumulation_pitch_rate += pitch_rate_buffer[i];
     }
 
-    pitchrate_offset = -1 * accumulation_pitchrate / (param.buffer_count_max/2);
-    pitchrate_offset_status.enabled_status = true;
-    pitchrate_offset_status.estimate_status = true;
+    pitch_rate_offset = -1 * accumulation_pitch_rate / (param.buffer_count_max/2);
+    pitch_rate_offset_status.enabled_status = true;
+    pitch_rate_offset_status.estimate_status = true;
   }
 
-  return pitchrate_offset_status.enabled_status;
+  return pitch_rate_offset_status.enabled_status;
 }
 
 //---PitchingEstimator---------------------------------------------------------------------------------------------------------------------
@@ -136,7 +136,7 @@ void VelocityEstimator::PitchingEstimator::setParam(std::string yaml_file)
 
 bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 (double imu_time_last, double doppler_velocity, double rtkfix_velocity,
- double pitchrate, double pitchrate_offset, double rtkfix_pitching,
+ double pitch_rate, double pitch_rate_offset, double rtkfix_pitching,
  bool navsat_update_status, bool stop_status)
 {
   bool use_gnss_status = false;
@@ -149,7 +149,7 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 
   // data buffer generate
   time_buffer.push_back(imu_time_last);
-  corrected_pitchrate_buffer.push_back(pitchrate + pitchrate_offset);
+  corrected_pitch_rate_buffer.push_back(pitch_rate + pitch_rate_offset);
   rtkfix_pitching_buffer.push_back(rtkfix_pitching);
   navsat_update_status_buffer.push_back(navsat_update_status);
   use_gnss_status_buffer.push_back(use_gnss_status);
@@ -158,15 +158,15 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
   if (time_buffer_length <= param.buffer_max) return pitching_status.enabled_status;
 
   time_buffer.erase(time_buffer.begin());
-  corrected_pitchrate_buffer.erase(corrected_pitchrate_buffer.begin());
+  corrected_pitch_rate_buffer.erase(corrected_pitch_rate_buffer.begin());
   rtkfix_pitching_buffer.erase(rtkfix_pitching_buffer.begin());
   navsat_update_status_buffer.erase(navsat_update_status_buffer.begin());
   use_gnss_status_buffer.erase(use_gnss_status_buffer.begin());
   time_buffer_length = std::distance(time_buffer.begin(), time_buffer.end());
 
   // setup for estimation
-  double accumulated_pitchrate;
-  std::vector<double> accumulated_pitchrate_buffer(time_buffer_length);
+  double accumulated_pitch_rate;
+  std::vector<double> accumulated_pitch_rate_buffer(time_buffer_length);
   std::vector<int> gnss_index;
   std::size_t gnss_index_length;
   pitching_status.estimate_status = false;
@@ -175,8 +175,8 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
   {
     if (navsat_update_status_buffer[i] && use_gnss_status_buffer[i]) gnss_index.push_back(i); //TODO Velocity judgment
     if (i == 0) continue;
-    accumulated_pitchrate += corrected_pitchrate_buffer[i] * (time_buffer[i]-time_buffer[i-1]);
-    accumulated_pitchrate_buffer[i] = accumulated_pitchrate;
+    accumulated_pitch_rate += corrected_pitch_rate_buffer[i] * (time_buffer[i]-time_buffer[i-1]);
+    accumulated_pitch_rate_buffer[i] = accumulated_pitch_rate;
   }
 
   gnss_index_length = std::distance(gnss_index.begin(), gnss_index.end());
@@ -184,7 +184,7 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
   if (gnss_index_length < time_buffer_length * param.estimated_gnss_coefficient) return pitching_status.enabled_status;
 
   // pitching estimation by the least-squares method
-  std::vector<double> init_accumulated_pitchrate_buffer;
+  std::vector<double> init_accumulated_pitch_rate_buffer;
   std::vector<double> residual_error;
 
   while (1)
@@ -193,27 +193,27 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 
     for (int i = 0; i < time_buffer_length; i++)
     {
-      init_accumulated_pitchrate_buffer.push_back(accumulated_pitchrate_buffer[i] + (rtkfix_pitching_buffer[gnss_index[0]] - accumulated_pitchrate_buffer[gnss_index[0]]));
+      init_accumulated_pitch_rate_buffer.push_back(accumulated_pitch_rate_buffer[i] + (rtkfix_pitching_buffer[gnss_index[0]] - accumulated_pitch_rate_buffer[gnss_index[0]]));
     }
 
     for (int i = 0; i < gnss_index_length; i++)
     {
-      residual_error.push_back(init_accumulated_pitchrate_buffer[gnss_index[i]] - rtkfix_pitching_buffer[gnss_index[i]]);
+      residual_error.push_back(init_accumulated_pitch_rate_buffer[gnss_index[i]] - rtkfix_pitching_buffer[gnss_index[i]]);
     }
 
     double residual_error_mean = std::accumulate(residual_error.begin(), residual_error.end(), 0.0) / gnss_index_length;
     double init_pitching = rtkfix_pitching_buffer[gnss_index[0]] - residual_error_mean;
 
-    init_accumulated_pitchrate_buffer.clear();
+    init_accumulated_pitch_rate_buffer.clear();
     for (int i = 0; i < time_buffer_length; i++)
     {
-      init_accumulated_pitchrate_buffer.push_back(accumulated_pitchrate_buffer[i] + (init_pitching - accumulated_pitchrate_buffer[gnss_index[0]]));
+      init_accumulated_pitch_rate_buffer.push_back(accumulated_pitch_rate_buffer[i] + (init_pitching - accumulated_pitch_rate_buffer[gnss_index[0]]));
     }
 
     residual_error.clear();
     for (int i = 0; i < gnss_index_length; i++)
     {
-      residual_error.push_back(init_accumulated_pitchrate_buffer[gnss_index[i]] - rtkfix_pitching_buffer[gnss_index[i]]);
+      residual_error.push_back(init_accumulated_pitch_rate_buffer[gnss_index[i]] - rtkfix_pitching_buffer[gnss_index[i]]);
     }
 
     std::vector<double>::iterator residual_error_max = std::max_element(residual_error.begin(), residual_error.end());
@@ -226,7 +226,7 @@ bool VelocityEstimator::PitchingEstimator::PitchingEstimate
 
   }
 
-  pitching = init_accumulated_pitchrate_buffer[time_buffer_length-1];
+  pitching = init_accumulated_pitch_rate_buffer[time_buffer_length-1];
   pitching_status.enabled_status = true;
   pitching_status.estimate_status = true;
 
@@ -364,12 +364,12 @@ bool VelocityEstimator::AccelerationOffsetEstimator::AccelerationOffsetEstimate
 VelocityEstimator::VelocityEstimator()
 {
   acceleration = 0;
-  pitchrate = 0;
+  pitch_rate = 0;
   doppler_velocity = 0;
   rtkfix_velocity = 0;
   rtkfix_pitching = 0;
   gga_time_last = 0;
-  pitchrate_offset = 0;
+  pitch_rate_offset = 0;
   pitching = 0;
   acceleration_offset = 0;
   filtered_acceleration = 0;
@@ -423,7 +423,7 @@ void VelocityEstimator::setParam(std::string yaml_file)
     // std::cout<< "outlier_ratio_threshold "<<param.outlier_ratio_threshold<<std::endl;
     // std::cout<< "outlier_threshold "<<param.outlier_threshold<<std::endl;
 
-    pitchrate_offset_stop_estimator.setParam(yaml_file);
+    pitch_rate_offset_stop_estimator.setParam(yaml_file);
     pitching_estimator.setParam(yaml_file);
     acceleration_offset_estimator.setParam(yaml_file);
   }
@@ -451,7 +451,7 @@ bool VelocityEstimator::updateImu(sensor_msgs::msg::Imu imu_msg)
   if(imu_time == imu_time_last) return false;
 
   acceleration = imu_msg.linear_acceleration.x;
-  pitchrate = imu_msg.angular_velocity.y;
+  pitch_rate = imu_msg.angular_velocity.y;
   imu_time_last = imu_time;
 
   return true;
@@ -715,13 +715,13 @@ void VelocityEstimator::VelocityEstimate(sensor_msgs::msg::Imu imu_msg, rtklib_m
   stop_status = StopJudgment(imu_msg);
   velocity_status.estimate_status = false;
 
-  // pitchrate offset estimation during stop
-  pitchrate_offset_stop_estimator.PitchrateOffsetStopEstimate(pitchrate, stop_status);
-  pitchrate_offset = pitchrate_offset_stop_estimator.pitchrate_offset;
+  // pitch_rate offset estimation during stop
+  pitch_rate_offset_stop_estimator.PitchrateOffsetStopEstimate(pitch_rate, stop_status);
+  pitch_rate_offset = pitch_rate_offset_stop_estimator.pitch_rate_offset;
 
   if(!pitching_estimator.PitchingEstimate
       (imu_time_last, doppler_velocity, rtkfix_velocity,
-       pitchrate, pitchrate_offset, rtkfix_pitching,
+       pitch_rate, pitch_rate_offset, rtkfix_pitching,
        navsat_update_status, stop_status)
     ) return;
   pitching = pitching_estimator.pitching;

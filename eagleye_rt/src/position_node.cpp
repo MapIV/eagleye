@@ -34,7 +34,11 @@
 
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#ifdef ROS_DISTRO_GALACTIC
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#else
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
+#endif
 
 static rtklib_msgs::msg::RtklibNav rtklib_nav;
 static geometry_msgs::msg::TwistStamped velocity;
@@ -51,7 +55,7 @@ struct PositionParameter position_parameter;
 struct PositionStatus position_status;
 
 std::string use_gnss_mode;
-static bool use_canless_mode;
+static bool use_can_less_mode;
 
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
@@ -118,10 +122,10 @@ void on_timer()
 
 void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
 {
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
 
   eagleye_msgs::msg::StatusStamped velocity_enable_status;
-  if(use_canless_mode)
+  if(use_can_less_mode)
   {
     velocity_enable_status = velocity_status;
   }
@@ -165,7 +169,7 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
-    use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
 
     position_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
     position_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
@@ -182,11 +186,13 @@ int main(int argc, char** argv)
     position_parameter.update_distance = conf["/**"]["ros__parameters"]["position"]["update_distance"].as<double>();
     position_parameter.outlier_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_threshold"].as<double>();
 
-    position_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["heading"]["gnss_receiving_threshold"].as<double>();
+    position_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["position"]["gnss_receiving_threshold"].as<double>();
     position_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["position"]["outlier_ratio_threshold"].as<double>();
 
+    position_parameter.gnss_error_covariance = conf["/**"]["ros__parameters"]["position"]["gnss_error_covariance"].as<double>();
+
     std::cout<< "use_gnss_mode " << use_gnss_mode << std::endl;
-    std::cout<< "use_canless_mode " << use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << use_can_less_mode << std::endl;
 
     std::cout<< "subscribe_rtklib_nav_topic_name " << subscribe_rtklib_nav_topic_name << std::endl;
 

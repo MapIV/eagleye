@@ -38,8 +38,8 @@ static eagleye_msgs::msg::Heading multi_antenna_heading;
 static sensor_msgs::msg::Imu imu;
 static geometry_msgs::msg::TwistStamped velocity;
 static eagleye_msgs::msg::StatusStamped velocity_status;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset yawrate_offset;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop;
+static eagleye_msgs::msg::YawrateOffset yaw_rate_offset;
 static eagleye_msgs::msg::SlipAngle slip_angle;
 static eagleye_msgs::msg::Heading heading_interpolate;
 
@@ -50,7 +50,7 @@ struct HeadingParameter heading_parameter;
 struct HeadingStatus heading_status;
 
 std::string use_gnss_mode;
-static bool use_canless_mode;
+static bool use_can_less_mode;
 static bool use_multi_antenna_mode;
 
 bool is_first_correction_velocity = false;
@@ -88,14 +88,14 @@ void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstShare
   velocity_status = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset_stop = *msg;
+  yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+void yaw_rate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
-  yawrate_offset = *msg;
+  yaw_rate_offset = *msg;
 }
 
 void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
@@ -116,8 +116,8 @@ void rmc_callback(const nmea_msgs::msg::Gprmc::ConstSharedPtr msg)
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   if (!is_first_correction_velocity) return;
-  if(use_canless_mode && !velocity_status.status.enabled_status) return;
-  if(!yawrate_offset_stop.status.enabled_status)
+  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
+  if(!yaw_rate_offset_stop.status.enabled_status)
   {
     RCLCPP_WARN(rclcpp::get_logger(node_name), "Heading estimation is not started because the stop calibration is not yet completed.");
     return;
@@ -129,11 +129,11 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   bool use_rtklib_mode = use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB";
   bool use_nmea_mode = use_gnss_mode == "nmea" || use_gnss_mode == "NMEA";
   if (use_rtklib_mode && !use_multi_antenna_mode) // use RTKLIB mode
-    heading_estimate(rtklib_nav,imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+    heading_estimate(rtklib_nav,imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
   else if (use_nmea_mode && !use_multi_antenna_mode) // use NMEA mode
-    heading_estimate(nmea_rmc,imu,velocity,yawrate_offset_stop,yawrate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
+    heading_estimate(nmea_rmc,imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,slip_angle,heading_interpolate,heading_parameter,&heading_status,&heading);
   else if (use_multi_antenna_mode)
-    heading_estimate(multi_antenna_heading, imu, velocity, yawrate_offset_stop, yawrate_offset, slip_angle,
+    heading_estimate(multi_antenna_heading, imu, velocity, yaw_rate_offset_stop, yaw_rate_offset, slip_angle,
       heading_interpolate, heading_parameter, &heading_status, &heading);
 
   if (heading.status.estimate_status == true || use_multi_antenna_mode)
@@ -210,19 +210,19 @@ int main(int argc, char** argv)
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "heading_1st";
-      subscribe_topic_name = "yawrate_offset_stop";
+      subscribe_topic_name = "yaw_rate_offset_stop";
       subscribe_topic_name2 = "heading_interpolate_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "heading_2nd";
-      subscribe_topic_name = "yawrate_offset_1st";
+      subscribe_topic_name = "yaw_rate_offset_1st";
       subscribe_topic_name2 = "heading_interpolate_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
       publish_topic_name = "heading_3rd";
-      subscribe_topic_name = "yawrate_offset_2nd";
+      subscribe_topic_name = "yaw_rate_offset_2nd";
       subscribe_topic_name2 = "heading_interpolate_3rd";
     }
     else
@@ -243,8 +243,8 @@ int main(int argc, char** argv)
   auto sub4 = node->create_subscription<geometry_msgs::msg::PoseStamped>("gnss_compass_pose", 1000, pose_callback);
   auto sub5 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto sub6 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto sub7 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", rclcpp::QoS(10), yawrate_offset_stop_callback);
-  auto sub8 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yawrate_offset_callback);
+  auto sub7 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", rclcpp::QoS(10), yaw_rate_offset_stop_callback);
+  auto sub8 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name, 1000, yaw_rate_offset_callback);
   auto sub9 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);
   auto sub10 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name2 , 1000, heading_interpolate_callback);
   pub = node->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, rclcpp::QoS(10));

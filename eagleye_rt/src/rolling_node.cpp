@@ -35,8 +35,8 @@ rclcpp::Publisher<eagleye_msgs::msg::Rolling>::SharedPtr _rolling_pub;
 
 static geometry_msgs::msg::TwistStamped _velocity_msg;
 static eagleye_msgs::msg::StatusStamped _velocity_status_msg;
-static eagleye_msgs::msg::YawrateOffset _yawrate_offset_2nd_msg;
-static eagleye_msgs::msg::YawrateOffset _yawrate_offset_stop_msg;
+static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_2nd_msg;
+static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_stop_msg;
 static sensor_msgs::msg::Imu _imu_msg;
 
 static eagleye_msgs::msg::Rolling _rolling_msg;
@@ -44,7 +44,7 @@ static eagleye_msgs::msg::Rolling _rolling_msg;
 struct RollingParameter _rolling_parameter;
 struct RollingStatus _rolling_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
 {
@@ -56,21 +56,21 @@ void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr m
   _velocity_status_msg = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
 {
-  _yawrate_offset_stop_msg = *msg;
+  _yaw_rate_offset_stop_msg = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
 {
-  _yawrate_offset_2nd_msg = *msg;
+  _yaw_rate_offset_2nd_msg = *msg;
 }
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
 {
-  if(_use_canless_mode && !_velocity_status_msg.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status_msg.status.enabled_status) return;
   _imu_msg = *msg;
-  rolling_estimate(_imu_msg, _velocity_msg, _yawrate_offset_stop_msg, _yawrate_offset_2nd_msg,
+  rolling_estimate(_imu_msg, _velocity_msg, _yaw_rate_offset_stop_msg, _yaw_rate_offset_2nd_msg,
                    _rolling_parameter, &_rolling_status, &_rolling_msg);
   _rolling_pub->publish(_rolling_msg);
 }
@@ -86,12 +86,12 @@ void setParam(rclcpp::Node::SharedPtr node)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _use_canless_mode = conf["/**"]["ros__parameters"]["use_canless_mode"].as<bool>();
+    _use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
     _rolling_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
     _rolling_parameter.filter_process_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_process_noise"].as<double>();
     _rolling_parameter.filter_observation_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_observation_noise"].as<double>();
 
-    std::cout<< "use_canless_mode " << _use_canless_mode << std::endl;
+    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
     std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
     std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
     std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
@@ -113,10 +113,10 @@ void rolling_node(rclcpp::Node::SharedPtr node)
       node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
   auto velocity_status_sub =
       node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto yawrate_offset_2nd_sub =
-      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback);
-  auto yawrate_offset_stop_sub =
-      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yawrate_offset_stop", 1000, yawrate_offset_stop_callback);
+  auto yaw_rate_offset_2nd_sub =
+      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback);
+  auto yaw_rate_offset_stop_sub =
+      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback);
 
   _rolling_pub = node->create_publisher<eagleye_msgs::msg::Rolling>("rolling", 1000);
 

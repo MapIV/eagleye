@@ -38,8 +38,8 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
   double roll_tmp, pitch_tmp, yaw_tmp;
   double initial_angular_velocity_offset_stop = 0.0;
   std::size_t rollrate_buffer_length;
-  std::size_t pitchrate_buffer_length;
-  std::size_t yawrate_buffer_length;
+  std::size_t pitch_rate_buffer_length;
+  std::size_t yaw_rate_buffer_length;
 
   double estimated_buffer_number = angular_velocity_stop_parameter.imu_rate * angular_velocity_stop_parameter.estimated_interval;
   double estimated_time_buffer_number = angular_velocity_stop_parameter.imu_rate * angular_velocity_stop_parameter.estimated_interval;
@@ -48,26 +48,26 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
   if (angular_velocity_stop_status->estimate_start_status == false)
   {
     angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-    angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-    angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
+    angular_velocity_stop_status->pitch_rate_buffer.push_back(imu.angular_velocity.y);
+    angular_velocity_stop_status->yaw_rate_buffer.push_back(imu.angular_velocity.z);
   }
-  else if ( std::fabs(std::fabs(angular_velocity_stop_status->yawrate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
+  else if ( std::fabs(std::fabs(angular_velocity_stop_status->yaw_rate_offset_stop_last) - std::fabs(imu.angular_velocity.z)) <
     angular_velocity_stop_parameter.outlier_threshold && angular_velocity_stop_status->estimate_start_status == true)
   {
     angular_velocity_stop_status->rollrate_buffer.push_back(imu.angular_velocity.x);
-    angular_velocity_stop_status->pitchrate_buffer.push_back(imu.angular_velocity.y);
-    angular_velocity_stop_status->yawrate_buffer.push_back(imu.angular_velocity.z);
+    angular_velocity_stop_status->pitch_rate_buffer.push_back(imu.angular_velocity.y);
+    angular_velocity_stop_status->yaw_rate_buffer.push_back(imu.angular_velocity.z);
   }
 
   rollrate_buffer_length = std::distance(angular_velocity_stop_status->rollrate_buffer.begin(), angular_velocity_stop_status->rollrate_buffer.end());
-  pitchrate_buffer_length = std::distance(angular_velocity_stop_status->pitchrate_buffer.begin(), angular_velocity_stop_status->pitchrate_buffer.end());
-  yawrate_buffer_length = std::distance(angular_velocity_stop_status->yawrate_buffer.begin(), angular_velocity_stop_status->yawrate_buffer.end());
+  pitch_rate_buffer_length = std::distance(angular_velocity_stop_status->pitch_rate_buffer.begin(), angular_velocity_stop_status->pitch_rate_buffer.end());
+  yaw_rate_buffer_length = std::distance(angular_velocity_stop_status->yaw_rate_buffer.begin(), angular_velocity_stop_status->yaw_rate_buffer.end());
 
-  if (yawrate_buffer_length > estimated_buffer_number + estimated_time_buffer_number)
+  if (yaw_rate_buffer_length > estimated_buffer_number + estimated_time_buffer_number)
   {
     angular_velocity_stop_status->rollrate_buffer.erase(angular_velocity_stop_status->rollrate_buffer.begin());
-    angular_velocity_stop_status->pitchrate_buffer.erase(angular_velocity_stop_status->pitchrate_buffer.begin());
-    angular_velocity_stop_status->yawrate_buffer.erase(angular_velocity_stop_status->yawrate_buffer.begin());
+    angular_velocity_stop_status->pitch_rate_buffer.erase(angular_velocity_stop_status->pitch_rate_buffer.begin());
+    angular_velocity_stop_status->yaw_rate_buffer.erase(angular_velocity_stop_status->yaw_rate_buffer.begin());
   }
 
   if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_threshold)
@@ -88,8 +88,8 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
     for (i = 0; i < estimated_buffer_number; i++)
     {
       roll_tmp += angular_velocity_stop_status->rollrate_buffer[i];
-      pitch_tmp += angular_velocity_stop_status->pitchrate_buffer[i];
-      yaw_tmp += angular_velocity_stop_status->yawrate_buffer[i];
+      pitch_tmp += angular_velocity_stop_status->pitch_rate_buffer[i];
+      yaw_tmp += angular_velocity_stop_status->yaw_rate_buffer[i];
     }
     angular_velocity_offset_stop->angular_velocity_offset.x = -1 * roll_tmp / estimated_buffer_number;
     angular_velocity_offset_stop->angular_velocity_offset.y = -1 * pitch_tmp / estimated_buffer_number;
@@ -101,8 +101,8 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
   else
   {
     angular_velocity_offset_stop->angular_velocity_offset.x = angular_velocity_stop_status->rollrate_offset_stop_last;
-    angular_velocity_offset_stop->angular_velocity_offset.y = angular_velocity_stop_status->pitchrate_offset_stop_last;
-    angular_velocity_offset_stop->angular_velocity_offset.z = angular_velocity_stop_status->yawrate_offset_stop_last;
+    angular_velocity_offset_stop->angular_velocity_offset.y = angular_velocity_stop_status->pitch_rate_offset_stop_last;
+    angular_velocity_offset_stop->angular_velocity_offset.z = angular_velocity_stop_status->yaw_rate_offset_stop_last;
     angular_velocity_offset_stop->status.estimate_status = false;
   }
   if (angular_velocity_stop_status->estimate_start_status == false)
@@ -114,6 +114,6 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
     angular_velocity_offset_stop->status.enabled_status = false;
   }
   angular_velocity_stop_status->rollrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.x;
-  angular_velocity_stop_status->pitchrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.y;
-  angular_velocity_stop_status->yawrate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.z;
+  angular_velocity_stop_status->pitch_rate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.y;
+  angular_velocity_stop_status->yaw_rate_offset_stop_last = angular_velocity_offset_stop->angular_velocity_offset.z;
 }
