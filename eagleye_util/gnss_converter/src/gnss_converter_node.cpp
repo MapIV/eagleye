@@ -4,6 +4,7 @@
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include <coordinate/coordinate.hpp>
 #include <ublox_msgs/NavPVT.h>
+#include <yaml-cpp/yaml.h>
 
 class GnssConverterNode
 {
@@ -79,24 +80,37 @@ private:
 
     n.getParam(node_namespace + "/is_sub_antenna", is_sub_antenna);
     std::cout << node_namespace + "/is_sub_antenna " << is_sub_antenna << std::endl;
-    if(!is_sub_antenna)
+    std::string yaml_file;
+    n.getParam(node_namespace + "/yaml_file",yaml_file);
+    std::cout << "yaml_file " << yaml_file << std::endl;
+    try
     {
-      n.getParam("gnss/llh_source_type", llh_source_type);
-      n.getParam("gnss/llh_source_topic", llh_source_topic);
-      n.getParam("gnss/velocity_source_type", velocity_source_type);
-      n.getParam("gnss/velocity_source_topic", velocity_source_topic);
-      n.getParam("twist_covariance_thresh", twist_covariance_thresh);
-      n.getParam("ublox_vacc_thresh", ublox_vacc_thresh);
-      std::cout << "velocity_source_type " << velocity_source_type << std::endl;
-      std::cout << "velocity_source_topic " << velocity_source_topic << std::endl;
-      std::cout << "twist_covariance_thresh " << twist_covariance_thresh << std::endl;
-      std::cout << "ublox_vacc_thresh " << ublox_vacc_thresh << std::endl;
+      YAML::Node conf = YAML::LoadFile(yaml_file);
+      if(!is_sub_antenna)
+      {
+        n.getParam("twist_covariance_thresh", twist_covariance_thresh);
+        n.getParam("ublox_vacc_thresh", ublox_vacc_thresh);
+        llh_source_type = conf["gnss"]["llh_source_type"].as<int>();
+        llh_source_topic = conf["gnss"]["llh_source_topic"].as<std::string>();
+        velocity_source_type = conf["gnss"]["velocity_source_type"].as<int>();
+        velocity_source_topic = conf["gnss"]["velocity_source_topic"].as<std::string>();
+        std::cout << "velocity_source_type " << velocity_source_type << std::endl;
+        std::cout << "velocity_source_topic " << velocity_source_topic << std::endl;
+        std::cout << "twist_covariance_thresh " << twist_covariance_thresh << std::endl;
+        std::cout << "ublox_vacc_thresh " << ublox_vacc_thresh << std::endl;
+      }
+      else
+      {
+        llh_source_type = conf["sub_gnss"]["llh_source_type"].as<int>();
+        llh_source_topic = conf["sub_gnss"]["llh_source_topic"].as<std::string>();
+      }
     }
-    else
+    catch (YAML::Exception& e)
     {
-      n.getParam("sub_gnss/llh_source_type", llh_source_type);
-      n.getParam("sub_gnss/llh_source_topic", llh_source_topic);
+      std::cerr << "\033[1;31mgnss_converter Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+      exit(3);
     }
+
     
     std::cout << "llh_source_type " << llh_source_type << std::endl;
     std::cout << "llh_source_topic " << llh_source_topic << std::endl;

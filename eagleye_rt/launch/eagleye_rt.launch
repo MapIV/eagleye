@@ -40,7 +40,7 @@
     <node pkg="eagleye_rt" name="height_node" type="height"/>
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
     <node pkg="eagleye_rt" name="correction_imu" type="correction_imu"/>
-    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="log" />
+    <node pkg="eagleye_rt" name="monitor" type="monitor"  output="screen" />
     <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- RTK Options -->
@@ -52,7 +52,7 @@
 
     <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch">
       <arg name="use_multi_antenna_mode" value="$(arg use_multi_antenna_mode)"/>]
-      <!-- <arg name="yaml_file" value="$(arg yaml_file)"/> -->
+      <arg name="yaml_file" value="$(arg yaml_file)"/>
     </include>
 
     <include file="$(find gnss_compass)/launch/gnss_compass.launch" if="$(arg use_multi_antenna_mode)">

@@ -3,6 +3,9 @@ project(eagleye_gnss_converter)
 
 set(CMAKE_CXX_FLAGS "-O2 -std=c++11 -Wall")
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
@@ -22,6 +25,7 @@ include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
   ${catkin_INCLUDE_DIRS}
+  ${YAML_CPP_INCLUDE_DIRS}
 )
 
 add_library(gnss_converter
@@ -35,6 +39,7 @@ install(DIRECTORY include/gnss_converter/
 
 target_link_libraries(gnss_converter
   ${catkin_LIBRARIES}
+  ${YAML_CPP_LIBRARIES}
 )
 
 install(TARGETS gnss_converter
