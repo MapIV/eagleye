@@ -10,6 +10,7 @@
     <arg name="use_rtk_heading" default="false"/>
     <arg name="use_can_less_mode" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
+    <arg name="use_multi_antenna_mode" default="false"/>
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
@@ -49,7 +50,15 @@
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="enable_additional_rolling_node" type="enable_additional_rolling" if="$(arg enable_additional_rolling)"/>
 
-    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
+    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch">
+      <arg name="use_multi_antenna_mode" value="$(arg use_multi_antenna_mode)"/>]
+      <arg name="yaml_file" value="$(arg yaml_file)"/>
+    </include>
+
+    <include file="$(find gnss_compass)/launch/gnss_compass.launch" if="$(arg use_multi_antenna_mode)">
+      <arg name="input_main_gnss_topic" value="/eagleye/navsat/gga"/>
+      <arg name="input_sub_gnss_topic" value="/eagleye/sub_navsat/gga"/>
+    </include>
   </group>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>

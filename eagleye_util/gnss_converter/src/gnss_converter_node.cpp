@@ -4,6 +4,7 @@
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include <coordinate/coordinate.hpp>
 #include <ublox_msgs/NavPVT.h>
+#include <yaml-cpp/yaml.h>
 
 class GnssConverterNode
 {
@@ -22,27 +23,30 @@ public:
     pub3 = n.advertise<nmea_msgs::Gprmc>("rmc", 1000);
     pub4 = n.advertise<rtklib_msgs::RtklibNav>("rtklib_nav", 1000);
 
-    // Setup subscribers
-    if (velocity_source_type == 0)
+    if(!is_sub_antenna)
     {
-      rtklib_nav_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::rtklib_nav_callback, this);
-    }
-    else if (velocity_source_type == 1)
-    {
-      nmea_sentence_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::nmea_callback, this);
-    }
-    else if (velocity_source_type == 2)
-    {
-      navpvt_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::navpvt_callback, this);
-    }
-    else if (velocity_source_type == 3)
-    {
-      gnss_velocity_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::gnss_velocity_callback, this);
-    }
-    else
-    {
-      ROS_ERROR("Invalid velocity_source_type");
-      ros::shutdown();
+      // Setup subscribers
+      if (velocity_source_type == 0)
+      {
+        rtklib_nav_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::rtklib_nav_callback, this);
+      }
+      else if (velocity_source_type == 1)
+      {
+        nmea_sentence_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::nmea_callback, this);
+      }
+      else if (velocity_source_type == 2)
+      {
+        navpvt_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::navpvt_callback, this);
+      }
+      else if (velocity_source_type == 3)
+      {
+        gnss_velocity_sub = n.subscribe(velocity_source_topic, 1000, &GnssConverterNode::gnss_velocity_callback, this);
+      }
+      else
+      {
+        ROS_ERROR("Invalid velocity_source_type");
+        ros::shutdown();
+      }
     }
 
     if (llh_source_type == 0)
@@ -72,19 +76,45 @@ public:
 private:
   void setupParameters(ros::NodeHandle &n)
   {
-    n.getParam("gnss/velocity_source_type", velocity_source_type);
-    n.getParam("gnss/velocity_source_topic", velocity_source_topic);
-    n.getParam("gnss/llh_source_type", llh_source_type);
-    n.getParam("gnss/llh_source_topic", llh_source_topic);
-    n.getParam("twist_covariance_thresh", twist_covariance_thresh);
-    n.getParam("ublox_vacc_thresh", ublox_vacc_thresh);
+    std::string node_namespace = ros::this_node::getName();
 
-    std::cout << "velocity_source_type " << velocity_source_type << std::endl;
-    std::cout << "velocity_source_topic " << velocity_source_topic << std::endl;
+    n.getParam(node_namespace + "/is_sub_antenna", is_sub_antenna);
+    std::cout << node_namespace + "/is_sub_antenna " << is_sub_antenna << std::endl;
+    std::string yaml_file;
+    n.getParam(node_namespace + "/yaml_file",yaml_file);
+    std::cout << "yaml_file " << yaml_file << std::endl;
+    try
+    {
+      YAML::Node conf = YAML::LoadFile(yaml_file);
+      if(!is_sub_antenna)
+      {
+        n.getParam("twist_covariance_thresh", twist_covariance_thresh);
+        n.getParam("ublox_vacc_thresh", ublox_vacc_thresh);
+        llh_source_type = conf["gnss"]["llh_source_type"].as<int>();
+        llh_source_topic = conf["gnss"]["llh_source_topic"].as<std::string>();
+        velocity_source_type = conf["gnss"]["velocity_source_type"].as<int>();
+        velocity_source_topic = conf["gnss"]["velocity_source_topic"].as<std::string>();
+        std::cout << "velocity_source_type " << velocity_source_type << std::endl;
+        std::cout << "velocity_source_topic " << velocity_source_topic << std::endl;
+        std::cout << "twist_covariance_thresh " << twist_covariance_thresh << std::endl;
+        std::cout << "ublox_vacc_thresh " << ublox_vacc_thresh << std::endl;
+      }
+      else
+      {
+        llh_source_type = conf["sub_gnss"]["llh_source_type"].as<int>();
+        llh_source_topic = conf["sub_gnss"]["llh_source_topic"].as<std::string>();
+      }
+    }
+    catch (YAML::Exception& e)
+    {
+      std::cerr << "\033[1;31mgnss_converter Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+      exit(3);
+    }
+
+    
     std::cout << "llh_source_type " << llh_source_type << std::endl;
     std::cout << "llh_source_topic " << llh_source_topic << std::endl;
-    std::cout << "twist_covariance_thresh " << twist_covariance_thresh << std::endl;
-    std::cout << "ublox_vacc_thresh " << ublox_vacc_thresh << std::endl;
+    std::cout << "is_sub_antenna " << is_sub_antenna << std::endl;
   }
 
   // Callback functions
@@ -185,6 +215,7 @@ void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::Con
 
   double twist_covariance_thresh = 0.2;
   double ublox_vacc_thresh = 200.0;
+  bool is_sub_antenna = false;
 
 };
 
