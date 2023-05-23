@@ -72,6 +72,8 @@
       outlier_ratio_threshold: 0.5
       curve_judgment_threshold: 0.0873
       init_STD: 0.0035 #[rad] (= 0.2 [deg])
+      skip_static_initialization: false
+      yaw_rate_offset_stop_in_skip_mode: 0.0
 
     heading_interpolate:
       sync_search_period: 2

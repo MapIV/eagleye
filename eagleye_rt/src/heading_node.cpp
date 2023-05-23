@@ -55,6 +55,9 @@ static bool use_multi_antenna_mode;
 
 bool is_first_correction_velocity = false;
 
+bool skip_static_initialization = false;
+double yaw_rate_offset_stop_in_skip_mode = 0.0;
+
 std::string node_name = "eagleye_heading";
 
 void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
@@ -119,8 +122,15 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   if(use_can_less_mode && !velocity_status.status.enabled_status) return;
   if(!yaw_rate_offset_stop.status.enabled_status)
   {
-    RCLCPP_WARN(rclcpp::get_logger(node_name), "Heading estimation is not started because the stop calibration is not yet completed.");
-    return;
+    if(skip_static_initialization)
+    {
+      yaw_rate_offset_stop.yaw_rate_offset = yaw_rate_offset_stop_in_skip_mode;
+    }
+    else
+    {
+      RCLCPP_WARN(rclcpp::get_logger(node_name), "Heading estimation is not started because the stop calibration is not yet completed.");
+      return;
+    }
   }
 
   imu = *msg;
@@ -176,6 +186,8 @@ int main(int argc, char** argv)
     heading_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["heading"]["outlier_ratio_threshold"].as<double>();
     heading_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["heading"]["curve_judgment_threshold"].as<double>();
     heading_parameter.init_STD = conf["/**"]["ros__parameters"]["heading"]["init_STD"].as<double>();
+    skip_static_initialization = conf["/**"]["ros__parameters"]["heading"]["skip_static_initialization"].as<bool>();
+    yaw_rate_offset_stop_in_skip_mode = conf["/**"]["ros__parameters"]["heading"]["yaw_rate_offset_stop_in_skip_mode"].as<double>();
 
     std::cout<< "use_gnss_mode " << use_gnss_mode << std::endl;
 
@@ -194,6 +206,8 @@ int main(int argc, char** argv)
     std::cout << "outlier_ratio_threshold " << heading_parameter.outlier_ratio_threshold << std::endl;
     std::cout << "curve_judgment_threshold " << heading_parameter.curve_judgment_threshold << std::endl;
     std::cout << "init_STD " << heading_parameter.init_STD << std::endl;
+    std::cout << "skip_static_initialization " << skip_static_initialization << std::endl;
+    std::cout << "yaw_rate_offset_stop_in_skip_mode " << yaw_rate_offset_stop_in_skip_mode << std::endl;
   }
   catch (YAML::Exception& e)
   {

@@ -111,6 +111,8 @@ Figure shows the relationship between these parameters.
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
 | curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
 | init_STD                   | double | Standard deviation of Doppler azimuth angle [rad] | 0.0035 (0.2 deg)          |
+| skip_static_initialization                   | bool | Whether to skip initial static estimation of yaw rate offset | false          |
+| yaw_rate_offset_stop_in_skip_mode                   | double | Initial yaw rate offset stop in skip mode [rad/sec] | 0.0           |
 
 ### heading_interpolate
 
