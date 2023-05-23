@@ -127,10 +127,6 @@ Clone and build the necessary packages for Eagleye.
 
 - [eagleye_rt](eagleye_rt) : real-time version
 
-## eagleye_pp
-
-- [eagleye_pp](eagleye_pp) : post-processing version
-
 ## Optional Features
 
 ### can_less mode
@@ -144,12 +140,10 @@ However, in this mode, note the following
 
 To use this mode
 - Use launch/eagleye_rt_can_less.launch for eagleye_rt instead of launch/eagleye_rt.launch.
-- Set use_can_less_mode in eagleye_pp_config.yaml to true for eagleye_pp.
 
 ### dual antenna mode
 
 This option allows for more immediate heading estimatiion, and allows GNSS to estimate heading even at low speeds.
-eagleye_pp not yet supported.
 
 To use this mode
 - Use launch/eagleye_rt_dualantenna.launch for eagleye_rt instead of launch/eagleye_rt.launch.

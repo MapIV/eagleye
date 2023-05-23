@@ -48,14 +48,3 @@ jobs:
           source /opt/ros/noetic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
           catkin_make -DCMAKE_BUILD_TYPE=Release -j2
-
-      - name: eagleye_pp
-        run: |
-          cd ~/eagleye/
-          sudo apt install curl -y
-          sudo apt install zip unzip -y
-          sudo apt install pip -y
-          pip install pandas scipy open3d mgrs gdown
-          gdown https://drive.google.com/uc?id=1J5tKLfl8MuRMY-A_lYVnGrkeMzqTmQsS
-          source devel/setup.bash
-          ./src/eagleye/eagleye_pp/scripts/launch_pp_ci.sh ~/eagleye/2022-06-16-11-53-39_0.bag src/eagleye/eagleye_pp/eagleye_pp/config/eagleye_pp_config_ci.yaml
