@@ -6,23 +6,23 @@
 
   <group ns="eagleye">
 
-    <arg name="use_rtk_deadreckoning" default="true"/>
+    <arg name="use_rtk_dead_reckoning" default="true"/>
     <arg name="use_rtk_heading" default="false"/>
-    <arg name="use_canless_mode" default="true"/>
+    <arg name="use_can_less_mode" default="true"/>
     <arg name="enable_additional_rolling" default="false"/>
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
-    <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
-    <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
+    <param name="use_can_less_mode" value="$(arg use_can_less_mode)"/>
+    <param name="use_rtk_dead_reckoning" value="$(arg use_rtk_dead_reckoning)"/>
 
     <rosparam command="load" file="$(arg yaml_file)"/>
 
     <node pkg="eagleye_rt" name="twist_relay" type="twist_relay" />
     <node pkg="eagleye_rt" name="tf_converted_imu" type="tf_converted_imu" />
-    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
-    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
+    <node pkg="eagleye_rt" name="yaw_rate_offset_stop_node" type="yaw_rate_offset_stop" />
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_1st" type="yaw_rate_offset" args="1st"/>
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_2nd" type="yaw_rate_offset" args="2nd"/>
     <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st" if="$(eval use_rtk_heading == false)"/>
     <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd" if="$(eval use_rtk_heading == false)"/>
     <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd" if="$(eval use_rtk_heading == false)"/>
@@ -39,10 +39,10 @@
     <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- CANLess Options -->
-    <node pkg="eagleye_rt" name="velocity_estimator" type="velocity_estimator" if="$(arg use_canless_mode)"/>
+    <node pkg="eagleye_rt" name="velocity_estimator" type="velocity_estimator" if="$(arg use_can_less_mode)"/>
 
     <!-- RTK Options -->
-    <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning"/>
+    <node pkg="eagleye_rt" name="rtk_dead_reckoning" type="rtk_dead_reckoning"/>
 
     <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
   </group>

@@ -204,7 +204,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
   if (height_status->estimate_start_status == true)
   {
     if (distance.distance > height_parameter.estimated_minimum_interval && gnss_status == true && gps_quality ==4 && data_status == true &&
-      velocity.twist.linear.x > height_parameter.moving_judgment_threshold )
+      velocity.twist.linear.x > height_parameter.moving_judgement_threshold )
     {
       height_status->correction_relative_height_buffer2.clear();
       height_status->height_buffer2.clear();
@@ -224,7 +224,7 @@ void pitching_estimate(const sensor_msgs::Imu imu,const nmea_msgs::Gpgga gga,con
         {
           distance_index.push_back(i);
 
-          if (height_status->correction_velocity_buffer[i] > height_parameter.moving_judgment_threshold)
+          if (height_status->correction_velocity_buffer[i] > height_parameter.moving_judgement_threshold)
           {
             velocity_index.push_back(i);
           }

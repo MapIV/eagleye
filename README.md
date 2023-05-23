@@ -51,8 +51,11 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 Clone and build the necessary packages for Eagleye. 
 
 	cd $HOME/catkin_ws/src
-	git clone --recursive https://github.com/MapIV/eagleye.git
+	git clone https://github.com/MapIV/eagleye.git
 	git clone https://github.com/MapIV/rtklib_ros_bridge.git
+	git clone https://github.com/MapIV/kml_generator
+	git clone https://github.com/MapIV/multi_rosbag_controller.git
+	git clone https://github.com/MapIV/llh_converter
 	git clone https://github.com/MapIV/nmea_comms.git
 	git clone https://github.com/MapIV/nmea_ros_bridge.git
 	git clone https://github.com/MapIV/gnss_compass_ros.git
@@ -124,13 +127,9 @@ Clone and build the necessary packages for Eagleye.
 
 - [eagleye_rt](eagleye_rt) : real-time version
 
-## eagleye_pp
-
-- [eagleye_pp](eagleye_pp) : post-processing version
-
 ## Optional Features
 
-### canless mode
+### can_less mode
 
 While normal eagleye requires CAN (wheel speed) information, this option allows localization estimation with GNSS/IMU alone, without vehicle speed.
 
@@ -140,13 +139,11 @@ However, in this mode, note the following
 - Localization estimating is not possible when driving backward.
 
 To use this mode
-- Use launch/eagleye_rt_canless.launch for eagleye_rt instead of launch/eagleye_rt.launch.
-- Set use_canless_mode in eagleye_pp_config.yaml to true for eagleye_pp.
+- Use launch/eagleye_rt_can_less.launch for eagleye_rt instead of launch/eagleye_rt.launch.
 
 ### dual antenna mode
 
 This option allows for more immediate heading estimatiion, and allows GNSS to estimate heading even at low speeds.
-eagleye_pp not yet supported.
 
 To use this mode
 - Use launch/eagleye_rt_dualantenna.launch for eagleye_rt instead of launch/eagleye_rt.launch.

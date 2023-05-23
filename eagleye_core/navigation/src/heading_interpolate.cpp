@@ -32,13 +32,13 @@
 #include "navigation/navigation.hpp"
 
 void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msgs::TwistStamped velocity,
-  const eagleye_msgs::YawrateOffset yawrate_offset_stop,const eagleye_msgs::YawrateOffset yawrate_offset,const eagleye_msgs::Heading heading,
+  const eagleye_msgs::YawrateOffset yaw_rate_offset_stop,const eagleye_msgs::YawrateOffset yaw_rate_offset,const eagleye_msgs::Heading heading,
   const eagleye_msgs::SlipAngle slip_angle,const HeadingInterpolateParameter heading_interpolate_parameter, HeadingInterpolateStatus* heading_interpolate_status,
   eagleye_msgs::Heading* heading_interpolate)
 {
   int i;
   int estimate_index = 0;
-  double yawrate = 0.0;
+  double yaw_rate = 0.0;
   double diff_estimate_heading_angle = 0.0;
   bool heading_estimate_status = false;
   std::size_t imu_stamp_buffer_length;
@@ -47,15 +47,15 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
 
   double search_buffer_number = heading_interpolate_parameter.sync_search_period * heading_interpolate_parameter.imu_rate;
 
-  yawrate = imu.angular_velocity.z;
+  yaw_rate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) > heading_interpolate_parameter.stop_judgement_threshold)
   {
-    yawrate += yawrate_offset.yawrate_offset;
+    yaw_rate += yaw_rate_offset.yaw_rate_offset;
   }
   else
   {
-    yawrate += yawrate_offset_stop.yawrate_offset;
+    yaw_rate += yaw_rate_offset_stop.yaw_rate_offset;
   }
 
   if (heading_interpolate_status->number_buffer < search_buffer_number)
@@ -75,10 +75,10 @@ void heading_interpolate_estimate(const sensor_msgs::Imu imu, const geometry_msg
   }
 
   if(heading_interpolate_status->time_last != 0 && std::abs(velocity.twist.linear.x) >
-    heading_interpolate_parameter.stop_judgment_threshold)
+    heading_interpolate_parameter.stop_judgement_threshold)
   {
     double dt = imu.header.stamp.toSec() - heading_interpolate_status->time_last;
-    heading_interpolate_status->provisional_heading_angle += yawrate * dt;
+    heading_interpolate_status->provisional_heading_angle += yaw_rate * dt;
     heading_interpolate_status->heading_variance_last += proc_noise*proc_noise;
   }
 

@@ -32,30 +32,30 @@
 #include "navigation/navigation.hpp"
 
 void slip_angle_estimate(sensor_msgs::Imu imu, geometry_msgs::TwistStamped velocity, eagleye_msgs::StatusStamped velocity_status, 
-  eagleye_msgs::YawrateOffset yawrate_offset_stop, eagleye_msgs::YawrateOffset yawrate_offset_2nd, SlipangleParameter slip_angle_parameter,
+  eagleye_msgs::YawrateOffset yaw_rate_offset_stop, eagleye_msgs::YawrateOffset yaw_rate_offset_2nd, SlipangleParameter slip_angle_parameter,
   eagleye_msgs::SlipAngle* slip_angle)
 {
 
   int i;
   double doppler_slip;
-  double yawrate;
+  double yaw_rate;
   double acceleration_y;
 
-  yawrate = imu.angular_velocity.z;
+  yaw_rate = imu.angular_velocity.z;
 
-  if (std::abs(velocity.twist.linear.x) > slip_angle_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) > slip_angle_parameter.stop_judgement_threshold)
   {
-    yawrate = yawrate + yawrate_offset_2nd.yawrate_offset;
+    yaw_rate = yaw_rate + yaw_rate_offset_2nd.yaw_rate_offset;
   }
   else
   {
-    yawrate = yawrate + yawrate_offset_stop.yawrate_offset;
+    yaw_rate = yaw_rate + yaw_rate_offset_stop.yaw_rate_offset;
   }
 
-  acceleration_y = velocity.twist.linear.x * yawrate;
+  acceleration_y = velocity.twist.linear.x * yaw_rate;
 
-  if (velocity_status.status.enabled_status == true && yawrate_offset_stop.status.enabled_status == true &&
-    yawrate_offset_2nd.status.enabled_status == true)
+  if (velocity_status.status.enabled_status == true && yaw_rate_offset_stop.status.enabled_status == true &&
+    yaw_rate_offset_2nd.status.enabled_status == true)
   {
       slip_angle->coefficient = slip_angle_parameter.manual_coefficient;
       slip_angle->slip_angle = slip_angle_parameter.manual_coefficient * acceleration_y;

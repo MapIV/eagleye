@@ -119,7 +119,7 @@ void smoothing_estimate(rtklib_msgs::RtklibNav rtklib_nav, geometry_msgs::TwistS
       for (i = 0; i < smoothing_status->estimated_number; i++)
       {
         index.push_back(i);
-        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.moving_judgment_threshold)
+        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.moving_judgement_threshold)
         {
           velocity_index.push_back(i);
         }

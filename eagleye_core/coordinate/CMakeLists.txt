@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(PkgConfig)
 find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
-  PAHT_SUFFIXES GeographicLib
+  PATH_SUFFIXES GeographicLib
 )
 set(GeographicLib_LIBRARIES
   NAMES Geographic

@@ -47,7 +47,7 @@ static eagleye_msgs::AccXScaleFactor _acc_x_scale_factor;
 struct HeightParameter _height_parameter;
 struct HeightStatus _height_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void gga_callback(const nmea_msgs::Gpgga::ConstPtr& msg)
 {
@@ -71,7 +71,7 @@ void distance_callback(const eagleye_msgs::Distance::ConstPtr& msg)
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
   
   _imu = *msg;
   _height.header = msg->header;
@@ -116,7 +116,7 @@ int main(int argc, char** argv)
 
     _height_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
     _height_parameter.gnss_rate = conf["common"]["gnss_rate"].as<double>();
-    _height_parameter.moving_judgment_threshold = conf["common"]["moving_judgment_threshold"].as<double>();
+    _height_parameter.moving_judgement_threshold = conf["common"]["moving_judgement_threshold"].as<double>();
 
     _height_parameter.estimated_minimum_interval = conf["height"]["estimated_minimum_interval"].as<double>();
     _height_parameter.estimated_maximum_interval = conf["height"]["estimated_maximum_interval"].as<double>();
@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 
     std::cout << "imu_rate " << _height_parameter.imu_rate << std::endl;
     std::cout << "gnss_rate " << _height_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << _height_parameter.moving_judgment_threshold << std::endl;
+    std::cout << "moving_judgement_threshold " << _height_parameter.moving_judgement_threshold << std::endl;
 
     std::cout << "estimated_minimum_interval " << _height_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _height_parameter.estimated_maximum_interval << std::endl;

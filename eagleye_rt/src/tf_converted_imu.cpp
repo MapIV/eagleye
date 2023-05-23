@@ -59,6 +59,8 @@ private:
 
   std::string tf_base_link_frame_;
 
+  bool reverse_imu_wz_, reverse_imu_ax_;
+
   void imu_callback(const sensor_msgs::Imu::ConstPtr& msg);
 
 };
@@ -78,6 +80,8 @@ TFConvertedIMU::TFConvertedIMU() : tflistener_(tfbuffer_)
 
     subscribe_imu_topic_name = conf["imu_topic"].as<std::string>();
     tf_base_link_frame_ = conf["tf_gnss_frame"]["parent"].as<std::string>();
+    reverse_imu_wz_ = conf["reverse_imu_wz"].as<bool>();
+    reverse_imu_ax_ = conf["reverse_imu_ax"].as<bool>();
     std::cout<< "subscribe_imu_topic_name: " << subscribe_imu_topic_name << std::endl;
     std::cout<< "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
     std::cout<< "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
@@ -93,7 +97,7 @@ TFConvertedIMU::TFConvertedIMU() : tflistener_(tfbuffer_)
   pub_ = nh_.advertise<sensor_msgs::Imu>("imu/data_tf_converted", 1000);
 };
 
-TFConvertedIMU::~TFConvertedIMU(){}; 
+TFConvertedIMU::~TFConvertedIMU(){};
 
 void TFConvertedIMU::imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
@@ -106,7 +110,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 
     geometry_msgs::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
     geometry_msgs::Quaternion  transformed_quaternion;
-  
+
     angular_velocity.header = imu_.header;
     angular_velocity.vector = imu_.angular_velocity;
     linear_acceleration.header = imu_.header;
@@ -120,7 +124,16 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
     tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
     tf_converted_imu_.orientation = transformed_quaternion;
 
-  } 
+    if(reverse_imu_wz_)
+    {
+      tf_converted_imu_.angular_velocity.z = (-1) * transformed_angular_velocity.vector.z;
+    }
+    if(reverse_imu_ax_)
+    {
+      tf_converted_imu_.linear_acceleration.x = (-1) * transformed_linear_acceleration.vector.x;
+    }
+
+  }
   catch (tf2::TransformException& ex)
   {
     ROS_WARN("Failed to lookup transform: %s", ex.what());
@@ -132,7 +145,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "tf_converted_imu");
-  
+
   TFConvertedIMU main_node;
 
   ros::spin();

@@ -36,15 +36,15 @@ static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
 static eagleye_msgs::VelocityScaleFactor _velocity_scale_factor;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset_2nd;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_2nd;
 
 static ros::Publisher _pub;
 static eagleye_msgs::SlipAngle _slip_angle;
 
 struct SlipangleParameter _slip_angle_parameter;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
@@ -61,22 +61,22 @@ void velocity_scale_factor_callback(const eagleye_msgs::VelocityScaleFactor::Con
   _velocity_scale_factor = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_2nd = *msg;
+  _yaw_rate_offset_2nd = *msg;
 }
 
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   eagleye_msgs::StatusStamped velocity_enable_status;
-  if(_use_canless_mode)
+  if(_use_can_less_mode)
   {
     velocity_enable_status = _velocity_status;
   }
@@ -89,7 +89,7 @@ void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
   _imu = *msg;
   _slip_angle.header = msg->header;
   _slip_angle.header.frame_id = "base_link";
-  slip_angle_estimate(_imu, _velocity, velocity_enable_status, _yawrate_offset_stop, _yawrate_offset_2nd, _slip_angle_parameter, &_slip_angle);
+  slip_angle_estimate(_imu, _velocity, velocity_enable_status, _yaw_rate_offset_stop, _yaw_rate_offset_2nd, _slip_angle_parameter, &_slip_angle);
   _pub.publish(_slip_angle);
   _slip_angle.status.estimate_status = false;
 }
@@ -107,10 +107,10 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _slip_angle_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _slip_angle_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _slip_angle_parameter.manual_coefficient = conf["slip_angle"]["manual_coefficient"].as<double>();
 
-    std::cout << "stop_judgment_threshold " << _slip_angle_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _slip_angle_parameter.stop_judgement_threshold << std::endl;
     std::cout << "manual_coefficient " << _slip_angle_parameter.manual_coefficient << std::endl;
   }
   catch (YAML::Exception& e)
@@ -121,8 +121,8 @@ int main(int argc, char** argv)
 
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("velocity_scale_factor", 1000, velocity_scale_factor_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub3 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("yawrate_offset_2nd", 1000, yawrate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub3 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<eagleye_msgs::SlipAngle>("slip_angle", 1000);
 
   ros::spin();

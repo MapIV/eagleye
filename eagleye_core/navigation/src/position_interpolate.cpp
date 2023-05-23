@@ -32,7 +32,7 @@
 #include "navigation/navigation.hpp"
 
 void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geometry_msgs::Vector3Stamped enu_vel, eagleye_msgs::Position gnss_smooth_pos,
-  eagleye_msgs::Height height,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status,
+  eagleye_msgs::Height height, eagleye_msgs::Heading heading,PositionInterpolateParameter position_interpolate_parameter, PositionInterpolateStatus* position_interpolate_status,
   eagleye_msgs::Position* enu_absolute_pos_interpolate,sensor_msgs::NavSatFix* eagleye_fix)
 {
 
@@ -73,7 +73,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
   }
 
   if(position_interpolate_status->time_last != 0 && std::sqrt((enu_vel.vector.x * enu_vel.vector.x) + (enu_vel.vector.y * enu_vel.vector.y) +
-    (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgment_threshold)
+    (enu_vel.vector.z * enu_vel.vector.z)) > position_interpolate_parameter.stop_judgement_threshold)
   {
     position_interpolate_status->provisional_enu_pos_x = enu_absolute_pos_interpolate->enu_pos.x + enu_vel.vector.x *
       (enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
@@ -130,6 +130,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
       position_interpolate_status->provisional_enu_pos_y = position_interpolate_status->provisional_enu_pos_y_buffer[position_interpolate_status->number_buffer-1];
       position_interpolate_status->provisional_enu_pos_z = position_interpolate_status->provisional_enu_pos_z_buffer[position_interpolate_status->number_buffer-1];
 
+      position_interpolate_status->is_estimate_start = true;
       enu_absolute_pos_interpolate->status.enabled_status = true;
       enu_absolute_pos_interpolate->status.estimate_status = true;
     }
@@ -147,7 +148,7 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     }
   }
 
-  if (position_interpolate_status->position_estimate_start_status == true)
+  if (position_interpolate_status->position_estimate_start_status && position_interpolate_status->is_estimate_start)
   {
     enu_pos[0] = position_interpolate_status->provisional_enu_pos_x;
     enu_pos[1] = position_interpolate_status->provisional_enu_pos_y;
@@ -158,6 +159,56 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;
 
     enu2llh(enu_pos, ecef_base_pos, llh_pos);
+
+    Eigen::MatrixXd init_covariance;
+    init_covariance = Eigen::MatrixXd::Zero(6, 6);
+    init_covariance(0,0) = enu_absolute_pos.covariance[0];
+    init_covariance(1,1) = enu_absolute_pos.covariance[4];
+    init_covariance(2,2) = enu_absolute_pos.covariance[8];
+    init_covariance(5,5) = heading.variance;
+
+    double proc_noise = position_interpolate_parameter.proc_noise;
+    Eigen::MatrixXd proc_covariance;
+    proc_covariance = Eigen::MatrixXd::Zero(6, 6);
+    proc_covariance(0,0) = proc_noise * proc_noise;
+    proc_covariance(1,1) = proc_noise * proc_noise;
+    proc_covariance(2,2) = proc_noise * proc_noise;
+
+    Eigen::MatrixXd position_covariance;
+    position_covariance = Eigen::MatrixXd::Zero(6, 6);
+
+    double velocity = std::sqrt(enu_vel.vector.x*enu_vel.vector.x + enu_vel.vector.y*enu_vel.vector.y + enu_vel.vector.z*enu_vel.vector.z);
+
+    if(enu_absolute_pos_interpolate->status.estimate_status)
+    {
+      position_covariance = init_covariance;
+      position_interpolate_status->position_covariance_last = position_covariance;
+    }
+    else if (velocity > position_interpolate_parameter.stop_judgement_threshold)
+    {
+      Eigen::MatrixXd jacobian;
+      jacobian = Eigen::MatrixXd::Zero(6, 6);
+      jacobian(0,0) = 1;
+      jacobian(1,1) = 1;
+      jacobian(2,2) = 1;
+      jacobian(3,3) = 1;
+      jacobian(4,4) = 1;
+      jacobian(5,5) = 1;
+      jacobian(0,5) = enu_vel.vector.y*(enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
+      jacobian(1,5) = -enu_vel.vector.x*(enu_vel.header.stamp.toSec() - position_interpolate_status->time_last);
+
+      // MEMO: Jacobean not included
+      // position_covariance = position_interpolate_status->position_covariance_last + proc_covariance;
+
+      // MEMO: Jacobean not included
+      position_covariance = jacobian * position_interpolate_status->position_covariance_last * (jacobian.transpose())   + proc_covariance;
+
+      position_interpolate_status->position_covariance_last = position_covariance;
+    }
+    else
+    {
+      position_covariance = position_interpolate_status->position_covariance_last;
+    }
 
     eagleye_fix->longitude = llh_pos[1] * 180/M_PI;
     eagleye_fix->latitude = llh_pos[0] * 180/M_PI;
@@ -174,12 +225,14 @@ void position_interpolate_estimate(eagleye_msgs::Position enu_absolute_pos, geom
     enu_absolute_pos_interpolate->enu_pos.x = enu_pos[0];
     enu_absolute_pos_interpolate->enu_pos.y = enu_pos[1];
     enu_absolute_pos_interpolate->enu_pos.z = enu_pos[2];
+    enu_absolute_pos_interpolate->covariance[0] = position_covariance(0,0); // [m^2]
+    enu_absolute_pos_interpolate->covariance[4] = position_covariance(1,1); // [m^2]
+    enu_absolute_pos_interpolate->covariance[8] = position_covariance(2,2); // [m^2]
 
     eagleye_fix->altitude = llh_pos[2];
-    // TODO(Map IV): temporary covariance value
-    eagleye_fix->position_covariance[0] = 1.5 * 1.5; // [m^2]
-    eagleye_fix->position_covariance[4] = 1.5 * 1.5; // [m^2]
-    eagleye_fix->position_covariance[8] = 1.5 * 1.5; // [m^2]
+    eagleye_fix->position_covariance[0] = position_covariance(0,0); // [m^2]
+    eagleye_fix->position_covariance[4] = position_covariance(1,1); // [m^2]
+    eagleye_fix->position_covariance[8] = position_covariance(2,2); // [m^2]
 
   }
   else

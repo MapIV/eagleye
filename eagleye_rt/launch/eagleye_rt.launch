@@ -6,24 +6,25 @@
 
   <group ns="eagleye">
 
-    <arg name="use_rtk_deadreckoning" default="false"/>
+    <arg name="use_rtk_dead_reckoning" default="false"/>
     <arg name="use_rtk_heading" default="false"/>
-    <arg name="use_canless_mode" default="false"/>
+    <arg name="use_can_less_mode" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
+    <arg name="use_multi_antenna_mode" default="false"/>
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
-    <param name="use_rtk_deadreckoning" value="$(arg use_rtk_deadreckoning)"/>
-    <param name="use_canless_mode" value="$(arg use_canless_mode)"/>
+    <param name="use_rtk_dead_reckoning" value="$(arg use_rtk_dead_reckoning)"/>
+    <param name="use_can_less_mode" value="$(arg use_can_less_mode)"/>
 
     <rosparam command="load" file="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <node pkg="eagleye_rt" name="twist_relay" type="twist_relay" />
     <node pkg="eagleye_rt" name="tf_converted_imu" type="tf_converted_imu" />
     <node pkg="eagleye_rt" name="velocity_scale_factor_node" type="velocity_scale_factor" />
-    <node pkg="eagleye_rt" name="yawrate_offset_stop_node" type="yawrate_offset_stop" />
-    <node pkg="eagleye_rt" name="yawrate_offset_node_1st" type="yawrate_offset" args="1st"/>
-    <node pkg="eagleye_rt" name="yawrate_offset_node_2nd" type="yawrate_offset" args="2nd"/>
+    <node pkg="eagleye_rt" name="yaw_rate_offset_stop_node" type="yaw_rate_offset_stop" />
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_1st" type="yaw_rate_offset" args="1st"/>
+    <node pkg="eagleye_rt" name="yaw_rate_offset_node_2nd" type="yaw_rate_offset" args="2nd"/>
     <node pkg="eagleye_rt" name="heading_node_1st" type="heading" args="1st" if="$(eval use_rtk_heading == false)"/>
     <node pkg="eagleye_rt" name="heading_node_2nd" type="heading" args="2nd" if="$(eval use_rtk_heading == false)"/>
     <node pkg="eagleye_rt" name="heading_node_3rd" type="heading" args="3rd" if="$(eval use_rtk_heading == false)"/>
@@ -33,8 +34,8 @@
     <node pkg="eagleye_rt" name="slip_angle_node" type="slip_angle" />
     <node pkg="eagleye_rt" name="distance_node" type="distance" />
     <node pkg="eagleye_rt" name="trajectory_node" type="trajectory" />
-    <node pkg="eagleye_rt" name="position_node" type="position" if="$(eval use_rtk_deadreckoning == false)"/>
-    <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate" if="$(eval use_rtk_deadreckoning == false)"/>
+    <node pkg="eagleye_rt" name="position_node" type="position" if="$(eval use_rtk_dead_reckoning == false)"/>
+    <node pkg="eagleye_rt" name="position_interpolate_node" type="position_interpolate" if="$(eval use_rtk_dead_reckoning == false)"/>
     <node pkg="eagleye_rt" name="smoothing_node" type="smoothing"/>
     <node pkg="eagleye_rt" name="height_node" type="height"/>
     <node pkg="eagleye_rt" name="angular_velocity_offset_stop_node" type="angular_velocity_offset_stop"/>
@@ -43,13 +44,21 @@
     <node pkg="eagleye_rt" name="rolling" type="rolling" />
 
     <!-- RTK Options -->
-    <node pkg="eagleye_rt" name="rtk_deadreckoning" type="rtk_deadreckoning" if="$(arg use_rtk_deadreckoning)"/>
+    <node pkg="eagleye_rt" name="rtk_dead_reckoning" type="rtk_dead_reckoning" if="$(arg use_rtk_dead_reckoning)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_1st" type="rtk_heading" args="1st" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_2nd" type="rtk_heading" args="2nd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="rtk_heading_node_3rd" type="rtk_heading" args="3rd" if="$(arg use_rtk_heading)"/>
     <node pkg="eagleye_rt" name="enable_additional_rolling_node" type="enable_additional_rolling" if="$(arg enable_additional_rolling)"/>
 
-    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch"/>
+    <include file="$(find eagleye_gnss_converter)/launch/gnss_converter.launch">
+      <arg name="use_multi_antenna_mode" value="$(arg use_multi_antenna_mode)"/>]
+      <arg name="yaml_file" value="$(arg yaml_file)"/>
+    </include>
+
+    <include file="$(find gnss_compass)/launch/gnss_compass.launch" if="$(arg use_multi_antenna_mode)">
+      <arg name="input_main_gnss_topic" value="/eagleye/navsat/gga"/>
+      <arg name="input_sub_gnss_topic" value="/eagleye/sub_navsat/gga"/>
+    </include>
   </group>
 
   <include file="$(find eagleye_tf)/launch/tf.launch" if="$(arg use_tf)"/>

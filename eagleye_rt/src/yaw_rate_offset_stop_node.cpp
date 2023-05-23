@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * yawrate_offset_stop.cpp
+ * yaw_rate_offset_stop.cpp
  * Author MapIV Sekino
  */
 
@@ -34,13 +34,13 @@
 
 static geometry_msgs::TwistStamped _velocity;
 static ros::Publisher _pub;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
 static sensor_msgs::Imu _imu;
 
-struct YawrateOffsetStopParameter _yawrate_offset_stop_parameter;
-struct YawrateOffsetStopStatus _yawrate_offset_stop_status;
+struct YawrateOffsetStopParameter _yaw_rate_offset_stop_parameter;
+struct YawrateOffsetStopStatus _yaw_rate_offset_stop_status;
 
-double _previous_yawrate_offset_stop = 0.0;
+double _previous_yaw_rate_offset_stop = 0.0;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 {
@@ -50,26 +50,26 @@ void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr& msg)
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
   _imu = *msg;
-  _yawrate_offset_stop.header = msg->header;
-  yawrate_offset_stop_estimate(_velocity, _imu, _yawrate_offset_stop_parameter, &_yawrate_offset_stop_status, &_yawrate_offset_stop);
+  _yaw_rate_offset_stop.header = msg->header;
+  yaw_rate_offset_stop_estimate(_velocity, _imu, _yaw_rate_offset_stop_parameter, &_yaw_rate_offset_stop_status, &_yaw_rate_offset_stop);
 
-  _yawrate_offset_stop.status.is_abnormal = false;
-  if (!std::isfinite(_yawrate_offset_stop.yawrate_offset)) {
-    ROS_WARN("Estimated velocity scale factor  has NaN or infinity values.");
-    _yawrate_offset_stop.yawrate_offset =_previous_yawrate_offset_stop;
-    _yawrate_offset_stop.status.is_abnormal = true;
-    _yawrate_offset_stop.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
+  _yaw_rate_offset_stop.status.is_abnormal = false;
+  if (!std::isfinite(_yaw_rate_offset_stop.yaw_rate_offset)) {
+    ROS_WARN("Estimated yaw_rate offset stop  has NaN or infinity values.");
+    _yaw_rate_offset_stop.yaw_rate_offset =_previous_yaw_rate_offset_stop;
+    _yaw_rate_offset_stop.status.is_abnormal = true;
+    _yaw_rate_offset_stop.status.error_code = eagleye_msgs::Status::NAN_OR_INFINITE;
   }
   else
   {
-    _previous_yawrate_offset_stop = _yawrate_offset_stop.yawrate_offset;
+    _previous_yaw_rate_offset_stop = _yaw_rate_offset_stop.yaw_rate_offset;
   }
-  _pub.publish(_yawrate_offset_stop);
+  _pub.publish(_yaw_rate_offset_stop);
 }
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "yawrate_offset_stop");
+  ros::init(argc, argv, "yaw_rate_offset_stop");
   ros::NodeHandle nh;
 
   std::string subscribe_twist_topic_name = "vehicle/twist";
@@ -82,29 +82,29 @@ int main(int argc, char** argv)
   {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    _yawrate_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
-    _yawrate_offset_stop_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _yaw_rate_offset_stop_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
+    _yaw_rate_offset_stop_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
 
-    _yawrate_offset_stop_parameter.estimated_interval = conf["yawrate_offset_stop"]["estimated_interval"].as<double>();
-    _yawrate_offset_stop_parameter.outlier_threshold = conf["yawrate_offset_stop"]["outlier_threshold"].as<double>();
+    _yaw_rate_offset_stop_parameter.estimated_interval = conf["yaw_rate_offset_stop"]["estimated_interval"].as<double>();
+    _yaw_rate_offset_stop_parameter.outlier_threshold = conf["yaw_rate_offset_stop"]["outlier_threshold"].as<double>();
 
     std::cout << "subscribe_twist_topic_name " << subscribe_twist_topic_name << std::endl;
 
-    std::cout << "imu_rate " << _yawrate_offset_stop_parameter.imu_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _yawrate_offset_stop_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "imu_rate " << _yaw_rate_offset_stop_parameter.imu_rate << std::endl;
+    std::cout << "stop_judgement_threshold " << _yaw_rate_offset_stop_parameter.stop_judgement_threshold << std::endl;
 
-    std::cout << "estimated_minimum_interval " << _yawrate_offset_stop_parameter.estimated_interval << std::endl;
-    std::cout << "outlier_threshold " << _yawrate_offset_stop_parameter.outlier_threshold << std::endl;
+    std::cout << "estimated_minimum_interval " << _yaw_rate_offset_stop_parameter.estimated_interval << std::endl;
+    std::cout << "outlier_threshold " << _yaw_rate_offset_stop_parameter.outlier_threshold << std::endl;
   }
   catch (YAML::Exception& e)
   {
-    std::cerr << "\033[1;31myawrate_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+    std::cerr << "\033[1;31myaw_rate_offset_stop Node YAML Error: " << e.msg << "\033[0m" << std::endl;
     exit(3);
   }
 
   ros::Subscriber sub1 = nh.subscribe(subscribe_twist_topic_name, 1000, velocity_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
-  _pub = nh.advertise<eagleye_msgs::YawrateOffset>("yawrate_offset_stop", 1000);
+  _pub = nh.advertise<eagleye_msgs::YawrateOffset>("yaw_rate_offset_stop", 1000);
 
   ros::spin();
 

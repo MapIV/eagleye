@@ -31,6 +31,7 @@
 #include "geometry_msgs/TwistStamped.h"
 #include "geometry_msgs/TwistWithCovarianceStamped.h"
 #include "geometry_msgs/Vector3Stamped.h"
+#include "geometry_msgs/PoseStamped.h"
 #include "nmea_msgs/Gpgga.h"
 #include "nmea_msgs/Gprmc.h"
 
@@ -62,7 +63,7 @@ struct VelocityScaleFactorParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
@@ -89,23 +90,23 @@ struct YawrateOffsetStopParameter
 {
   double imu_rate;
   double estimated_interval;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double outlier_threshold;
 };
 
 struct YawrateOffsetStopStatus
 {
   int stop_count;
-  double yawrate_offset_stop_last;
+  double yaw_rate_offset_stop_last;
   bool estimate_start_status;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
 };
 
 struct YawrateOffsetParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
@@ -119,25 +120,25 @@ struct YawrateOffsetStatus
   int heading_estimate_status_count;
   int estimated_number;
   std::vector<double> time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> heading_angle_buffer;
   std::vector<double> correction_velocity_buffer;
   std::vector<bool> heading_estimate_status_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
 };
 
 struct HeadingParameter
 {
   double imu_rate;
   double gnss_rate;
-  double stop_judgment_threshold;
-  double moving_judgment_threshold;
+  double stop_judgement_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
-  double curve_judgment_threshold;
+  double curve_judgement_threshold;
   double init_STD;
 };
 
@@ -149,10 +150,10 @@ struct HeadingStatus
   int estimated_number;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
 };
@@ -161,15 +162,15 @@ struct RtkHeadingParameter
 {
   double imu_rate;
   double gnss_rate;
-  double stop_judgment_threshold;
-  double slow_judgment_threshold;
+  double stop_judgement_threshold;
+  double slow_judgement_threshold;
   double update_distance;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
-  double curve_judgment_threshold;
+  double curve_judgement_threshold;
 };
 
 struct RtkHeadingStatus
@@ -179,10 +180,10 @@ struct RtkHeadingStatus
   double last_rtk_heading_angle;
   std::vector<double> time_buffer;
   std::vector<double> heading_angle_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> correction_velocity_buffer;
-  std::vector<double> yawrate_offset_stop_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_stop_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> slip_angle_buffer;
   std::vector<double> gnss_status_buffer;
   std::vector<double> distance_buffer;
@@ -195,7 +196,7 @@ struct RtkHeadingStatus
 struct HeadingInterpolateParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double sync_search_period;
   double proc_noise;
 };
@@ -230,12 +231,13 @@ struct PositionParameter
 
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_interval;
   double update_distance;
   double gnss_receiving_threshold;
   double outlier_threshold;
   double outlier_ratio_threshold;
+  double gnss_error_covariance;
 };
 
 struct PositionStatus
@@ -258,8 +260,9 @@ struct PositionStatus
 struct PositionInterpolateParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double sync_search_period;
+  double proc_noise;
 };
 
 struct PositionInterpolateStatus
@@ -267,6 +270,7 @@ struct PositionInterpolateStatus
   int position_estimate_status_count;
   int number_buffer;
   bool position_estimate_start_status;
+  bool is_estimate_start{false};
   double position_stamp_last;
   double time_last;
   double provisional_enu_pos_x;
@@ -276,12 +280,13 @@ struct PositionInterpolateStatus
   std::vector<double> provisional_enu_pos_y_buffer;
   std::vector<double> provisional_enu_pos_z_buffer;
   std::vector<double> imu_stamp_buffer;
+  Eigen::MatrixXd position_covariance_last;
 };
 
 struct SlipangleParameter
 {
   double manual_coefficient;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
 };
 
 struct SlipCoefficientParameter
@@ -289,9 +294,9 @@ struct SlipCoefficientParameter
   double imu_rate;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
-  double stop_judgment_threshold;
-  double moving_judgment_threshold;
-  double curve_judgment_threshold;
+  double stop_judgement_threshold;
+  double moving_judgement_threshold;
+  double curve_judgement_threshold;
   double lever_arm;
 };
 
@@ -305,7 +310,7 @@ struct SlipCoefficientStatus
 struct SmoothingParameter
 {
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double moving_average_time;
   double moving_ratio_threshold;
   double ecef_base_pos_x;
@@ -324,12 +329,12 @@ struct SmoothingStatus
 
 struct TrajectoryParameter
 {
-  double stop_judgment_threshold;
-  double curve_judgment_threshold;
+  double stop_judgement_threshold;
+  double curve_judgement_threshold;
   double sensor_noise_velocity;
   double sensor_scale_noise_velocity;
-  double sensor_noise_yawrate;
-  double sensor_bias_noise_yawrate;
+  double sensor_noise_yaw_rate;
+  double sensor_bias_noise_yaw_rate;
 };
 
 struct TrajectoryStatus
@@ -343,7 +348,7 @@ struct HeightParameter
 {
   double imu_rate;
   double gnss_rate;
-  double moving_judgment_threshold;
+  double moving_judgement_threshold;
   double estimated_minimum_interval;
   double estimated_maximum_interval;
   double update_distance;
@@ -383,30 +388,9 @@ struct HeightStatus
   std::vector<double> acc_buffer;
 };
 
-struct AngularVelocityOffsetStopParameter
-{
-  double imu_rate;
-  double estimated_interval;
-  double stop_judgment_threshold;
-  double outlier_threshold;
-
-};
-
-struct AngularVelocityOffsetStopStatus
-{
-  int stop_count;
-  double rollrate_offset_stop_last;
-  double pitchrate_offset_stop_last;
-  double yawrate_offset_stop_last;
-  bool estimate_start_status;
-  std::vector<double> rollrate_buffer;
-  std::vector<double> pitchrate_buffer;
-  std::vector<double> yawrate_buffer;
-};
-
 struct RtkDeadreckoningParameter
 {
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double ecef_base_pos_x;
   double ecef_base_pos_y;
   double ecef_base_pos_z;
@@ -445,10 +429,10 @@ struct RtkDeadreckoningStatus
 struct EnableAdditionalRollingParameter
 {
   double imu_rate;
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double update_distance;
   double moving_average_time;
-  double sync_judgment_threshold;
+  double sync_judgement_threshold;
   double sync_search_period;
 };
 
@@ -456,7 +440,7 @@ struct EnableAdditionalRollingStatus
 {
   double distance_last;
   double acc_offset_sum;
-  double yawrate;
+  double yaw_rate;
   double rollrate;
   double imu_acceleration_y;
   double rollrate_offset_stop;
@@ -466,16 +450,16 @@ struct EnableAdditionalRollingStatus
   std::vector<double> roll_rate_interpolate_buffer;
   std::vector<double> rolling_estimated_buffer;
   std::vector<double> imu_time_buffer;
-  std::vector<double> yawrate_buffer;
+  std::vector<double> yaw_rate_buffer;
   std::vector<double> velocity_buffer;
-  std::vector<double> yawrate_offset_buffer;
+  std::vector<double> yaw_rate_offset_buffer;
   std::vector<double> acceleration_y_buffer;
   std::vector<double> distance_buffer;
 };
 
 struct RollingParameter
 {
-  double stop_judgment_threshold;
+  double stop_judgement_threshold;
   double filter_process_noise;
   double filter_observation_noise;
 };
@@ -493,9 +477,9 @@ extern void velocity_scale_factor_estimate(const rtklib_msgs::RtklibNav, const g
 extern void velocity_scale_factor_estimate(const nmea_msgs::Gprmc, const geometry_msgs::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, geometry_msgs::TwistStamped*, eagleye_msgs::VelocityScaleFactor*);
 extern void distance_estimate(const geometry_msgs::TwistStamped, DistanceStatus*,eagleye_msgs::Distance*);
-extern void yawrate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter,
+extern void yaw_rate_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const YawrateOffsetStopParameter,
   YawrateOffsetStopStatus*, eagleye_msgs::YawrateOffset*);
-extern void yawrate_offset_estimate(const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,
+extern void yaw_rate_offset_estimate(const geometry_msgs::TwistStamped, const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,
   const sensor_msgs::Imu, const YawrateOffsetParameter, YawrateOffsetStatus*, eagleye_msgs::YawrateOffset*);
 extern void heading_estimate(const rtklib_msgs::RtklibNav, const sensor_msgs::Imu, const geometry_msgs::TwistStamped,
   const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const HeadingParameter,
@@ -521,17 +505,15 @@ extern void heading_interpolate_estimate(const sensor_msgs::Imu,const geometry_m
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::Heading,const eagleye_msgs::SlipAngle,const HeadingInterpolateParameter,HeadingInterpolateStatus*,
   eagleye_msgs::Heading*);
 extern void position_interpolate_estimate(const eagleye_msgs::Position,const geometry_msgs::Vector3Stamped,const eagleye_msgs::Position,
-  const eagleye_msgs::Height,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
+  const eagleye_msgs::Height,const eagleye_msgs::Heading,const PositionInterpolateParameter,PositionInterpolateStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void pitching_estimate(const sensor_msgs::Imu,const nmea_msgs::Gpgga,const geometry_msgs::TwistStamped,const eagleye_msgs::Distance,
   const HeightParameter,HeightStatus*,eagleye_msgs::Height*,eagleye_msgs::Pitching*,eagleye_msgs::AccXOffset*,eagleye_msgs::AccXScaleFactor*);
 extern void trajectory3d_estimate(const sensor_msgs::Imu,const geometry_msgs::TwistStamped,const eagleye_msgs::StatusStamped,const eagleye_msgs::Heading,
   const eagleye_msgs::YawrateOffset,const eagleye_msgs::YawrateOffset,const eagleye_msgs::Pitching,const TrajectoryParameter,TrajectoryStatus*,
   geometry_msgs::Vector3Stamped*,eagleye_msgs::Position*,geometry_msgs::TwistStamped*, geometry_msgs::TwistWithCovarianceStamped*);
-extern void angular_velocity_offset_stop_estimate(const geometry_msgs::TwistStamped, const sensor_msgs::Imu, const AngularVelocityOffsetStopParameter,
-  AngularVelocityOffsetStopStatus*, eagleye_msgs::AngularVelocityOffset*);
-extern void rtk_deadreckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
+extern void rtk_dead_reckoning_estimate(const rtklib_msgs::RtklibNav,const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
-extern void rtk_deadreckoning_estimate(const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
+extern void rtk_dead_reckoning_estimate(const geometry_msgs::Vector3Stamped,const nmea_msgs::Gpgga, const eagleye_msgs::Heading,
   const RtkDeadreckoningParameter,RtkDeadreckoningStatus*,eagleye_msgs::Position*,sensor_msgs::NavSatFix*);
 extern void rtk_heading_estimate(const nmea_msgs::Gpgga gga, const sensor_msgs::Imu, const geometry_msgs::TwistStamped, const eagleye_msgs::Distance,
   const eagleye_msgs::YawrateOffset, const eagleye_msgs::YawrateOffset,  const eagleye_msgs::SlipAngle, const eagleye_msgs::Heading, const RtkHeadingParameter,
@@ -604,7 +586,7 @@ class VelocityEstimator
           double buffer_max;
           double outlier_threshold;
           double estimated_velocity_threshold;
-          double slow_judgment_threshold;
+          double slow_judgement_threshold;
           double gnss_receiving_threshold;
           double estimated_gnss_coefficient;
           double outlier_ratio_threshold;
@@ -667,9 +649,9 @@ class VelocityEstimator
       double gnss_rate;
 
       double gga_downsample_time;
-      double stop_judgment_interval;
-      double stop_judgment_velocity_threshold;
-      double stop_judgment_buffer_maxnum;
+      double stop_judgement_interval;
+      double stop_judgement_velocity_threshold;
+      double stop_judgement_buffer_maxnum;
       double variance_threshold;
 
       // doppler fusion parameter
@@ -704,7 +686,7 @@ class VelocityEstimator
     double rtkfix_pitching; 
     bool navsat_update_status;
 
-    // stop judgment variables
+    // stop judgement variables
     bool stop_status;
     std::vector<double> angular_velocity_x_buffer;
     std::vector<double> angular_velocity_y_buffer;
@@ -737,7 +719,7 @@ class VelocityEstimator
     bool updateImu(const sensor_msgs::Imu);
     bool updateRtklibNav(const rtklib_msgs::RtklibNav);
     bool updateGGA(const nmea_msgs::Gpgga);
-    bool StopJudgment(const sensor_msgs::Imu);
+    bool Stopjudgement(const sensor_msgs::Imu);
     bool DopplerFusion();
 };
 

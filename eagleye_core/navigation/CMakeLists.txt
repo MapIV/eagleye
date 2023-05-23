@@ -33,8 +33,8 @@ include_directories(
 add_library(navigation
   src/velocity_scale_factor.cpp
   src/distance.cpp
-  src/yawrate_offset_stop.cpp
-  src/yawrate_offset.cpp
+  src/yaw_rate_offset_stop.cpp
+  src/yaw_rate_offset.cpp
   src/heading.cpp
   src/position.cpp
   src/slip_angle.cpp
@@ -45,7 +45,7 @@ add_library(navigation
   src/position_interpolate.cpp
   src/height.cpp
   src/angular_velocity_offset_stop.cpp
-  src/rtk_deadreckoning.cpp
+  src/rtk_dead_reckoning.cpp
   src/rtk_heading.cpp
   src/enable_additional_rolling.cpp
   src/rolling.cpp

@@ -7,7 +7,7 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | use_gnss_mode                       | string | Selecting the GNSS message type to use (RTKLIB/rtklib or NMEA/nmea)             | RTKLIB               |
-| use_canless_mode                    | bool   | Speed estimation as an alternative to speed sensors                             | false                |
+| use_can_less_mode                    | bool   | Speed estimation as an alternative to speed sensors                             | false                |
 
 
 ## Topic
@@ -15,12 +15,12 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | Name                          | Type   | Description                                                             | Default value            |
 | :---------------------------- | :----- | :---------------------------------------------------------------------- | :----------------------- |
 | imu_topic                     | string | Topic name to be subscribed to in node (sensor_msgs/Imu.msg)            | /imu/data_raw            |
-| twist.twist_type                   | int | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
-| twist.twist_topic                   | string | Topic name to be subscribed to in node | /can_twist               |
-| gnss.velocity_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
-| gnss.velocity_source_topic              | string | Topic name to be subscribed to in node      | /rtklib_nav        |
-| gnss.llh_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
-| gnss.llh_source_topic              | string | Topic name to be subscribed to in node   | /rtklib_nav        |
+| twist.twist_type              | int    | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
+| twist.twist_topic             | string | Topic name to be subscribed to in node                                  | /can_twist               |
+| gnss.velocity_source_type     | int    | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
+| gnss.velocity_source_topic    | string | Topic name to be subscribed to in node                                  | /rtklib_nav        |
+| gnss.llh_source_type          | int    | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
+| gnss.llh_source_topic         | string | Topic name to be subscribed to in node                                  | /rtklib_nav        |
 
 ## TF
 
@@ -48,9 +48,9 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | imu_rate                            | double | IMU sampling cycle [Hz]                                                         | 50                   |
 | gnss_rate                           | double | GNSS sampling cycle [Hz]                                                        | 5                    |
-| stop_judgment_threshold             | double | Stop judgment velocity [m/s]                                                    | 0.01                 |
-| slow_judgment_threshold             | double | Slow judgment velocity [m/s]                                                    | 0.278 (1km/s)        |
-| moving_judgment_threshold           | double | Movement judgment velocity [m/s]                                                | 2.78 (10km/s)        |
+| stop_judgement_threshold             | double | Stop judgement velocity [m/s]                                                    | 0.01                 |
+| slow_judgement_threshold             | double | Slow judgement velocity [m/s]                                                    | 0.278 (1km/s)        |
+| moving_judgement_threshold           | double | Movement judgement velocity [m/s]                                                | 2.78 (10km/s)        |
 
 
 
@@ -82,7 +82,7 @@ Figure shows the relationship between these parameters.
 
 
 
-### yawrate_offset_stop
+### yaw_rate_offset_stop
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :-------------------------------------------------------------------------      | :------------------- |
@@ -90,14 +90,14 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Allowable gap between current outlier estimate and previous estimate [rad]      | 0.002                |
 
 
-### yawrate_offset
+### yaw_rate_offset
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | estimated_minimum_interval          | double | Minimum time of data buffering for estimation [s]                               | 30                   |
 | estimated_maximum_interval          | double | Maximum time of data buffering for estimation [s]                               | 300 (1st), 500 (2nd) |
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
-| outlier_threshold                   | double | Allowable gap between current estimate and _yawrate_offset_stop_ estimate [rad] | 0.002                |
+| outlier_threshold                   | double | Allowable gap between current estimate and _yaw_rate_offset_stop_ estimate [rad] | 0.002                |
 
 
 ### heading
@@ -109,15 +109,15 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [rad]                                   | 0.0524 (3 deg)       |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
-| curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
-| init_STD                   | double | Standard deviation of Doppler azimuth angle [rad] | 0.0035 (0.2 deg)          |
+| curve_judgement_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
+| init_STD                            | double | Standard deviation of Doppler azimuth angle [rad]                               | 0.0035 (0.2 deg)     |
 
 ### heading_interpolate
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
-| proc_noise                   | double | Process Noise [rad] | 0.0005 (0.03 deg)          |
+| proc_noise                          | double | Process Noise [rad]                                                             | 0.0005 (0.03 deg)    |
 
 ### slip_angle
 
@@ -132,7 +132,7 @@ Figure shows the relationship between these parameters.
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | estimated_minimum_interval          | double | Minimum time of data buffering for estimation [s]                               | 2                    |
 | estimated_maximum_interval          | double | Maximum time of data buffering for estimation [s]                               | 100                  |
-| curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0174 (1 deg/s)     |
+| curve_judgement_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0174 (1 deg/s)     |
 | lever_arm                           | double | Distance from GNSS antenna to center of rear axle [m]                           | 0.0                  |
 
 
@@ -147,13 +147,13 @@ Figure shows the relationship between these parameters.
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
-| curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0174 (1 deg/s)     |
+| curve_judgement_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0174 (1 deg/s)     |
 | timer_updata_rate                   | double | Self-diagnostic cycle [Hz]                                                      | 10                   |
 | deadlock_threshold                  | double | Allowable communication deadlock time for error output [s]                      | 1                    |
 | sensor_noise_velocity                  | double | Sensor velocity noise                             | 0.05                    |
 | sensor_scale_noise_velocity                  | double | Sensor velocity scale noise                             | 0.02                    |
-| sensor_noise_yawrate                  | double | Sensor yaw rate noise                             | 0.01                    |
-| sensor_bias_noise_yawrate                  | double | Sensor yaw rate bias noise                             | 0.01                    |
+| sensor_noise_yaw_rate                  | double | Sensor yaw rate noise                             | 0.01                    |
+| sensor_bias_noise_yaw_rate                  | double | Sensor yaw rate bias noise                             | 0.01                    |
 
 ### smoothing
 
@@ -185,14 +185,14 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m]                                     | 3                    |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
-
+| gnss_error_covariance               | double | GNSS error covariance [m]                                                       | 0.5                  |
 
 ### position_interpolate
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 2                    |
-
+| proc_noise                          | double | Process Noise [m]                                                               | 0.05                 |
 
 ### monitor
 
@@ -203,10 +203,10 @@ Figure shows the relationship between these parameters.
 | update_rate                         | double | Update cycle of Eagleye estimates [hz]                                          | 10                   |
 | th_gnss_deadrock_time               | double | Allowable communication deadlock time for error output [s]                      | 10                   |
 | th_velocity_scale_factor_ratio      | double | Allowable ratio between current outlier estimate and previous estimate          | 0.01                 |
-| use_compare_yawrate                 | bool   | Flag for yaw rate value comparison diagnostics                                  | false                |
+| use_compare_yaw_rate                 | bool   | Flag for yaw rate value comparison diagnostics                                  | false                |
 | comparison_twist_topic              | string | Topic name for comparison (geometry_msgs/TwistStamped.msg)                      | /calculated_twist    |
 | th_diff_rad_per_sec                 | double | Allowable difference from comparables for error output [rad/s]                  | 0.174 (10 deg/s)     |
-| th_num_continuous_abnormal_yawrate  | double | Number of times an abnormal value occurs for error output                       | 25                   |
+| th_num_continuous_abnormal_yaw_rate  | double | Number of times an abnormal value occurs for error output                       | 25                   |
 | th_dr_distance                      | double | Threshold for dead reckoning distance to error output [m]                       | 50                   |
 
 
@@ -219,7 +219,7 @@ Figure shows the relationship between these parameters.
 | outlier_threshold                   | double | Allowable gap between current outlier estimate and previous estimate [rad] | 0.002         |
 
 
-### rtk_deadreckoning
+### rtk_dead_reckoning
 
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
@@ -238,7 +238,7 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.25                 |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [rad]                                   | 0.0524 (3 deg)       |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
-| curve_judgment_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
+| curve_judgement_threshold            | double | Yaw rate threshold for curve determination [rad/s]                              | 0.0873 (5 deg/s)     |
 
 
 ### enable_additional_rolling
@@ -247,7 +247,7 @@ Figure shows the relationship between these parameters.
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | update_distance                     | double | Distance of minimum movement to update pose [m]                                 | 0.3                  |
 | moving_average_time                 | double | Moving average time of lateral acceleration [s]                                 | 1                    |
-| sync_judgment_threshold             | double | Synchronization judgment threshold [s]                                          | 0.01                 |
+| sync_judgement_threshold             | double | Synchronization judgement threshold [s]                                          | 0.01                 |
 | sync_search_period                  | double | Synchronous search time for delay interpolation [s]                             | 1                    |
 
 
@@ -256,9 +256,9 @@ Figure shows the relationship between these parameters.
 | Name                                | Type   | Description                                                                     | Default value        |
 | :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
 | gga_downsample_time                 | double | Minimum time to update NMEA GGA [s]                                             | 0.5                  |
-| stop_judgment_velocity_threshold    | double | Stop judgment velocity [m/s]                                                    | 0.2                  |
-| stop_judgment_interval              | double | Time to stop judgment [s]                                                       | 1                    |
-| variance_threshold                  | double | Angular velocity vibration variance for stop judgment [$(rad/s)^2$]             | 0.000025             |
+| stop_judgement_velocity_threshold    | double | Stop judgement velocity [m/s]                                                    | 0.2                  |
+| stop_judgement_interval              | double | Time to stop judgement [s]                                                       | 1                    |
+| variance_threshold                  | double | Angular velocity vibration variance for stop judgement [$(rad/s)^2$]             | 0.000025             |
 |                                     |        |                                                                                 |                      |
 | _pitchrate_offset_                  |        |                                                                                 |                      |
 | estimated_interval                  | double | Time of data buffering for estimation [s]                                       | 8                    |

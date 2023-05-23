@@ -131,7 +131,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
     position_status->enu_relative_pos_z_buffer.push_back(0);
     position_status->distance_buffer.push_back(distance.distance);
 
-    data_status = true; //judgment that refreshed data
+    data_status = true; //judgement that refreshed data
 
     if (position_status->distance_buffer.end() - position_status->distance_buffer.begin() > estimated_number_max)
     {
@@ -151,7 +151,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
   {
 
     if (distance.distance > position_parameter.estimated_interval && gnss_status == true &&
-      velocity.twist.linear.x > position_parameter.moving_judgment_threshold && position_status->heading_estimate_status_count > 0)
+      velocity.twist.linear.x > position_parameter.moving_judgement_threshold && position_status->heading_estimate_status_count > 0)
     {
       std::vector<int> distance_index;
       std::vector<int> velocity_index;
@@ -163,7 +163,7 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
         {
           distance_index.push_back(i);
 
-          if (position_status->correction_velocity_buffer[i] > position_parameter.moving_judgment_threshold)
+          if (position_status->correction_velocity_buffer[i] > position_parameter.moving_judgement_threshold)
           {
             velocity_index.push_back(i);
           }
@@ -286,11 +286,39 @@ void position_estimate_(geometry_msgs::TwistStamped velocity,eagleye_msgs::Statu
 
         if (index_length >= velocity_index_length * remain_data_ratio)
         {
+
+          std::vector<double> diff_x_buffer_for_covariance, diff_y_buffer_for_covariance, diff_z_buffer_for_covariance;
+          for (i = 0; i < index_length; i++)
+          {
+            diff_x_buffer_for_covariance.push_back(base_enu_pos_x_buffer2[index[i]] - position_status->enu_pos_x_buffer[index[i]]);
+            diff_y_buffer_for_covariance.push_back(base_enu_pos_y_buffer2[index[i]] - position_status->enu_pos_y_buffer[index[i]]);
+            diff_z_buffer_for_covariance.push_back(base_enu_pos_z_buffer2[index[i]] - position_status->enu_pos_z_buffer[index[i]]);
+          }
+
+          avg_x = std::accumulate(diff_x_buffer_for_covariance.begin(), diff_x_buffer_for_covariance.end(), 0.0) / index_length;
+          avg_y = std::accumulate(diff_y_buffer_for_covariance.begin(), diff_y_buffer_for_covariance.end(), 0.0) / index_length;
+          avg_z = std::accumulate(diff_z_buffer_for_covariance.begin(), diff_z_buffer_for_covariance.end(), 0.0) / index_length;
+
+          double cov_x, cov_y, cov_z;
+          double square_sum_x = 0, square_sum_y = 0, square_sum_z = 0;
+          for (i = 0; i < index_length; i++)
+          {
+            square_sum_x += (diff_x_buffer_for_covariance[i] - avg_x) * (diff_x_buffer_for_covariance[i] - avg_x);
+            square_sum_y += (diff_y_buffer_for_covariance[i] - avg_y) * (diff_y_buffer_for_covariance[i] - avg_y);
+            square_sum_z += (diff_z_buffer_for_covariance[i] - avg_z) * (diff_z_buffer_for_covariance[i] - avg_z);
+          }
+          cov_x = square_sum_x/index_length;
+          cov_y = square_sum_y/index_length;
+          cov_z = square_sum_z/index_length;
+
           if (index[index_length - 1] == position_status->estimated_number-1)
           {
             enu_absolute_pos->enu_pos.x = tmp_enu_pos_x;
             enu_absolute_pos->enu_pos.y = tmp_enu_pos_y;
             enu_absolute_pos->enu_pos.z = tmp_enu_pos_z;
+            enu_absolute_pos->covariance[0] = cov_x + position_parameter.gnss_error_covariance; // [m^2]
+            enu_absolute_pos->covariance[4] = cov_y + position_parameter.gnss_error_covariance; // [m^2]
+            enu_absolute_pos->covariance[8] = cov_z + position_parameter.gnss_error_covariance; // [m^2]
             enu_absolute_pos->status.enabled_status = true;
             enu_absolute_pos->status.estimate_status = true;
           }

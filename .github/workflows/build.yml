@@ -2,48 +2,9 @@ name: build
 on: pull_request
 
 jobs:
-  melodic_build:
-    runs-on:  ubuntu-18.04
-    
-    container: ros:melodic
-    services:
-      ros:
-        image: ros
-
-    defaults:
-      run:
-        shell: bash
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v1
-        with:
-          submodules: true
-      - name: rosdep update
-        run: |
-          apt-get update
-          rosdep update
-
-      - name: Create Workspace
-        run: |
-          mkdir -p ~/eagleye/src/
-          cp -r `pwd` ~/eagleye/src/
-
-      - name: Clone rtklib_msgs
-        run: |
-          cd ~/eagleye/src/
-          git clone https://github.com/MapIV/rtklib_ros_bridge.git
-
-      - name: Build
-        run: |
-          cd ~/eagleye/
-          source /opt/ros/melodic/setup.bash
-          rosdep install --from-paths src --ignore-src -r -y
-          catkin_make -DCMAKE_BUILD_TYPE=Release -j1
-
   noetic_build:
     runs-on:  ubuntu-20.04
-    
+
     container: ros:noetic
     services:
       ros:
@@ -56,8 +17,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v1
-        with:
-          submodules: true
 
       - name: rosdep update
         run: |
@@ -69,15 +28,23 @@ jobs:
           mkdir -p ~/eagleye/src/
           cp -r `pwd` ~/eagleye/src/
 
-      - name: Clone rtklib_msgs
+      - name: Clone submodules
         run: |
           cd ~/eagleye/src/
           apt-get install git -y
           git clone https://github.com/MapIV/rtklib_ros_bridge.git
+          git clone https://github.com/MapIV/kml_generator
+          git clone https://github.com/MapIV/multi_rosbag_controller.git
+          git clone https://github.com/MapIV/llh_converter
+          git clone https://github.com/MapIV/gnss_compass_ros.git
+
+      - name: Install GeographicLib
+        run: |
+          apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 
       - name: Build
         run: |
           cd ~/eagleye/
           source /opt/ros/noetic/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
-          catkin_make -DCMAKE_BUILD_TYPE=Release -j1
+          catkin_make -DCMAKE_BUILD_TYPE=Release -j2

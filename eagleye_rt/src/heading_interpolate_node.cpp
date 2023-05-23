@@ -35,8 +35,8 @@
 static sensor_msgs::Imu _imu;
 static geometry_msgs::TwistStamped _velocity;
 static eagleye_msgs::StatusStamped _velocity_status;
-static eagleye_msgs::YawrateOffset _yawrate_offset_stop;
-static eagleye_msgs::YawrateOffset _yawrate_offset;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset_stop;
+static eagleye_msgs::YawrateOffset _yaw_rate_offset;
 static eagleye_msgs::Heading _heading;
 static eagleye_msgs::SlipAngle _slip_angle;
 
@@ -46,7 +46,7 @@ static eagleye_msgs::Heading _heading_interpolate;
 struct HeadingInterpolateParameter _heading_interpolate_parameter;
 struct HeadingInterpolateStatus _heading_interpolate_status;
 
-static bool _use_canless_mode;
+static bool _use_can_less_mode;
 
 void velocity_callback(const geometry_msgs::TwistStamped::ConstPtr &msg)
 {
@@ -58,14 +58,14 @@ void velocity_status_callback(const eagleye_msgs::StatusStamped::ConstPtr& msg)
   _velocity_status = *msg;
 }
 
-void yawrate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset_stop = *msg;
+  _yaw_rate_offset_stop = *msg;
 }
 
-void yawrate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
+void yaw_rate_offset_callback(const eagleye_msgs::YawrateOffset::ConstPtr& msg)
 {
-  _yawrate_offset = *msg;
+  _yaw_rate_offset = *msg;
 }
 
 void heading_callback(const eagleye_msgs::Heading::ConstPtr& msg)
@@ -81,12 +81,12 @@ void slip_angle_callback(const eagleye_msgs::SlipAngle::ConstPtr& msg)
 void imu_callback(const sensor_msgs::Imu::ConstPtr& msg)
 {
 
-  if(_use_canless_mode && !_velocity_status.status.enabled_status) return;
+  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
 
   _imu = *msg;
   _heading_interpolate.header = msg->header;
   _heading_interpolate.header.frame_id = "base_link";
-  heading_interpolate_estimate(_imu, _velocity, _yawrate_offset_stop, _yawrate_offset, _heading, _slip_angle,
+  heading_interpolate_estimate(_imu, _velocity, _yaw_rate_offset_stop, _yaw_rate_offset, _heading, _slip_angle,
     _heading_interpolate_parameter, &_heading_interpolate_status, &_heading_interpolate);
   _pub.publish(_heading_interpolate);
 }
@@ -105,12 +105,12 @@ int main(int argc, char** argv)
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     _heading_interpolate_parameter.imu_rate = conf["common"]["imu_rate"].as<double>();
-    _heading_interpolate_parameter.stop_judgment_threshold = conf["common"]["stop_judgment_threshold"].as<double>();
+    _heading_interpolate_parameter.stop_judgement_threshold = conf["common"]["stop_judgement_threshold"].as<double>();
     _heading_interpolate_parameter.sync_search_period = conf["heading_interpolate"]["sync_search_period"].as<double>();
     _heading_interpolate_parameter.proc_noise = conf["heading_interpolate"]["proc_noise"].as<double>();
 
     std::cout << "imu_rate " << _heading_interpolate_parameter.imu_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << _heading_interpolate_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "stop_judgement_threshold " << _heading_interpolate_parameter.stop_judgement_threshold << std::endl;
     std::cout << "sync_search_period " << _heading_interpolate_parameter.sync_search_period << std::endl;
     std::cout << "proc_noise " << _heading_interpolate_parameter.proc_noise << std::endl;
   }
@@ -129,19 +129,19 @@ int main(int argc, char** argv)
     if (strcmp(argv[1], "1st") == 0)
     {
       publish_topic_name = "heading_interpolate_1st";
-      subscribe_topic_name_1 = "yawrate_offset_stop";
+      subscribe_topic_name_1 = "yaw_rate_offset_stop";
       subscribe_topic_name_2 = "heading_1st";
     }
     else if (strcmp(argv[1], "2nd") == 0)
     {
       publish_topic_name = "heading_interpolate_2nd";
-      subscribe_topic_name_1 = "yawrate_offset_1st";
+      subscribe_topic_name_1 = "yaw_rate_offset_1st";
       subscribe_topic_name_2 = "heading_2nd";
     }
     else if (strcmp(argv[1], "3rd") == 0)
     {
       publish_topic_name = "heading_interpolate_3rd";
-      subscribe_topic_name_1 = "yawrate_offset_2nd";
+      subscribe_topic_name_1 = "yaw_rate_offset_2nd";
       subscribe_topic_name_2 = "heading_3rd";
     }
     else
@@ -159,8 +159,8 @@ int main(int argc, char** argv)
   ros::Subscriber sub1 = nh.subscribe("imu/data_tf_converted", 1000, imu_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub2 = nh.subscribe("velocity", 1000, velocity_callback , ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub3 = nh.subscribe("velocity_status", 1000, velocity_status_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub4 = nh.subscribe("yawrate_offset_stop", 1000, yawrate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name_1, 1000, yawrate_offset_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub4 = nh.subscribe("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub5 = nh.subscribe(subscribe_topic_name_1, 1000, yaw_rate_offset_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub6 = nh.subscribe(subscribe_topic_name_2, 1000, heading_callback, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub7 = nh.subscribe("slip_angle", 1000, slip_angle_callback, ros::TransportHints().tcpNoDelay());
   _pub = nh.advertise<eagleye_msgs::Heading>(publish_topic_name, 1000);
