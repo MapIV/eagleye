@@ -119,6 +119,8 @@ void eagleye_pp::setParam(std::string arg_config_file, std::string *arg_twist_to
     double roll = conf["imu"]["base_link2imu"]["roll"].as<double>();
     double pitch = conf["imu"]["base_link2imu"]["pitch"].as<double>();
     double yaw = conf["imu"]["base_link2imu"]["yaw"].as<double>();
+    reverse_imu_wz_ = conf["imu"]["reverse_imu_wz"].as<bool>();
+    reverse_imu_ax_ = conf["imu"]["reverse_imu_ax"].as<bool>();
     tf2_quat.setRPY(roll, pitch, yaw);
     geometry_msgs::Quaternion geometry_quat = tf2::toMsg(tf2_quat);
 
@@ -321,6 +323,16 @@ sensor_msgs::Imu eagleye_pp::transformIMU(sensor_msgs::Imu imu_msg)
   transformed_imu_msg.angular_velocity = transformed_angular_velocity.vector;
   transformed_imu_msg.linear_acceleration = transformed_linear_acceleration.vector;
   transformed_imu_msg.orientation = transformed_quaternion;
+
+  if(reverse_imu_wz_)
+  {
+    transformed_imu_msg.angular_velocity.z = (-1) * transformed_angular_velocity.vector.z;
+  }
+  if(reverse_imu_ax_)
+  {
+    transformed_imu_msg.linear_acceleration.x = (-1) * transformed_linear_acceleration.vector.x;
+  }
+
   return transformed_imu_msg;
 }
 
