@@ -48,6 +48,8 @@ imu:
     roll: 3.14 # [rad]
     pitch: 0 # [rad]
     yaw: 0 # [rad]
+  reverse_imu_wz: false
+  reverse_imu_ax: false # for height/pitch estimation
 
 use_can_less_mode: false  #Estimate mode
 

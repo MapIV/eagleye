@@ -67,6 +67,7 @@ private:
   std::vector<nmea_msgs::Gprmc> rmc_;
 
   geometry_msgs::TransformStamped base_link2imu_;
+  bool reverse_imu_wz_, reverse_imu_ax_;
 
   struct EagleyeStates
   {
