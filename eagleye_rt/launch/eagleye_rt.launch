@@ -10,7 +10,7 @@
     <arg name="use_rtk_heading" default="false"/>
     <arg name="use_can_less_mode" default="false"/>
     <arg name="enable_additional_rolling" default="false"/>
-    <arg name="use_multi_antenna_mode" default="true"/>
+    <arg name="use_multi_antenna_mode" default="false"/>
     <arg name="yaml_file" default="$(find eagleye_rt)/config/eagleye_config.yaml"/>
 
     <param name="yaml_file" value="$(arg yaml_file)"/>
