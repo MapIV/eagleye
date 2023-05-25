@@ -116,10 +116,16 @@ void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_ms
         if(gga->gps_qual == 4)
         {
           fix->status.status = 0;
+          fix->position_covariance[0] = 0.01;
+          fix->position_covariance[4] = 0.01;
+          fix->position_covariance[8] = 0.04;
         }
         else
         {
           fix->status.status = -1;
+          fix->position_covariance[0] = 100.0;
+          fix->position_covariance[4] = 100.0;
+          fix->position_covariance[8] = 100.0;
         }
       }
 
