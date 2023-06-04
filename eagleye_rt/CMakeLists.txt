@@ -10,6 +10,10 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+if($ENV{ROS_DISTRO} STREQUAL "galactic")
+  add_definitions(-DROS_DISTRO_GALACTIC)
+endif()
+
 # find dependencies
 find_package(ament_cmake_auto REQUIRED)
 find_package(PkgConfig REQUIRED)
