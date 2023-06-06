@@ -12,54 +12,23 @@
   <buildtool_depend>ament_cmake_auto</buildtool_depend>
   <depend>yaml_cpp_vendor</depend>
   <depend>tf2_eigen</depend>
-  <build_depend>rclcpp</build_depend>
-  <build_depend>std_msgs</build_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>geographic_msgs</build_depend>
-  <build_depend>geodesy</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>nmea_msgs</build_depend>
-  <build_depend>rtklib_msgs</build_depend>
-  <build_depend>eagleye_msgs</build_depend>
-  <build_depend>eagleye_coordinate</build_depend>
-  <build_depend>eagleye_navigation</build_depend>
-  <build_depend>diagnostic_updater</build_depend>
-  <build_depend>tf2</build_depend>
-  <build_depend>tf2_ros</build_depend>
-  <build_depend>tf2_geometry_msgs</build_depend>
-  <build_depend>ublox_msgs</build_depend>
-  <build_export_depend>rclcpp</build_export_depend>
-  <build_export_depend>std_msgs</build_export_depend>
-  <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>geographic_msgs</build_export_depend>
-  <build_export_depend>geodesy</build_export_depend>
-  <build_export_depend>sensor_msgs</build_export_depend>
-  <build_export_depend>nmea_msgs</build_export_depend>
-  <build_export_depend>rtklib_msgs</build_export_depend>
-  <build_export_depend>eagleye_msgs</build_export_depend>
-  <build_export_depend>eagleye_coordinate</build_export_depend>
-  <build_export_depend>eagleye_navigation</build_export_depend>
-  <build_export_depend>diagnostic_updater</build_export_depend>
-  <build_export_depend>tf2</build_export_depend>
-  <build_export_depend>tf2_ros</build_export_depend>
-  <build_export_depend>tf2_geometry_msgs</build_export_depend>
-  <build_export_depend>ublox_msgs</build_export_depend>
-  <exec_depend>rclcpp</exec_depend>
-  <exec_depend>std_msgs</exec_depend>
-  <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>geographic_msgs</exec_depend>
-  <exec_depend>geodesy</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>nmea_msgs</exec_depend>
-  <exec_depend>rtklib_msgs</exec_depend>
-  <exec_depend>eagleye_msgs</exec_depend>
-  <exec_depend>eagleye_coordinate</exec_depend>
-  <exec_depend>eagleye_navigation</exec_depend>
-  <exec_depend>diagnostic_updater</exec_depend>
-  <exec_depend>tf2</exec_depend>
-  <exec_depend>tf2_ros</exec_depend>
-  <exec_depend>tf2_geometry_msgs</exec_depend>
-  <exec_depend>ublox_msgs</exec_depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>geographic_msgs</depend>
+  <depend>geodesy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nmea_msgs</depend>
+  <depend>rtklib_msgs</depend>
+  <depend>eagleye_msgs</depend>
+  <depend>eagleye_coordinate</depend>
+  <depend>eagleye_navigation</depend>
+  <depend>diagnostic_updater</depend>
+  <depend>tf2</depend>
+  <depend>tf2_ros</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_sensor_msgs</depend>
+  <depend>ublox_msgs</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
