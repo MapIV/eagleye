@@ -159,6 +159,11 @@ To convert from eagleye/fix to eagleye/pose, use the following command　
 
 	ros2 launch eagleye_fix2pose fix2pose.xml
 
+## Autoware Integration Document
+
+- [Autoware Integration Document](docs/eagleye-integration-guide.md
+)
+
 ## Sample data
 ### ROSBAG(ROS1)
 
