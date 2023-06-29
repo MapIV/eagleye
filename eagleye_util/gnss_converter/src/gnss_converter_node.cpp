@@ -99,9 +99,12 @@ void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped
   rtklib_msgs::msg::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp = msg->header.stamp;
+  if (nav_msg_ptr != nullptr)
+    r.status = *nav_msg_ptr;
   rclcpp::Time ros_clock(msg->header.stamp);
   double gnss_velocity_time = ros_clock.seconds() * 1e3;
   r.tow = gnss_velocity_time;
+
 
   double llh[3];
   llh[0] = nav_msg_ptr->latitude * M_PI / 180.0;
