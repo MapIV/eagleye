@@ -105,7 +105,6 @@ void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped
   double gnss_velocity_time = ros_clock.seconds() * 1e3;
   r.tow = gnss_velocity_time;
 
-
   double llh[3];
   llh[0] = nav_msg_ptr->latitude * M_PI / 180.0;
   llh[1] = nav_msg_ptr->longitude * M_PI / 180.0;
