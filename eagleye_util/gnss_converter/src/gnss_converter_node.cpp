@@ -24,6 +24,8 @@ double ublox_vacc_thresh = 200.0;
 bool is_sub_antenna = false;
 bool use_multi_antenna_mode = false;
 
+std::string node_name = "gnss_converter_node";
+
 void nmea_callback(const nmea_msgs::msg::Sentence::ConstSharedPtr msg)
 {
   nmea_msgs::msg::Gpgga gga;
@@ -55,6 +57,11 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg) 
 }
 
 void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
+  if(msg->position_covariance[0] == 0 && msg->position_covariance[4] == 0 && msg->position_covariance[8] == 0)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name),"position_covariance diagonal elements are all 0");
+    return;
+  }
   nav_msg_ptr = msg;
   if(use_multi_antenna_mode) navsatfix_pub->publish(*msg);
 }
@@ -126,7 +133,7 @@ void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("gnss_converter_node");
+  auto node = rclcpp::Node::make_shared(node_name);
 
   int velocity_source_type = 0;
   // rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3
