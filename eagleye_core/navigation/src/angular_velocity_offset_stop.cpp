@@ -70,7 +70,7 @@ void angular_velocity_offset_stop_estimate(const geometry_msgs::msg::TwistStampe
     angular_velocity_stop_status->yaw_rate_buffer.erase(angular_velocity_stop_status->yaw_rate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < angular_velocity_stop_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) < angular_velocity_stop_parameter.stop_judgment_threshold)
   {
     ++angular_velocity_stop_status->stop_count;
   }
