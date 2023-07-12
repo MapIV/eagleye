@@ -59,7 +59,7 @@ void yaw_rate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped veloci
     yaw_rate_offset_stop_status->yaw_rate_buffer.erase(yaw_rate_offset_stop_status->yaw_rate_buffer.begin());
   }
 
-  if (velocity.twist.linear.x < yaw_rate_offset_stop_parameter.stop_judgment_threshold)
+  if (std::abs(velocity.twist.linear.x) < yaw_rate_offset_stop_parameter.stop_judgment_threshold)
   {
     ++yaw_rate_offset_stop_status->stop_count;
   }
