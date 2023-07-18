@@ -83,7 +83,7 @@ void pitching_callback(const eagleye_msgs::Pitching::ConstPtr& msg)
 
 void fix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg, tf2_ros::TransformListener* tf_listener, tf2_ros::Buffer* tf_buffer)
 {
-  if(_eagleye_heading_ptr != nullptr)
+  if(_eagleye_heading_ptr == nullptr)
   {
     ROS_WARN("eagleye_heading is not subscribed");
     return;
