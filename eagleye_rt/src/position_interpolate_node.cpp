@@ -81,7 +81,7 @@ void enu_vel_callback(const geometry_msgs::Vector3Stamped::ConstPtr& msg)
   _eagleye_fix.header = msg->header;
   _eagleye_fix.header.frame_id = "gnss";
   position_interpolate_estimate(_enu_absolute_pos, _enu_vel, _gnss_smooth_pos, _height, _heading_interpolate_3rd, _position_interpolate_parameter, &_position_interpolate_status, &_enu_absolute_pos_interpolate, &_eagleye_fix);
-  if(_enu_absolute_pos.status.enabled_status)
+  if(_enu_absolute_pos.status.enabled_status && (_eagleye_fix.latitude != 0.0 || _eagleye_fix.longitude != 0.0))
   {
     _pub1.publish(_enu_absolute_pos_interpolate);
     _pub2.publish(_eagleye_fix);
