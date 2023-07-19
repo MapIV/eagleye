@@ -47,6 +47,8 @@ rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub2;
 struct PositionInterpolateParameter position_interpolate_parameter;
 struct PositionInterpolateStatus position_interpolate_status;
 
+std::string node_name = "eagleye_position_interpolate";
+
 void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
   gga = *msg;
@@ -85,8 +87,15 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   position_interpolate_estimate(enu_absolute_pos,enu_vel,gnss_smooth_pos,height,heading_interpolate_3rd,position_interpolate_parameter,&position_interpolate_status,&enu_absolute_pos_interpolate,&eagleye_fix);
   if (enu_absolute_pos.status.enabled_status == true)
   {
-    pub1->publish(enu_absolute_pos_interpolate);
-    pub2->publish(eagleye_fix);
+    if(eagleye_fix.latitude == 0 && eagleye_fix.longitude == 0)
+    {
+      RCLCPP_WARN(rclcpp::get_logger(node_name), "eagleye_fix is not published because latitude and longitude are 0.");
+    }
+    else
+    {
+      pub1->publish(enu_absolute_pos_interpolate);
+      pub2->publish(eagleye_fix);
+    }
   }
   else if (gga_time != 0)
   {
@@ -102,7 +111,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_position_interpolate");
+  auto node = rclcpp::Node::make_shared(node_name);
 
   std::string subscribe_gga_topic_name = "gnss/gga";
 
