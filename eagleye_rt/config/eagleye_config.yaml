@@ -31,7 +31,7 @@
       z : 0.0
       use_ecef_base_position : false
 
-    reverse_imu_wz: false
+    use_m4_tamagawa_driver : false
 
     # Eagleye Navigation Parameters
     # Basic Navigation Functions
