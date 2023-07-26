@@ -48,17 +48,17 @@ static std::string yaml_file;
 static std::string subscribe_rtklib_nav_topic_name = "gnss/rtklib_nav";
 static std::string subscribe_gga_topic_name = "gnss/gga";
 
-void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstPtr msg)
+void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 {
   rtklib_nav_msg = *msg;
 }
 
-void gga_callback(const nmea_msgs::msg::Gpgga::ConstPtr msg)
+void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
 {
   gga_msg = *msg;
 }
 
-void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu_msg = *msg;
 

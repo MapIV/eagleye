@@ -46,12 +46,12 @@ struct SlipangleParameter slip_angle_parameter;
 
 static bool use_can_less_mode;
 
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity = *msg;
 }
 
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
 {
   velocity_status = *msg;
 }
