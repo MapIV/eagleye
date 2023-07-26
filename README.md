@@ -76,6 +76,16 @@ Access mosaic's web ui and upload the following file in Admin/Configuration.
 
 https://www.dropbox.com/s/uckt9
 
+### IMU
+
+1. IMU settings.
+
+* Output rate 50Hz
+
+2. Please be careful with the coordinate system when using the [tamagawa ros driver](https://github.com/MapIV/tamagawa_imu_driver) created by MAP IV. If the x-direction indicated on the IMU is set to the vehicle's direction and the y-direction to the right side of the vehicle, please set the `roll` in the `eagleye/eagleye_util/tf/config/sensors_tf.yaml file` to `3.14159`.
+
+		 roll: 3.14159
+
 ### Eagleye parameters
 
 The parameters of eagleye can be set in the [eagleye_config.yaml](https://github.com/MapIV/eagleye/tree/ros2-galactic-v1.1.5/eagleye_rt/config/eagleye_config.yaml). The default settings are 5Hz for GNSS and 50Hz for IMU.
