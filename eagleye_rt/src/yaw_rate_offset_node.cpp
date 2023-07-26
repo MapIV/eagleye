@@ -53,7 +53,7 @@ void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr ms
   _velocity = *msg;
 }
 
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
 {
   _velocity_status = *msg;
 }

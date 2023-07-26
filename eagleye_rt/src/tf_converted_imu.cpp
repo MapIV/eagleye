@@ -66,15 +66,15 @@ private:
 
   bool reverse_imu_wz_;
 
-  void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg);
+  void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg);
 
 };
 
 TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
+    logger_(get_logger()),
     clock_(RCL_ROS_TIME),
     tfbuffer_(std::make_shared<rclcpp::Clock>(clock_)),
-    tflistener_(tfbuffer_),
-    logger_(get_logger())
+    tflistener_(tfbuffer_)
 {
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string publish_imu_topic_name = "imu/data_tf_converted";
@@ -100,7 +100,7 @@ TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
 
 TFConvertedIMU::~TFConvertedIMU(){}; 
 
-void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
+void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu_ = *msg;
   tf_converted_imu_.header = imu_.header;
