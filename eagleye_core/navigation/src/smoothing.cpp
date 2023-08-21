@@ -66,6 +66,7 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
     }
   }
 
+  // Convert ECEF to ENU coordinates
   if(rtklib_nav.tow != 0){
     ecef_pos[0] = rtklib_nav.ecef_pos.x;
     ecef_pos[1] = rtklib_nav.ecef_pos.y;
@@ -90,14 +91,20 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
   }
 
   if(gnss_update == true){
-    smoothing_status->time_buffer.push_back(rtklib_nav_time);
-    smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
-    smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
-    smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
-    smoothing_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
+    // If the vehicle is moving, push the value to queue
+    if (velocity.twist.linear.x > smoothing_parameter.moving_judgment_threshold)
+    {
+      smoothing_status->time_buffer.push_back(rtklib_nav_time);
+      smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
+      smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
+      smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
+      smoothing_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
+      ++smoothing_status->estimated_number;
+    }
 
     time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
+    // Pop the oldest value from queue
     if (time_buffer_length > estimated_buffer_number)
     {
       smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
@@ -107,9 +114,9 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
     }
 
+    // If the queue contains the specified number of values, the status is set to true
     if (smoothing_status->estimated_number < estimated_buffer_number)
     {
-      ++smoothing_status->estimated_number;
       gnss_smooth_pos_enu->status.enabled_status = false;
     }
     else
@@ -118,6 +125,7 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       gnss_smooth_pos_enu->status.enabled_status = true;
     }
 
+    //   
     if (smoothing_status->estimated_number == estimated_buffer_number){
       for (i = 0; i < smoothing_status->estimated_number; i++)
       {
@@ -144,6 +152,22 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
         gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;
         gnss_smooth_pos[2] = sum_gnss_pos[2]/velocity_index_length;
         gnss_smooth_pos_enu->status.estimate_status = true;
+      }
+      else{
+        RCLCPP_WARN_STREAM(
+          rclcpp::get_logger("heading"),
+          "velocity_index_length " << velocity_index_length << " "
+                                   << index_length * smoothing_parameter.moving_ratio_threshold);
+
+        RCLCPP_WARN_STREAM(
+          rclcpp::get_logger("heading"),
+          "gnss_rate*average_time: " << smoothing_parameter.gnss_rate << " "
+                                     << smoothing_parameter.moving_average_time << " "
+                                     << estimated_buffer_number);
+
+        RCLCPP_WARN_STREAM(
+          rclcpp::get_logger("heading"),
+          "the last smoothing_status->last_pos[2]" << smoothing_status->last_pos[2]);
       }
     }
   }
