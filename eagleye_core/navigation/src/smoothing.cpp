@@ -31,6 +31,10 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
+// This function calculates the moving average for each of the XYZ components in the ENU coordinate system. 
+// Only the positions when the vehicle is in motion are stored in the queue. Until the queue is filled, it outputs 0. 
+// The `estimate_status` indicates whether the ECEF of rtklib_nav is valid or not, 
+// and the `enabled_status` indicates whether the queue is fulfilled and the moving average is generated.
 void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::msg::TwistStamped velocity,
   SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::msg::Position* gnss_smooth_pos_enu)
 {
@@ -43,15 +47,12 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
   double sum_gnss_pos[3] = {0};
   bool gnss_update = false;
   std::size_t index_length;
-  std::size_t time_buffer_length;
   std::size_t velocity_index_length;
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  double estimated_buffer_number = smoothing_parameter.gnss_rate * smoothing_parameter.moving_average_time;
-
-  rclcpp::Time ros_clock(rtklib_nav.header.stamp);
-  auto rtklib_nav_time = ros_clock.seconds();
+  const double estimated_buffer_number = smoothing_parameter.gnss_rate * smoothing_parameter.moving_average_time;
+  const auto rtklib_nav_time = rclcpp::Time(rtklib_nav.header.stamp).seconds();
 
   if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
   {
@@ -91,7 +92,7 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
   }
 
   if(gnss_update == true){
-    // If the vehicle is moving, push the value to queue
+    // If the vehicle is moving, push the values to queue
     if (velocity.twist.linear.x > smoothing_parameter.moving_judgment_threshold)
     {
       smoothing_status->time_buffer.push_back(rtklib_nav_time);
@@ -102,10 +103,8 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       ++smoothing_status->estimated_number;
     }
 
-    time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
-
     // Pop the oldest value from queue
-    if (time_buffer_length > estimated_buffer_number)
+    if (smoothing_status->time_buffer.size() > estimated_buffer_number)
     {
       smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
       smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
@@ -114,7 +113,7 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
     }
 
-    // If the queue contains the specified number of values, the status is set to true
+    // If the queue has more than the specified number of values, the enabled_status is set to true
     if (smoothing_status->estimated_number < estimated_buffer_number)
     {
       gnss_smooth_pos_enu->status.enabled_status = false;
@@ -125,15 +124,14 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       gnss_smooth_pos_enu->status.enabled_status = true;
     }
 
-    //   
+    // If queue is fulfilled, compute a moving average of the position
     if (smoothing_status->estimated_number == estimated_buffer_number){
       for (i = 0; i < smoothing_status->estimated_number; i++)
       {
+        // In the past, index_length means the total length of the queue, and velocity_index_length means the number of elements that have a certain velocity.
+        // Now all elements of `smoothing_status->correction_velocity_buffer` are greater than `smoothing_parameter.moving_judgment_threshold`
         index.push_back(i);
-        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.moving_judgment_threshold)
-        {
-          velocity_index.push_back(i);
-        }
+        velocity_index.push_back(i);
       }
 
       index_length = std::distance(index.begin(), index.end());
@@ -146,33 +144,20 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
         sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
       }
 
-      if (velocity_index_length > index_length * smoothing_parameter.moving_ratio_threshold)
+      // In the past, the averaged position was used only when the number of elements with velocity was above the certain ratio.
+      // `velocity_index_length > index_length * smoothing_parameter.moving_ratio_threshold`
+      // Now, since all elements in the queue have velocities, the average position is always available.
       {
         gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
         gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;
         gnss_smooth_pos[2] = sum_gnss_pos[2]/velocity_index_length;
         gnss_smooth_pos_enu->status.estimate_status = true;
       }
-      else{
-        RCLCPP_WARN_STREAM(
-          rclcpp::get_logger("heading"),
-          "velocity_index_length " << velocity_index_length << " "
-                                   << index_length * smoothing_parameter.moving_ratio_threshold);
-
-        RCLCPP_WARN_STREAM(
-          rclcpp::get_logger("heading"),
-          "gnss_rate*average_time: " << smoothing_parameter.gnss_rate << " "
-                                     << smoothing_parameter.moving_average_time << " "
-                                     << estimated_buffer_number);
-
-        RCLCPP_WARN_STREAM(
-          rclcpp::get_logger("heading"),
-          "the last smoothing_status->last_pos[2]" << smoothing_status->last_pos[2]);
-      }
     }
   }
   else
   {
+    // If rtklib_nav is not enabled, use the last values
     gnss_smooth_pos[0] = smoothing_status->last_pos[0];
     gnss_smooth_pos[1] = smoothing_status->last_pos[1];
     gnss_smooth_pos[2] = smoothing_status->last_pos[2];
