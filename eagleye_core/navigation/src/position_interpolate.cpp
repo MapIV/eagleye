@@ -147,7 +147,7 @@ void position_interpolate_estimate(eagleye_msgs::msg::Position enu_absolute_pos,
     enu_pos[0] = position_interpolate_status->provisional_enu_pos_x;
     enu_pos[1] = position_interpolate_status->provisional_enu_pos_y;
     // enu_pos[2] = position_interpolate_status->provisional_enu_pos_z;
-    enu_pos[2] = gnss_smooth_pos.enu_pos.z - enu_absolute_pos.enu_pos.z;
+    enu_pos[2] = gnss_smooth_pos.enu_pos.z;
     ecef_base_pos[0] = enu_absolute_pos.ecef_base_pos.x;
     ecef_base_pos[1] = enu_absolute_pos.ecef_base_pos.y;
     ecef_base_pos[2] = enu_absolute_pos.ecef_base_pos.z;

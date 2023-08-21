@@ -296,7 +296,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
           {
             enu_absolute_pos->enu_pos.x = tmp_enu_pos_x;
             enu_absolute_pos->enu_pos.y = tmp_enu_pos_y;
-            enu_absolute_pos->enu_pos.z = position_parameter.tf_gnss_translation_z;
+            enu_absolute_pos->enu_pos.z = tmp_enu_pos_z;
             enu_absolute_pos->status.enabled_status = true;
             enu_absolute_pos->status.estimate_status = true;
           }
