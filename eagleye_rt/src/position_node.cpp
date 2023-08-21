@@ -231,7 +231,6 @@ int main(int argc, char** argv)
 
   const auto period_ns =
       std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.5));
-  // auto timer_callback = std::bind(&on_timer, node);
   auto timer_callback = std::bind(on_timer);
   auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
     node->get_clock(), period_ns, std::move(timer_callback),
