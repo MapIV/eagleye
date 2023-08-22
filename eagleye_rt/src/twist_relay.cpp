@@ -46,8 +46,8 @@ private:
   rclcpp::Logger logger_;
   rclcpp::Clock clock_;
 
-  void twist_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg);
-  void twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstPtr msg);
+  void twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg);
+  void twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg);
 
 };
 
@@ -90,12 +90,12 @@ TwistRelay::TwistRelay() : Node("eagleye_twist_relay"),
 
 TwistRelay::~TwistRelay(){}; 
 
-void TwistRelay::twist_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
+void TwistRelay::twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   pub_->publish(*msg);
 };
 
-void TwistRelay::twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstPtr msg)
+void TwistRelay::twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
 {
   geometry_msgs::msg::TwistStamped twist;
   twist.header.stamp = msg->header.stamp;

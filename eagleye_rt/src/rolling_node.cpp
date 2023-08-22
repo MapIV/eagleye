@@ -46,27 +46,27 @@ struct RollingStatus _rolling_status;
 
 static bool _use_can_less_mode;
 
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstPtr msg)
+void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   _velocity_msg = *msg;
 }
 
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstPtr msg)
+void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
 {
   _velocity_status_msg = *msg;
 }
 
-void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
+void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   _yaw_rate_offset_stop_msg = *msg;
 }
 
-void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstPtr msg)
+void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
 {
   _yaw_rate_offset_2nd_msg = *msg;
 }
 
-void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
+void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   if(_use_can_less_mode && !_velocity_status_msg.status.enabled_status) return;
   _imu_msg = *msg;
