@@ -31,8 +31,6 @@
       z : 0.0
       use_ecef_base_position : false
 
-    reverse_imu_wz: false
-
     # Eagleye Navigation Parameters
     # Basic Navigation Functions
     common:
