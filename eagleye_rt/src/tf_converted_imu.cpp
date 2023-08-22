@@ -64,7 +64,7 @@ private:
 
   std::string tf_base_link_frame_;
 
-  void imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg);
+  void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg);
 
 };
 
@@ -95,7 +95,7 @@ TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
 
 TFConvertedIMU::~TFConvertedIMU(){}; 
 
-void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstPtr msg)
+void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
   imu_ = *msg;
   tf_converted_imu_.header = imu_.header;
