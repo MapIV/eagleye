@@ -12,6 +12,10 @@ Eagleye is an open-source software for vehicle localization utilizing GNSS and I
 
 ![Flowchart of Eagleye](docs/flowchart.png)
 
+## Architecture
+
+![Architecture of Eagleye](docs/eagleye_architecture.drawio.svg)
+
 ## Recommended Sensors
 **GNSS receiver**
 * [Septentrio Mosaic development kit with GNSS antenna](https://shop.septentrio.com/en/shop/mosaic-x5-devkit) 
