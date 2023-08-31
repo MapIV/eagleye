@@ -60,9 +60,7 @@ static geometry_msgs::msg::Quaternion _quat;
 
 rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr _pub;
 rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr _pub2;
-rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr _pub3;
 std::shared_ptr<tf2_ros::TransformBroadcaster> _br;
-std::shared_ptr<tf2_ros::TransformBroadcaster> _br2;
 static geometry_msgs::msg::PoseStamped _pose;
 static geometry_msgs::msg::PoseWithCovarianceStamped _pose_with_covariance;
 
@@ -77,13 +75,10 @@ bool _fix_only_publish = false;
 int _fix_judgement_type = 0;
 int _fix_gnss_status = 0;
 double _fix_std_pos_thres = 0.1; // [m]
-bool _initial_pose_estimated = false;
 
 std::string _node_name = "eagleye_fix2pose";
 
 tf2_ros::Buffer _tf_buffer(std::make_shared<rclcpp::Clock>(_ros_clock));
-
-rclcpp::Client<std_srvs::srv::SetBool>::SharedPtr _client_ekf_trigger;
 
 void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
@@ -208,20 +203,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   _pose_with_covariance.pose.covariance[28] = std_dev_pitch * std_dev_pitch;
   _pose_with_covariance.pose.covariance[35] = std_dev_yaw * std_dev_yaw;
   _pub2->publish(_pose_with_covariance);
-
-  if(!_initial_pose_estimated)
-  {
-    _pub3->publish(_pose_with_covariance);
-    _initial_pose_estimated = true;
-
-    const auto req = std::make_shared<std_srvs::srv::SetBool::Request>();
-    req->data = true;
-    if (!_client_ekf_trigger->service_is_ready()) {
-      RCLCPP_WARN(rclcpp::get_logger(_node_name), "EKF localizar triggering service is not ready");
-    }
-    auto future_ekf = _client_ekf_trigger->async_send_request(req);
-  }
-  
+ 
   tf2::Transform transform;
   tf2::Quaternion q;
   transform.setOrigin(tf2::Vector3(_pose.pose.position.x, _pose.pose.position.y, _pose.pose.position.z));
@@ -340,10 +322,7 @@ int main(int argc, char** argv)
   auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
   _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("eagleye/pose", 1000);
   _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
-  _pub3 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("/initialpose3d", 1000);
   _br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
-  _br2 = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
-  _client_ekf_trigger = node->create_client<std_srvs::srv::SetBool>("ekf_trigger_node");
   rclcpp::spin(node);
 
   return 0;
