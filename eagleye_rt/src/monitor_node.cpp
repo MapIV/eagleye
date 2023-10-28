@@ -509,7 +509,7 @@ void yaw_rate_offset_stop_topic_checker(diagnostic_updater::DiagnosticStatusWrap
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yaw_rate_offset_stop.status.is_abnormal) {
+  else if (_yaw_rate_offset_stop.status.is_abnormal) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     if(_yaw_rate_offset_stop.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
     {
@@ -538,7 +538,7 @@ void yaw_rate_offset_1st_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yaw_rate_offset_1st.status.is_abnormal) {
+  else if (_yaw_rate_offset_1st.status.is_abnormal) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     if(_yaw_rate_offset_1st.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
     {
@@ -571,7 +571,7 @@ void yaw_rate_offset_2nd_topic_checker(diagnostic_updater::DiagnosticStatusWrapp
     level = diagnostic_msgs::DiagnosticStatus::WARN;
     msg = "estimates have not started yet";
   }
-  else if (!_yaw_rate_offset_2nd.status.is_abnormal) {
+  else if (_yaw_rate_offset_2nd.status.is_abnormal) {
     level = diagnostic_msgs::DiagnosticStatus::ERROR;
     if(_yaw_rate_offset_2nd.status.error_code == eagleye_msgs::Status::NAN_OR_INFINITE)
     {
@@ -1160,6 +1160,9 @@ int main(int argc, char** argv)
   updater.add("eagleye_enu_absolute_pos", enu_absolute_pos_topic_checker);
   updater.add("eagleye_enu_absolute_pos_interpolate", enu_absolute_pos_interpolate_topic_checker);
   updater.add("eagleye_twist", twist_topic_checker);
+  updater.add("eagleye_yaw_rate_offset_stop", yaw_rate_offset_stop_topic_checker);
+  updater.add("eagleye_yaw_rate_offset_1st", yaw_rate_offset_1st_topic_checker);
+  updater.add("eagleye_yaw_rate_offset_2nd", yaw_rate_offset_2nd_topic_checker);
   if(_use_compare_yaw_rate) updater.add("eagleye_corrected_imu", corrected_imu_topic_checker);
   if(_use_rtk_dead_reckoning) updater.add("eagleye_dead_reckoning_distance", dr_distance_checker);
 
