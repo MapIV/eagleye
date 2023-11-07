@@ -99,6 +99,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   tf2::Quaternion localization_quat;
   if (_eagleye_heading.status.enabled_status)
   {
+    // NOTE: currently geo_pose_fuser ignores roll and pitch for robust estimation results.
     eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
     localization_quat.setRPY(0, 0, eagleye_heading);
   }

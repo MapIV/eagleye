@@ -138,6 +138,7 @@ void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped:
  
   tf2::Transform transform;
   transform.setOrigin(tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
+  // NOTE: currently geo_pose_fuser, the node before this node, ignores roll and pitch for robust estimation results.
   transform.setRotation(localization_quat);
 
   geometry_msgs::msg::TransformStamped trans_msg;
