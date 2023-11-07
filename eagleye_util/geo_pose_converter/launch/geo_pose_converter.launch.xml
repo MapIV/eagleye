@@ -3,9 +3,6 @@
 <launch>
 
   <node pkg="eagleye_geo_pose_converter" name="geo_pose_converter_node" exec="geo_pose_converter" output="screen" >
-    <!-- /eagleye/fix or /GNSS/fix(GNSS pose only mode)-->
-    <remap from="eagleye/fix" to="eagleye/fix" />
-
     <!-- plane rectangular coordinate number -->
     <param name="plane" value="7"/>
     <!-- 1 : plane rectangular coordinate  2 : MGRS -->
@@ -19,7 +16,6 @@
     <param name="child_frame_id" value="eagleye_base_link"/>
     <param name="base_link_frame_id" value="base_link"/>
     <param name="gnss_frame_id" value="gnss_link"/>
-
   </node>
 
 </launch>
