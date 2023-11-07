@@ -161,7 +161,7 @@ To visualize the eagleye output location /eagleye/fix, for example, use the foll
 
 To convert from eagleye/fix to eagleye/pose, use the following command　
 
-	ros2 launch eagleye_geo_pose_fuser geo_pose_fuser.launch.xml
+	ros2 launch eagleye_geo_pose_fusion geo_pose_fusion.launch.xml
 	ros2 launch eagleye_geo_pose_converter geo_pose_converter.launch.xml
 
 ## Sample data

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>eagleye_geo_pose_fuser</name>
+  <name>eagleye_geo_pose_fusion</name>
   <version>1.0.0</version>
-  <description>geo_pose_fuser package</description>
+  <description>geo_pose_fusion package</description>
 
   <maintainer email="ryohei.sasaki@map4.jp">Ryohei Sasaki</maintainer>
   <author email="koji.minoda@tier4.jp">Koji Minoda</author>

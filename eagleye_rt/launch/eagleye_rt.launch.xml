@@ -141,7 +141,7 @@
 
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
 
-  <include file="$(find-pkg-share eagleye_geo_pose_fuser)/launch/geo_pose_fuser.launch.xml">
+  <include file="$(find-pkg-share eagleye_geo_pose_fusion)/launch/geo_pose_fusion.launch.xml">
   </include>
   <include file="$(find-pkg-share eagleye_geo_pose_converter)/launch/geo_pose_converter.launch.xml">
   </include>

@@ -24,7 +24,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * geo_pose_fuser.cpp
+ * geo_pose_fusion.cpp
  * Author MapIV Sekino
  */
 
@@ -56,7 +56,7 @@ bool _fix_only_publish = false;
 int _fix_judgement_type = 0;
 double _fix_std_pos_thres = 0.1; // [m]
 
-std::string _node_name = "eagleye_geo_pose_fuser";
+std::string _node_name = "eagleye_geo_pose_fusion";
 
 void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
 {
@@ -99,7 +99,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   tf2::Quaternion localization_quat;
   if (_eagleye_heading.status.enabled_status)
   {
-    // NOTE: currently geo_pose_fuser ignores roll and pitch for robust estimation results.
+    // NOTE: currently geo_pose_fusion ignores roll and pitch for robust estimation results.
     eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
     localization_quat.setRPY(0, 0, eagleye_heading);
   }
