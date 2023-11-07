@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launch>
+  <arg name="output_geo_pose" default="eagleye/geo_pose_with_covariance"/>
 
   <node pkg="eagleye_geo_pose_fusion" name="geo_pose_fusion_node" exec="geo_pose_fusion" output="screen" >
     <!-- /eagleye/fix or /GNSS/fix(GNSS pose only mode)-->
     <remap from="eagleye/fix" to="eagleye/fix" />
+    <remap from="eagleye/geo_pose_with_covariance" to="$(var output_geo_pose)" />
 
     <param name="fix_only_publish" value="false"/>
     <!-- 0:fix.status 1:fix.position_covariance[0] (if fix_only_publish==true)-->
