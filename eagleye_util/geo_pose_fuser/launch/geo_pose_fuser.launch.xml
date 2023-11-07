@@ -2,7 +2,7 @@
 
 <launch>
 
-  <node pkg="eagleye_gnss_pose_fuser" name="gnss_pose_fuser_node" exec="gnss_pose_fuser" output="screen" >
+  <node pkg="eagleye_geo_pose_fuser" name="geo_pose_fuser_node" exec="geo_pose_fuser" output="screen" >
     <!-- /eagleye/fix or /GNSS/fix(GNSS pose only mode)-->
     <remap from="eagleye/fix" to="eagleye/fix" />
 

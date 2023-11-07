@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <launch>
+  <arg name="output_pose_with_cov_name" default="/localization/pose_estimator/pose_with_covariance"/>
 
   <node pkg="eagleye_geo_pose_converter" name="geo_pose_converter_node" exec="geo_pose_converter" output="screen" >
+    <remap from="eagleye/pose_with_covariance" to="$(var output_pose_with_cov_name)"/>
+
     <!-- plane rectangular coordinate number -->
     <param name="plane" value="7"/>
     <!-- 1 : plane rectangular coordinate  2 : MGRS -->
