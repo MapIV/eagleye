@@ -5,7 +5,7 @@
   <description>geo_pose_converter package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">OsamuSekino</maintainer>
-  <maintainer email="koji.minoda@tier4.jp">Koji Minoda</maintainer>
+  <author email="koji.minoda@tier4.jp">Koji Minoda</author>
 
   <license>BSD3</license>
 
