@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(eagleye_fix2pose)
+project(eagleye_geo_pose_fusion)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -20,8 +20,8 @@ ament_auto_find_build_dependencies()
 
 include_directories(include)
 
-ament_auto_add_executable(fix2pose
-  src/fix2pose.cpp
+ament_auto_add_executable(geo_pose_fusion
+  src/geo_pose_fusion.cpp
 )
 
 install(TARGETS
