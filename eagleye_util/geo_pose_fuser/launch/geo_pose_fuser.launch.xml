@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+
+  <node pkg="eagleye_gnss_pose_fuser" name="gnss_pose_fuser_node" exec="gnss_pose_fuser" output="screen" >
+    <!-- /eagleye/fix or /GNSS/fix(GNSS pose only mode)-->
+    <remap from="eagleye/fix" to="eagleye/fix" />
+
+    <param name="fix_only_publish" value="false"/>
+    <!-- 0:fix.status 1:fix.position_covariance[0] (if fix_only_publish==true)-->
+    <param name="fix_judgement_type" value="0"/>
+    <!-- Minimum covariance of the pose topics to be published(if fix_judgement_type is 0)-->
+    <param name="fix_std_pos_thres" value="0.1"/>
+
+
+  </node>
+
+</launch>
