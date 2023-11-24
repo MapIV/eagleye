@@ -111,7 +111,6 @@ private:
       exit(3);
     }
 
-    
     std::cout << "llh_source_type " << llh_source_type << std::endl;
     std::cout << "llh_source_topic " << llh_source_topic << std::endl;
     std::cout << "is_sub_antenna " << is_sub_antenna << std::endl;
@@ -148,13 +147,22 @@ void navsatfix_callback(const sensor_msgs::NavSatFix::ConstPtr& msg) { nav_msg_p
 
 void navpvt_callback(const ublox_msgs::NavPVT::ConstPtr& msg)
 {
-  if(msg->sAcc > ublox_vacc_thresh) return;
+  if(msg->sAcc > ublox_vacc_thresh) 
+  {
+    ROS_WARN("ublox_msgs::NavPVT sAcc is too large");
+    return;
+  }
+  if (nav_msg_ptr == nullptr)
+  {
+    ROS_WARN("nav_msg_ptr is nullptr");
+    return;
+  }
+
   rtklib_msgs::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
   r.header.stamp.nsec = msg->nano;
-  if (nav_msg_ptr != nullptr)
-    r.status = *nav_msg_ptr;
+  r.status = *nav_msg_ptr;
   r.tow = msg->iTOW;
 
   double llh[3];
@@ -180,8 +188,16 @@ void navpvt_callback(const ublox_msgs::NavPVT::ConstPtr& msg)
 
 void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::ConstPtr& msg)
 {
-  if(msg->twist.covariance[0] > twist_covariance_thresh) return;
-  if (nav_msg_ptr == nullptr) return;
+  if(msg->twist.covariance[0] > twist_covariance_thresh)
+  {
+    ROS_WARN("geometry_msgs::TwistWithCovarianceStamped covariance is too large");
+    return;
+  }
+  if (nav_msg_ptr == nullptr)
+  {
+    ROS_WARN("nav_msg_ptr is nullptr");
+    return;
+  }
   rtklib_msgs::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp = msg->header.stamp;
@@ -205,7 +221,6 @@ void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::Con
   pub4.publish(r);
 }
 
-  // Member variables
   ros::Publisher pub1, pub2, pub3, pub4;
   ros::Subscriber rtklib_nav_sub, nmea_sentence_sub, navsatfix_sub, navpvt_sub, gnss_velocity_sub;
   nmea_msgs::Sentence sentence;
