@@ -69,13 +69,21 @@ void navsatfix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
 
 void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 {
-  if(msg->s_acc > ublox_vacc_thresh) return;
+  if(msg->s_acc > ublox_vacc_thresh)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name),"s_acc is too large");
+    return;
+  }
+  if (nav_msg_ptr == nullptr)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name),"nav_msg_ptr is nullptr");
+    return;
+  }
   rtklib_msgs::msg::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp.sec = msg->sec;
   r.header.stamp.nanosec = msg->nano;
-  if (nav_msg_ptr != nullptr)
-    r.status = *nav_msg_ptr;
+  r.status = *nav_msg_ptr;
   r.tow = msg->i_tow;
 
   double llh[3];
@@ -101,8 +109,16 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
 
 void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
 {
-  if(msg->twist.covariance[0] > twist_covariance_thresh) return;
-  if (nav_msg_ptr == nullptr) return;
+  if(msg->twist.covariance[0] > twist_covariance_thresh)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name),"twist.covariance[0] is too large");
+    return;
+  }
+  if (nav_msg_ptr == nullptr)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name),"nav_msg_ptr is nullptr");
+    return;
+  }
   rtklib_msgs::msg::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp = msg->header.stamp;
