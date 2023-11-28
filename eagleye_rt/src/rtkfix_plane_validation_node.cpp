@@ -70,6 +70,7 @@ private:
   rclcpp::Subscription<geometry_msgs::msg::Vector3Stamped>::SharedPtr enu_vel_sub_;
 
   nmea_msgs::msg::Gpgga gga_;
+  sensor_msgs::msg::NavSatFix::ConstSharedPtr fix_ptr_;
   eagleye_msgs::msg::Distance distance_;
   geometry_msgs::msg::Vector3Stamped enu_vel_;
 
@@ -110,6 +111,7 @@ private:
     }
 
     gga_ = gga;
+    fix_ptr_ = msg;
     is_gga_ready_ = true;
   }
 
@@ -157,6 +159,10 @@ private:
       sensor_msgs::msg::NavSatFix reliable_rtkfix_msg;
       reliable_rtkfix_msg = reliable_rtkfix_status.fix_msg;
 
+      if(fix_ptr_ != nullptr)
+      {
+        reliable_rtkfix_msg.position_covariance = fix_ptr_->position_covariance;
+      }
       // Publish
       reliable_rtkfix_pub_->publish(reliable_rtkfix_msg);
     }
