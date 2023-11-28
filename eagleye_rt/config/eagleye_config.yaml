@@ -172,3 +172,8 @@
         gnss_receiving_threshold: 0.2
         outlier_ratio_threshold: 0.5
         outlier_threshold: 0.1
+
+    rtkfix_plane_validation:
+      validation_minimum_interval: 5
+      validation_maximum_interval: 10
+      outlier_threshold: 0.3

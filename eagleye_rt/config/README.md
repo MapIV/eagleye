@@ -280,3 +280,11 @@ Figure shows the relationship between these parameters.
 | gnss_receiving_threshold            | double | Threshold of minimum GNSS reception rate (Value from 0~1)                       | 0.2                  |
 | outlier_threshold                   | double | Outlier threshold due to GNSS multipath [m/s]                                   | 0.1                  |
 | outlier_ratio_threshold             | double | Ratio of allowable outliers in the interval (Value from 0~1)                    | 0.5                  |
+
+### rtkfix_plane_validation
+
+| Name                                | Type   | Description                                                                     | Default value        |
+| :---------------------------------- | :----- | :------------------------------------------------------------------------------ | :------------------- |
+| validation_minimum_interval         | double | Minimum length of DR used for the validation [m]                                | 5                    |
+| validation_maximum_interval         | double | Maximum length of DR used for the validation [m]                                | 10                   |
+| outlier_threshold                   | double | Threshold to recognize the Fix solution as an outlier. [m]                      | 0.3                  |

@@ -110,7 +110,11 @@ ament_auto_add_executable(velocity_estimator
   src/velocity_estimator_node.cpp
 )
 
-install(TARGETS 
+ament_auto_add_executable(rtkfix_plane_validation
+  src/rtkfix_plane_validation_node.cpp
+)
+
+install(TARGETS
   tf_converted_imu
   correction_imu
   distance
@@ -129,6 +133,7 @@ install(TARGETS
   angular_velocity_offset_stop
   enable_additional_rolling
   rolling
+  rtkfix_plane_validation
   DESTINATION lib/$(PROJECT_NAME)
 )
 

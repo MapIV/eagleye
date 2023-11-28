@@ -44,7 +44,9 @@ ament_auto_add_library(eagleye_navigation SHARED
   src/rtk_dead_reckoning.cpp
   src/rtk_heading.cpp
   src/velocity_estimator.cpp
+  src/rtkfix_plane_validation.cpp
   include/eagleye_navigation/eagleye_navigation.hpp
+  include/eagleye_navigation/rtkfix_plane_validation.hpp
 )
 
 ament_auto_find_build_dependencies()

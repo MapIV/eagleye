@@ -135,8 +135,12 @@
     <include file="$(find-pkg-share eagleye_gnss_converter)/launch/gnss_converter.xml">
             <arg name="config_yaml" value="$(var config_yaml)"/>
     </include>
-  </group>
 
+    <node pkg="eagleye_rt" name="rtkfix_plane_validation" exec="rtkfix_plane_validation">
+                <param from="$(var config_path)"/>
+                <param name="yaml_file" value="$(var config_path)"/>
+    </node>
+  </group>
 
 
   <include file="$(find-pkg-share eagleye_tf)/launch/tf.xml" if="$(var use_tf)"/>
