@@ -64,31 +64,6 @@ void rtk_dead_reckoning_estimate_(geometry_msgs::msg::Vector3Stamped enu_vel, nm
     llh2xyz(llh_rtk,ecef_rtk);
     xyz2enu(ecef_rtk,ecef_base_pos,enu_rtk);
 
-    geometry_msgs::msg::PoseStamped pose;
-
-    pose.pose.position.x = enu_rtk[0];
-    pose.pose.position.y = enu_rtk[1];
-    pose.pose.position.z = enu_rtk[2];
-
-    heading.heading_angle = fmod(heading.heading_angle,2*M_PI);
-    tf2::Transform transform;
-    tf2::Quaternion q;
-    transform.setOrigin(tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
-    q.setRPY(0, 0, (90* M_PI / 180)-heading.heading_angle);
-    transform.setRotation(q);
-
-    tf2::Transform transform2;
-    tf2::Quaternion q2(rtk_dead_reckoning_parameter.tf_gnss_rotation_x,rtk_dead_reckoning_parameter.tf_gnss_rotation_y,rtk_dead_reckoning_parameter.tf_gnss_rotation_z,rtk_dead_reckoning_parameter.tf_gnss_rotation_w);
-    transform2.setOrigin(transform*tf2::Vector3(-rtk_dead_reckoning_parameter.tf_gnss_translation_x, -rtk_dead_reckoning_parameter.tf_gnss_translation_y,-rtk_dead_reckoning_parameter.tf_gnss_translation_z));
-    transform2.setRotation(transform*q2);
-
-    tf2::Vector3 tmp_pos;
-    tmp_pos = transform2.getOrigin();
-
-    enu_rtk[0] = tmp_pos.getX();
-    enu_rtk[1] = tmp_pos.getY();
-    enu_rtk[2] = tmp_pos.getZ();
-
     if (rtk_dead_reckoning_status->position_stamp_last != gga_time && gga.gps_qual == 4)
     {
       rtk_dead_reckoning_status->provisional_enu_pos_x = enu_rtk[0];

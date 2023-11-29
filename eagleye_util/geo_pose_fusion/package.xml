@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>eagleye_geo_pose_fusion</name>
+  <version>1.0.0</version>
+  <description>geo_pose_fusion package</description>
+
+  <maintainer email="ryohei.sasaki@map4.jp">Ryohei Sasaki</maintainer>
+  <author email="koji.minoda@tier4.jp">Koji Minoda</author>
+
+  <license>BSD3</license>
+
+  <buildtool_depend>ament_cmake_auto</buildtool_depend>
+  <build_depend>rclcpp</build_depend>
+  <build_depend>eagleye_msgs</build_depend>
+  <build_depend>geographic_msgs</build_depend>
+  <build_export_depend>rclcpp</build_export_depend>
+  <build_export_depend>eagleye_msgs</build_export_depend>
+  <build_export_depend>geographic_msgs</build_export_depend>
+  <exec_depend>rclcpp</exec_depend>
+  <exec_depend>eagleye_msgs</exec_depend>
+  <exec_depend>geographic_msgs</exec_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <depend>tf2_geometry_msgs</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

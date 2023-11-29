@@ -60,42 +60,7 @@ void position_estimate_(geometry_msgs::msg::TwistStamped velocity,eagleye_msgs::
   enu_pos[1] = position_status->enu_pos[1];
   enu_pos[2] = position_status->enu_pos[2];
 
-  if(!position_status->gnss_update_failure)
-  {
-    gnss_status = true;
-
-    geometry_msgs::msg::PoseStamped pose;
-
-    pose.pose.position.x = enu_pos[0];
-    pose.pose.position.y = enu_pos[1];
-    pose.pose.position.z = enu_pos[2];
-
-    heading_interpolate_3rd.heading_angle = fmod(heading_interpolate_3rd.heading_angle,2*M_PI);
-    tf2::Transform transform;
-    tf2::Quaternion q;
-    transform.setOrigin(tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
-    q.setRPY(0, 0, (90* M_PI / 180)-heading_interpolate_3rd.heading_angle);
-    transform.setRotation(q);
-
-    tf2::Transform transform2, transform3;
-    tf2::Quaternion q2(position_parameter.tf_gnss_rotation_x,position_parameter.tf_gnss_rotation_y,
-      position_parameter.tf_gnss_rotation_z,position_parameter.tf_gnss_rotation_w);
-    transform2.setOrigin(tf2::Vector3(position_parameter.tf_gnss_translation_x, position_parameter.tf_gnss_translation_y,
-      position_parameter.tf_gnss_translation_z));
-    transform2.setRotation(q2);
-    transform3 = transform * transform2.inverse();
-
-    tf2::Vector3 tmp_pos;
-    tmp_pos = transform3.getOrigin();
-
-    enu_pos[0] = tmp_pos.getX();
-    enu_pos[1] = tmp_pos.getY();
-    enu_pos[2] = tmp_pos.getZ();
-  }
-  else
-  {
-    gnss_status = false;
-  }
+  gnss_status = !position_status->gnss_update_failure;
 
   if (heading_interpolate_3rd.status.estimate_status == true && velocity_status.status.enabled_status == true)
   {
