@@ -155,6 +155,13 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
     trajectory3d_estimate(imu,correction_velocity,velocity_enable_status,heading_interpolate_3rd,yaw_rate_offset_stop,yaw_rate_offset_2nd,pitching,
       trajectory_parameter,&trajectory_status,&enu_vel,&enu_relative_pos,&eagleye_twist, &eagleye_twist_with_covariance);
 
+    eagleye_twist_with_covariance.twist.covariance[0] = 0.02*0.02;
+    eagleye_twist_with_covariance.twist.covariance[7] = 10000.0;
+    eagleye_twist_with_covariance.twist.covariance[14] = 10000.0;
+    eagleye_twist_with_covariance.twist.covariance[21] = 10000.0;
+    eagleye_twist_with_covariance.twist.covariance[28] = 10000.0;
+    eagleye_twist_with_covariance.twist.covariance[35] = 0.03*0.03;
+
     if (heading_interpolate_3rd.status.enabled_status)
     {
       pub1->publish(enu_vel);
