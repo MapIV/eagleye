@@ -32,14 +32,18 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
+#include <autoware_auto_vehicle_msgs/msg/velocity_report.hpp>
+
 static rtklib_msgs::msg::RtklibNav _rtklib_nav;
 static nmea_msgs::msg::Gprmc _nmea_rmc;
 static geometry_msgs::msg::TwistStamped _velocity;
 static sensor_msgs::msg::Imu _imu;
 static geometry_msgs::msg::TwistStamped _correction_velocity;
+static autoware_auto_vehicle_msgs::msg::VelocityReport _correction_velocity_report;
 
 rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr _pub1;
 rclcpp::Publisher<eagleye_msgs::msg::VelocityScaleFactor>::SharedPtr _pub2;
+rclcpp::Publisher<autoware_auto_vehicle_msgs::msg::VelocityReport>::SharedPtr _pub3;
 static eagleye_msgs::msg::VelocityScaleFactor _velocity_scale_factor;
 
 struct VelocityScaleFactorParameter _velocity_scale_factor_parameter;
@@ -86,12 +90,17 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
   _correction_velocity.header = msg->header;
   _correction_velocity.header.frame_id = "base_link";
 
+  _correction_velocity_report.header = msg->header;
+  _correction_velocity_report.header.frame_id = "base_link";
+
   if (_is_first_move == false)
   {
     _velocity_scale_factor.scale_factor = initial_velocity_scale_factor;
     _correction_velocity.twist = _velocity.twist;
     _pub1->publish(_correction_velocity);
     _pub2->publish(_velocity_scale_factor);
+    _correction_velocity_report.longitudinal_velocity =  _correction_velocity.twist.linear.x;
+    _pub3->publish(_correction_velocity_report);
     return;
   }
 
@@ -127,6 +136,8 @@ void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 
   _pub1->publish(_correction_velocity);
   _pub2->publish(_velocity_scale_factor);
+  _correction_velocity_report.longitudinal_velocity =  _correction_velocity.twist.linear.x;
+  _pub3->publish(_correction_velocity_report);
 }
 
 void load_velocity_scale_factor(std::string txt_path)
@@ -256,6 +267,7 @@ int main(int argc, char** argv)
   auto sub4 = node->create_subscription<nmea_msgs::msg::Gprmc>(subscribe_rmc_topic_name, 1000, rmc_callback);
   _pub1 = node->create_publisher<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10));
   _pub2 = node->create_publisher<eagleye_msgs::msg::VelocityScaleFactor>("velocity_scale_factor", rclcpp::QoS(10));
+  _pub3 = node->create_publisher<autoware_auto_vehicle_msgs::msg::VelocityReport>("/localization/twist_estimator/eagleye/estimated/velocity_status", rclcpp::QoS(10));
 
   double delta_time = static_cast<double>(velocity_scale_factor_save_duration);
   auto timer_callback = std::bind(on_timer);
