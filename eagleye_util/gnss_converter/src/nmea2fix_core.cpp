@@ -119,7 +119,7 @@ void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_ms
         }
         else
         {
-          fix->status.status = -1;
+          fix->status.status = 0;
         }
       }
 
