@@ -68,6 +68,8 @@ void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
 void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
 {
   velocity = *msg;
+  // To avoid unnecessary buffering when it's just sitting there right after start-up, we're making it so it doesn't buffer.
+  // Multi-antenna mode is an exception.
   if (is_first_correction_velocity == false && msg->twist.linear.x > heading_parameter.moving_judgment_threshold)
   {
     is_first_correction_velocity = true;
@@ -118,8 +120,16 @@ void rmc_callback(const nmea_msgs::msg::Gprmc::ConstSharedPtr msg)
 
 void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
 {
-  if (!is_first_correction_velocity) return;
-  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
+  if (!is_first_correction_velocity)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "is_first_correction_velocity is false.");
+    return;
+  }
+  if(use_can_less_mode && !velocity_status.status.enabled_status)
+  {
+    RCLCPP_WARN(rclcpp::get_logger(node_name), "velocity_status is not enabled.");
+    return;
+  }
   if(!yaw_rate_offset_stop.status.enabled_status)
   {
     if(skip_static_initialization)
@@ -249,6 +259,12 @@ int main(int argc, char** argv)
   {
     RCLCPP_ERROR(node->get_logger(),"No arguments");
     rclcpp::shutdown();
+  }
+
+  if(use_multi_antenna_mode)
+  {
+    // When using multi-antenna mode, set is_first_correction_velocity to true even when stationary for the first time.
+    is_first_correction_velocity = true;
   }
 
   auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
