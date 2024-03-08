@@ -263,6 +263,7 @@ int main(int argc, char** argv)
 
   if(use_multi_antenna_mode)
   {
+    // When using multi-antenna mode, set is_first_correction_velocity to true even when stationary for the first time.
     is_first_correction_velocity = true;
   }
 
