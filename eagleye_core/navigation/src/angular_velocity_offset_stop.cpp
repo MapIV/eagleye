@@ -77,16 +77,16 @@ AngularVelocityOffsetStopStatus AngularVelocityOffsetStopEstimator::imuCallback(
     angular_velocity_buffer_.push_back(angular_velocity);
 
     // Remove element if buffer size is exceeded
-    if (angular_velocity_buffer_.size() > buffer_size_)
+    if (angular_velocity_buffer_.size() > param_.buffer_size)
     {
       angular_velocity_buffer_.pop_front();
     }
 
     // Estimate offset stop if buffer is full
-    if (angular_velocity_buffer_.size() == buffer_size_)
+    if (angular_velocity_buffer_.size() == param_.buffer_size)
     {
       Eigen::Vector3d sum = std::accumulate(angular_velocity_buffer_.begin(), angular_velocity_buffer_.end(), Eigen::Vector3d(0.0, 0.0, 0.0));
-      estimated_offset_stop_ = - sum / static_cast<double>(buffer_size_);
+      estimated_offset_stop_ = - sum / static_cast<double>(param_.buffer_size);
       is_estimation_started_ = true;
       status.is_estimated_now = true;
     }

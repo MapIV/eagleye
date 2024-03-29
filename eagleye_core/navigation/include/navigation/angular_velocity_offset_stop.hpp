@@ -86,7 +86,6 @@ private:
   // Angular velocity
   Eigen::Vector3d estimated_offset_stop_;
   std::deque<Eigen::Vector3d> angular_velocity_buffer_;
-  size_t buffer_size_;
   double angular_stop_judgement_threshold_;
 
   // Velocity
