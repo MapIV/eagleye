@@ -100,7 +100,7 @@ void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped
   r.header.frame_id = "gps";
   r.header.stamp = msg->header.stamp;
   rclcpp::Time ros_clock(msg->header.stamp);
-  double gnss_velocity_time = ros_clock.seconds();
+  double gnss_velocity_time = ros_clock.seconds() * 1e3;
   r.tow = gnss_velocity_time;
 
   double llh[3];
