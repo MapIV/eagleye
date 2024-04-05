@@ -1,0 +1,25 @@
+repositories:
+  rtklib_ros_bridge:
+    type: git
+    url: https://github.com/MapIV/rtklib_ros_bridge.git
+    version: master
+  kml_generator:
+    type: git
+    url: https://github.com/MapIV/kml_generator.git
+    version: main
+  llh_converter:
+    type: git
+    url: https://github.com/MapIV/llh_converter.git
+    version: main
+  nmea_comms:
+    type: git
+    url: https://github.com/MapIV/nmea_comms.git
+    version: jade-devel
+  nmea_ros_bridge:
+    type: git
+    url: https://github.com/MapIV/nmea_ros_bridge.git
+    version: main
+  gnss_compass_ros:
+    type: git
+    url: https://github.com/MapIV/gnss_compass_ros.git
+    version: main

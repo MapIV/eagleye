@@ -22,7 +22,7 @@ Eagleye is an open-source software for vehicle localization utilizing GNSS and I
 **GNSS receiver**
 
 * [Ublox ZED-F9P](https://www.u-blox.com/en/product/zed-f9p-module) / [C099-F9P](https://www.u-blox.com/en/product/c099-f9p-application-board)
-* [Septentrio Mosaic development kit with GNSS antenna](https://shop.septentrio.com/en/shop/mosaic-x5-devkit) 
+* [Septentrio Mosaic development kit with GNSS antenna](https://shop.septentrio.com/en/shop/mosaic-x5-devkit)
 
 **GNSS Antenna**
 
@@ -49,21 +49,16 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/RTKLIB/tree/rt
 	cd $HOME/RTKLIB/lib/iers/gcc/
 	make
 	cd $HOME/RTKLIB/app/consapp
-	make 
+	make
 
 ### ROS Packages
 
-Clone and build the necessary packages for Eagleye. 
+Clone and build the necessary packages for Eagleye.
 
+	pip install vcstool
 	cd $HOME/catkin_ws/src
 	git clone https://github.com/MapIV/eagleye.git -b main-ros1
-	git clone https://github.com/MapIV/rtklib_ros_bridge.git
-	git clone https://github.com/MapIV/kml_generator
-	git clone https://github.com/MapIV/multi_rosbag_controller.git
-	git clone https://github.com/MapIV/llh_converter
-	git clone https://github.com/MapIV/nmea_comms.git
-	git clone https://github.com/MapIV/nmea_ros_bridge.git
-	git clone https://github.com/MapIV/gnss_compass_ros.git
+	vcs import . < eagleye/eagleye.repos
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 	sudo geographiclib-get-geoids best
 	sudo mkdir /usr/share/GSIGEO
@@ -108,17 +103,17 @@ Clone and build the necessary packages for Eagleye.
 		bash rtklib_ros_bridge_single.sh
 
 	ex. Real Time Kinematic
- 
+
  		cd $HOME/RTKLIB
 		bash rtklib_ros_bridge_meijo_rtk.sh
 
 4. Check if RTKLIB is working by execute the following command in the terminal. If the RTKLIB is working correctly, positioning information is appeared continuously in the terminal.
 
-		status 0.1  
+		status 0.1
 
 5. Start rtklib_ros_bridge.
 
-		roslaunch rtklib_bridge rtklib_bridge.launch   
+		roslaunch rtklib_bridge rtklib_bridge.launch
 
 6. Start nmea_comms in f9p or nmea_ros_bridge in mosaic.
 
