@@ -1,0 +1,17 @@
+repositories:
+  rtklib_ros_bridge:
+    type: git
+    url: https://github.com/MapIV/rtklib_ros_bridge.git
+    version: ros2-v0.1.0
+  llh_converter:
+    type: git
+    url: https://github.com/MapIV/llh_converter.git
+    version: ros2
+  nmea_ros_bridge:
+    type: git
+    url: https://github.com/MapIV/nmea_ros_bridge.git
+    version: ros2-v0.1.0
+  gnss_compass_ros:
+    type: git
+    url: https://github.com/MapIV/gnss_compass_ros.git
+    version: main-ros2
