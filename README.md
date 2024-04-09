@@ -40,22 +40,19 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/rtklib_ros_bri
 	cd $HOME/RTKLIB/lib/iers/gcc/
 	make
 	cd $HOME/RTKLIB/app/consapp
-	make 
+	make
 
 ### ROS Packages
 
 Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge/tree/ros2-v0.1.0), [nmea_ros_bridge](https://github.com/MapIV/nmea_ros_bridge/tree/ros2-v0.1.0))
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git -b main-ros2
-	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
-	git clone https://github.com/MapIV/llh_converter.git -b ros2
-	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
-	git clone https://github.com/MapIV/gnss_compass_ros.git -b main-ros2
+	git clone https://github.com/MapIV/eagleye.git -b autoware-main
+	vcs import . < eagleye/eagleye.repos
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 	sudo geographiclib-get-geoids best
 	sudo mkdir /usr/share/GSIGEO
-	sudo cp eagleye/eagleye_util/llh_converter/data/gsigeo2011_ver2_1.asc /usr/share/GSIGEO/
+	sudo cp llh_converter/data/gsigeo2011_ver2_1.asc /usr/share/GSIGEO/
 	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
@@ -66,12 +63,12 @@ Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https:/
 
 #### Real Time Kinematic by Mosaic
 
-1. nmea_ros_bridge settings. 
+1. nmea_ros_bridge settings.
 
 Change `adress` and `port` of `$HOME/ros2_ws/src/nmea_ros_bridge/config/udp_config.yaml` according to the serial device you use.
 
 ie)
->adress: 192.168.30.10  
+>adress: 192.168.30.10
 >port: 62001
 
 2. GNSS receiver settings.
@@ -79,6 +76,16 @@ ie)
 Access mosaic's web ui and upload the following file in Admin/Configuration.
 
 https://www.dropbox.com/s/uckt9
+
+### IMU
+
+1. IMU settings.
+
+* Output rate 50Hz
+
+2. Please be careful with the coordinate system when using the [tamagawa ros driver](https://github.com/MapIV/tamagawa_imu_driver) created by MAP IV. If the x-direction indicated on the IMU is set to the vehicle's direction and the y-direction to the right side of the vehicle, please set the `roll` in the `eagleye/eagleye_util/tf/config/sensors_tf.yaml file` to `3.14159`.
+
+		 roll: 3.14159
 
 ### Eagleye parameters
 
@@ -89,14 +96,14 @@ The TF between sensors can be set in [sensors_tf.yaml](https://github.com/MapIV/
 The settings are reflected by describing the positional relationship of each sensor with respect to base_link. If you want to change the base frame, [change basic_parent_flame](https://github.com/MapIV/eagleye/tree/ros2-galactic-v1.1.5/eagleye_util/tf/config/sensors_tf.yaml#L2) to reflect the change.
 
 
-## How to run 
+## How to run
 ### Use sample data
 
-1. Play the sample data.  
+1. Play the sample data.
 
 		ros2 bag play -s rosbag_v2 eagleye_sample.bag
 
-2. Launch eagleye.  
+2. Launch eagleye.
 
 		ros2 launch eagleye_rt eagleye_rt.launch.xml
 
@@ -119,7 +126,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 4. Check if RTKLIB is working by execute the following command in the terminal. If the RTKLIB is working correctly, positioning information is appeared continuously in the terminal.
 
-		status 0.1  
+		status 0.1
 
 5. Start rtklib_ros_bridge.
 
@@ -145,7 +152,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 ### Main Published Topics
 
- - /eagleye/fix (sensor_msgs/NavSatFix) 
+ - /eagleye/fix (sensor_msgs/NavSatFix)
 
  - /eagleye/twist (geometry_msgs/TwistStamped)
 
@@ -154,7 +161,7 @@ The estimated results will be output about 100 seconds after playing the rosbag.
 
 ### Note
 
-To visualize the eagleye output location /eagleye/fix, for example, use the following command  
+To visualize the eagleye output location /eagleye/fix, for example, use the following command
 
 	ros2 launch eagleye_fix2kml fix2kml.xml
 
