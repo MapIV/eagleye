@@ -17,7 +17,7 @@ The parameters for estimation in Eagleye can be set in the `config/eagleye_confi
 | imu_topic                     | string | Topic name to be subscribed to in node (sensor_msgs/Imu.msg)            | /imu/data_raw            |
 | twist.twist_type                   | int | Topic type to be subscribed to in node (TwistStamped : 0, TwistWithCovarianceStamped: 1) | 0               |
 | twist.twist_topic                   | string | Topic name to be subscribed to in node | /can_twist               |
-| gnss.velocity_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3)      | 0        |
+| gnss.velocity_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, ublox_msgs/NavPVT: 2, geometry_msgs/TwistWithCovarianceStamped: 3, septentrio_gnss_driver/PVTGeodetic: 4)      | 0        |
 | gnss.velocity_source_topic              | string | Topic name to be subscribed to in node      | /rtklib_nav        |
 | gnss.llh_source_type              | int | Topic type to be subscribed to in node (rtklib_msgs/RtklibNav: 0, nmea_msgs/Sentence: 1, sensor_msgs/NavSatFix: 2)      | 0        |
 | gnss.llh_source_topic              | string | Topic name to be subscribed to in node   | /rtklib_nav        |
