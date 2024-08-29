@@ -46,6 +46,7 @@
       save_velocity_scale_factor: false                    
       velocity_scale_factor_save_duration: 100.0 
       th_velocity_scale_factor_percent: 10.0          
+      curve_judgment_threshold: 0.0873
 
     yaw_rate_offset_stop:                                  
       estimated_interval: 4

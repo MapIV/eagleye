@@ -217,6 +217,7 @@ int main(int argc, char** argv)
     _velocity_scale_factor_parameter.estimated_minimum_interval = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["estimated_minimum_interval"].as<double>();
     _velocity_scale_factor_parameter.estimated_maximum_interval = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["estimated_maximum_interval"].as<double>();
     _velocity_scale_factor_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["gnss_receiving_threshold"].as<double>();
+    _velocity_scale_factor_parameter.curve_judgment_threshold = conf["/**"]["ros__parameters"]["velocity_scale_factor"]["curve_judgment_threshold"].as<double>();
 
     node->declare_parameter("velocity_scale_factor_save_str",_velocity_scale_factor_save_str);
     node->declare_parameter("velocity_scale_factor.save_velocity_scale_factor",_velocity_scale_factor_parameter.save_velocity_scale_factor);
@@ -239,6 +240,7 @@ int main(int argc, char** argv)
     std::cout << "estimated_minimum_interval " << _velocity_scale_factor_parameter.estimated_minimum_interval << std::endl;
     std::cout << "estimated_maximum_interval " << _velocity_scale_factor_parameter.estimated_maximum_interval << std::endl;
     std::cout << "gnss_receiving_threshold " << _velocity_scale_factor_parameter.gnss_receiving_threshold << std::endl;
+    std::cout << "curve_judgment_threshold " << _velocity_scale_factor_parameter.curve_judgment_threshold << std::endl;
 
     std::cout<< "velocity_scale_factor_save_str " << _velocity_scale_factor_save_str << std::endl;
     std::cout<< "save_velocity_scale_factor " << _velocity_scale_factor_parameter.save_velocity_scale_factor << std::endl;

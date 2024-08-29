@@ -77,6 +77,7 @@ struct VelocityScaleFactorParameter
   double estimated_maximum_interval;
   double gnss_receiving_threshold;
   bool save_velocity_scale_factor{false};
+  double curve_judgment_threshold;
 };
 
 struct VelocityScaleFactorStatus
@@ -500,9 +501,9 @@ struct RollingStatus
   bool data_status;
 };
 
-extern void velocity_scale_factor_estimate(const rtklib_msgs::msg::RtklibNav, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
+extern void velocity_scale_factor_estimate(const sensor_msgs::msg::Imu, const rtklib_msgs::msg::RtklibNav, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, geometry_msgs::msg::TwistStamped*, eagleye_msgs::msg::VelocityScaleFactor*);
-extern void velocity_scale_factor_estimate(const nmea_msgs::msg::Gprmc, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
+extern void velocity_scale_factor_estimate(const sensor_msgs::msg::Imu, const nmea_msgs::msg::Gprmc, const geometry_msgs::msg::TwistStamped, const VelocityScaleFactorParameter,
   VelocityScaleFactorStatus*, geometry_msgs::msg::TwistStamped*, eagleye_msgs::msg::VelocityScaleFactor*);
 extern void distance_estimate(const geometry_msgs::msg::TwistStamped, DistanceStatus*, eagleye_msgs::msg::Distance*);
 extern void yaw_rate_offset_stop_estimate(const geometry_msgs::msg::TwistStamped, const sensor_msgs::msg::Imu, const YawrateOffsetStopParameter,
