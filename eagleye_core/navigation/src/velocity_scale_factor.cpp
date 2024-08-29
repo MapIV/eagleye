@@ -166,7 +166,7 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
 
 }
 
-void velocity_scale_factor_estimate(const sensor_msgs::msg::Imu imu,onst rtklib_msgs::msg::RtklibNav rtklib_nav, const geometry_msgs::msg::TwistStamped velocity,
+void velocity_scale_factor_estimate(const sensor_msgs::msg::Imu imu,const rtklib_msgs::msg::RtklibNav rtklib_nav, const geometry_msgs::msg::TwistStamped velocity,
   const VelocityScaleFactorParameter velocity_scale_factor_parameter, VelocityScaleFactorStatus* velocity_scale_factor_status,
   geometry_msgs::msg::TwistStamped* correction_velocity, eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
 {
