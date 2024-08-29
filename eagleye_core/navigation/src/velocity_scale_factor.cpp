@@ -36,7 +36,7 @@
 void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geometry_msgs::msg::TwistStamped velocity, const VelocityScaleFactorParameter velocity_scale_factor_parameter,
   VelocityScaleFactorStatus* velocity_scale_factor_status, geometry_msgs::msg::TwistStamped* correction_velocity,
   eagleye_msgs::msg::VelocityScaleFactor* velocity_scale_factor)
-{ 
+{
     int i;
     double initial_velocity_scale_factor = 1.0;
     double raw_velocity_scale_factor = 0.0;
@@ -88,12 +88,21 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
   std::vector<int> index;
   std::vector<double> velocity_scale_factor_buffer;
 
-  if (velocity_scale_factor_status->estimated_number >= estimated_buffer_number_min &&
+  bool velocity_scale_factor_estimate_flag = (velocity_scale_factor_status->estimated_number >= estimated_buffer_number_min &&
     velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true &&
     velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] >
     velocity_scale_factor_parameter.moving_judgment_threshold &&
     std::abs(imu.angular_velocity.z) < velocity_scale_factor_parameter.curve_judgment_threshold
-    )
+    );
+
+  double tmp_velocity_scale_factor = 0.0;
+  if(velocity_scale_factor_estimate_flag){
+    tmp_velocity_scale_factor = velocity_scale_factor_status->doppler_velocity_buffer[velocity_scale_factor_status->estimated_number - 1]
+      / velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1];
+  }
+
+  bool valid_velocity_scale_factor_flag = (tmp_velocity_scale_factor > 0.5 && tmp_velocity_scale_factor < 1.5);
+  if (valid_velocity_scale_factor_flag)
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
     {
