@@ -92,7 +92,7 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
     velocity_scale_factor_status->gnss_status_buffer[velocity_scale_factor_status->estimated_number - 1] == true &&
     velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] >
     velocity_scale_factor_parameter.moving_judgment_threshold &&
-    imu.angular_velocity.z < velocity_scale_factor_parameter.curve_judgment_threshold
+    std::abs(imu.angular_velocity.z) < velocity_scale_factor_parameter.curve_judgment_threshold
     )
   {
     for (i = 0; i < velocity_scale_factor_status->estimated_number; i++)
