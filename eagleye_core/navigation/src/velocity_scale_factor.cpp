@@ -93,7 +93,7 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
     velocity_scale_factor_status->velocity_buffer[velocity_scale_factor_status->estimated_number - 1] >
     velocity_scale_factor_parameter.moving_judgment_threshold &&
     std::abs(imu.angular_velocity.z) < velocity_scale_factor_parameter.curve_judgment_threshold
-    );
+  );
 
   if (velocity_scale_factor_estimate_flag)
   {
@@ -116,17 +116,11 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
 
     if (index_length > velocity_scale_factor_status->estimated_number * enabled_data_ratio)
     {
-      // RCLCPP_INFO(rclcpp::get_logger("velocity_scale_factor"), "--------------------------");
       for (i = 0; i < index_length; i++)
       {
         double tmp_velocity_scale_factor = velocity_scale_factor_status->doppler_velocity_buffer[index[i]] /
           velocity_scale_factor_status->velocity_buffer[index[i]];
-        bool valid_velocity_scale_factor_flag = (tmp_velocity_scale_factor > 0.5 && tmp_velocity_scale_factor < 1.5);
-        if(valid_velocity_scale_factor_flag)
-        {
-          // RCLCPP_INFO(rclcpp::get_logger("velocity_scale_factor"), "tmp_velocity_scale_factor = %f", tmp_velocity_scale_factor);
-          velocity_scale_factor_buffer.push_back(tmp_velocity_scale_factor);
-        }
+        velocity_scale_factor_buffer.push_back(tmp_velocity_scale_factor);
       }
 
       velocity_scale_factor->status.estimate_status = true;
@@ -146,12 +140,10 @@ void velocity_scale_factor_estimate_(const sensor_msgs::msg::Imu imu, const geom
   {
     // median
     size_t size = velocity_scale_factor_buffer.size();
-    RCLCPP_INFO(rclcpp::get_logger("velocity_scale_factor"), "size = %d", size);
     double* t = new double[size];
     std::copy(velocity_scale_factor_buffer.begin(), velocity_scale_factor_buffer.end(), t);
     std::sort(t, &t[size]);
     raw_velocity_scale_factor = size % 2 ? t[size / 2] : (t[(size / 2) - 1] + t[size / 2]) / 2;
-    RCLCPP_INFO(rclcpp::get_logger("velocity_scale_factor"), "raw_velocity_scale_factor = %f", raw_velocity_scale_factor);
     delete[] t;
     velocity_scale_factor->scale_factor = raw_velocity_scale_factor;
   }
