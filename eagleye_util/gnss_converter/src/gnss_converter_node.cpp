@@ -201,6 +201,9 @@ void gnss_velocity_callback(const geometry_msgs::TwistWithCovarianceStamped::Con
   rtklib_msgs::RtklibNav r;
   r.header.frame_id = "gps";
   r.header.stamp = msg->header.stamp;
+  if (nav_msg_ptr != nullptr){
+    r.status = *nav_msg_ptr;
+  }
   double gnss_velocity_time = msg->header.stamp.toSec();
   r.tow = gnss_velocity_time;
 
