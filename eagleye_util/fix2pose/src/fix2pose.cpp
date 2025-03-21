@@ -281,7 +281,7 @@ int main(int argc, char** argv)
   }
   else if(geoid_type == 2)
   {
-    height_converter_.setGeoidType(llh_converter::GeoidType::GSIGEO2024);
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2024;
   }
   else
   {
