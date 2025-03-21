@@ -10,7 +10,7 @@ repositories:
   llh_converter:
     type: git
     url: https://github.com/MapIV/llh_converter.git
-    version: main
+    version: 405fe659f0cead637a1c4c8ef4d8c72f9cb194c4
   nmea_comms:
     type: git
     url: https://github.com/MapIV/nmea_comms.git

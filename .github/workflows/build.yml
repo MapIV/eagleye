@@ -35,7 +35,10 @@ jobs:
           git clone https://github.com/MapIV/rtklib_ros_bridge.git
           git clone https://github.com/MapIV/kml_generator
           git clone https://github.com/MapIV/multi_rosbag_controller.git
-          git clone https://github.com/MapIV/llh_converter
+          git clone https://github.com/MapIV/llh_converter.git
+          cd llh_converter
+          git checkout 405fe659f0cead637a1c4c8ef4d8c72f9cb194c4
+          cd ..
           git clone https://github.com/MapIV/gnss_compass_ros.git
 
       - name: Install GeographicLib

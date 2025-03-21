@@ -63,6 +63,8 @@ Clone and build the necessary packages for Eagleye.
 	sudo geographiclib-get-geoids best
 	sudo mkdir /usr/share/GSIGEO
 	sudo cp llh_converter/data/gsigeo2011_ver2_1.asc /usr/share/GSIGEO/
+	unzip llh_converter/data/GSIGEO2024beta.zip
+	sudo mv GSIGEO2024beta.isg /usr/share/GSIGEO/
 	cd ..
 	rosdep install --from-paths src --ignore-src -r -y
 	catkin_make -DCMAKE_BUILD_TYPE=Release
