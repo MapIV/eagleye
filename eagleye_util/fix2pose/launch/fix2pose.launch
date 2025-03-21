@@ -10,7 +10,7 @@
   <!-- 0 : No convert  1 : ellipsoid -> altitude  2 : altitude -> ellipsoid -->
   <arg name="convert_height_num" default="0"/>
 
-  <!-- 0 : EGM2008-1  1 : GSIGE2011 Ver2.1 -->
+  <!-- 0 : EGM2008-1  1 : GSIGE2011 Ver2.1 2 : GSIGE2011beta-->
   <param name="geoid_type" value="0"/>
 
   <!-- Parameters for tf to publish -->

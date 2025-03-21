@@ -57,8 +57,7 @@ static geometry_msgs::PoseWithCovarianceStamped _pose_with_covariance;
 
 static std::string _parent_frame_id, _child_frame_id, _base_link_frame_id, _gnss_frame_id;
 
-std::string geoid_file_path = ros::package::getPath("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
-llh_converter::LLHConverter _lc(geoid_file_path);
+llh_converter::LLHConverter _lc;
 llh_converter::LLHParam _llh_param;
 
 bool _fix_only_publish = false;
@@ -279,6 +278,10 @@ int main(int argc, char** argv)
   else if(geoid_type == 1)
   {
     _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011;
+  }
+  else if(geoid_type == 2)
+  {
+    height_converter_.setGeoidType(llh_converter::GeoidType::GSIGEO2024);
   }
   else
   {
