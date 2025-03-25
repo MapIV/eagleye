@@ -73,14 +73,3 @@ double ConvertHeight::convert2ellipsoid()
   return converted_height;
 }
 
-double ConvertHeight::getGeoidPerDegree()
-{
-  geoid = geoid_per_degree(_latitude,_longitude);
-  return geoid;
-}
-
-double ConvertHeight::getGeoidPerMinute()
-{
-  geoid = geoid_per_minute(_latitude,_longitude,geoid_map_data);
-  return geoid;
-}

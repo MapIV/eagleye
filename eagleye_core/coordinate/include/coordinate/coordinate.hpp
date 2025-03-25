@@ -39,8 +39,6 @@ public:
 
   double convert2altitude();
   double convert2ellipsoid();
-  double getGeoidPerMinute();
-  double getGeoidPerDegree();
   void setLLH(double, double, double);
 
 private:
@@ -60,7 +58,6 @@ extern void enu2xyz_vel(double*, double*, double*);
 extern void llh2xyz(double*, double*);
 extern void xyz2enu(double*, double*, double*);
 extern void xyz2enu_vel(double*, double*, double*);
-extern double geoid_per_degree(double, double);
 extern double geoid_per_minute(double, double,double**);
 extern double** read_geoid_map();
 

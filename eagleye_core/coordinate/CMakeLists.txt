@@ -42,10 +42,7 @@ add_library(coordinate
   src/xyz2enu.cpp
   src/xyz2enu_vel.cpp
   src/ll2xy_mgrs.cpp
-  src/geoid_per_degree.cpp
-  src/geoid_per_minute.cpp
   src/convertheight.cpp
-
 )
 
 target_link_libraries(coordinate
