@@ -58,6 +58,7 @@ Clone and build the necessary packages for Eagleye.
 	pip install vcstool
 	cd $HOME/catkin_ws/src
 	git clone https://github.com/MapIV/eagleye.git -b main-ros1
+	unzip -d eagleye/eagleye_core/coordinate/data eagleye/eagleye_core/coordinate/data/gsigeo2011_ver2.zip
 	vcs import . < eagleye/eagleye.repos
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 	sudo geographiclib-get-geoids best
