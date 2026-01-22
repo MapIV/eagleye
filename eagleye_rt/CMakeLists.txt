@@ -37,13 +37,22 @@ ament_auto_add_executable(distance
 ament_auto_add_executable(heading_interpolate
   src/heading_interpolate_node.cpp
 )
+target_link_libraries(heading_interpolate
+  yaml-cpp
+)
 
 ament_auto_add_executable(heading
   src/heading_node.cpp
 )
+target_link_libraries(heading
+  yaml-cpp
+)
 
 ament_auto_add_executable(height
   src/height_node.cpp
+)
+target_link_libraries(height
+  yaml-cpp
 )
 
 ament_auto_add_executable(monitor
@@ -53,61 +62,106 @@ ament_auto_add_executable(monitor
 ament_auto_add_executable(position_interpolate
   src/position_interpolate_node.cpp
 )
+target_link_libraries(position_interpolate
+  yaml-cpp
+)
 
 ament_auto_add_executable(position
   src/position_node.cpp
+)
+target_link_libraries(position
+  yaml-cpp
 )
 
 ament_auto_add_executable(slip_angle
   src/slip_angle_node.cpp
 )
+target_link_libraries(slip_angle
+  yaml-cpp
+)
 
 ament_auto_add_executable(slip_coefficient
   src/slip_coefficient_node.cpp
+)
+target_link_libraries(slip_coefficient
+  yaml-cpp
 )
 
 ament_auto_add_executable(enable_additional_rolling
   src/enable_additional_rolling_node.cpp
 )
+target_link_libraries(enable_additional_rolling
+  yaml-cpp
+)
 
 ament_auto_add_executable(rolling
   src/rolling_node.cpp
+)
+target_link_libraries(rolling
+  yaml-cpp
 )
 
 ament_auto_add_executable(smoothing
   src/smoothing_node.cpp
 )
+target_link_libraries(smoothing
+  yaml-cpp
+)
 
 ament_auto_add_executable(trajectory
   src/trajectory_node.cpp
+)
+target_link_libraries(trajectory
+  yaml-cpp
 )
 
 ament_auto_add_executable(velocity_scale_factor
   src/velocity_scale_factor_node.cpp
 )
+target_link_libraries(velocity_scale_factor
+  yaml-cpp
+)
 
 ament_auto_add_executable(yaw_rate_offset
   src/yaw_rate_offset_node.cpp
+)
+target_link_libraries(yaw_rate_offset
+  yaml-cpp
 )
 
 ament_auto_add_executable(yaw_rate_offset_stop
   src/yaw_rate_offset_stop_node.cpp
 )
+target_link_libraries(yaw_rate_offset_stop
+  yaml-cpp
+)
 
 ament_auto_add_executable(angular_velocity_offset_stop
   src/angular_velocity_offset_stop_node.cpp
+)
+target_link_libraries(angular_velocity_offset_stop
+  yaml-cpp
 )
 
 ament_auto_add_executable(rtk_dead_reckoning
   src/rtk_dead_reckoning_node.cpp
 )
+target_link_libraries(rtk_dead_reckoning
+  yaml-cpp
+)
 
 ament_auto_add_executable(rtk_heading
   src/rtk_heading_node.cpp
 )
+target_link_libraries(rtk_heading
+  yaml-cpp
+)
 
 ament_auto_add_executable(velocity_estimator
   src/velocity_estimator_node.cpp
+)
+target_link_libraries(velocity_estimator
+  yaml-cpp
 )
 
 install(TARGETS 

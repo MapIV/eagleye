@@ -15,12 +15,12 @@ ament_auto_find_build_dependencies()
 
 find_package(PkgConfig)
 find_package(geodesy)
+
+# GeographicLib
 find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
-  PAHT_SUFFIXES GeographicLib
+  PATH_SUFFIXES GeographicLib
 )
-set(GeographicLib_LIBRARIES
-  NAMES Geographic
-)
+find_library(GeographicLib_LIBRARIES NAMES Geographic GeographicLib)
 
 include_directories(
   include
@@ -50,7 +50,7 @@ ament_export_include_directories(include)
 ament_target_dependencies(eagleye_coordinate)
 
 target_link_libraries(eagleye_coordinate
-  Geographic
+  ${GeographicLib_LIBRARIES}
 )
 
 install(

@@ -19,6 +19,7 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 find_package(eagleye_coordinate REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 ament_auto_find_build_dependencies()
 
@@ -47,7 +48,7 @@ ament_auto_add_library(eagleye_navigation SHARED
   include/eagleye_navigation/eagleye_navigation.hpp
 )
 
-ament_auto_find_build_dependencies()
+target_link_libraries(eagleye_navigation yaml-cpp)
 
 install(TARGETS eagleye_navigation
   INCLUDES DESTINATION include
