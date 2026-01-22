@@ -23,6 +23,7 @@
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 
+  <depend>ament_index_cpp</depend>
   <depend>tf2_geometry_msgs</depend>
 
   <export>
