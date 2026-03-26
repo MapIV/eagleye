@@ -23,6 +23,7 @@
   <depend>eagleye_msgs</depend>
   <depend>eagleye_coordinate</depend>
   <depend>eagleye_navigation</depend>
+  <depend>eagleye_tf</depend>
   <depend>diagnostic_updater</depend>
   <depend>tf2</depend>
   <depend>tf2_ros</depend>

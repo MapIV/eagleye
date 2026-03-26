@@ -15,17 +15,17 @@ ament_auto_find_build_dependencies()
 
 find_package(PkgConfig)
 find_package(geodesy)
+
+# GeographicLib
 find_path(GeographicLib_INCLUDE_DIR GeographicLib/Config.h
   PATH_SUFFIXES GeographicLib
 )
-set(GeographicLib_LIBRARIES
-  NAMES Geographic
-)
+find_library(GeographicLib_LIBRARIES NAMES Geographic GeographicLib)
 
 include_directories(
   include
   ${PROJECT_SOURCE_DIR}/include
-  ${GeographicLib_INCLUDE_DIRS}
+  ${GeographicLib_INCLUDE_DIR}
 )
 link_directories(
   /usr/local/lib
@@ -47,11 +47,11 @@ ament_auto_add_library(eagleye_coordinate SHARED
   include/eagleye_coordinate/eagleye_coordinate.hpp
 )
 
-ament_export_include_directories(include)
+ament_export_include_directories(include ${GeographicLib_INCLUDE_DIR})
 ament_target_dependencies(eagleye_coordinate)
 
 target_link_libraries(eagleye_coordinate
-  Geographic
+  ${GeographicLib_LIBRARIES}
 )
 
 install(
@@ -62,6 +62,7 @@ install(
 
 target_include_directories(eagleye_coordinate
   PUBLIC
+    ${GeographicLib_INCLUDE_DIR}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
