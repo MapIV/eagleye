@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: rosdep update
         run: |
           apt-get update
@@ -40,5 +40,64 @@ jobs:
         run: |
           cd ~/eagleye/
           source /opt/ros/humble/setup.bash
+          rosdep install --from-paths src --ignore-src -r -y
+          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --catkin-skip-building-tests
+
+  jazzy_build:
+    runs-on: ubuntu-24.04
+
+    container: ros:jazzy
+    services:
+      ros:
+        image: ros
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: rosdep update
+        run: |
+          apt-get update
+          rosdep update
+      - name: Create Workspace
+        run: |
+          mkdir -p ~/eagleye/src/
+          cp -r "$(pwd)" ~/eagleye/src/
+      - name: Clone rtklib_msgs
+        run: |
+          cd ~/eagleye/src/
+          git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
+      - name: Clone llh_converter
+        run: |
+          cd ~/eagleye/src/
+          git clone https://github.com/MapIV/llh_converter.git -b ros2
+      - name: Patch llh_converter for Jazzy CI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path.home() / "eagleye/src/llh_converter/CMakeLists.txt"
+          text = path.read_text()
+          text = text.replace("${GeographicLib_INCLUDE_DIRS}", "${GeographicLib_INCLUDE_DIR}")
+          text = text.replace(
+              "  PUBLIC\n    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+              "  PUBLIC\n    ${GeographicLib_INCLUDE_DIR}\n    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>",
+          )
+          text = text.replace(
+              "ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)",
+              "ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include ${GeographicLib_INCLUDE_DIR})",
+          )
+          path.write_text(text)
+          PY
+      - name: Install GeographicLib
+        run: |
+          apt-get install -y libgeographiclib-dev geographiclib-tools geographiclib-doc
+      - name: Build
+        run: |
+          cd ~/eagleye/
+          source /opt/ros/jazzy/setup.bash
           rosdep install --from-paths src --ignore-src -r -y
           colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --catkin-skip-building-tests
