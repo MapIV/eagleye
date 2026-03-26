@@ -2,6 +2,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "gnss_converter/nmea2fix.hpp"
 #include <ublox_msgs/msg/nav_pvt.hpp>
+#include <septentrio_gnss_driver/msg/pvt_geodetic.hpp>
 #include <geometry_msgs/msg/twist_with_covariance_stamped.hpp>
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
@@ -107,6 +108,36 @@ void navpvt_callback(const ublox_msgs::msg::NavPVT::ConstSharedPtr msg)
   rtklib_nav_pub->publish(r);
 }
 
+void pvtgeodetic_callback(const septentrio_gnss_driver::msg::PVTGeodetic::ConstSharedPtr msg)
+{
+  rtklib_msgs::msg::RtklibNav r;
+  r.header.frame_id = "gps";
+  r.header.stamp = msg->header.stamp;
+  if (nav_msg_ptr != nullptr)
+    r.status = *nav_msg_ptr;
+  r.tow = msg->block_header.tow;
+
+  double llh[3];
+  llh[0] = msg->latitude;
+  llh[1] = msg->longitude;
+  llh[2] = msg->height;
+  double ecef_pos[3];
+  llh2xyz(llh, ecef_pos);
+
+  double enu_vel[3] = {msg->ve, msg->vn, msg->vu};
+  double ecef_vel[3];
+  enu2xyz_vel(enu_vel, ecef_pos, ecef_vel);
+
+  r.ecef_pos.x = ecef_pos[0];
+  r.ecef_pos.y = ecef_pos[1];
+  r.ecef_pos.z = ecef_pos[2];
+  r.ecef_vel.x = ecef_vel[0];
+  r.ecef_vel.y = ecef_vel[1];
+  r.ecef_vel.z = ecef_vel[2];
+
+  rtklib_nav_pub->publish(r);
+}
+
 void gnss_velocity_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
 {
   if(msg->twist.covariance[0] > twist_covariance_thresh)
@@ -161,6 +192,7 @@ int main(int argc, char** argv)
   rclcpp::Subscription<nmea_msgs::msg::Sentence>::SharedPtr nmea_sentence_sub;
   rclcpp::Subscription<ublox_msgs::msg::NavPVT>::SharedPtr navpvt_sub;
   rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr gnss_velocity_sub;
+  rclcpp::Subscription<septentrio_gnss_driver::msg::PVTGeodetic>::SharedPtr pvtgeodetic_sub;
   rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr navsatfix_sub;
 
   node->declare_parameter("is_sub_antenna",is_sub_antenna);
@@ -227,6 +259,11 @@ int main(int argc, char** argv)
     {
       gnss_velocity_sub = node->create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
           velocity_source_topic, 1000, gnss_velocity_callback);
+    }
+    else if(velocity_source_type == 4)
+    {
+      pvtgeodetic_sub = node->create_subscription<septentrio_gnss_driver::msg::PVTGeodetic>(
+        velocity_source_topic, 1000, pvtgeodetic_callback);
     }
     else
     {

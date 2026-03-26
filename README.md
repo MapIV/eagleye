@@ -40,18 +40,15 @@ Clone and Build MapIV's fork of [RTKLIB](https://github.com/MapIV/rtklib_ros_bri
 	cd $HOME/RTKLIB/lib/iers/gcc/
 	make
 	cd $HOME/RTKLIB/app/consapp
-	make 
+	make
 
 ### ROS Packages
 
 Clone and build the necessary packages for Eagleye. ([rtklib_ros_bridge](https://github.com/MapIV/rtklib_ros_bridge/tree/ros2-v0.1.0), [nmea_ros_bridge](https://github.com/MapIV/nmea_ros_bridge/tree/ros2-v0.1.0))
 
 	cd $HOME/catkin_ws/src
-	git clone https://github.com/MapIV/eagleye.git -b main-ros2 --recursive
-	git clone https://github.com/MapIV/rtklib_ros_bridge.git -b ros2-v0.1.0
-	git clone https://github.com/MapIV/llh_converter.git -b ros2
-	git clone https://github.com/MapIV/nmea_ros_bridge.git -b ros2-v0.1.0
-	git clone https://github.com/MapIV/gnss_compass_ros.git -b main-ros2
+	git clone https://github.com/MapIV/eagleye.git -b main-ros2
+	vcs import . < eagleye/eagleye.repos
 	sudo apt-get install -y libgeographic-dev geographiclib-tools geographiclib-doc
 	sudo geographiclib-get-geoids best
 	sudo mkdir /usr/share/GSIGEO
