@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="2">
   <name>eagleye_tf</name>
-  <version>0.0.0</version>
+  <version>1.0.0</version>
   <description>The eagleye_tf package</description>
 
   <maintainer email="osamu.sekino@tier4.jp">Osamu Sekino</maintainer>
