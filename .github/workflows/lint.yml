@@ -1,0 +1,22 @@
+name: lint
+
+on:
+  pull_request:
+
+jobs:
+  clang-format:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-17
+
+      - name: Check clang-format
+        run: |
+          find . \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) \
+            ! -path "./build/*" ! -path "./install/*" \
+            | xargs clang-format-17 --dry-run --Werror
