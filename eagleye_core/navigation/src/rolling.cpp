@@ -33,10 +33,12 @@
 
 #define g 9.80665
 
-void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStamped correction_velocity,
-                      eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop, eagleye_msgs::msg::YawrateOffset yaw_rate_offset,
-                      RollingParameter rolling_parameter, RollingStatus* rolling_status, eagleye_msgs::msg::Rolling* rolling)
-{
+void rolling_estimate(sensor_msgs::msg::Imu imu,
+                      geometry_msgs::msg::TwistStamped correction_velocity,
+                      eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop,
+                      eagleye_msgs::msg::YawrateOffset yaw_rate_offset,
+                      RollingParameter rolling_parameter, RollingStatus* rolling_status,
+                      eagleye_msgs::msg::Rolling* rolling) {
   double acceleration_y;
   double velocity;
   double yaw_rate;
@@ -53,17 +55,13 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
   acceleration_y = imu.linear_acceleration.y;
   velocity = correction_velocity.twist.linear.x;
 
-  if (std::abs(velocity) > rolling_parameter.stop_judgment_threshold)
-  {
+  if (std::abs(velocity) > rolling_parameter.stop_judgment_threshold) {
     yaw_rate = imu.angular_velocity.z + yaw_rate_offset.yaw_rate_offset;
-  }
-  else
-  {
+  } else {
     yaw_rate = imu.angular_velocity.z + yaw_rate_offset_stop.yaw_rate_offset;
   }
 
-  if (!rolling_status->data_status)
-  {
+  if (!rolling_status->data_status) {
     filtered_acceleration_y = acceleration_y;
     rolling_status->acceleration_y_last = acceleration_y;
     rolling_status->acceleration_y_variance_last = init_variance;
@@ -71,14 +69,13 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
   }
 
   // Low Path Filter (about acceleration_y)
-  if (rolling_status->data_status)
-  {
+  if (rolling_status->data_status) {
     acceleration_y_variance_negative =
-        rolling_status->acceleration_y_variance_last + rolling_parameter.filter_process_noise;
+      rolling_status->acceleration_y_variance_last + rolling_parameter.filter_process_noise;
     update_gain = acceleration_y_variance_negative /
                   (acceleration_y_variance_negative + rolling_parameter.filter_observation_noise);
-    filtered_acceleration_y =
-        rolling_status->acceleration_y_last + update_gain * (acceleration_y - rolling_status->acceleration_y_last);
+    filtered_acceleration_y = rolling_status->acceleration_y_last +
+                              update_gain * (acceleration_y - rolling_status->acceleration_y_last);
     acceleration_y_variance_positive = (1 - update_gain) * acceleration_y_variance_negative;
 
     rolling_status->acceleration_y_last = filtered_acceleration_y;
@@ -91,19 +88,14 @@ void rolling_estimate(sensor_msgs::msg::Imu imu, geometry_msgs::msg::TwistStampe
 
   in_sin = (velocity * yaw_rate - filtered_acceleration_y) / g;
 
-  if (std::abs(in_sin) < 1)
-  {
+  if (std::abs(in_sin) < 1) {
     rolling->rolling_angle = std::asin(in_sin);
     rolling->status.enabled_status = true;
     rolling->status.estimate_status = true;
-  }
-  else if (rolling->status.estimate_status)
-  {
+  } else if (rolling->status.estimate_status) {
     rolling->rolling_angle = rolling_status->rolling_last;
     rolling->status.enabled_status = false;
-  }
-  else
-  {
+  } else {
     rolling->rolling_angle = 0;
     rolling->status.enabled_status = false;
     rolling->status.estimate_status = false;

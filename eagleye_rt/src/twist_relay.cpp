@@ -32,8 +32,7 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-class TwistRelay: public rclcpp::Node
-{
+class TwistRelay : public rclcpp::Node {
 public:
   TwistRelay();
   ~TwistRelay();
@@ -41,20 +40,19 @@ public:
 private:
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub_;
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr twist_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr twist_with_covariance_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistWithCovarianceStamped>::SharedPtr
+    twist_with_covariance_sub_;
 
   rclcpp::Logger logger_;
   rclcpp::Clock clock_;
 
   void twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg);
-  void twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg);
-
+  void twist_with_covariance_callback(
+    const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg);
 };
 
-TwistRelay::TwistRelay() : Node("eagleye_twist_relay"),
-    clock_(RCL_ROS_TIME),
-    logger_(get_logger())
-{
+TwistRelay::TwistRelay()
+  : Node("eagleye_twist_relay"), clock_(RCL_ROS_TIME), logger_(get_logger()) {
   int subscribe_twist_topic_type = 0;
   std::string subscribe_twist_topic_name = "/can_twist";
   std::string publish_twist_topic_name = "vehicle/twist";
@@ -65,46 +63,43 @@ TwistRelay::TwistRelay() : Node("eagleye_twist_relay"),
   get_parameter("twist.twist_type", subscribe_twist_topic_type);
   get_parameter("twist.twist_topic", subscribe_twist_topic_name);
 
-  std::cout<< "subscribe_twist_topic_type: " << subscribe_twist_topic_type << std::endl;
-  std::cout<< "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
+  std::cout << "subscribe_twist_topic_type: " << subscribe_twist_topic_type << std::endl;
+  std::cout << "subscribe_twist_topic_name: " << subscribe_twist_topic_name << std::endl;
 
   // TwistStamped : 0, TwistWithCovarianceStamped: 1
-  if(subscribe_twist_topic_type == 0)
-  {
-    twist_sub_ =  create_subscription<geometry_msgs::msg::TwistStamped>(subscribe_twist_topic_name, rclcpp::QoS(10),
-        std::bind(&TwistRelay::twist_callback, this, std::placeholders::_1));
-  }
-  else if(subscribe_twist_topic_type == 1)
-  {
-    twist_with_covariance_sub_ = create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(subscribe_twist_topic_name, rclcpp::QoS(10),
+  if (subscribe_twist_topic_type == 0) {
+    twist_sub_ = create_subscription<geometry_msgs::msg::TwistStamped>(
+      subscribe_twist_topic_name, rclcpp::QoS(10),
+      std::bind(&TwistRelay::twist_callback, this, std::placeholders::_1));
+  } else if (subscribe_twist_topic_type == 1) {
+    twist_with_covariance_sub_ =
+      create_subscription<geometry_msgs::msg::TwistWithCovarianceStamped>(
+        subscribe_twist_topic_name, rclcpp::QoS(10),
         std::bind(&TwistRelay::twist_with_covariance_callback, this, std::placeholders::_1));
-  }
-  else 
-  {
-    RCLCPP_ERROR(this->get_logger(),"Invalid twist topic type");
+  } else {
+    RCLCPP_ERROR(this->get_logger(), "Invalid twist topic type");
     rclcpp::shutdown();
   }
 
-  pub_ = create_publisher<geometry_msgs::msg::TwistStamped>(publish_twist_topic_name, rclcpp::QoS(10));
+  pub_ =
+    create_publisher<geometry_msgs::msg::TwistStamped>(publish_twist_topic_name, rclcpp::QoS(10));
 };
 
-TwistRelay::~TwistRelay(){}; 
+TwistRelay::~TwistRelay() {};
 
-void TwistRelay::twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
-{
+void TwistRelay::twist_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg) {
   pub_->publish(*msg);
 };
 
-void TwistRelay::twist_with_covariance_callback(const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg)
-{
+void TwistRelay::twist_with_covariance_callback(
+  const geometry_msgs::msg::TwistWithCovarianceStamped::ConstSharedPtr msg) {
   geometry_msgs::msg::TwistStamped twist;
   twist.header.stamp = msg->header.stamp;
   twist.twist = msg->twist.twist;
   pub_->publish(twist);
 };
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   rclcpp::spin(std::make_shared<TwistRelay>());

@@ -30,57 +30,48 @@
 
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 
-ConvertHeight::ConvertHeight()
-{
-}
+ConvertHeight::ConvertHeight() {}
 
-void ConvertHeight::setLLH(double latitude,double longitude,double height)
-{
-  _latitude  = latitude;
+void ConvertHeight::setLLH(double latitude, double longitude, double height) {
+  _latitude = latitude;
   _longitude = longitude;
-  _height    = height;
+  _height = height;
 }
 
-double ConvertHeight::convert2altitude()
-{
-  try
-  {
+double ConvertHeight::convert2altitude() {
+  try {
     GeographicLib::Geoid egm2008("egm2008-1");
-    converted_height = egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::ELLIPSOIDTOGEOID);
-  }
-  catch (const GeographicLib::GeographicErr err)
-  {
-    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. " << err.what() << std::endl;
+    converted_height =
+      egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::ELLIPSOIDTOGEOID);
+  } catch (const GeographicLib::GeographicErr err) {
+    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. "
+              << err.what() << std::endl;
     exit(4);
   }
 
   return converted_height;
 }
 
-double ConvertHeight::convert2ellipsoid()
-{
-  try
-  {
+double ConvertHeight::convert2ellipsoid() {
+  try {
     GeographicLib::Geoid egm2008("egm2008-1");
-    converted_height = egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::GEOIDTOELLIPSOID);
-  }
-  catch (const GeographicLib::GeographicErr err)
-  {
-    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. " << err.what() << std::endl;
+    converted_height =
+      egm2008.ConvertHeight(_latitude, _longitude, _height, GeographicLib::Geoid::GEOIDTOELLIPSOID);
+  } catch (const GeographicLib::GeographicErr err) {
+    std::cerr << "\033[31;1mError: Failed to convert height from Ellipsoid to Altitude. "
+              << err.what() << std::endl;
     exit(4);
   }
 
   return converted_height;
 }
 
-double ConvertHeight::getGeoidPerDegree()
-{
-  geoid = geoid_per_degree(_latitude,_longitude);
+double ConvertHeight::getGeoidPerDegree() {
+  geoid = geoid_per_degree(_latitude, _longitude);
   return geoid;
 }
 
-double ConvertHeight::getGeoidPerMinute()
-{
-  geoid = geoid_per_minute(_latitude,_longitude,geoid_map_data);
+double ConvertHeight::getGeoidPerMinute() {
+  geoid = geoid_per_minute(_latitude, _longitude, geoid_map_data);
   return geoid;
 }

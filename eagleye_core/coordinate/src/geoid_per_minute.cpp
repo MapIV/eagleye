@@ -37,63 +37,53 @@
 #include <fstream>
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
-
-double** read_geoid_map()
-{
-
+double** read_geoid_map() {
   double** data;
 
   std::string path = ament_index_cpp::get_package_share_directory("eagleye_coordinate") + "/data/";
   std::string file_name = "gsigeo2011_ver2.asc";
-  std::ifstream ifs(path+file_name);
+  std::ifstream ifs(path + file_name);
 
-    if (!ifs)
-    {
-      fprintf(stderr, "[LocalizationTool]: Geoid database is not found\n");
-      exit(2);
-    }
-    size_t row = 1802;
-    size_t column = 1202;
+  if (!ifs) {
+    fprintf(stderr, "[LocalizationTool]: Geoid database is not found\n");
+    exit(2);
+  }
+  size_t row = 1802;
+  size_t column = 1202;
 
-    data = (double**)malloc(sizeof(double*) * row + 1);
+  data = (double**)malloc(sizeof(double*) * row + 1);
 
-    data[1] = (double*)malloc(sizeof(double) * column * row);
-    for (int i = 2; i < row; i++)
-    {
-      data[i] = data[1] + i * column;
-    }
-    std::string str;
-    getline(ifs, str);
+  data[1] = (double*)malloc(sizeof(double) * column * row);
+  for (int i = 2; i < row; i++) {
+    data[i] = data[1] + i * column;
+  }
+  std::string str;
+  getline(ifs, str);
 
-    int i = 1;
-    int j = 1;
+  int i = 1;
+  int j = 1;
 
-    while (getline(ifs, str))
-    {
-      std::string token;
-      std::istringstream stream(str);
+  while (getline(ifs, str)) {
+    std::string token;
+    std::istringstream stream(str);
 
-      while (getline(stream, token, ' '))
-      {
-        if (token == " " || token == "" || token == "\n" || token == "\r")
-        {
-          continue;
-        }
-        if (j >= column)
-        {
-          j = 1;
-          i += 1;
-        }
-        data[i][j] = std::stod(token);
-        j++;
+    while (getline(stream, token, ' ')) {
+      if (token == " " || token == "" || token == "\n" || token == "\r") {
+        continue;
       }
+      if (j >= column) {
+        j = 1;
+        i += 1;
+      }
+      data[i][j] = std::stod(token);
+      j++;
     }
+  }
 
   return data;
 }
 
-double geoid_per_minute(double latitude,double longitude,double** geoid_map_data)
-{
+double geoid_per_minute(double latitude, double longitude, double** geoid_map_data) {
   double xmin = 120;
   double ymin = 20;
   double xpt = longitude;
@@ -112,69 +102,49 @@ double geoid_per_minute(double latitude,double longitude,double** geoid_map_data
   double xx = std::fabs(x);
   double el2 = 1e-5;
 
-  if (ix < 0 || ix >= 1201 || iy < 0 || iy >= 1801)
-  {
+  if (ix < 0 || ix >= 1201 || iy < 0 || iy >= 1801) {
     return 0.0;
   }
 
   int iadx = 99;
   int iady = 99;
 
-  if (yy < el2)
-  {
+  if (yy < el2) {
     iady = 0;
-  }
-  else if ((1 - yy) < el2)
-  {
+  } else if ((1 - yy) < el2) {
     iady = 1;
   }
 
-  if (xx < el2)
-  {
+  if (xx < el2) {
     iadx = 0;
-  }
-  else if ((1 - xx) < el2)
-  {
+  } else if ((1 - xx) < el2) {
     iadx = 1;
   }
 
-  if (iady < 10)
-  {
-    if (iadx < 10)
-    {
+  if (iady < 10) {
+    if (iadx < 10) {
       return geoid_map_data[iy + iady][ix + iadx];
     }
-    if (geoid_map_data[iy + iady][ix] == 999.000 || geoid_map_data[iy + iady][jx] == 999.000)
-    {
+    if (geoid_map_data[iy + iady][ix] == 999.000 || geoid_map_data[iy + iady][jx] == 999.000) {
       return 999.000;
-    }
-    else
-    {
+    } else {
       return (1 - x) * geoid_map_data[iy + iady][ix] + x * geoid_map_data[iy + iady][jx];
     }
-  }
-  else
-  {
-    if (iadx < 10)
-    {
-      if (geoid_map_data[iy][ix + iadx] == 999.000 || geoid_map_data[jy][ix + iadx] == 999.000)
-      {
+  } else {
+    if (iadx < 10) {
+      if (geoid_map_data[iy][ix + iadx] == 999.000 || geoid_map_data[jy][ix + iadx] == 999.000) {
         return 999.000;
-      }
-      else
-      {
+      } else {
         return (1 - y) * geoid_map_data[iy][ix + iadx] + y * geoid_map_data[jy][ix + iadx];
       }
     }
   }
 
-  if (geoid_map_data[jy][ix] == 999.0 || geoid_map_data[jy][jx] == 999.0 || geoid_map_data[iy][ix] == 999.0 || geoid_map_data[iy][jx] == 999.0)
-  {
+  if (geoid_map_data[jy][ix] == 999.0 || geoid_map_data[jy][jx] == 999.0 ||
+      geoid_map_data[iy][ix] == 999.0 || geoid_map_data[iy][jx] == 999.0) {
     return 999.0;
-  }
-  else
-  {
-    return (1 - x) * (1 - y) * geoid_map_data[iy][ix] + y * (1. - x) * geoid_map_data[jy][ix] + x * (1. - y) * geoid_map_data[iy][jx] +
-           geoid_map_data[jy][jx] * x * y;
+  } else {
+    return (1 - x) * (1 - y) * geoid_map_data[iy][ix] + y * (1. - x) * geoid_map_data[jy][ix] +
+           x * (1. - y) * geoid_map_data[iy][jx] + geoid_map_data[jy][jx] * x * y;
   }
 }

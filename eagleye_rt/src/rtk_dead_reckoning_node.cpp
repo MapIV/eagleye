@@ -59,28 +59,24 @@ std::string use_gnss_mode;
 rclcpp::Clock clock_(RCL_ROS_TIME);
 tf2_ros::Buffer tfBuffer_(std::make_shared<rclcpp::Clock>(clock_));
 
-void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg)
-{
+void rtklib_nav_callback(const rtklib_msgs::msg::RtklibNav::ConstSharedPtr msg) {
   rtklib_nav = *msg;
 }
 
-void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
-{
+void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg) {
   gga = *msg;
 }
 
-void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
-{
+void heading_interpolate_3rd_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg) {
   heading_interpolate_3rd = *msg;
 }
 
-
-void on_timer()
-{
+void on_timer() {
   geometry_msgs::msg::TransformStamped transformStamped;
-  try
-  {
-    transformStamped = tfBuffer_.lookupTransform(rtk_dead_reckoning_parameter.tf_gnss_parent_frame, rtk_dead_reckoning_parameter.tf_gnss_child_frame, tf2::TimePointZero);
+  try {
+    transformStamped = tfBuffer_.lookupTransform(rtk_dead_reckoning_parameter.tf_gnss_parent_frame,
+                                                 rtk_dead_reckoning_parameter.tf_gnss_child_frame,
+                                                 tf2::TimePointZero);
 
     rtk_dead_reckoning_parameter.tf_gnss_translation_x = transformStamped.transform.translation.x;
     rtk_dead_reckoning_parameter.tf_gnss_translation_y = transformStamped.transform.translation.y;
@@ -89,16 +85,13 @@ void on_timer()
     rtk_dead_reckoning_parameter.tf_gnss_rotation_y = transformStamped.transform.rotation.y;
     rtk_dead_reckoning_parameter.tf_gnss_rotation_z = transformStamped.transform.rotation.z;
     rtk_dead_reckoning_parameter.tf_gnss_rotation_w = transformStamped.transform.rotation.w;
-  }
-  catch (tf2::TransformException& ex)
-  {
+  } catch (tf2::TransformException& ex) {
     // RCLCPP_ERROR(this->get_logger(), "%s", ex.what());
     return;
   }
 }
 
-void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg)
-{
+void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr msg) {
   rclcpp::Time ros_clock(gga.header.stamp);
   auto gga_time = ros_clock.seconds();
 
@@ -108,17 +101,18 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   enu_absolute_rtk_dead_reckoning.header.frame_id = "base_link";
   eagleye_fix.header = msg->header;
   eagleye_fix.header.frame_id = "gnss";
-  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB") // use RTKLIB mode
-    rtk_dead_reckoning_estimate(rtklib_nav,enu_vel,gga,heading_interpolate_3rd,rtk_dead_reckoning_parameter,&rtk_dead_reckoning_status,&enu_absolute_rtk_dead_reckoning,&eagleye_fix);
-  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA") // use NMEA mode
-    rtk_dead_reckoning_estimate(enu_vel,gga,heading_interpolate_3rd,rtk_dead_reckoning_parameter,&rtk_dead_reckoning_status,&enu_absolute_rtk_dead_reckoning,&eagleye_fix);
-  if (enu_absolute_rtk_dead_reckoning.status.enabled_status == true)
-  {
+  if (use_gnss_mode == "rtklib" || use_gnss_mode == "RTKLIB")  // use RTKLIB mode
+    rtk_dead_reckoning_estimate(rtklib_nav, enu_vel, gga, heading_interpolate_3rd,
+                                rtk_dead_reckoning_parameter, &rtk_dead_reckoning_status,
+                                &enu_absolute_rtk_dead_reckoning, &eagleye_fix);
+  else if (use_gnss_mode == "nmea" || use_gnss_mode == "NMEA")  // use NMEA mode
+    rtk_dead_reckoning_estimate(enu_vel, gga, heading_interpolate_3rd, rtk_dead_reckoning_parameter,
+                                &rtk_dead_reckoning_status, &enu_absolute_rtk_dead_reckoning,
+                                &eagleye_fix);
+  if (enu_absolute_rtk_dead_reckoning.status.enabled_status == true) {
     pub1->publish(enu_absolute_rtk_dead_reckoning);
     pub2->publish(eagleye_fix);
-  }
-  else if (gga_time != 0)
-  {
+  } else if (gga_time != 0) {
     sensor_msgs::msg::NavSatFix fix;
     fix.header = gga.header;
     fix.latitude = gga.lat;
@@ -128,8 +122,7 @@ void enu_vel_callback(const geometry_msgs::msg::Vector3Stamped::ConstSharedPtr m
   }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("eagleye_rtk_dead_reckoning");
 
@@ -137,54 +130,69 @@ int main(int argc, char** argv)
   std::string subscribe_gga_topic_name = "gnss/gga";
 
   std::string yaml_file;
-  node->declare_parameter("yaml_file",yaml_file);
-  node->get_parameter("yaml_file",yaml_file);
+  node->declare_parameter("yaml_file", yaml_file);
+  node->get_parameter("yaml_file", yaml_file);
   std::cout << "yaml_file: " << yaml_file << std::endl;
 
-  try
-  {
+  try {
     YAML::Node conf = YAML::LoadFile(yaml_file);
 
     use_gnss_mode = conf["/**"]["ros__parameters"]["use_gnss_mode"].as<std::string>();
 
-    rtk_dead_reckoning_parameter.ecef_base_pos_x = conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
-    rtk_dead_reckoning_parameter.ecef_base_pos_y = conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
-    rtk_dead_reckoning_parameter.ecef_base_pos_z = conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
-    rtk_dead_reckoning_parameter.use_ecef_base_position = conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
-    rtk_dead_reckoning_parameter.tf_gnss_parent_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
-    rtk_dead_reckoning_parameter.tf_gnss_child_frame = conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
-    rtk_dead_reckoning_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-    rtk_dead_reckoning_parameter.rtk_fix_STD = conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["rtk_fix_STD"].as<double>();
-    rtk_dead_reckoning_parameter.proc_noise = conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["proc_noise"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_x =
+      conf["/**"]["ros__parameters"]["ecef_base_pos"]["x"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_y =
+      conf["/**"]["ros__parameters"]["ecef_base_pos"]["y"].as<double>();
+    rtk_dead_reckoning_parameter.ecef_base_pos_z =
+      conf["/**"]["ros__parameters"]["ecef_base_pos"]["z"].as<double>();
+    rtk_dead_reckoning_parameter.use_ecef_base_position =
+      conf["/**"]["ros__parameters"]["ecef_base_pos"]["use_ecef_base_position"].as<bool>();
+    rtk_dead_reckoning_parameter.tf_gnss_parent_frame =
+      conf["/**"]["ros__parameters"]["tf_gnss_frame"]["parent"].as<std::string>();
+    rtk_dead_reckoning_parameter.tf_gnss_child_frame =
+      conf["/**"]["ros__parameters"]["tf_gnss_frame"]["child"].as<std::string>();
+    rtk_dead_reckoning_parameter.stop_judgment_threshold =
+      conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+    rtk_dead_reckoning_parameter.rtk_fix_STD =
+      conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["rtk_fix_STD"].as<double>();
+    rtk_dead_reckoning_parameter.proc_noise =
+      conf["/**"]["ros__parameters"]["rtk_dead_reckoning"]["proc_noise"].as<double>();
 
     std::cout << "use_gnss_mode " << use_gnss_mode << std::endl;
 
     std::cout << "ecef_base_pos_x " << rtk_dead_reckoning_parameter.ecef_base_pos_x << std::endl;
     std::cout << "ecef_base_pos_y " << rtk_dead_reckoning_parameter.ecef_base_pos_y << std::endl;
     std::cout << "ecef_base_pos_z " << rtk_dead_reckoning_parameter.ecef_base_pos_z << std::endl;
-    std::cout << "use_ecef_base_position " << rtk_dead_reckoning_parameter.use_ecef_base_position << std::endl;
-    std::cout << "tf_gnss_frame/parent " << rtk_dead_reckoning_parameter.tf_gnss_parent_frame << std::endl;
-    std::cout << "tf_gnss_frame/child " << rtk_dead_reckoning_parameter.tf_gnss_child_frame << std::endl;
-    std::cout << "stop_judgment_threshold " << rtk_dead_reckoning_parameter.stop_judgment_threshold << std::endl;
+    std::cout << "use_ecef_base_position " << rtk_dead_reckoning_parameter.use_ecef_base_position
+              << std::endl;
+    std::cout << "tf_gnss_frame/parent " << rtk_dead_reckoning_parameter.tf_gnss_parent_frame
+              << std::endl;
+    std::cout << "tf_gnss_frame/child " << rtk_dead_reckoning_parameter.tf_gnss_child_frame
+              << std::endl;
+    std::cout << "stop_judgment_threshold " << rtk_dead_reckoning_parameter.stop_judgment_threshold
+              << std::endl;
     std::cout << "rtk_fix_STD " << rtk_dead_reckoning_parameter.rtk_fix_STD << std::endl;
     std::cout << "proc_noise " << rtk_dead_reckoning_parameter.proc_noise << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mrtk_dead_reckoning Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+  } catch (YAML::Exception& e) {
+    std::cerr << "\033[1;31mrtk_dead_reckoning Node YAML Error: " << e.msg << "\033[0m"
+              << std::endl;
     exit(3);
   }
 
-  auto sub1 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
-  auto sub2 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000, enu_vel_callback);
-  auto sub3 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Heading>("heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
-  
+  auto sub1 = node->create_subscription<rtklib_msgs::msg::RtklibNav>(
+    subscribe_rtklib_nav_topic_name, 1000, rtklib_nav_callback);
+  auto sub2 = node->create_subscription<geometry_msgs::msg::Vector3Stamped>("enu_vel", 1000,
+                                                                            enu_vel_callback);
+  auto sub3 =
+    node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Heading>(
+    "heading_interpolate_3rd", 1000, heading_interpolate_3rd_callback);
+
   pub1 = node->create_publisher<eagleye_msgs::msg::Position>("enu_absolute_pos_interpolate", 1000);
   pub2 = node->create_publisher<sensor_msgs::msg::NavSatFix>("fix", 1000);
 
   const auto period_ns =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.5));
+    std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::duration<double>(0.5));
   auto timer_callback = std::bind(on_timer);
   auto timer = std::make_shared<rclcpp::GenericTimer<decltype(timer_callback)>>(
     node->get_clock(), period_ns, std::move(timer_callback),

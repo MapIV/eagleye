@@ -31,21 +31,18 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void distance_estimate(const geometry_msgs::msg::TwistStamped velocity, DistanceStatus* distance_status,eagleye_msgs::msg::Distance* distance)
-{
-
+void distance_estimate(const geometry_msgs::msg::TwistStamped velocity,
+                       DistanceStatus* distance_status, eagleye_msgs::msg::Distance* distance) {
   rclcpp::Time ros_clock(velocity.header.stamp);
   auto velocity_time = ros_clock.seconds();
 
-  if(distance_status->time_last != 0)
-  {
-    distance->distance = distance->distance + velocity.twist.linear.x * std::abs((velocity_time -
-      distance_status->time_last));
+  if (distance_status->time_last != 0) {
+    distance->distance =
+      distance->distance +
+      velocity.twist.linear.x * std::abs((velocity_time - distance_status->time_last));
     distance->status.enabled_status = distance->status.estimate_status = true;
     distance_status->time_last = velocity_time;
-  }
-  else
-  {
+  } else {
     distance_status->time_last = velocity_time;
   }
 }

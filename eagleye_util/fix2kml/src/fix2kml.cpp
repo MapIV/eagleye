@@ -38,13 +38,11 @@ static double driving_distance = 0.0;
 static double driving_distance_last = 0.0;
 static std::string filename, kmlname, fixname, color = "ff0000ff";
 
-void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
-{
+void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg) {
   driving_distance = msg->distance;
 }
 
-void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGenerator* kmlfile)
-{
+void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGenerator* kmlfile) {
   if ((driving_distance - driving_distance_last) > interval) {
     kmlfile->addPoint(msg->longitude, msg->latitude, msg->altitude);
     kmlfile->KmlGenerate(filename);
@@ -52,8 +50,7 @@ void receive_data(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg, KmlGene
   }
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared("fix2kml");
 
@@ -72,11 +69,14 @@ int main(int argc, char** argv)
   std::cout << "fixname: " << fixname << std::endl;
   std::cout << "color: " << color << std::endl;
 
-  KmlGenerator kmlfile(kmlname,color);
+  KmlGenerator kmlfile(kmlname, color);
 
-  std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc = std::bind(&receive_data, std::placeholders::_1, &kmlfile);
-  auto sub1 = node->create_subscription<sensor_msgs::msg::NavSatFix>(fixname, rclcpp::QoS(10), sub1_fnc);
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>("/eagleye/distance", rclcpp::QoS(10), distance_callback);
+  std::function<void(std::shared_ptr<sensor_msgs::msg::NavSatFix>)> sub1_fnc =
+    std::bind(&receive_data, std::placeholders::_1, &kmlfile);
+  auto sub1 =
+    node->create_subscription<sensor_msgs::msg::NavSatFix>(fixname, rclcpp::QoS(10), sub1_fnc);
+  auto sub2 = node->create_subscription<eagleye_msgs::msg::Distance>(
+    "/eagleye/distance", rclcpp::QoS(10), distance_callback);
   rclcpp::spin(node);
 
   return 0;

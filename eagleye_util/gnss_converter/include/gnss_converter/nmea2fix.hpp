@@ -36,7 +36,7 @@
 #include <memory>
 
 extern double stringToGPSTime(std::string&, double);
-extern void gnss_converter_converter(const nmea_msgs::msg::Sentence,  sensor_msgs::msg::NavSatFix*,
-    nmea_msgs::msg::Gpgga*, nmea_msgs::msg::Gprmc*);
+extern void gnss_converter_converter(const nmea_msgs::msg::Sentence, sensor_msgs::msg::NavSatFix*,
+                                     nmea_msgs::msg::Gpgga*, nmea_msgs::msg::Gprmc*);
 
 #endif /*gnss_converter_H */

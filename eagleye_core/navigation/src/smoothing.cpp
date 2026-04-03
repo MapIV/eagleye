@@ -31,16 +31,16 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::msg::TwistStamped velocity,
-  SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,eagleye_msgs::msg::Position* gnss_smooth_pos_enu)
-{
-
+void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav,
+                        geometry_msgs::msg::TwistStamped velocity,
+                        SmoothingParameter smoothing_parameter, SmoothingStatus* smoothing_status,
+                        eagleye_msgs::msg::Position* gnss_smooth_pos_enu) {
   int i;
   double ecef_pos[3];
   double ecef_base_pos[3];
   double enu_pos[3];
-  double gnss_smooth_pos[3] = {0};
-  double sum_gnss_pos[3] = {0};
+  double gnss_smooth_pos[3] = { 0 };
+  double sum_gnss_pos[3] = { 0 };
   bool gnss_update = false;
   std::size_t index_length;
   std::size_t time_buffer_length;
@@ -48,25 +48,27 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
   std::vector<int> velocity_index;
   std::vector<int> index;
 
-  double estimated_buffer_number = smoothing_parameter.gnss_rate * smoothing_parameter.moving_average_time;
+  double estimated_buffer_number =
+    smoothing_parameter.gnss_rate * smoothing_parameter.moving_average_time;
 
   rclcpp::Time ros_clock(rtklib_nav.header.stamp);
   auto rtklib_nav_time = ros_clock.seconds();
 
-  if(gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 && gnss_smooth_pos_enu->ecef_base_pos.z == 0)
-  {
+  if (gnss_smooth_pos_enu->ecef_base_pos.x == 0 && gnss_smooth_pos_enu->ecef_base_pos.y == 0 &&
+      gnss_smooth_pos_enu->ecef_base_pos.z == 0) {
     gnss_smooth_pos_enu->ecef_base_pos.x = rtklib_nav.ecef_pos.x;
     gnss_smooth_pos_enu->ecef_base_pos.y = rtklib_nav.ecef_pos.y;
     gnss_smooth_pos_enu->ecef_base_pos.z = rtklib_nav.ecef_pos.z;
 
-    if(smoothing_parameter.ecef_base_pos_x != 0 && smoothing_parameter.ecef_base_pos_y != 0 && smoothing_parameter.ecef_base_pos_z != 0){
+    if (smoothing_parameter.ecef_base_pos_x != 0 && smoothing_parameter.ecef_base_pos_y != 0 &&
+        smoothing_parameter.ecef_base_pos_z != 0) {
       gnss_smooth_pos_enu->ecef_base_pos.x = smoothing_parameter.ecef_base_pos_x;
       gnss_smooth_pos_enu->ecef_base_pos.y = smoothing_parameter.ecef_base_pos_y;
       gnss_smooth_pos_enu->ecef_base_pos.z = smoothing_parameter.ecef_base_pos_z;
     }
   }
 
-  if(rtklib_nav.tow != 0){
+  if (rtklib_nav.tow != 0) {
     ecef_pos[0] = rtklib_nav.ecef_pos.x;
     ecef_pos[1] = rtklib_nav.ecef_pos.y;
     ecef_pos[2] = rtklib_nav.ecef_pos.z;
@@ -76,54 +78,48 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
 
     xyz2enu(ecef_pos, ecef_base_pos, enu_pos);
 
-    if (!std::isfinite(enu_pos[0])||!std::isfinite(enu_pos[1])||!std::isfinite(enu_pos[2]))
-    {
+    if (!std::isfinite(enu_pos[0]) || !std::isfinite(enu_pos[1]) || !std::isfinite(enu_pos[2])) {
       enu_pos[0] = 0;
       enu_pos[1] = 0;
       enu_pos[2] = 0;
       gnss_update = false;
-    }
-    else
-    {
+    } else {
       gnss_update = true;
     }
   }
 
-  if(gnss_update == true){
+  if (gnss_update == true) {
     smoothing_status->time_buffer.push_back(rtklib_nav_time);
     smoothing_status->enu_pos_x_buffer.push_back(enu_pos[0]);
     smoothing_status->enu_pos_y_buffer.push_back(enu_pos[1]);
     smoothing_status->enu_pos_z_buffer.push_back(enu_pos[2]);
     smoothing_status->correction_velocity_buffer.push_back(velocity.twist.linear.x);
 
-    time_buffer_length = std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
+    time_buffer_length =
+      std::distance(smoothing_status->time_buffer.begin(), smoothing_status->time_buffer.end());
 
-    if (time_buffer_length > estimated_buffer_number)
-    {
+    if (time_buffer_length > estimated_buffer_number) {
       smoothing_status->time_buffer.erase(smoothing_status->time_buffer.begin());
       smoothing_status->enu_pos_x_buffer.erase(smoothing_status->enu_pos_x_buffer.begin());
       smoothing_status->enu_pos_y_buffer.erase(smoothing_status->enu_pos_y_buffer.begin());
       smoothing_status->enu_pos_z_buffer.erase(smoothing_status->enu_pos_z_buffer.begin());
-      smoothing_status->correction_velocity_buffer.erase(smoothing_status->correction_velocity_buffer.begin());
+      smoothing_status->correction_velocity_buffer.erase(
+        smoothing_status->correction_velocity_buffer.begin());
     }
 
-    if (smoothing_status->estimated_number < estimated_buffer_number)
-    {
+    if (smoothing_status->estimated_number < estimated_buffer_number) {
       ++smoothing_status->estimated_number;
       gnss_smooth_pos_enu->status.enabled_status = false;
-    }
-    else
-    {
+    } else {
       smoothing_status->estimated_number = estimated_buffer_number;
       gnss_smooth_pos_enu->status.enabled_status = true;
     }
 
-    if (smoothing_status->estimated_number == estimated_buffer_number){
-      for (i = 0; i < smoothing_status->estimated_number; i++)
-      {
+    if (smoothing_status->estimated_number == estimated_buffer_number) {
+      for (i = 0; i < smoothing_status->estimated_number; i++) {
         index.push_back(i);
-        if (smoothing_status->correction_velocity_buffer[i] > smoothing_parameter.moving_judgment_threshold)
-        {
+        if (smoothing_status->correction_velocity_buffer[i] >
+            smoothing_parameter.moving_judgment_threshold) {
           velocity_index.push_back(i);
         }
       }
@@ -131,24 +127,20 @@ void smoothing_estimate(rtklib_msgs::msg::RtklibNav rtklib_nav, geometry_msgs::m
       index_length = std::distance(index.begin(), index.end());
       velocity_index_length = std::distance(velocity_index.begin(), velocity_index.end());
 
-      for (i = 0; i < velocity_index_length; i++)
-      {
+      for (i = 0; i < velocity_index_length; i++) {
         sum_gnss_pos[0] = sum_gnss_pos[0] + smoothing_status->enu_pos_x_buffer[velocity_index[i]];
         sum_gnss_pos[1] = sum_gnss_pos[1] + smoothing_status->enu_pos_y_buffer[velocity_index[i]];
         sum_gnss_pos[2] = sum_gnss_pos[2] + smoothing_status->enu_pos_z_buffer[velocity_index[i]];
       }
 
-      if (velocity_index_length > index_length * smoothing_parameter.moving_ratio_threshold)
-      {
-        gnss_smooth_pos[0] = sum_gnss_pos[0]/velocity_index_length;
-        gnss_smooth_pos[1] = sum_gnss_pos[1]/velocity_index_length;
-        gnss_smooth_pos[2] = sum_gnss_pos[2]/velocity_index_length;
+      if (velocity_index_length > index_length * smoothing_parameter.moving_ratio_threshold) {
+        gnss_smooth_pos[0] = sum_gnss_pos[0] / velocity_index_length;
+        gnss_smooth_pos[1] = sum_gnss_pos[1] / velocity_index_length;
+        gnss_smooth_pos[2] = sum_gnss_pos[2] / velocity_index_length;
         gnss_smooth_pos_enu->status.estimate_status = true;
       }
     }
-  }
-  else
-  {
+  } else {
     gnss_smooth_pos[0] = smoothing_status->last_pos[0];
     gnss_smooth_pos[1] = smoothing_status->last_pos[1];
     gnss_smooth_pos[2] = smoothing_status->last_pos[2];
