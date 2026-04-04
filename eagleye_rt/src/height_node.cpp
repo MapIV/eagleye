@@ -28,146 +28,169 @@
  * Author MapIV  Takanose
  */
 
- #include "rclcpp/rclcpp.hpp"
- #include "eagleye_coordinate/eagleye_coordinate.hpp"
- #include "eagleye_navigation/eagleye_navigation.hpp"
+#include "eagleye_coordinate/eagleye_coordinate.hpp"
+#include "eagleye_navigation/eagleye_navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
 
- static sensor_msgs::msg::Imu imu;
- static nmea_msgs::msg::Gpgga gga;
- static geometry_msgs::msg::TwistStamped velocity;
- static eagleye_msgs::msg::StatusStamped velocity_status;
- static eagleye_msgs::msg::Distance distance;
-
- rclcpp::Publisher<eagleye_msgs::msg::Height>::SharedPtr pub1;
- rclcpp::Publisher<eagleye_msgs::msg::Pitching>::SharedPtr pub2;
- rclcpp::Publisher<eagleye_msgs::msg::AccXOffset>::SharedPtr pub3;
- rclcpp::Publisher<eagleye_msgs::msg::AccXScaleFactor>::SharedPtr pub4;
- rclcpp::Publisher<nmea_msgs::msg::Gpgga>::SharedPtr pub5;
- static eagleye_msgs::msg::Height height;
- static eagleye_msgs::msg::Pitching pitching;
- static eagleye_msgs::msg::AccXOffset acc_x_offset;
- static eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor;
-
- struct HeightParameter height_parameter;
- struct HeightStatus height_status;
-
- static bool use_can_less_mode;
-
-void gga_callback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg)
+class HeightNode : public rclcpp::Node
 {
-  gga = *msg;
-}
-
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
-{
-  velocity = *msg;
-}
-
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
-{
-  velocity_status = *msg;
-}
-
-void distance_callback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
-{
-  distance = *msg;
-}
-
-void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
-{
-  if(use_can_less_mode && !velocity_status.status.enabled_status) return;
-
-  imu = *msg;
-  height.header = msg->header;
-  height.header.frame_id = "base_link";
-  pitching.header = msg->header;
-  pitching.header.frame_id = "base_link";
-  acc_x_offset.header = msg->header;
-  acc_x_scale_factor.header = msg->header;
-  pitching_estimate(imu,gga,velocity,distance,height_parameter,&height_status,&height,&pitching,&acc_x_offset,&acc_x_scale_factor);
-  pub1->publish(height);
-  pub2->publish(pitching);
-  pub3->publish(acc_x_offset);
-  pub4->publish(acc_x_scale_factor);
-
-  if (height_status.flag_reliability == true)
+public:
+  HeightNode() : Node("eagleye_height")
   {
-    pub5->publish(gga);
+    std::string subscribe_gga_topic_name = "gnss/gga";
+
+    std::string yaml_file;
+    this->declare_parameter("yaml_file", yaml_file);
+    this->get_parameter("yaml_file", yaml_file);
+    std::cout << "yaml_file: " << yaml_file << std::endl;
+
+    try {
+      YAML::Node conf = YAML::LoadFile(yaml_file);
+
+      use_can_less_mode_ = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
+      height_parameter_.imu_rate =
+        conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+      height_parameter_.gnss_rate =
+        conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
+      height_parameter_.moving_judgment_threshold =
+        conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
+      height_parameter_.estimated_minimum_interval =
+        conf["/**"]["ros__parameters"]["height"]["estimated_minimum_interval"].as<double>();
+      height_parameter_.estimated_maximum_interval =
+        conf["/**"]["ros__parameters"]["height"]["estimated_maximum_interval"].as<double>();
+      height_parameter_.update_distance =
+        conf["/**"]["ros__parameters"]["height"]["update_distance"].as<double>();
+      height_parameter_.gnss_receiving_threshold =
+        conf["/**"]["ros__parameters"]["height"]["gnss_receiving_threshold"].as<double>();
+      height_parameter_.outlier_threshold =
+        conf["/**"]["ros__parameters"]["height"]["outlier_threshold"].as<double>();
+      height_parameter_.outlier_ratio_threshold =
+        conf["/**"]["ros__parameters"]["height"]["outlier_ratio_threshold"].as<double>();
+      height_parameter_.moving_average_time =
+        conf["/**"]["ros__parameters"]["height"]["moving_average_time"].as<double>();
+
+      std::cout << "imu_rate " << height_parameter_.imu_rate << std::endl;
+      std::cout << "gnss_rate " << height_parameter_.gnss_rate << std::endl;
+      std::cout << "moving_judgment_threshold " << height_parameter_.moving_judgment_threshold
+                << std::endl;
+      std::cout << "estimated_minimum_interval " << height_parameter_.estimated_minimum_interval
+                << std::endl;
+      std::cout << "estimated_maximum_interval " << height_parameter_.estimated_maximum_interval
+                << std::endl;
+      std::cout << "update_distance " << height_parameter_.update_distance << std::endl;
+      std::cout << "gnss_receiving_threshold " << height_parameter_.gnss_receiving_threshold
+                << std::endl;
+      std::cout << "outlier_threshold " << height_parameter_.outlier_threshold << std::endl;
+      std::cout << "outlier_ratio_threshold " << height_parameter_.outlier_ratio_threshold
+                << std::endl;
+      std::cout << "moving_average_time " << height_parameter_.moving_average_time << std::endl;
+    } catch (YAML::Exception& e) {
+      std::cerr << "\033[1;31mheight Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+      exit(3);
+    }
+
+    sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "imu/data_tf_converted", 1000,
+      std::bind(&HeightNode::imuCallback, this, std::placeholders::_1));
+    sub_gga_ = this->create_subscription<nmea_msgs::msg::Gpgga>(
+      subscribe_gga_topic_name, 1000,
+      std::bind(&HeightNode::ggaCallback, this, std::placeholders::_1));
+    sub_velocity_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+      "velocity", rclcpp::QoS(10),
+      std::bind(&HeightNode::velocityCallback, this, std::placeholders::_1));
+    sub_velocity_status_ = this->create_subscription<eagleye_msgs::msg::StatusStamped>(
+      "velocity_status", rclcpp::QoS(10),
+      std::bind(&HeightNode::velocityStatusCallback, this, std::placeholders::_1));
+    sub_distance_ = this->create_subscription<eagleye_msgs::msg::Distance>(
+      "distance", rclcpp::QoS(10),
+      std::bind(&HeightNode::distanceCallback, this, std::placeholders::_1));
+
+    pub_height_ = this->create_publisher<eagleye_msgs::msg::Height>("height", 1000);
+    pub_pitching_ = this->create_publisher<eagleye_msgs::msg::Pitching>("pitching", 1000);
+    pub_acc_x_offset_ =
+      this->create_publisher<eagleye_msgs::msg::AccXOffset>("acc_x_offset", 1000);
+    pub_acc_x_scale_factor_ =
+      this->create_publisher<eagleye_msgs::msg::AccXScaleFactor>("acc_x_scale_factor", 1000);
+    pub_gga_ =
+      this->create_publisher<nmea_msgs::msg::Gpgga>("navsat/reliability_gga", 1000);
   }
 
-  height_status.flag_reliability = false;
-  height.status.estimate_status = false;
-  pitching.status.estimate_status = false;
-  acc_x_offset.status.estimate_status = false;
-  acc_x_scale_factor.status.estimate_status = false;
-}
+private:
+  sensor_msgs::msg::Imu imu_;
+  nmea_msgs::msg::Gpgga gga_;
+  geometry_msgs::msg::TwistStamped velocity_;
+  eagleye_msgs::msg::StatusStamped velocity_status_;
+  eagleye_msgs::msg::Distance distance_;
+  eagleye_msgs::msg::Height height_;
+  eagleye_msgs::msg::Pitching pitching_;
+  eagleye_msgs::msg::AccXOffset acc_x_offset_;
+  eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor_;
+  HeightParameter height_parameter_;
+  HeightStatus height_status_;
+  bool use_can_less_mode_ = false;
+
+  rclcpp::Publisher<eagleye_msgs::msg::Height>::SharedPtr pub_height_;
+  rclcpp::Publisher<eagleye_msgs::msg::Pitching>::SharedPtr pub_pitching_;
+  rclcpp::Publisher<eagleye_msgs::msg::AccXOffset>::SharedPtr pub_acc_x_offset_;
+  rclcpp::Publisher<eagleye_msgs::msg::AccXScaleFactor>::SharedPtr pub_acc_x_scale_factor_;
+  rclcpp::Publisher<nmea_msgs::msg::Gpgga>::SharedPtr pub_gga_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+  rclcpp::Subscription<nmea_msgs::msg::Gpgga>::SharedPtr sub_gga_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_velocity_;
+  rclcpp::Subscription<eagleye_msgs::msg::StatusStamped>::SharedPtr sub_velocity_status_;
+  rclcpp::Subscription<eagleye_msgs::msg::Distance>::SharedPtr sub_distance_;
+
+  void ggaCallback(const nmea_msgs::msg::Gpgga::ConstSharedPtr msg) { gga_ = *msg; }
+
+  void velocityCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+  {
+    velocity_ = *msg;
+  }
+
+  void velocityStatusCallback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+  {
+    velocity_status_ = *msg;
+  }
+
+  void distanceCallback(const eagleye_msgs::msg::Distance::ConstSharedPtr msg)
+  {
+    distance_ = *msg;
+  }
+
+  void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
+  {
+    if (use_can_less_mode_ && !velocity_status_.status.enabled_status) return;
+
+    imu_ = *msg;
+    height_.header = msg->header;
+    height_.header.frame_id = "base_link";
+    pitching_.header = msg->header;
+    pitching_.header.frame_id = "base_link";
+    acc_x_offset_.header = msg->header;
+    acc_x_scale_factor_.header = msg->header;
+    pitching_estimate(
+      imu_, gga_, velocity_, distance_, height_parameter_, &height_status_, &height_, &pitching_,
+      &acc_x_offset_, &acc_x_scale_factor_);
+    pub_height_->publish(height_);
+    pub_pitching_->publish(pitching_);
+    pub_acc_x_offset_->publish(acc_x_offset_);
+    pub_acc_x_scale_factor_->publish(acc_x_scale_factor_);
+
+    if (height_status_.flag_reliability == true) {
+      pub_gga_->publish(gga_);
+    }
+
+    height_status_.flag_reliability = false;
+    height_.status.estimate_status = false;
+    pitching_.status.estimate_status = false;
+    acc_x_offset_.status.estimate_status = false;
+    acc_x_scale_factor_.status.estimate_status = false;
+  }
+};
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_height");
-
-  std::string subscribe_gga_topic_name = "gnss/gga";
-
-  std::string yaml_file;
-  node->declare_parameter("yaml_file",yaml_file);
-  node->get_parameter("yaml_file",yaml_file);
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-
-  try
-  {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
-
-    height_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
-    height_parameter.gnss_rate = conf["/**"]["ros__parameters"]["common"]["gnss_rate"].as<double>();
-    height_parameter.moving_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["moving_judgment_threshold"].as<double>();
-
-    height_parameter.estimated_minimum_interval = conf["/**"]["ros__parameters"]["height"]["estimated_minimum_interval"].as<double>();
-    height_parameter.estimated_maximum_interval = conf["/**"]["ros__parameters"]["height"]["estimated_maximum_interval"].as<double>();
-    height_parameter.update_distance = conf["/**"]["ros__parameters"]["height"]["update_distance"].as<double>();
-    height_parameter.gnss_receiving_threshold = conf["/**"]["ros__parameters"]["height"]["gnss_receiving_threshold"].as<double>();
-    height_parameter.outlier_threshold = conf["/**"]["ros__parameters"]["height"]["outlier_threshold"].as<double>();
-    height_parameter.outlier_ratio_threshold = conf["/**"]["ros__parameters"]["height"]["outlier_ratio_threshold"].as<double>();
-    height_parameter.moving_average_time = conf["/**"]["ros__parameters"]["height"]["moving_average_time"].as<double>();
-
-    std::cout << "imu_rate " << height_parameter.imu_rate << std::endl;
-    std::cout << "gnss_rate " << height_parameter.gnss_rate << std::endl;
-    std::cout << "moving_judgment_threshold " << height_parameter.moving_judgment_threshold << std::endl;
-
-    std::cout << "estimated_minimum_interval " << height_parameter.estimated_minimum_interval << std::endl;
-    std::cout << "estimated_maximum_interval " << height_parameter.estimated_maximum_interval << std::endl;
-    std::cout << "update_distance " << height_parameter.update_distance << std::endl;
-    std::cout << "gnss_receiving_threshold " << height_parameter.gnss_receiving_threshold << std::endl;
-    std::cout << "outlier_threshold " << height_parameter.outlier_threshold << std::endl;
-    std::cout << "outlier_ratio_threshold " << height_parameter.outlier_ratio_threshold << std::endl;
-    std::cout << "moving_average_time " << height_parameter.moving_average_time << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mheight Node YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
-  }
-
-
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
-  auto sub2 = node->create_subscription<nmea_msgs::msg::Gpgga>(subscribe_gga_topic_name, 1000, gga_callback);
-  auto sub3 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10), distance_callback);
-
-  std::string publish_height_topic_name = "height";
-  std::string publish_pitching_topic_name = "pitching";
-  std::string publish_acc_x_offset_topic_name = "acc_x_offset";
-  std::string publish_acc_x_scale_factor_topic_name = "acc_x_scale_factor";
-  std::string publish_nav_sat_gga_topic_name = "navsat/reliability_gga";
-
-  pub1 = node->create_publisher<eagleye_msgs::msg::Height>(publish_height_topic_name, 1000);
-  pub2 = node->create_publisher<eagleye_msgs::msg::Pitching>(publish_pitching_topic_name, 1000);
-  pub3 = node->create_publisher<eagleye_msgs::msg::AccXOffset>(publish_acc_x_offset_topic_name, 1000);
-  pub4 = node->create_publisher<eagleye_msgs::msg::AccXScaleFactor>(publish_acc_x_scale_factor_topic_name, 1000);
-  pub5 = node->create_publisher<nmea_msgs::msg::Gpgga>(publish_nav_sat_gga_topic_name, 1000);
-
-  rclcpp::spin(node);
-
+  rclcpp::spin(std::make_shared<HeightNode>());
   return 0;
 }

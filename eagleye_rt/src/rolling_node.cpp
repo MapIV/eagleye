@@ -31,104 +31,108 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-rclcpp::Publisher<eagleye_msgs::msg::Rolling>::SharedPtr _rolling_pub;
-
-static geometry_msgs::msg::TwistStamped _velocity_msg;
-static eagleye_msgs::msg::StatusStamped _velocity_status_msg;
-static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_2nd_msg;
-static eagleye_msgs::msg::YawrateOffset _yaw_rate_offset_stop_msg;
-static sensor_msgs::msg::Imu _imu_msg;
-
-static eagleye_msgs::msg::Rolling _rolling_msg;
-
-struct RollingParameter _rolling_parameter;
-struct RollingStatus _rolling_status;
-
-static bool _use_can_less_mode;
-
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+class RollingNode : public rclcpp::Node
 {
-  _velocity_msg = *msg;
-}
-
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
-{
-  _velocity_status_msg = *msg;
-}
-
-void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
-{
-  _yaw_rate_offset_stop_msg = *msg;
-}
-
-void yaw_rate_offset_2nd_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
-{
-  _yaw_rate_offset_2nd_msg = *msg;
-}
-
-void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
-{
-  if(_use_can_less_mode && !_velocity_status_msg.status.enabled_status) return;
-  _imu_msg = *msg;
-  rolling_estimate(_imu_msg, _velocity_msg, _yaw_rate_offset_stop_msg, _yaw_rate_offset_2nd_msg,
-                   _rolling_parameter, &_rolling_status, &_rolling_msg);
-  _rolling_pub->publish(_rolling_msg);
-}
-
-void setParam(rclcpp::Node::SharedPtr node)
-{
-  std::string yaml_file;
-  node->declare_parameter("yaml_file",yaml_file);
-  node->get_parameter("yaml_file",yaml_file);
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-
-  try
+public:
+  RollingNode() : Node("eagleye_rolling")
   {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
+    std::string yaml_file;
+    this->declare_parameter("yaml_file", yaml_file);
+    this->get_parameter("yaml_file", yaml_file);
+    std::cout << "yaml_file: " << yaml_file << std::endl;
 
-    _use_can_less_mode = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
-    _rolling_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-    _rolling_parameter.filter_process_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_process_noise"].as<double>();
-    _rolling_parameter.filter_observation_noise = conf["/**"]["ros__parameters"]["rolling"]["filter_observation_noise"].as<double>();
+    try {
+      YAML::Node conf = YAML::LoadFile(yaml_file);
 
-    std::cout<< "use_can_less_mode " << _use_can_less_mode << std::endl;
-    std::cout << "stop_judgment_threshold " << _rolling_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "filter_process_noise " << _rolling_parameter.filter_process_noise << std::endl;
-    std::cout << "filter_observation_noise " << _rolling_parameter.filter_observation_noise << std::endl;
+      use_can_less_mode_ = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
+      rolling_parameter_.stop_judgment_threshold =
+        conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+      rolling_parameter_.filter_process_noise =
+        conf["/**"]["ros__parameters"]["rolling"]["filter_process_noise"].as<double>();
+      rolling_parameter_.filter_observation_noise =
+        conf["/**"]["ros__parameters"]["rolling"]["filter_observation_noise"].as<double>();
+
+      std::cout << "use_can_less_mode " << use_can_less_mode_ << std::endl;
+      std::cout << "stop_judgment_threshold " << rolling_parameter_.stop_judgment_threshold
+                << std::endl;
+      std::cout << "filter_process_noise " << rolling_parameter_.filter_process_noise << std::endl;
+      std::cout << "filter_observation_noise " << rolling_parameter_.filter_observation_noise
+                << std::endl;
+    } catch (YAML::Exception& e) {
+      std::cerr << "\033[1;31mrolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
+      exit(3);
+    }
+
+    sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "imu/data_tf_converted", 1000,
+      std::bind(&RollingNode::imuCallback, this, std::placeholders::_1));
+    sub_velocity_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+      "velocity", rclcpp::QoS(10),
+      std::bind(&RollingNode::velocityCallback, this, std::placeholders::_1));
+    sub_velocity_status_ = this->create_subscription<eagleye_msgs::msg::StatusStamped>(
+      "velocity_status", rclcpp::QoS(10),
+      std::bind(&RollingNode::velocityStatusCallback, this, std::placeholders::_1));
+    sub_yaw_rate_offset_2nd_ = this->create_subscription<eagleye_msgs::msg::YawrateOffset>(
+      "yaw_rate_offset_2nd", 1000,
+      std::bind(&RollingNode::yawRateOffset2ndCallback, this, std::placeholders::_1));
+    sub_yaw_rate_offset_stop_ = this->create_subscription<eagleye_msgs::msg::YawrateOffset>(
+      "yaw_rate_offset_stop", 1000,
+      std::bind(&RollingNode::yawRateOffsetStopCallback, this, std::placeholders::_1));
+    pub_ = this->create_publisher<eagleye_msgs::msg::Rolling>("rolling", 1000);
   }
-  catch (YAML::Exception& e)
+
+private:
+  geometry_msgs::msg::TwistStamped velocity_;
+  eagleye_msgs::msg::StatusStamped velocity_status_;
+  eagleye_msgs::msg::YawrateOffset yaw_rate_offset_2nd_;
+  eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop_;
+  sensor_msgs::msg::Imu imu_;
+  eagleye_msgs::msg::Rolling rolling_;
+  RollingParameter rolling_parameter_;
+  RollingStatus rolling_status_;
+  bool use_can_less_mode_ = false;
+
+  rclcpp::Publisher<eagleye_msgs::msg::Rolling>::SharedPtr pub_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_velocity_;
+  rclcpp::Subscription<eagleye_msgs::msg::StatusStamped>::SharedPtr sub_velocity_status_;
+  rclcpp::Subscription<eagleye_msgs::msg::YawrateOffset>::SharedPtr sub_yaw_rate_offset_2nd_;
+  rclcpp::Subscription<eagleye_msgs::msg::YawrateOffset>::SharedPtr sub_yaw_rate_offset_stop_;
+
+  void velocityCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
   {
-    std::cerr << "\033[1;31mrolling Node YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
+    velocity_ = *msg;
   }
-}
 
-void rolling_node(rclcpp::Node::SharedPtr node)
-{
-  setParam(node);
+  void velocityStatusCallback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+  {
+    velocity_status_ = *msg;
+  }
 
-  auto imu_sub =
-      node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
-  auto velocity_sub =
-      node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
-  auto velocity_status_sub =
-      node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto yaw_rate_offset_2nd_sub =
-      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", 1000, yaw_rate_offset_2nd_callback);
-  auto yaw_rate_offset_stop_sub =
-      node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", 1000, yaw_rate_offset_stop_callback);
+  void yawRateOffsetStopCallback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+  {
+    yaw_rate_offset_stop_ = *msg;
+  }
 
-  _rolling_pub = node->create_publisher<eagleye_msgs::msg::Rolling>("rolling", 1000);
+  void yawRateOffset2ndCallback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+  {
+    yaw_rate_offset_2nd_ = *msg;
+  }
 
-  rclcpp::spin(node);
-}
+  void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
+  {
+    if (use_can_less_mode_ && !velocity_status_.status.enabled_status) return;
+    imu_ = *msg;
+    rolling_estimate(
+      imu_, velocity_, yaw_rate_offset_stop_, yaw_rate_offset_2nd_, rolling_parameter_,
+      &rolling_status_, &rolling_);
+    pub_->publish(rolling_);
+  }
+};
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_rolling");
-
-  rolling_node(node);
-
+  rclcpp::spin(std::make_shared<RollingNode>());
   return 0;
 }

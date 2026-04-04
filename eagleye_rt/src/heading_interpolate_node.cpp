@@ -28,144 +28,165 @@
  * Author MapIV Sekino
  */
 
-#include "rclcpp/rclcpp.hpp"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-static sensor_msgs::msg::Imu imu;
-static geometry_msgs::msg::TwistStamped velocity;
-static eagleye_msgs::msg::StatusStamped velocity_status;
-static eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop;
-static eagleye_msgs::msg::YawrateOffset yaw_rate_offset;
-static eagleye_msgs::msg::Heading heading;
-static eagleye_msgs::msg::SlipAngle slip_angle;
-
-rclcpp::Publisher<eagleye_msgs::msg::Heading>::SharedPtr pub;
-static eagleye_msgs::msg::Heading heading_interpolate;
-
-struct HeadingInterpolateParameter heading_interpolate_parameter;
-struct HeadingInterpolateStatus heading_interpolate_status;
-
-static bool _use_can_less_mode;
-
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+class HeadingInterpolateNode : public rclcpp::Node
 {
-  velocity = *msg;
-}
+public:
+  HeadingInterpolateNode(int argc, char** argv) : Node("eagleye_heading_interpolate")
+  {
+    std::string yaml_file;
+    this->declare_parameter("yaml_file", yaml_file);
+    this->get_parameter("yaml_file", yaml_file);
+    std::cout << "yaml_file: " << yaml_file << std::endl;
 
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
-{
-  velocity_status = *msg;
-}
+    try {
+      YAML::Node conf = YAML::LoadFile(yaml_file);
 
-void yaw_rate_offset_stop_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
-{
-  yaw_rate_offset_stop = *msg;
-}
+      use_can_less_mode_ = conf["/**"]["ros__parameters"]["use_can_less_mode"].as<bool>();
+      heading_interpolate_parameter_.imu_rate =
+        conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
+      heading_interpolate_parameter_.stop_judgment_threshold =
+        conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
+      heading_interpolate_parameter_.sync_search_period =
+        conf["/**"]["ros__parameters"]["heading_interpolate"]["sync_search_period"].as<double>();
+      heading_interpolate_parameter_.proc_noise =
+        conf["/**"]["ros__parameters"]["heading_interpolate"]["proc_noise"].as<double>();
 
-void yaw_rate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
-{
-  yaw_rate_offset = *msg;
-}
+      std::cout << "imu_rate " << heading_interpolate_parameter_.imu_rate << std::endl;
+      std::cout << "stop_judgment_threshold "
+                << heading_interpolate_parameter_.stop_judgment_threshold << std::endl;
+      std::cout << "sync_search_period " << heading_interpolate_parameter_.sync_search_period
+                << std::endl;
+      std::cout << "proc_noise " << heading_interpolate_parameter_.proc_noise << std::endl;
+    } catch (YAML::Exception& e) {
+      std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m"
+                << std::endl;
+      exit(3);
+    }
 
-void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
-{
-  heading = *msg;
-}
+    std::string publish_topic_name = "/publish_topic_name/invalid";
+    std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";
+    std::string subscribe_topic_name_2 = "/subscribe_topic_name/invalid_2";
 
-void slip_angle_callback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
-{
-  slip_angle = *msg;
-}
+    if (argc > 2) {
+      if (strcmp(argv[1], "1st") == 0) {
+        publish_topic_name = "heading_interpolate_1st";
+        subscribe_topic_name_1 = "yaw_rate_offset_stop";
+        subscribe_topic_name_2 = "heading_1st";
+      } else if (strcmp(argv[1], "2nd") == 0) {
+        publish_topic_name = "heading_interpolate_2nd";
+        subscribe_topic_name_1 = "yaw_rate_offset_1st";
+        subscribe_topic_name_2 = "heading_2nd";
+      } else if (strcmp(argv[1], "3rd") == 0) {
+        publish_topic_name = "heading_interpolate_3rd";
+        subscribe_topic_name_1 = "yaw_rate_offset_2nd";
+        subscribe_topic_name_2 = "heading_3rd";
+      } else {
+        RCLCPP_ERROR(this->get_logger(), "Invalid argument");
+        rclcpp::shutdown();
+      }
+    } else {
+      RCLCPP_ERROR(this->get_logger(), "No arguments");
+      rclcpp::shutdown();
+    }
 
-void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
-{
-  if(_use_can_less_mode && !velocity_status.status.enabled_status) return;
+    sub_imu_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "imu/data_tf_converted", 1000,
+      std::bind(&HeadingInterpolateNode::imuCallback, this, std::placeholders::_1));
+    sub_velocity_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+      "velocity", rclcpp::QoS(10),
+      std::bind(&HeadingInterpolateNode::velocityCallback, this, std::placeholders::_1));
+    sub_velocity_status_ = this->create_subscription<eagleye_msgs::msg::StatusStamped>(
+      "velocity_status", rclcpp::QoS(10),
+      std::bind(&HeadingInterpolateNode::velocityStatusCallback, this, std::placeholders::_1));
+    sub_yaw_rate_offset_stop_ = this->create_subscription<eagleye_msgs::msg::YawrateOffset>(
+      "yaw_rate_offset_stop", rclcpp::QoS(10),
+      std::bind(
+        &HeadingInterpolateNode::yawRateOffsetStopCallback, this, std::placeholders::_1));
+    sub_yaw_rate_offset_ = this->create_subscription<eagleye_msgs::msg::YawrateOffset>(
+      subscribe_topic_name_1, 1000,
+      std::bind(&HeadingInterpolateNode::yawRateOffsetCallback, this, std::placeholders::_1));
+    sub_heading_ = this->create_subscription<eagleye_msgs::msg::Heading>(
+      subscribe_topic_name_2, 1000,
+      std::bind(&HeadingInterpolateNode::headingCallback, this, std::placeholders::_1));
+    sub_slip_angle_ = this->create_subscription<eagleye_msgs::msg::SlipAngle>(
+      "slip_angle", rclcpp::QoS(10),
+      std::bind(&HeadingInterpolateNode::slipAngleCallback, this, std::placeholders::_1));
+    pub_ = this->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, rclcpp::QoS(10));
+  }
 
-  imu = *msg;
-  heading_interpolate.header = msg->header;
-  heading_interpolate.header.frame_id = "base_link";
-  heading_interpolate_estimate(imu,velocity,yaw_rate_offset_stop,yaw_rate_offset,heading,slip_angle,heading_interpolate_parameter,
-    &heading_interpolate_status,&heading_interpolate);
-  pub->publish(heading_interpolate);
-}
+private:
+  sensor_msgs::msg::Imu imu_;
+  geometry_msgs::msg::TwistStamped velocity_;
+  eagleye_msgs::msg::StatusStamped velocity_status_;
+  eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop_;
+  eagleye_msgs::msg::YawrateOffset yaw_rate_offset_;
+  eagleye_msgs::msg::Heading heading_;
+  eagleye_msgs::msg::SlipAngle slip_angle_;
+  eagleye_msgs::msg::Heading heading_interpolate_;
+  HeadingInterpolateParameter heading_interpolate_parameter_;
+  HeadingInterpolateStatus heading_interpolate_status_;
+  bool use_can_less_mode_ = false;
+
+  rclcpp::Publisher<eagleye_msgs::msg::Heading>::SharedPtr pub_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_velocity_;
+  rclcpp::Subscription<eagleye_msgs::msg::StatusStamped>::SharedPtr sub_velocity_status_;
+  rclcpp::Subscription<eagleye_msgs::msg::YawrateOffset>::SharedPtr sub_yaw_rate_offset_stop_;
+  rclcpp::Subscription<eagleye_msgs::msg::YawrateOffset>::SharedPtr sub_yaw_rate_offset_;
+  rclcpp::Subscription<eagleye_msgs::msg::Heading>::SharedPtr sub_heading_;
+  rclcpp::Subscription<eagleye_msgs::msg::SlipAngle>::SharedPtr sub_slip_angle_;
+
+  void velocityCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+  {
+    velocity_ = *msg;
+  }
+
+  void velocityStatusCallback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+  {
+    velocity_status_ = *msg;
+  }
+
+  void yawRateOffsetStopCallback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+  {
+    yaw_rate_offset_stop_ = *msg;
+  }
+
+  void yawRateOffsetCallback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+  {
+    yaw_rate_offset_ = *msg;
+  }
+
+  void headingCallback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
+  {
+    heading_ = *msg;
+  }
+
+  void slipAngleCallback(const eagleye_msgs::msg::SlipAngle::ConstSharedPtr msg)
+  {
+    slip_angle_ = *msg;
+  }
+
+  void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
+  {
+    if (use_can_less_mode_ && !velocity_status_.status.enabled_status) return;
+
+    imu_ = *msg;
+    heading_interpolate_.header = msg->header;
+    heading_interpolate_.header.frame_id = "base_link";
+    heading_interpolate_estimate(
+      imu_, velocity_, yaw_rate_offset_stop_, yaw_rate_offset_, heading_, slip_angle_,
+      heading_interpolate_parameter_, &heading_interpolate_status_, &heading_interpolate_);
+    pub_->publish(heading_interpolate_);
+  }
+};
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_heading_interpolate");
-
-  std::string yaml_file;
-  node->declare_parameter("yaml_file",yaml_file);
-  node->get_parameter("yaml_file",yaml_file);
-  std::cout << "yaml_file: " << yaml_file << std::endl;
-
-  try
-  {
-    YAML::Node conf = YAML::LoadFile(yaml_file);
-
-    heading_interpolate_parameter.imu_rate = conf["/**"]["ros__parameters"]["common"]["imu_rate"].as<double>();
-    heading_interpolate_parameter.stop_judgment_threshold = conf["/**"]["ros__parameters"]["common"]["stop_judgment_threshold"].as<double>();
-    heading_interpolate_parameter.sync_search_period = conf["/**"]["ros__parameters"]["heading_interpolate"]["sync_search_period"].as<double>();
-    heading_interpolate_parameter.proc_noise = conf["/**"]["ros__parameters"]["heading_interpolate"]["proc_noise"].as<double>();
-
-    std::cout << "imu_rate " << heading_interpolate_parameter.imu_rate << std::endl;
-    std::cout << "stop_judgment_threshold " << heading_interpolate_parameter.stop_judgment_threshold << std::endl;
-    std::cout << "sync_search_period " << heading_interpolate_parameter.sync_search_period << std::endl;
-    std::cout << "proc_noise " << heading_interpolate_parameter.proc_noise << std::endl;
-  }
-  catch (YAML::Exception& e)
-  {
-    std::cerr << "\033[1;31mheading_interpolate Node YAML Error: " << e.msg << "\033[0m" << std::endl;
-    exit(3);
-  }
-
-  std::string publish_topic_name = "/publish_topic_name/invalid";
-  std::string subscribe_topic_name_1 = "/subscribe_topic_name/invalid_1";
-  std::string subscribe_topic_name_2 = "/subscribe_topic_name/invalid_2";
-
-  if (argc > 2)
-  {
-    if (strcmp(argv[1], "1st") == 0)
-    {
-      publish_topic_name = "heading_interpolate_1st";
-      subscribe_topic_name_1 = "yaw_rate_offset_stop";
-      subscribe_topic_name_2 = "heading_1st";
-    }
-    else if (strcmp(argv[1], "2nd") == 0)
-    {
-      publish_topic_name = "heading_interpolate_2nd";
-      subscribe_topic_name_1 = "yaw_rate_offset_1st";
-      subscribe_topic_name_2 = "heading_2nd";
-    }
-    else if (strcmp(argv[1], "3rd") == 0)
-    {
-      publish_topic_name = "heading_interpolate_3rd";
-      subscribe_topic_name_1 = "yaw_rate_offset_2nd";
-      subscribe_topic_name_2 = "heading_3rd";
-    }
-    else
-    {
-      RCLCPP_ERROR(node->get_logger(),"Invalid argument");
-      rclcpp::shutdown();
-    }
-  }
-  else
-  {
-    RCLCPP_ERROR(node->get_logger(),"No arguments");
-    rclcpp::shutdown();
-  }
-
-  auto sub1 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);
-  auto sub2 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_stop", rclcpp::QoS(10), yaw_rate_offset_stop_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>(subscribe_topic_name_1, 1000, yaw_rate_offset_callback);
-  auto sub6 = node->create_subscription<eagleye_msgs::msg::Heading>(subscribe_topic_name_2, 1000, heading_callback);
-  auto sub7 = node->create_subscription<eagleye_msgs::msg::SlipAngle>("slip_angle", rclcpp::QoS(10), slip_angle_callback);
-  pub = node->create_publisher<eagleye_msgs::msg::Heading>(publish_topic_name, rclcpp::QoS(10));
-
-  rclcpp::spin(node);
-
+  rclcpp::spin(std::make_shared<HeadingInterpolateNode>(argc, argv));
   return 0;
 }
