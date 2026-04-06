@@ -13,10 +13,10 @@ jobs:
       - name: Install clang-format
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-format-17
+          sudo apt-get install -y clang-format-14
 
       - name: Check clang-format
         run: |
           find . \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) \
             ! -path "./build/*" ! -path "./install/*" \
-            | xargs clang-format-17 --dry-run --Werror
+            | xargs clang-format-14 --dry-run --Werror
