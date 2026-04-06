@@ -32,79 +32,98 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
 
-rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub;
-static eagleye_msgs::msg::YawrateOffset yaw_rate_offset;
-static eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop;
-static eagleye_msgs::msg::AccXOffset acc_x_offset;
-static eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor;
-static sensor_msgs::msg::Imu imu;
-
-static sensor_msgs::msg::Imu correction_imu;
-
-
-void yaw_rate_offset_callback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+class CorrectionImuNode : public rclcpp::Node
 {
-  yaw_rate_offset = *msg;
-}
-
-void angular_velocity_offset_stop_callback(const eagleye_msgs::msg::AngularVelocityOffset::ConstSharedPtr msg)
-{
-  angular_velocity_offset_stop = *msg;
-}
-
-void acc_x_offset_callback(const eagleye_msgs::msg::AccXOffset::ConstSharedPtr msg)
-{
-  acc_x_offset = *msg;
-}
-
-void acc_x_scale_factor_callback(const eagleye_msgs::msg::AccXScaleFactor::ConstSharedPtr msg)
-{
-  acc_x_scale_factor = *msg;
-}
-
-void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
-{
-  imu = *msg;
-
-  correction_imu.header = imu.header;
-  correction_imu.orientation = imu.orientation;
-  correction_imu.orientation_covariance = imu.orientation_covariance;
-  correction_imu.angular_velocity_covariance = imu.angular_velocity_covariance;
-  correction_imu.linear_acceleration_covariance = imu.linear_acceleration_covariance;
-
-  if (acc_x_offset.status.enabled_status == true && acc_x_scale_factor.status.enabled_status)
+public:
+  CorrectionImuNode() : Node("eagleye_correction_imu")
   {
-    correction_imu.linear_acceleration.x = imu.linear_acceleration.x * acc_x_scale_factor.acc_x_scale_factor + acc_x_offset.acc_x_offset;
-    correction_imu.linear_acceleration.y = imu.linear_acceleration.y;
-    correction_imu.linear_acceleration.z = imu.linear_acceleration.z;
-  }
-  else
-  {
-    correction_imu.linear_acceleration.x = imu.linear_acceleration.x;
-    correction_imu.linear_acceleration.y = imu.linear_acceleration.y;
-    correction_imu.linear_acceleration.z = imu.linear_acceleration.z;
+    sub1_ = this->create_subscription<eagleye_msgs::msg::YawrateOffset>(
+      "yaw_rate_offset_2nd", rclcpp::QoS(10),
+      std::bind(&CorrectionImuNode::yawRateOffsetCallback, this, std::placeholders::_1));
+    sub2_ = this->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>(
+      "angular_velocity_offset_stop", rclcpp::QoS(10),
+      std::bind(&CorrectionImuNode::angularVelocityOffsetStopCallback, this, std::placeholders::_1));
+    sub3_ = this->create_subscription<eagleye_msgs::msg::AccXOffset>(
+      "acc_x_offset", rclcpp::QoS(10),
+      std::bind(&CorrectionImuNode::accXOffsetCallback, this, std::placeholders::_1));
+    sub4_ = this->create_subscription<eagleye_msgs::msg::AccXScaleFactor>(
+      "acc_x_scale_factor", rclcpp::QoS(10),
+      std::bind(&CorrectionImuNode::accXScaleFactorCallback, this, std::placeholders::_1));
+    sub5_ = this->create_subscription<sensor_msgs::msg::Imu>(
+      "imu/data_tf_converted", 1000,
+      std::bind(&CorrectionImuNode::imuCallback, this, std::placeholders::_1));
+    pub_ = this->create_publisher<sensor_msgs::msg::Imu>("imu/data_corrected", rclcpp::QoS(10));
   }
 
-  correction_imu.angular_velocity.x = imu.angular_velocity.x + angular_velocity_offset_stop.angular_velocity_offset.x;
-  correction_imu.angular_velocity.y = imu.angular_velocity.y + angular_velocity_offset_stop.angular_velocity_offset.y;
-  correction_imu.angular_velocity.z = -1 * (imu.angular_velocity.z + angular_velocity_offset_stop.angular_velocity_offset.z);
+private:
+  eagleye_msgs::msg::YawrateOffset yaw_rate_offset_;
+  eagleye_msgs::msg::AngularVelocityOffset angular_velocity_offset_stop_;
+  eagleye_msgs::msg::AccXOffset acc_x_offset_;
+  eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor_;
+  sensor_msgs::msg::Imu imu_;
+  sensor_msgs::msg::Imu correction_imu_;
 
-  pub->publish(correction_imu);
-}
+  rclcpp::Subscription<eagleye_msgs::msg::YawrateOffset>::SharedPtr sub1_;
+  rclcpp::Subscription<eagleye_msgs::msg::AngularVelocityOffset>::SharedPtr sub2_;
+  rclcpp::Subscription<eagleye_msgs::msg::AccXOffset>::SharedPtr sub3_;
+  rclcpp::Subscription<eagleye_msgs::msg::AccXScaleFactor>::SharedPtr sub4_;
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub5_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr pub_;
+
+  void yawRateOffsetCallback(const eagleye_msgs::msg::YawrateOffset::ConstSharedPtr msg)
+  {
+    yaw_rate_offset_ = *msg;
+  }
+
+  void angularVelocityOffsetStopCallback(const eagleye_msgs::msg::AngularVelocityOffset::ConstSharedPtr msg)
+  {
+    angular_velocity_offset_stop_ = *msg;
+  }
+
+  void accXOffsetCallback(const eagleye_msgs::msg::AccXOffset::ConstSharedPtr msg)
+  {
+    acc_x_offset_ = *msg;
+  }
+
+  void accXScaleFactorCallback(const eagleye_msgs::msg::AccXScaleFactor::ConstSharedPtr msg)
+  {
+    acc_x_scale_factor_ = *msg;
+  }
+
+  void imuCallback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
+  {
+    imu_ = *msg;
+
+    correction_imu_.header = imu_.header;
+    correction_imu_.orientation = imu_.orientation;
+    correction_imu_.orientation_covariance = imu_.orientation_covariance;
+    correction_imu_.angular_velocity_covariance = imu_.angular_velocity_covariance;
+    correction_imu_.linear_acceleration_covariance = imu_.linear_acceleration_covariance;
+
+    if (acc_x_offset_.status.enabled_status == true && acc_x_scale_factor_.status.enabled_status)
+    {
+      correction_imu_.linear_acceleration.x = imu_.linear_acceleration.x * acc_x_scale_factor_.acc_x_scale_factor + acc_x_offset_.acc_x_offset;
+      correction_imu_.linear_acceleration.y = imu_.linear_acceleration.y;
+      correction_imu_.linear_acceleration.z = imu_.linear_acceleration.z;
+    }
+    else
+    {
+      correction_imu_.linear_acceleration.x = imu_.linear_acceleration.x;
+      correction_imu_.linear_acceleration.y = imu_.linear_acceleration.y;
+      correction_imu_.linear_acceleration.z = imu_.linear_acceleration.z;
+    }
+
+    correction_imu_.angular_velocity.x = imu_.angular_velocity.x + angular_velocity_offset_stop_.angular_velocity_offset.x;
+    correction_imu_.angular_velocity.y = imu_.angular_velocity.y + angular_velocity_offset_stop_.angular_velocity_offset.y;
+    correction_imu_.angular_velocity.z = -1 * (imu_.angular_velocity.z + angular_velocity_offset_stop_.angular_velocity_offset.z);
+
+    pub_->publish(correction_imu_);
+  }
+};
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_correction_imu");
-
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::YawrateOffset>("yaw_rate_offset_2nd", rclcpp::QoS(10), yaw_rate_offset_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::AngularVelocityOffset>("angular_velocity_offset_stop", rclcpp::QoS(10), angular_velocity_offset_stop_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub3 = node->create_subscription<eagleye_msgs::msg::AccXOffset>("acc_x_offset", rclcpp::QoS(10), acc_x_offset_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::AccXScaleFactor>("acc_x_scale_factor", rclcpp::QoS(10), acc_x_scale_factor_callback);  //ros::TransportHints().tcpNoDelay()
-  auto sub5 = node->create_subscription<sensor_msgs::msg::Imu>("imu/data_tf_converted", 1000, imu_callback);  //ros::TransportHints().tcpNoDelay()
-  pub = node->create_publisher<sensor_msgs::msg::Imu>("imu/data_corrected", rclcpp::QoS(10));
-
-  rclcpp::spin(node);
-
+  rclcpp::spin(std::make_shared<CorrectionImuNode>());
   return 0;
 }
