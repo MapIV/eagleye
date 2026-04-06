@@ -1,1 +1,34 @@
+# ROS workspace artifacts
+build/
+install/
+log/
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!cmake/*.cmake
+
+# Compiled binaries
+*.o
+*.a
+*.so
+*.so.*
+
+# OS
+.DS_Store
+Thumbs.db
