@@ -55,7 +55,8 @@ std::shared_ptr<tf2_ros::TransformBroadcaster> _br;
 static std::string _parent_frame_id, _child_frame_id;
 static std::string _base_link_frame_id, _gnss_frame_id;
 
-std::string geoid_file_path = ament_index_cpp::get_package_share_directory("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
+std::string geoid_file_path =
+  ament_index_cpp::get_package_share_directory("llh_converter") + "/data/gsigeo2011_ver2_1.asc";
 llh_converter::LLHConverter _lc(geoid_file_path);
 llh_converter::LLHParam _llh_param;
 
@@ -63,13 +64,13 @@ std::string _node_name = "eagleye_geo_pose_converter";
 
 tf2_ros::Buffer _tf_buffer(std::make_shared<rclcpp::Clock>(_ros_clock));
 
-void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped::ConstSharedPtr msg)
-{
-  double llh[3] = {0};
-  double xyz[3] = {0};
+void geo_pose_callback(
+  const geographic_msgs::msg::GeoPoseWithCovarianceStamped::ConstSharedPtr msg) {
+  double llh[3] = { 0 };
+  double xyz[3] = { 0 };
 
   llh[0] = msg->pose.pose.position.latitude * M_PI / 180;
-  llh[1] = msg->pose.pose.position.longitude* M_PI / 180;
+  llh[1] = msg->pose.pose.position.longitude * M_PI / 180;
   llh[2] = msg->pose.pose.position.altitude;
 
   _lc.convertRad2XYZ(llh[0], llh[1], llh[2], xyz[0], xyz[1], xyz[2], _llh_param);
@@ -83,24 +84,27 @@ void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped:
   pose.pose.orientation = msg->pose.pose.orientation;
 
   const auto localization_quat = tf2::Quaternion(pose.pose.orientation.x, pose.pose.orientation.y,
-    pose.pose.orientation.z, pose.pose.orientation.w);
+                                                 pose.pose.orientation.z, pose.pose.orientation.w);
 
   geometry_msgs::msg::PoseStamped::SharedPtr transformed_pose_msg_ptr(
     new geometry_msgs::msg::PoseStamped);
 
-  geometry_msgs::msg::TransformStamped::SharedPtr TF_sensor_to_base_ptr(new geometry_msgs::msg::TransformStamped);
-  try
-  {
-    *TF_sensor_to_base_ptr = _tf_buffer.lookupTransform(_gnss_frame_id, _base_link_frame_id, tf2::TimePointZero);
+  geometry_msgs::msg::TransformStamped::SharedPtr TF_sensor_to_base_ptr(
+    new geometry_msgs::msg::TransformStamped);
+  try {
+    *TF_sensor_to_base_ptr =
+      _tf_buffer.lookupTransform(_gnss_frame_id, _base_link_frame_id, tf2::TimePointZero);
 
     tf2::Transform transform, transform2, transfrom3;
-    transform.setOrigin(tf2::Vector3(pose.pose.position.x, pose.pose.position.y,
-      pose.pose.position.z));
+    transform.setOrigin(
+      tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
     transform.setRotation(localization_quat);
-    tf2::Quaternion q2(TF_sensor_to_base_ptr->transform.rotation.x, TF_sensor_to_base_ptr->transform.rotation.y,
+    tf2::Quaternion q2(
+      TF_sensor_to_base_ptr->transform.rotation.x, TF_sensor_to_base_ptr->transform.rotation.y,
       TF_sensor_to_base_ptr->transform.rotation.z, TF_sensor_to_base_ptr->transform.rotation.w);
     transform2.setOrigin(tf2::Vector3(TF_sensor_to_base_ptr->transform.translation.x,
-      TF_sensor_to_base_ptr->transform.translation.y, TF_sensor_to_base_ptr->transform.translation.z));
+                                      TF_sensor_to_base_ptr->transform.translation.y,
+                                      TF_sensor_to_base_ptr->transform.translation.z));
     transform2.setRotation(q2);
     transfrom3 = transform * transform2;
 
@@ -113,9 +117,7 @@ void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped:
     pose.pose.orientation.z = transfrom3.getRotation().getZ();
     pose.pose.orientation.w = transfrom3.getRotation().getW();
 
-  }
-  catch (tf2::TransformException& ex)
-  {
+  } catch (tf2::TransformException& ex) {
     RCLCPP_WARN(rclcpp::get_logger(_node_name), "%s", ex.what());
     return;
   }
@@ -135,9 +137,10 @@ void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped:
   pose_with_covariance.pose.covariance[28] = msg->pose.covariance[28];
   pose_with_covariance.pose.covariance[35] = msg->pose.covariance[35];
   _pub2->publish(pose_with_covariance);
- 
+
   tf2::Transform transform;
-  transform.setOrigin(tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
+  transform.setOrigin(
+    tf2::Vector3(pose.pose.position.x, pose.pose.position.y, pose.pose.position.z));
   // NOTE: currently geo_pose_fuser, the node before this node, ignores roll and pitch for robust estimation results.
   transform.setRotation(localization_quat);
 
@@ -149,8 +152,7 @@ void geo_pose_callback(const geographic_msgs::msg::GeoPoseWithCovarianceStamped:
   _br->sendTransform(trans_msg);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   int plane = 7;
   int tf_num = 7;
   int convert_height_num = 7;
@@ -177,67 +179,51 @@ int main(int argc, char** argv)
   node->get_parameter("base_link_frame_id", _base_link_frame_id);
   node->get_parameter("gnss_frame_id", _gnss_frame_id);
 
-  std::cout<< "plane "<< plane<<std::endl;
-  std::cout<< "tf_num "<< tf_num<<std::endl;
-  std::cout<< "convert_height_num "<< convert_height_num<<std::endl;
-  std::cout<< "geoid_type "<< geoid_type<<std::endl;
-  std::cout<< "parent_frame_id "<< _parent_frame_id<<std::endl;
-  std::cout<< "child_frame_id "<< _child_frame_id<<std::endl;
-  std::cout<< "base_link_frame_id "<< _base_link_frame_id<<std::endl;
-  std::cout<< "gnss_frame_id "<< _gnss_frame_id<<std::endl;
+  std::cout << "plane " << plane << std::endl;
+  std::cout << "tf_num " << tf_num << std::endl;
+  std::cout << "convert_height_num " << convert_height_num << std::endl;
+  std::cout << "geoid_type " << geoid_type << std::endl;
+  std::cout << "parent_frame_id " << _parent_frame_id << std::endl;
+  std::cout << "child_frame_id " << _child_frame_id << std::endl;
+  std::cout << "base_link_frame_id " << _base_link_frame_id << std::endl;
+  std::cout << "gnss_frame_id " << _gnss_frame_id << std::endl;
 
-  
-  if (tf_num == 1)
-  {
+  if (tf_num == 1) {
     _llh_param.use_mgrs = false;
-    _llh_param.plane_num = plane;  
-  }
-  else if (tf_num == 2)
-  {
+    _llh_param.plane_num = plane;
+  } else if (tf_num == 2) {
     _llh_param.use_mgrs = true;
-  }
-  else
-  {
+  } else {
     RCLCPP_ERROR(rclcpp::get_logger(_node_name), "tf_num is not valid");
     rclcpp::shutdown();
   }
 
-  if (convert_height_num == 0)
-  {
+  if (convert_height_num == 0) {
     RCLCPP_INFO(rclcpp::get_logger(_node_name), "convert_height_num is 0(no convert)");
-  }
-  else if (convert_height_num == 1)
-  {
-    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO; 
-  }
-  else if (convert_height_num == 2)
-  {
+  } else if (convert_height_num == 1) {
+    _llh_param.height_convert_type = llh_converter::ConvertType::ELLIPS2ORTHO;
+  } else if (convert_height_num == 2) {
     _llh_param.height_convert_type = llh_converter::ConvertType::ORTHO2ELLIPS;
-  }
-  else
-  {
+  } else {
     RCLCPP_ERROR(rclcpp::get_logger(_node_name), "convert_height_num is not valid");
     rclcpp::shutdown();
   }
 
- if(geoid_type == 0)
-  {
+  if (geoid_type == 0) {
     _llh_param.geoid_type = llh_converter::GeoidType::EGM2008;
-  }
-  else if(geoid_type == 1)
-  {
-    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011; 
-  }
-  else
-  {
+  } else if (geoid_type == 1) {
+    _llh_param.geoid_type = llh_converter::GeoidType::GSIGEO2011;
+  } else {
     RCLCPP_ERROR(rclcpp::get_logger(_node_name), "GeoidType is not valid");
     rclcpp::shutdown();
   }
 
   tf2_ros::TransformListener tf_listener(_tf_buffer);
-  auto sub = node->create_subscription<geographic_msgs::msg::GeoPoseWithCovarianceStamped>("eagleye/geo_pose_with_covariance", 1000, geo_pose_callback);
+  auto sub = node->create_subscription<geographic_msgs::msg::GeoPoseWithCovarianceStamped>(
+    "eagleye/geo_pose_with_covariance", 1000, geo_pose_callback);
   _pub = node->create_publisher<geometry_msgs::msg::PoseStamped>("eagleye/pose", 1000);
-  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>("eagleye/pose_with_covariance", 1000);
+  _pub2 = node->create_publisher<geometry_msgs::msg::PoseWithCovarianceStamped>(
+    "eagleye/pose_with_covariance", 1000);
   _br = std::make_shared<tf2_ros::TransformBroadcaster>(node, 100);
   rclcpp::spin(node);
 

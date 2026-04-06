@@ -34,17 +34,14 @@
 #ifndef KMLGENERATOR_H
 #define KMLGENERATOR_H
 
-class KmlGenerator
-{
+class KmlGenerator {
 public:
-  KmlGenerator(const std::string,const std::string);
-  KmlGenerator(const std::string,const std::string,const std::string);
-
+  KmlGenerator(const std::string, const std::string);
+  KmlGenerator(const std::string, const std::string, const std::string);
 
   void addPoint(double, double, double);
   void KmlGenerate(const std::string);
   std::string getKmlBody();
-
 
 private:
   std::ofstream kmlfile_;
@@ -55,94 +52,83 @@ private:
   std::stringstream footer_;
 };
 
-KmlGenerator::KmlGenerator(const std::string kmlname,const std::string color="ff0000ff")
-{
-  header_ 
-    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<< "\n"
-    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">"<< "\n"
-    << "<Document>"<< "\n"
-    << "<name>"<< kmlname <<"</name>"<< "\n"
-    << "\n";
+KmlGenerator::KmlGenerator(const std::string kmlname, const std::string color = "ff0000ff") {
+  header_ << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n"
+          << "<kml xmlns=\"http://earth.google.com/kml/2.2\">" << "\n"
+          << "<Document>" << "\n"
+          << "<name>" << kmlname << "</name>" << "\n"
+          << "\n";
 
-  config_header_
-    << "\t<Placemark>"<< "\n"
-    << "\t\t<name>"<< kmlname <<"</name>"<< "\n"
-    << "\t\t<Style>"<< "\n"
-    << "\t\t\t<LineStyle>"<< "\n"
-    << "\t\t\t\t<color>"<<color<<"</color>"<< "\n"
-    << "\t\t\t\t<width>5.00</width>"<< "\n"
-    << "\t\t\t</LineStyle>"<< "\n"
-    << "\t\t</Style>"	<< "\n"
-    << "\t\t<LineString>"<< "\n"
-    << "\t\t\t<tessellate>1</tessellate>"<< "\n"
-    << "\t\t\t<coordinates>"<< "\n";
+  config_header_ << "\t<Placemark>" << "\n"
+                 << "\t\t<name>" << kmlname << "</name>" << "\n"
+                 << "\t\t<Style>" << "\n"
+                 << "\t\t\t<LineStyle>" << "\n"
+                 << "\t\t\t\t<color>" << color << "</color>" << "\n"
+                 << "\t\t\t\t<width>5.00</width>" << "\n"
+                 << "\t\t\t</LineStyle>" << "\n"
+                 << "\t\t</Style>" << "\n"
+                 << "\t\t<LineString>" << "\n"
+                 << "\t\t\t<tessellate>1</tessellate>" << "\n"
+                 << "\t\t\t<coordinates>" << "\n";
 
-  config_footer_
-    << "\t\t\t</coordinates>"<< "\n"
-    << "\t\t</LineString>"<< "\n"
-    << "\t</Placemark>"<< "\n"
-    << "\n";
+  config_footer_ << "\t\t\t</coordinates>" << "\n"
+                 << "\t\t</LineString>" << "\n"
+                 << "\t</Placemark>" << "\n"
+                 << "\n";
 
-  footer_ 
-    << "</Document>"<< "\n"
-    << "</kml>"<< "\n";
+  footer_ << "</Document>" << "\n"
+          << "</kml>" << "\n";
 }
 
-KmlGenerator::KmlGenerator(const std::string kmlname,const std::string filename,const std::string body)
-{
+KmlGenerator::KmlGenerator(const std::string kmlname, const std::string filename,
+                           const std::string body) {
   kmlfile_.open(filename, std::ios::out);
-  if(!kmlfile_)	std::cerr << "KmlGenerator::KmlGenerate\tCould not open file file! " << filename << std::endl;
+  if (!kmlfile_)
+    std::cerr << "KmlGenerator::KmlGenerate\tCould not open file file! " << filename << std::endl;
   std::cout << "KmlGenerator::KmlGenerate\topen file file! " << filename << std::endl;
 
-  header_ 
-    << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"<< "\n"
-    << "<kml xmlns=\"http://earth.google.com/kml/2.2\">"<< "\n"
-    << "<Document>"<< "\n"
-    << "<name>"<< kmlname <<"</name>"<< "\n"
-    << "\n";
+  header_ << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n"
+          << "<kml xmlns=\"http://earth.google.com/kml/2.2\">" << "\n"
+          << "<Document>" << "\n"
+          << "<name>" << kmlname << "</name>" << "\n"
+          << "\n";
 
-  footer_ 
-    << "</Document>"<< "\n"
-    << "</kml>"<< "\n";
+  footer_ << "</Document>" << "\n"
+          << "</kml>" << "\n";
 
   std::string s_header = header_.str();
   std::string s_footer = footer_.str();
 
   kmlfile_ << s_header << body << s_footer;
   kmlfile_.close();
-
 }
 
-void KmlGenerator::addPoint(double longitude, double latitude, double altitude)
-{
-  body_ << std::setprecision(13) << longitude <<","
-        << std::setprecision(13) << latitude  <<","
-        << std::setprecision(13) << altitude  <<"\n";
+void KmlGenerator::addPoint(double longitude, double latitude, double altitude) {
+  body_ << std::setprecision(13) << longitude << "," << std::setprecision(13) << latitude << ","
+        << std::setprecision(13) << altitude << "\n";
 }
 
-void KmlGenerator::KmlGenerate(const std::string filename)
-{
+void KmlGenerator::KmlGenerate(const std::string filename) {
   kmlfile_.open(filename, std::ios::out);
-  if(!kmlfile_)	std::cerr << "KmlGenerator::KmlGenerate\tCould not open file file! " << filename << std::endl;
+  if (!kmlfile_)
+    std::cerr << "KmlGenerator::KmlGenerate\tCould not open file file! " << filename << std::endl;
 
-  std::string s_header        = header_.str();
+  std::string s_header = header_.str();
   std::string s_config_header = config_header_.str();
-  std::string s_body          = body_.str();
+  std::string s_body = body_.str();
   std::string s_config_footer = config_footer_.str();
-  std::string s_footer        = footer_.str();
+  std::string s_footer = footer_.str();
 
   kmlfile_ << s_header << s_config_header << s_body << s_config_footer << s_footer;
   kmlfile_.close();
 }
 
-std::string KmlGenerator::getKmlBody()
-{
+std::string KmlGenerator::getKmlBody() {
   std::string s_config_header = config_header_.str();
-  std::string s_body          = body_.str();
+  std::string s_body = body_.str();
   std::string s_config_footer = config_footer_.str();
 
   return s_config_header + s_body + s_config_footer;
 }
-
 
 #endif /*KMLGENERATOR_H */

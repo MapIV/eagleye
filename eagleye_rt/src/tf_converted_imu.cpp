@@ -45,8 +45,7 @@
 #include <tf2/transform_datatypes.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
-class TFConvertedIMU : public rclcpp::Node
-{
+class TFConvertedIMU : public rclcpp::Node {
 public:
   TFConvertedIMU();
   ~TFConvertedIMU();
@@ -67,12 +66,12 @@ private:
   void imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg);
 };
 
-TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
-                                   clock_(RCL_ROS_TIME),
-                                   tfbuffer_(std::make_shared<rclcpp::Clock>(clock_)),
-                                   tflistener_(tfbuffer_),
-                                   logger_(get_logger())
-{
+TFConvertedIMU::TFConvertedIMU()
+  : Node("eagleye_tf_converted_imu")
+  , clock_(RCL_ROS_TIME)
+  , tfbuffer_(std::make_shared<rclcpp::Clock>(clock_))
+  , tflistener_(tfbuffer_)
+  , logger_(get_logger()) {
   std::string subscribe_imu_topic_name = "/imu/data_raw";
   std::string publish_imu_topic_name = "imu/data_tf_converted";
 
@@ -88,23 +87,24 @@ TFConvertedIMU::TFConvertedIMU() : Node("eagleye_tf_converted_imu"),
   std::cout << "publish_imu_topic_name: " << publish_imu_topic_name << std::endl;
   std::cout << "tf_base_link_frame: " << tf_base_link_frame_ << std::endl;
 
-  sub_ = create_subscription<sensor_msgs::msg::Imu>(subscribe_imu_topic_name, rclcpp::QoS(10), std::bind(&TFConvertedIMU::imu_callback, this, std::placeholders::_1));
+  sub_ = create_subscription<sensor_msgs::msg::Imu>(
+    subscribe_imu_topic_name, rclcpp::QoS(10),
+    std::bind(&TFConvertedIMU::imu_callback, this, std::placeholders::_1));
   pub_ = create_publisher<sensor_msgs::msg::Imu>("imu/data_tf_converted", rclcpp::QoS(10));
 };
 
 TFConvertedIMU::~TFConvertedIMU() {};
 
-void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg)
-{
+void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr msg) {
   imu_ = *msg;
   tf_converted_imu_.header = imu_.header;
 
-  try
-  {
-    const geometry_msgs::msg::TransformStamped transform = tfbuffer_.lookupTransform(
-        tf_base_link_frame_, msg->header.frame_id, tf2::TimePointZero);
+  try {
+    const geometry_msgs::msg::TransformStamped transform =
+      tfbuffer_.lookupTransform(tf_base_link_frame_, msg->header.frame_id, tf2::TimePointZero);
 
-    geometry_msgs::msg::Vector3Stamped angular_velocity, linear_acceleration, transformed_angular_velocity, transformed_linear_acceleration;
+    geometry_msgs::msg::Vector3Stamped angular_velocity, linear_acceleration,
+      transformed_angular_velocity, transformed_linear_acceleration;
     geometry_msgs::msg::Quaternion transformed_quaternion;
 
     angular_velocity.header = imu_.header;
@@ -126,9 +126,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr ms
     tf_converted_imu_.linear_acceleration = transformed_linear_acceleration.vector;
     tf_converted_imu_.orientation = transformed_quaternion;
 
-  }
-  catch (tf2::TransformException &ex)
-  {
+  } catch (tf2::TransformException& ex) {
     std::cout << "Failed to lookup transform" << std::endl;
     RCLCPP_WARN(rclcpp::get_logger("tf_converted_imu"), "Failed to lookup transform.");
     return;
@@ -136,8 +134,7 @@ void TFConvertedIMU::imu_callback(const sensor_msgs::msg::Imu::ConstSharedPtr ms
   pub_->publish(tf_converted_imu_);
 };
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   rclcpp::spin(std::make_shared<TFConvertedIMU>());

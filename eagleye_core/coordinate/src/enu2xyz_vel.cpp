@@ -27,14 +27,14 @@
 #include <GeographicLib/Geocentric.hpp>
 #include <eigen3/Eigen/StdVector>
 
-void enu2xyz_vel(double enu_vel[3], double ecef_base_pos[3], double xyz_vel[3])
-{
+void enu2xyz_vel(double enu_vel[3], double ecef_base_pos[3], double xyz_vel[3]) {
   using namespace GeographicLib;
   Geocentric earth(Constants::WGS84_a(), Constants::WGS84_f());
 
   std::vector<double> rotation(9);
   double llh[3];
-  earth.Reverse(ecef_base_pos[0], ecef_base_pos[1], ecef_base_pos[2], llh[0], llh[1], llh[2], rotation);
+  earth.Reverse(ecef_base_pos[0], ecef_base_pos[1], ecef_base_pos[2], llh[0], llh[1], llh[2],
+                rotation);
 
   Eigen::Matrix3d R(rotation.data());
   Eigen::Vector3d v_enu(enu_vel);

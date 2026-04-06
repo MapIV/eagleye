@@ -33,8 +33,7 @@
 #include <GeographicLib/MGRS.hpp>
 #include <GeographicLib/UTMUPS.hpp>
 
-class ConvertHeight
-{
+class ConvertHeight {
 public:
   ConvertHeight();
 
@@ -64,6 +63,5 @@ extern void xyz2enu_vel(double*, double*, double*);
 extern double geoid_per_degree(double, double);
 extern double geoid_per_minute(double, double, double**);
 extern double** read_geoid_map();
-
 
 #endif /*COORDINATE_H */

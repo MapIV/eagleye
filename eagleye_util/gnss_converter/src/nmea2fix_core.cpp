@@ -25,11 +25,9 @@
 
 #include "gnss_converter/nmea2fix.hpp"
 
-double stringToGPSTime(std::string& input, double header_time)
-{
-
+double stringToGPSTime(std::string& input, double header_time) {
   time_t time;
-  struct tm *tm_localtime;
+  struct tm* tm_localtime;
   struct tm tm_GPSTime;
   double GPSTime, GPSTime_msec;
   int Leaptime = 18;
@@ -40,9 +38,9 @@ double stringToGPSTime(std::string& input, double header_time)
   tm_GPSTime.tm_year = tm_localtime->tm_year;
   tm_GPSTime.tm_mon = tm_localtime->tm_mon;
   tm_GPSTime.tm_mday = tm_localtime->tm_mday;
-  tm_GPSTime.tm_hour = stod(input.substr(0,2)) + 9;
-  tm_GPSTime.tm_min = stod(input.substr(2,2));
-  tm_GPSTime.tm_sec = stod(input.substr(4,2));
+  tm_GPSTime.tm_hour = stod(input.substr(0, 2)) + 9;
+  tm_GPSTime.tm_min = stod(input.substr(2, 2));
+  tm_GPSTime.tm_sec = stod(input.substr(4, 2));
   GPSTime_msec = stod(input.substr(6));
 
   GPSTime = mktime(&tm_GPSTime) + GPSTime_msec + Leaptime;
@@ -50,53 +48,55 @@ double stringToGPSTime(std::string& input, double header_time)
   return GPSTime;
 }
 
-void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_msgs::msg::NavSatFix* fix, nmea_msgs::msg::Gpgga* gga, nmea_msgs::msg::Gprmc* rmc)
-{
-
-  std::vector<std::string> linedata,nmea_data;
-  std::string token1,token2;
+void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence,
+                              sensor_msgs::msg::NavSatFix* fix, nmea_msgs::msg::Gpgga* gga,
+                              nmea_msgs::msg::Gprmc* rmc) {
+  std::vector<std::string> linedata, nmea_data;
+  std::string token1, token2;
   std::stringstream tmp_ss(sentence.sentence);
   int i;
   int index_length;
 
   rclcpp::Time ros_clock(sentence.header.stamp);
 
-  while (getline(tmp_ss, token1, '\n'))
-  {
+  while (getline(tmp_ss, token1, '\n')) {
     linedata.push_back(token1);
   }
 
   index_length = std::distance(linedata.begin(), linedata.end());
 
-  for (i = 0; i < index_length; i++)
-  {
-    if (linedata[i].compare(3, 3, "GGA") ==0)
-    {
+  for (i = 0; i < index_length; i++) {
+    if (linedata[i].compare(3, 3, "GGA") == 0) {
       std::stringstream tmp_ss1(linedata[i]);
 
-      while (getline(tmp_ss1, token2, ','))
-      {
+      while (getline(tmp_ss1, token2, ',')) {
         nmea_data.push_back(token2);
       }
 
-      if(!nmea_data[2].empty() || !nmea_data[4].empty())
-      {
+      if (!nmea_data[2].empty() || !nmea_data[4].empty()) {
         gga->header = sentence.header;
         gga->message_id = nmea_data[0];
         // gga->utc_seconds = stod(nmea_data[1]);
-        if(!nmea_data[1].empty()) gga->utc_seconds = stringToGPSTime(nmea_data[1], ros_clock.seconds());
-        gga->lat = floor(stod(nmea_data[2])/100) + fmod(stod(nmea_data[2]),100)/60;
+        if (!nmea_data[1].empty())
+          gga->utc_seconds = stringToGPSTime(nmea_data[1], ros_clock.seconds());
+        gga->lat = floor(stod(nmea_data[2]) / 100) + fmod(stod(nmea_data[2]), 100) / 60;
         gga->lat_dir = nmea_data[3];
-        gga->lon = floor(stod(nmea_data[4])/100) + fmod(stod(nmea_data[4]),100)/60;
+        gga->lon = floor(stod(nmea_data[4]) / 100) + fmod(stod(nmea_data[4]), 100) / 60;
         gga->lon_dir = nmea_data[5];
-        if(!nmea_data[6].empty()) gga->gps_qual = stod(nmea_data[6]);
-        if(!nmea_data[7].empty()) gga->num_sats = stod(nmea_data[7]);
-        if(!nmea_data[8].empty()) gga->hdop = stod(nmea_data[8]);
-        if(!nmea_data[9].empty()) gga->alt = stod(nmea_data[9]);
+        if (!nmea_data[6].empty())
+          gga->gps_qual = stod(nmea_data[6]);
+        if (!nmea_data[7].empty())
+          gga->num_sats = stod(nmea_data[7]);
+        if (!nmea_data[8].empty())
+          gga->hdop = stod(nmea_data[8]);
+        if (!nmea_data[9].empty())
+          gga->alt = stod(nmea_data[9]);
         gga->altitude_units = nmea_data[10];
-        if(!nmea_data[11].empty()) gga->undulation = stod(nmea_data[11]);
+        if (!nmea_data[11].empty())
+          gga->undulation = stod(nmea_data[11]);
         gga->undulation_units = nmea_data[12];
-        if(!nmea_data[13].empty()) gga->diff_age = stod(nmea_data[13]);
+        if (!nmea_data[13].empty())
+          gga->diff_age = stod(nmea_data[13]);
         gga->station_id = nmea_data[14].substr(0, nmea_data[14].find("*"));
 
         fix->header = sentence.header;
@@ -113,15 +113,12 @@ void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_ms
         fix->altitude = gga->alt + gga->undulation;
         fix->status.service = 1;
 
-        if(gga->gps_qual == 4)
-        {
+        if (gga->gps_qual == 4) {
           fix->status.status = 0;
           fix->position_covariance[0] = 0.01;
           fix->position_covariance[4] = 0.01;
           fix->position_covariance[8] = 0.04;
-        }
-        else
-        {
+        } else {
           fix->status.status = -1;
           fix->position_covariance[0] = 100.0;
           fix->position_covariance[4] = 100.0;
@@ -131,36 +128,37 @@ void gnss_converter_converter(const nmea_msgs::msg::Sentence sentence, sensor_ms
 
       nmea_data.clear();
 
-    }
-    else if (linedata[i].compare(3, 3, "RMC") ==0)
-    {
+    } else if (linedata[i].compare(3, 3, "RMC") == 0) {
       std::stringstream tmp_ss1(linedata[i]);
 
-      while (getline(tmp_ss1, token2, ','))
-      {
+      while (getline(tmp_ss1, token2, ',')) {
         nmea_data.push_back(token2);
       }
 
-      if(!nmea_data[3].empty() || !nmea_data[5].empty())
-      {
+      if (!nmea_data[3].empty() || !nmea_data[5].empty()) {
         rmc->header = sentence.header;
         rmc->message_id = nmea_data[0];
-        if(!nmea_data[1].empty()) rmc->utc_seconds = stringToGPSTime(nmea_data[1], ros_clock.seconds());
+        if (!nmea_data[1].empty())
+          rmc->utc_seconds = stringToGPSTime(nmea_data[1], ros_clock.seconds());
         rmc->position_status = nmea_data[2];
-        rmc->lat = floor(stod(nmea_data[3])/100) + fmod(stod(nmea_data[3]),100)/60;
+        rmc->lat = floor(stod(nmea_data[3]) / 100) + fmod(stod(nmea_data[3]), 100) / 60;
         rmc->lat_dir = nmea_data[4];
-        rmc->lon = floor(stod(nmea_data[5])/100) + fmod(stod(nmea_data[5]),100)/60;
+        rmc->lon = floor(stod(nmea_data[5]) / 100) + fmod(stod(nmea_data[5]), 100) / 60;
         rmc->lon_dir = nmea_data[6];
-        if(!nmea_data[7].empty()) rmc->speed = stod(nmea_data[7]);
-        if(!nmea_data[8].empty()) rmc->track = stod(nmea_data[8]);
-        if(!nmea_data[9].empty()) rmc->date = nmea_data[9];
-        if(!nmea_data[10].empty()) rmc->mag_var = stod(nmea_data[10]);
-        if(!nmea_data[11].empty()) rmc->mag_var_direction = nmea_data[11];
+        if (!nmea_data[7].empty())
+          rmc->speed = stod(nmea_data[7]);
+        if (!nmea_data[8].empty())
+          rmc->track = stod(nmea_data[8]);
+        if (!nmea_data[9].empty())
+          rmc->date = nmea_data[9];
+        if (!nmea_data[10].empty())
+          rmc->mag_var = stod(nmea_data[10]);
+        if (!nmea_data[11].empty())
+          rmc->mag_var_direction = nmea_data[11];
         rmc->mode_indicator = nmea_data[12].substr(0, nmea_data[12].find("*"));
       }
 
       nmea_data.clear();
-
     }
   }
 }

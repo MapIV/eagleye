@@ -26,8 +26,7 @@
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include <math.h>
 
-void llh2xyz(double llh_pos[3], double ecef_pos[3])
-{
+void llh2xyz(double llh_pos[3], double ecef_pos[3]) {
   double semi_major_axis = 6378137.0000;
   double semi_minor_axis = 6356752.3142;
   double a1 = sqrt(1 - pow((semi_minor_axis / semi_major_axis), 2.0));

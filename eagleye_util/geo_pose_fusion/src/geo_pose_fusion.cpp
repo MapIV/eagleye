@@ -54,61 +54,50 @@ static geographic_msgs::msg::GeoPoseWithCovarianceStamped _geo_pose_with_covaria
 
 bool _fix_only_publish = false;
 int _fix_judgement_type = 0;
-double _fix_std_pos_thres = 0.1; // [m]
+double _fix_std_pos_thres = 0.1;  // [m]
 
 std::string _node_name = "eagleye_geo_pose_fusion";
 
-void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg)
-{
+void heading_callback(const eagleye_msgs::msg::Heading::ConstSharedPtr msg) {
   _eagleye_heading = *msg;
 }
 
-void rolling_callback(const eagleye_msgs::msg::Rolling::ConstSharedPtr msg)
-{
+void rolling_callback(const eagleye_msgs::msg::Rolling::ConstSharedPtr msg) {
   _eagleye_rolling = *msg;
 }
 
-void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg)
-{
+void pitching_callback(const eagleye_msgs::msg::Pitching::ConstSharedPtr msg) {
   _eagleye_pitching = *msg;
 }
 
-void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
-{
+void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg) {
   bool fix_flag = false;
-  if(_fix_judgement_type == 0)
-  {
-    if(msg->status.status == 0 && _eagleye_heading.status.enabled_status) fix_flag = true;
-  }
-  else if(_fix_judgement_type == 1)
-  {
-    if(msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres && _eagleye_heading.status.enabled_status) fix_flag = true;
-  }
-  else
-  {
+  if (_fix_judgement_type == 0) {
+    if (msg->status.status == 0 && _eagleye_heading.status.enabled_status)
+      fix_flag = true;
+  } else if (_fix_judgement_type == 1) {
+    if (msg->position_covariance[0] < _fix_std_pos_thres * _fix_std_pos_thres &&
+        _eagleye_heading.status.enabled_status)
+      fix_flag = true;
+  } else {
     RCLCPP_ERROR(rclcpp::get_logger(_node_name), "fix_judgement_type is not valid");
     rclcpp::shutdown();
   }
 
-  if(_fix_only_publish && !fix_flag)
-  {
+  if (_fix_only_publish && !fix_flag) {
     return;
   }
 
   double eagleye_heading = 0;
   tf2::Quaternion localization_quat;
-  if (_eagleye_heading.status.enabled_status)
-  {
+  if (_eagleye_heading.status.enabled_status) {
     // NOTE: currently geo_pose_fusion ignores roll and pitch for robust estimation results.
-    eagleye_heading = fmod((90* M_PI / 180)-_eagleye_heading.heading_angle,2*M_PI);
+    eagleye_heading = fmod((90 * M_PI / 180) - _eagleye_heading.heading_angle, 2 * M_PI);
     localization_quat.setRPY(0, 0, eagleye_heading);
-  }
-  else
-  {
+  } else {
     tf2::Matrix3x3(localization_quat).setRPY(0, 0, 0);
   }
   _quat = tf2::toMsg(localization_quat);
-
 
   _geo_pose_with_covariance.header = msg->header;
   _geo_pose_with_covariance.header.frame_id = "map";
@@ -118,12 +107,15 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   _geo_pose_with_covariance.pose.pose.orientation = _quat;
 
   // TODO(Map IV): temporary value
-  double std_dev_roll = 100; // [rad]
-  double std_dev_pitch = 100; // [rad]
-  double std_dev_yaw = 100; // [rad]
-  if(_eagleye_rolling.status.enabled_status) std_dev_roll = 0.5 / 180 * M_PI;
-  if(_eagleye_pitching.status.enabled_status) std_dev_pitch = 0.5 / 180 * M_PI;
-  if(_eagleye_heading.status.enabled_status) std_dev_yaw = std::sqrt(_eagleye_heading.variance);
+  double std_dev_roll = 100;   // [rad]
+  double std_dev_pitch = 100;  // [rad]
+  double std_dev_yaw = 100;    // [rad]
+  if (_eagleye_rolling.status.enabled_status)
+    std_dev_roll = 0.5 / 180 * M_PI;
+  if (_eagleye_pitching.status.enabled_status)
+    std_dev_pitch = 0.5 / 180 * M_PI;
+  if (_eagleye_heading.status.enabled_status)
+    std_dev_yaw = std::sqrt(_eagleye_heading.variance);
 
   // Covariance in NavSatFix is in ENU coordinate while the one in GeoPoseWithCovariance is in Lat/Lon/Alt coordinate.
   // In order to be consistent with the msg definition, we need to swap the covariance of x and y.
@@ -137,8 +129,7 @@ void fix_callback(const sensor_msgs::msg::NavSatFix::ConstSharedPtr msg)
   _pub->publish(_geo_pose_with_covariance);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto node = rclcpp::Node::make_shared(_node_name);
 
@@ -150,15 +141,20 @@ int main(int argc, char** argv)
   node->get_parameter("fix_judgement_type", _fix_judgement_type);
   node->get_parameter("fix_std_pos_thres", _fix_std_pos_thres);
 
-  std::cout<< "fix_only_publish "<< _fix_only_publish<<std::endl;
-  std::cout<< "fix_judgement_type "<< _fix_judgement_type<<std::endl;
-  std::cout<< "fix_std_pos_thres "<< _fix_std_pos_thres<<std::endl;
+  std::cout << "fix_only_publish " << _fix_only_publish << std::endl;
+  std::cout << "fix_judgement_type " << _fix_judgement_type << std::endl;
+  std::cout << "fix_std_pos_thres " << _fix_std_pos_thres << std::endl;
 
-  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>("eagleye/heading_interpolate_3rd", 1000, heading_callback);
-  auto sub3 = node->create_subscription<sensor_msgs::msg::NavSatFix>("eagleye/fix", 1000, fix_callback);
-  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000, rolling_callback);
-  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000, pitching_callback);
-  _pub = node->create_publisher<geographic_msgs::msg::GeoPoseWithCovarianceStamped>("eagleye/geo_pose_with_covariance", 1000);
+  auto sub1 = node->create_subscription<eagleye_msgs::msg::Heading>(
+    "eagleye/heading_interpolate_3rd", 1000, heading_callback);
+  auto sub3 =
+    node->create_subscription<sensor_msgs::msg::NavSatFix>("eagleye/fix", 1000, fix_callback);
+  auto sub4 = node->create_subscription<eagleye_msgs::msg::Rolling>("eagleye/rolling", 1000,
+                                                                    rolling_callback);
+  auto sub5 = node->create_subscription<eagleye_msgs::msg::Pitching>("eagleye/pitching", 1000,
+                                                                     pitching_callback);
+  _pub = node->create_publisher<geographic_msgs::msg::GeoPoseWithCovarianceStamped>(
+    "eagleye/geo_pose_with_covariance", 1000);
   rclcpp::spin(node);
 
   return 0;
