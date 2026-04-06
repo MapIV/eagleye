@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="output_dir" default="." description="Directory to write CSV files"/>
+  <arg name="fix_topic"  default="/eagleye/fix"/>
+  <arg name="pose_topic" default="/eagleye/eagleye/pose"/>
+
+  <node pkg="eagleye_result_logger" exec="result_logger" output="screen">
+    <param name="output_dir" value="$(var output_dir)"/>
+    <param name="fix_topic"  value="$(var fix_topic)"/>
+    <param name="pose_topic" value="$(var pose_topic)"/>
+  </node>
+</launch>

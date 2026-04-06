@@ -28,52 +28,61 @@
  * Author MapIV Sekino
  */
 
-#include "rclcpp/rclcpp.hpp"
 #include "eagleye_coordinate/eagleye_coordinate.hpp"
 #include "eagleye_navigation/eagleye_navigation.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-rclcpp::Publisher<eagleye_msgs::msg::Distance>::SharedPtr _pub;
-static geometry_msgs::msg::TwistStamped _velocity;
-static eagleye_msgs::msg::StatusStamped _velocity_status;
-static eagleye_msgs::msg::Distance _distance;
-
-struct DistanceStatus _distance_status;
-
-static bool _use_can_less_mode;
-
-void velocity_status_callback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+class DistanceNode : public rclcpp::Node
 {
-  _velocity_status = *msg;
-}
-
-void velocity_callback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
-{
-  if(_use_can_less_mode && !_velocity_status.status.enabled_status) return;
-
-  _velocity = *msg;
-  _distance.header = msg->header;
-  _distance.header.frame_id = "base_link";
-  distance_estimate(_velocity, &_distance_status, &_distance);
-
-  if (_distance_status.time_last != 0)
+public:
+  DistanceNode() : Node("eagleye_distance")
   {
-    _pub->publish(_distance);
+    this->declare_parameter("use_can_less_mode", use_can_less_mode_);
+    this->get_parameter("use_can_less_mode", use_can_less_mode_);
+
+    sub_velocity_ = this->create_subscription<geometry_msgs::msg::TwistStamped>(
+      "velocity", rclcpp::QoS(10),
+      std::bind(&DistanceNode::velocityCallback, this, std::placeholders::_1));
+    sub_velocity_status_ = this->create_subscription<eagleye_msgs::msg::StatusStamped>(
+      "velocity_status", rclcpp::QoS(10),
+      std::bind(&DistanceNode::velocityStatusCallback, this, std::placeholders::_1));
+    pub_ = this->create_publisher<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10));
   }
-}
+
+private:
+  geometry_msgs::msg::TwistStamped velocity_;
+  eagleye_msgs::msg::StatusStamped velocity_status_;
+  eagleye_msgs::msg::Distance distance_;
+  DistanceStatus distance_status_ = {};
+  bool use_can_less_mode_ = false;
+
+  rclcpp::Publisher<eagleye_msgs::msg::Distance>::SharedPtr pub_;
+  rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub_velocity_;
+  rclcpp::Subscription<eagleye_msgs::msg::StatusStamped>::SharedPtr sub_velocity_status_;
+
+  void velocityStatusCallback(const eagleye_msgs::msg::StatusStamped::ConstSharedPtr msg)
+  {
+    velocity_status_ = *msg;
+  }
+
+  void velocityCallback(const geometry_msgs::msg::TwistStamped::ConstSharedPtr msg)
+  {
+    if (use_can_less_mode_ && !velocity_status_.status.enabled_status) return;
+
+    velocity_ = *msg;
+    distance_.header = msg->header;
+    distance_.header.frame_id = "base_link";
+    distance_estimate(velocity_, &distance_status_, &distance_);
+
+    if (distance_status_.time_last != 0) {
+      pub_->publish(distance_);
+    }
+  }
+};
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
-  auto node = rclcpp::Node::make_shared("eagleye_distance");
-
-  node->declare_parameter("use_can_less_mode",_use_can_less_mode);
-  node->get_parameter("use_can_less_mode",_use_can_less_mode);
-
-  auto sub1 = node->create_subscription<geometry_msgs::msg::TwistStamped>("velocity", rclcpp::QoS(10), velocity_callback);
-  auto sub2 = node->create_subscription<eagleye_msgs::msg::StatusStamped>("velocity_status", rclcpp::QoS(10), velocity_status_callback);
-  _pub = node->create_publisher<eagleye_msgs::msg::Distance>("distance", rclcpp::QoS(10));
-
-  rclcpp::spin(node);
-
+  rclcpp::spin(std::make_shared<DistanceNode>());
   return 0;
 }
