@@ -128,7 +128,7 @@ private:
   eagleye_msgs::msg::SlipAngle slip_angle_;
   eagleye_msgs::msg::Heading heading_interpolate_;
   HeadingInterpolateParameter heading_interpolate_parameter_;
-  HeadingInterpolateStatus heading_interpolate_status_;
+  HeadingInterpolateStatus heading_interpolate_status_ = {};
   bool use_can_less_mode_ = false;
 
   rclcpp::Publisher<eagleye_msgs::msg::Heading>::SharedPtr pub_;

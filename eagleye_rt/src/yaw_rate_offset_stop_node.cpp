@@ -85,7 +85,7 @@ private:
   eagleye_msgs::msg::YawrateOffset yaw_rate_offset_stop_;
   sensor_msgs::msg::Imu imu_;
   YawrateOffsetStopParameter yaw_rate_offset_stop_parameter_;
-  YawrateOffsetStopStatus yaw_rate_offset_stop_status_;
+  YawrateOffsetStopStatus yaw_rate_offset_stop_status_ = {};
   double previous_yaw_rate_offset_stop_ = 0.0;
 
   rclcpp::Publisher<eagleye_msgs::msg::YawrateOffset>::SharedPtr pub_;

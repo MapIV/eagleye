@@ -135,7 +135,7 @@ private:
   eagleye_msgs::msg::AccYOffset acc_y_offset_;
 
   EnableAdditionalRollingParameter rolling_parameter_;
-  EnableAdditionalRollingStatus rolling_status_;
+  EnableAdditionalRollingStatus rolling_status_ = {};
 
   bool use_can_less_mode_ = false;
 

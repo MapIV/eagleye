@@ -126,7 +126,7 @@ private:
   eagleye_msgs::msg::AccXOffset acc_x_offset_;
   eagleye_msgs::msg::AccXScaleFactor acc_x_scale_factor_;
   HeightParameter height_parameter_;
-  HeightStatus height_status_;
+  HeightStatus height_status_ = {};
   bool use_can_less_mode_ = false;
 
   rclcpp::Publisher<eagleye_msgs::msg::Height>::SharedPtr pub_height_;

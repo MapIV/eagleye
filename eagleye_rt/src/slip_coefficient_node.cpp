@@ -123,7 +123,7 @@ private:
   eagleye_msgs::msg::YawrateOffset yaw_rate_offset_2nd_;
   eagleye_msgs::msg::Heading heading_interpolate_3rd_;
   SlipCoefficientParameter slip_coefficient_parameter_;
-  SlipCoefficientStatus slip_coefficient_status_;
+  SlipCoefficientStatus slip_coefficient_status_ = {};
   double estimate_coefficient_ = 0.0;
   bool is_first_correction_velocity_ = false;
   bool use_can_less_mode_ = false;

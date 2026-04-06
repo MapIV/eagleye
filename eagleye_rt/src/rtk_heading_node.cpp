@@ -164,7 +164,7 @@ private:
   eagleye_msgs::msg::Heading heading_interpolate_;
   eagleye_msgs::msg::Heading heading_;
   RtkHeadingParameter heading_parameter_;
-  RtkHeadingStatus heading_status_;
+  RtkHeadingStatus heading_status_ = {};
   bool use_can_less_mode_ = false;
 
   rclcpp::Publisher<eagleye_msgs::msg::Heading>::SharedPtr pub_;

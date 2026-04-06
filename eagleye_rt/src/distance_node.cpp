@@ -53,7 +53,7 @@ private:
   geometry_msgs::msg::TwistStamped velocity_;
   eagleye_msgs::msg::StatusStamped velocity_status_;
   eagleye_msgs::msg::Distance distance_;
-  DistanceStatus distance_status_;
+  DistanceStatus distance_status_ = {};
   bool use_can_less_mode_ = false;
 
   rclcpp::Publisher<eagleye_msgs::msg::Distance>::SharedPtr pub_;

@@ -89,7 +89,7 @@ private:
   sensor_msgs::msg::Imu imu_;
   eagleye_msgs::msg::Rolling rolling_;
   RollingParameter rolling_parameter_;
-  RollingStatus rolling_status_;
+  RollingStatus rolling_status_ = {};
   bool use_can_less_mode_ = false;
 
   rclcpp::Publisher<eagleye_msgs::msg::Rolling>::SharedPtr pub_;

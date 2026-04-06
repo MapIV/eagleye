@@ -131,7 +131,7 @@ private:
   sensor_msgs::msg::NavSatFix eagleye_fix_;
   eagleye_msgs::msg::Heading heading_interpolate_3rd_;
   RtkDeadreckoningParameter rtk_dead_reckoning_parameter_;
-  RtkDeadreckoningStatus rtk_dead_reckoning_status_;
+  RtkDeadreckoningStatus rtk_dead_reckoning_status_ = {};
   std::string use_gnss_mode_;
 
   tf2_ros::Buffer tf_buffer_;

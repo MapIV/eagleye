@@ -149,7 +149,7 @@ private:
   geometry_msgs::msg::TwistWithCovarianceStamped eagleye_twist_with_covariance_;
 
   TrajectoryParameter trajectory_parameter_;
-  TrajectoryStatus trajectory_status_;
+  TrajectoryStatus trajectory_status_ = {};
 
   double th_deadlock_time_ = 1;
   double imu_time_last_ = 0;

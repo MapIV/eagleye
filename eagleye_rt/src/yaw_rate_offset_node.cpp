@@ -166,7 +166,7 @@ private:
   sensor_msgs::msg::Imu imu_;
   eagleye_msgs::msg::YawrateOffset yaw_rate_offset_;
   YawrateOffsetParameter yaw_rate_offset_parameter_;
-  YawrateOffsetStatus yaw_rate_offset_status_;
+  YawrateOffsetStatus yaw_rate_offset_status_ = {};
   bool is_first_heading_ = false;
   bool use_can_less_mode_ = false;
   double previous_yaw_rate_offset_ = 0.0;

@@ -102,7 +102,7 @@ private:
   eagleye_msgs::msg::Position enu_absolute_pos_interpolate_;
   sensor_msgs::msg::NavSatFix eagleye_fix_;
   PositionInterpolateParameter position_interpolate_parameter_;
-  PositionInterpolateStatus position_interpolate_status_;
+  PositionInterpolateStatus position_interpolate_status_ = {};
 
   rclcpp::Publisher<eagleye_msgs::msg::Position>::SharedPtr pub_pos_;
   rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr pub_fix_;

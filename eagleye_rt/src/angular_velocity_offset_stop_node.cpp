@@ -80,7 +80,7 @@ private:
   sensor_msgs::msg::Imu imu_;
 
   struct AngularVelocityOffsetStopParameter angular_velocity_offset_stop_parameter_;
-  struct AngularVelocityOffsetStopStatus angular_velocity_offset_stop_status_;
+  struct AngularVelocityOffsetStopStatus angular_velocity_offset_stop_status_ = {};
 
   rclcpp::Subscription<geometry_msgs::msg::TwistStamped>::SharedPtr sub1_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub2_;

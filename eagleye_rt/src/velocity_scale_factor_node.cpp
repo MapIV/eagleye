@@ -156,7 +156,7 @@ private:
   eagleye_msgs::msg::VelocityScaleFactor velocity_scale_factor_;
 
   VelocityScaleFactorParameter velocity_scale_factor_parameter_;
-  VelocityScaleFactorStatus velocity_scale_factor_status_;
+  VelocityScaleFactorStatus velocity_scale_factor_status_ = {};
 
   std::string use_gnss_mode_;
   bool is_first_move_ = false;

@@ -158,7 +158,7 @@ private:
   geometry_msgs::msg::Vector3Stamped enu_vel_;
   nmea_msgs::msg::Gpgga gga_;
   PositionParameter position_parameter_;
-  PositionStatus position_status_;
+  PositionStatus position_status_ = {};
   std::string use_gnss_mode_;
   bool use_can_less_mode_ = false;
 

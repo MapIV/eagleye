@@ -186,7 +186,7 @@ private:
   eagleye_msgs::msg::Heading heading_interpolate_;
   eagleye_msgs::msg::Heading heading_;
   HeadingParameter heading_parameter_;
-  HeadingStatus heading_status_;
+  HeadingStatus heading_status_ = {};
   std::string use_gnss_mode_;
   bool use_can_less_mode_ = false;
   bool use_multi_antenna_mode_ = false;

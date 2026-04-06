@@ -110,7 +110,7 @@ private:
   eagleye_msgs::msg::StatusStamped velocity_status_;
   PositionParameter position_parameter_;
   SmoothingParameter smoothing_parameter_;
-  SmoothingStatus smoothing_status_;
+  SmoothingStatus smoothing_status_ = {};
   bool use_can_less_mode_ = false;
 
   tf2_ros::Buffer tf_buffer_;
