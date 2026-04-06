@@ -12,8 +12,10 @@ jobs:
 
       - name: Install clang-format
         run: |
-          sudo apt-get update
-          sudo apt-get install -y clang-format-14
+          wget -qO /tmp/llvm.sh https://apt.llvm.org/llvm.sh
+          chmod +x /tmp/llvm.sh
+          sudo /tmp/llvm.sh 17
+          sudo apt-get install -y clang-format-17
 
       - name: Check clang-format
         run: |
@@ -23,4 +25,4 @@ jobs:
           fi
           find . \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) \
             ! -path "./build/*" ! -path "./install/*" \
-            | xargs clang-format-14 --dry-run --Werror
+            | xargs clang-format-17 --dry-run --Werror
