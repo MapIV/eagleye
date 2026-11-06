@@ -19,7 +19,7 @@ find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
 include_directories(include)
-find_package(Boost REQUIRED COMPONENTS system thread regex chrono)
+find_package(Boost REQUIRED COMPONENTS thread regex chrono)
 
 ament_auto_add_executable(gnss_converter
   src/nmea2fix_core.cpp
